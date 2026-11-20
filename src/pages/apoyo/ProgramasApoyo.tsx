@@ -180,7 +180,11 @@ export function ProgramasApoyo({ alumno, data, onChange, especialidades, comunid
                     key={o.id} objetivo={o} estado={estado} materias={materias}
                     puntos={puntosDe(data, alumno.id, o.id)}
                     onChange={f => cambiarObjetivo(p.id, o.id, f)}
-                    onDelete={() => cambiarPrograma(p.id, x => ({ ...x, objetivos: x.objetivos.filter(y => y.id !== o.id) }))}
+                    onDelete={() => {
+                      // Un objetivo con texto puede tener registros en las sesiones: se pregunta antes (19-11-2026; antes se iba al instante)
+                      if (o.texto.trim() && !window.confirm(t('¿Quitar el objetivo «{name}»? Lo que se haya registrado de él en las sesiones dejará de verse, y no se puede deshacer.', { name: o.texto.trim() }))) return;
+                      cambiarPrograma(p.id, x => ({ ...x, objetivos: x.objetivos.filter(y => y.id !== o.id) }));
+                    }}
                   />
                 ))}
               </ul>

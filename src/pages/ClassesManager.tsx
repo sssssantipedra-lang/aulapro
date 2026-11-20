@@ -1,4 +1,4 @@
-import { mismoNombreEnClase } from '../lib/alumnado';
+import { leerListado, mismoNombreEnClase } from '../lib/alumnado';
 import { AyudaVideo } from '../components/AyudaVideo';
 import { useState, useId, useEffect } from 'react';
 import {
@@ -233,7 +233,7 @@ export function ClassesManager({
 
   function deleteStudentConfirm() {
     if (!editStudent) return;
-    if (!window.confirm(t('¿Eliminar a {name}?', { name: editStudent.name }))) return;
+    if (!window.confirm(t('¿Eliminar a {name}? Se borran también sus notas, sus evaluaciones, su asistencia y sus informes, y no se puede deshacer.', { name: editStudent.name }))) return;
     onDeleteStudent(editStudent.id);
     notify(t('Alumno eliminado'));
     closeStudentModal();
@@ -346,17 +346,11 @@ export function ClassesManager({
 
   // ─── csv import ─────────────────────────────────────────────────────────────
   function importCsv() {
-    const lines = csvText.split('\n').map(l => l.trim()).filter(Boolean);
     const parsed: Student[] = [];
     // Un nombre que ya está en la clase (o repetido en lo pegado) no entra: ver mismoNombreEnClase
     const repetidos: string[] = [];
-    for (const line of lines) {
-      const parts = line.split(/[,;]/);
-      const name = parts[0]?.trim();
-      const email = parts[1]?.trim() ?? '';
-      if (!name) continue;
-      // Salta la fila de cabecera («Nombre,Email» o «Name,Email»)
-      if (/^(nombre|name)$/i.test(name) || /^email$/i.test(name) || /^correo$/i.test(name)) continue;
+    // El listado se lee como venga: una columna, columnas de una hoja de cálculo o «Apellidos, Nombre» (leerListado)
+    for (const { name, email } of leerListado(csvText)) {
       if (mismoNombreEnClase(name, activeClassId, [...students, ...parsed])) { repetidos.push(name); continue; }
       parsed.push({
         id: newId(), class_id: activeClassId,
@@ -897,14 +891,14 @@ export function ClassesManager({
           </div>
 
           <p style={{ fontSize: 13, color: 'var(--text-2)', marginBottom: 12 }}>
-            {t('Pega las filas en formato')} <strong>{t('Nombre,Email')}</strong> {t('(una por línea). La primera fila puede ser una cabecera.')}
+            {t('Pega la lista, una fila por alumno. Vale una columna de nombres, las columnas copiadas de una hoja de cálculo o «Apellidos, Nombre», como en los listados oficiales. El correo es opcional y la primera fila puede ser una cabecera.')}
           </p>
 
           <div className="fgroup">
             <label className="flabel" htmlFor="classesmanager-f6">{t('Datos CSV')}</label>
             <textarea id="classesmanager-f6" className="finput" rows={8} value={csvText}
               onChange={e => setCsvText(e.target.value)}
-              placeholder={'Nombre,Email\nAlumno 1,alumno1@ejemplo.com\nAlumno 2,alumno2@ejemplo.com'}
+              placeholder={'Alumno 1\nApellido Apellido, Alumno 2\nAlumno 3,alumno3@ejemplo.com'}
               style={{ resize: 'vertical', fontFamily: 'monospace', fontSize: 13 }} />
           </div>
 

@@ -558,7 +558,7 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
       </div>
 
       {/* Carpeta de datos, copias y fin de curso */}
-      <DataFolder profileId={profileId} courseLabel={course} onClearSchoolYear={onClearSchoolYear} />
+      <DataFolder profileId={profileId} courseLabel={course} onClearSchoolYear={onClearSchoolYear} apoyo={tipo === 'apoyo'} />
       </>)}
     </section>
   );

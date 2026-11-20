@@ -7,6 +7,7 @@
  * se prueba automáticamente con el siguiente de la lista.
  */
 
+import { ocupar } from '../lib/ocupado';
 import { codigosDePeticion, currentPseudonymizer, privacyInstruction, type Pseudonymizer } from './privacy';
 
 /** Los correos electrónicos nunca le hacen falta a la IA: se quitan de todo lo que se envía. */
@@ -513,6 +514,8 @@ export async function callGemini(
   options: GeminiOptions = {},
 ): Promise<string | null> {
   callbacks.onStart?.();
+  // Mientras hay una petición viva no se recarga la app para poner una versión nueva (lib/ocupado.ts)
+  const soltar = ocupar('ia');
   try {
     const key = getApiKey();
     if (!key) {
@@ -588,6 +591,7 @@ export async function callGemini(
     callbacks.onError?.(lastError || 'No se pudo obtener respuesta de la IA.');
     return null;
   } finally {
+    soltar();
     callbacks.onEnd?.();
   }
 }

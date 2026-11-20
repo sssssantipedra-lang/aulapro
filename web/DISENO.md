@@ -496,3 +496,8 @@ Petición del dueño: AulaPro salía en la segunda página de resultados. Lo que
 - **La descripción para buscadores no lleva precio** (`meta.desc`, la del `<head>`, `og:description` y la de los datos estructurados): el precio cambia con la beta y con la venta, y la descripción no la cambia `scripts/abrir-venta.mjs`. Acaba con «Funciona en el navegador, sin instalar nada», que es cierto antes y después.
 - **Datos estructurados:** la app (`SoftwareApplication`) sin `offers`, porque Google no da ficha de app sin valoraciones y el precio se quedaba viejo; con `alternateName: "Aula Pro"`, para quien lo busca separado. Y una ficha de la organización (`Organization`: logo `assets/icono-180.png` y `contacto@aulapro.app`), para el panel de la marca. Cuando haya perfiles en redes, se añaden en `sameAs`. En el texto de la página la marca sigue siendo «AulaPro», todo junto.
 - Lo que más pesa y no está en el código: Google Search Console (dominio verificado, mapa del sitio enviado) y enlaces de otros sitios.
+
+## 53. Capturas rehechas y el botón de la Diana competencial (19-11-2026)
+
+- El botón «Sugerir perfil con IA» de la Diana competencial pasa a llamarse «Redactar descriptores con IA», porque la IA ya no propone niveles (ver la memoria del proyecto, «Arreglos del 19-11-2026»). Cambian el texto alternativo de su captura en la portada (es, ca, en) y el anillo que la rodea (`note-ring`, con las medidas nuevas de `scripts/web/marcas.json`).
+- Se ha vuelto a ejecutar `scripts/web/capturar.mjs` entero (82 pantallas de los tres perfiles, sin errores): las capturas de la portada y de la demo enseñan la app de hoy, también lo añadido el 18-11-2026 (Inicio con «Tu semana», «Lo más relevante» en la ficha, el buscador en el menú).

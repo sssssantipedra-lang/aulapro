@@ -178,9 +178,12 @@ Las que no están en la lista (Religión, Tutoría…) se añaden aparte con
 Matemáticas se pide la opción A o B. El lápiz junto al nombre de la clase
 («Editar clase») abre el mismo formulario para cambiar cualquier dato.
 Dentro de cada clase se
-añaden los alumnos uno a uno, o de golpe con el botón «Importar CSV»: se pegan
-las filas en formato «Nombre,Email», una por línea (la primera puede ser la
-cabecera). De cada alumno se guardan
+añaden los alumnos uno a uno, o de golpe con el botón «Importar CSV»: se pega la
+lista, una fila por alumno. Vale una columna de nombres, las columnas copiadas
+de una hoja de cálculo o «Apellidos, Nombre», como en los listados oficiales
+(entra como «Nombre Apellidos»); el correo es opcional y la primera fila puede
+ser la cabecera. Al eliminar a un alumno se borran también sus notas, sus
+evaluaciones, su asistencia y sus informes. De cada alumno se guardan
 avisos (por ejemplo «faltas reiteradas») y anotaciones del docente, que luego
 aparecen en los informes y en el asistente del cuaderno.
 FICHA DEL ALUMNO: al pulsar un alumno se abre su ficha, que empieza por «LO MÁS
@@ -487,7 +490,10 @@ sale («Matemáticas CE2 10/10»). La conexión la dice el decreto: en el estata
 en Madrid y en Andalucía, con los descriptores del perfil de salida; en la Comunitat
 Valenciana, con su tabla de conexiones. Cataluña no la publica, y en Madrid
 Primaria solo está en parte de las áreas: esas competencias no llegan a la
-Diana por este camino.
+Diana por este camino. «Redactar descriptores con IA» escribe el descriptor de
+los sectores que ya tienen un nivel calculado de las evaluaciones, citando de
+dónde sale; la IA no propone ni cambia ningún nivel, y los sectores sin datos
+los marca el docente.
 
 [reports] INFORMES
 Informes de evaluación competencial redactados por la IA a partir de las
@@ -504,7 +510,14 @@ exportan a PDF y se pueden editar a mano.
 [records] ACTAS
 El acta oficial de calificaciones de una clase, con una columna por categoría y
 la media, lista para imprimir o firmar. Sale en PDF horizontal. Se genera con
-las notas que ya están en el cuaderno.
+las notas que ya están en el cuaderno. Cada evaluación (1ª, 2ª, 3ª) cuenta solo
+las notas y las evaluaciones de sus fechas, que se ven junto al selector y se
+pueden cambiar si el centro cierra la evaluación otro día (de partida, de
+septiembre a diciembre, de enero a marzo y de abril en adelante; al cambiar
+las de una, las vecinas se ajustan para no dejar días en medio); «Final de
+curso» cuenta todo el curso. El bloque de trabajo diario y actitud también va
+por esas fechas. La columna de una rúbrica o una diana cuenta en la evaluación
+en que se usó por primera vez.
 
 [selfassess] AUTOEVALUACIONES
 Lo que han respondido los alumnos desde el móvil en Actividades con móviles (en la versión web, próximamente). El
@@ -514,7 +527,15 @@ cuaderno.
 
 [history] HISTORIAL
 Todas las evaluaciones hechas con rúbricas y dianas, con filtros por clase,
-alumno e instrumento, y buscador.
+alumno e instrumento, y buscador. Al abrir una fila, «Eliminar esta evaluación»
+quita una equivocada: deja de contar en las medias y en las competencias, y en
+el cuaderno su nota pasa a ser la de la evaluación anterior con ese instrumento
+o se queda vacía (el cuaderno solo cambia si la eliminada era la más reciente).
+Al volver a evaluar a un alumno con el mismo instrumento el mismo día, la app
+pregunta si es una corrección (sustituye a la de ese día) o es otro trabajo
+(se guardan las dos); en otro día es siempre otra evaluación. Si al guardar
+quedan criterios o ítems sin marcar, la app avisa: no cuentan como 0, la nota
+se calcula solo con lo marcado.
 
 === DOCUMENTOS: SITUACIONES DE APRENDIZAJE Y RECURSOS ===
 
@@ -723,7 +744,10 @@ Herramientas para proyectar en clase: temporizador, sorteo de alumnos (quien sal
 no vuelve a salir hasta que se pulsa «Reiniciar lista»; se acuerda de cada
 clase aunque se cierre la pizarra, y «Volver a meter en el sorteo» devuelve a
 quien acaba de salir) y medidor de ruido con el micrófono, con aviso al pasar
-de un nivel.
+de un nivel. La pizarra sigue viva al pasar a otra pantalla (pasar lista, anotar
+actitud): al volver están el temporizador en marcha, los grupos y lo dibujado;
+se cierra sola a los veinte minutos de salir de ella, salvo que haya un
+temporizador en marcha.
 Tiene una pizarra para dibujar encima: el botón «Dibujar» la activa y sale la
 barra con cuatro herramientas, «Lápiz» (fino, responde a la presión si el
 dispositivo la da), «Rotulador», «Subrayador» (translúcido, con sus propios
@@ -1297,8 +1321,10 @@ después. En la lista de agendas: «Mostrar» la enseña a pantalla completa par
 el alumno (se toca cada paso al hacerlo y se tacha; el siguiente queda
 marcado; «Volver a empezar» y «Cerrar»), y los botones de editar, guardar en
 PDF para imprimir (una tarjeta por paso, para recortar, con la atribución de
-Mulberry al pie), duplicar y eliminar. Al vaciar el curso se quedan las agendas
-sin alumno, como plantillas.
+Mulberry al pie), duplicar y eliminar. Al vaciar el curso, en PT y AL se
+conserva el alumnado de apoyo con sus grupos, sus programas, sus adaptaciones y
+sus agendas; se borran los registros de las sesiones, las coordinaciones, los
+cierres de trimestre y los documentos.
 
 [audit] REGISTRO DE CAMBIOS
 Quién cambió qué y cuándo: notas, alumnos, asistencia, evaluaciones… Con filtros

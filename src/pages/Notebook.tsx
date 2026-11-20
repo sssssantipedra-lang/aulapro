@@ -104,8 +104,24 @@ function notaColor(n: number | null): string {
 
 /* ══════════════════ Celda de nota editable ══════════════════ */
 
+/** La celda de nota del alumno de abajo (o de arriba) en la misma columna. */
+function celdaVecina(desde: HTMLInputElement, paso: 1 | -1): HTMLInputElement | null {
+  const td = desde.closest('td');
+  const tr = td?.parentElement;
+  if (!td || !tr) return null;
+  const columna = Array.prototype.indexOf.call(tr.children, td);
+  let fila = paso > 0 ? tr.nextElementSibling : tr.previousElementSibling;
+  while (fila) {
+    const celda = fila.children[columna]?.querySelector<HTMLInputElement>('input.gb-cell');
+    if (celda) return celda;
+    fila = paso > 0 ? fila.nextElementSibling : fila.previousElementSibling;
+  }
+  return null;
+}
+
 function GradeCell({ value, onCommit }: { value: number | null; onCommit: (v: number | null) => void }) {
-  const { lang } = useI18n();
+  const { lang, t } = useI18n();
+  const { toast } = useToast();
   const [text, setText] = useState<string | null>(null); // null = sin editar
   // El separador decimal sigue al idioma; escribir admite los dos igualmente.
   const formatted = value !== null ? (lang !== 'en' ? String(value).replace('.', ',') : String(value)) : '';
@@ -118,9 +134,10 @@ function GradeCell({ value, onCommit }: { value: number | null; onCommit: (v: nu
       onCommit(null);
     } else {
       const n = Number(trimmed);
-      if (!Number.isNaN(n)) {
-        onCommit(Math.min(10, Math.max(0, Math.round(n * 100) / 100)));
-      }
+      // Lo que no es una nota entre 0 y 10 no se guarda, y se dice (19-11-2026; antes un 11 o un 85
+      // se guardaban como 10 y las letras se descartaban, las dos cosas sin avisar)
+      if (Number.isNaN(n) || n < 0 || n > 10) toast(t('«{texto}» no es una nota entre 0 y 10: no se ha guardado.', { texto: text.trim() }));
+      else onCommit(Math.round(n * 100) / 100);
     }
     setText(null);
   }
@@ -134,8 +151,16 @@ function GradeCell({ value, onCommit }: { value: number | null; onCommit: (v: nu
       placeholder="·"
       onChange={e => setText(e.target.value)}
       onBlur={commit}
+      onFocus={e => e.target.select()}
       onKeyDown={e => {
-        if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+        // Intro y la flecha abajo pasan al alumno siguiente y la flecha arriba, al anterior (19-11-2026; antes
+        // Intro soltaba el foco y lo que se tecleaba después se perdía). Al salir de la celda se guarda sola.
+        if (e.key === 'Enter' || e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+          e.preventDefault();
+          const celda = e.target as HTMLInputElement;
+          const vecina = celdaVecina(celda, e.key === 'ArrowUp' ? -1 : 1);
+          if (vecina) vecina.focus(); else if (e.key === 'Enter') celda.blur();
+        }
         if (e.key === 'Escape') setText(null);
       }}
       style={{ color: notaColor(value) }}

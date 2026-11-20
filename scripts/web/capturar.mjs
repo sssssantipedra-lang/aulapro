@@ -432,7 +432,7 @@ await pestana('Diana competencial');
 const dc = await pantalla('diana', 'Diana competencial', 'evaluar');
 fs.writeFileSync(path.join(SITIO, 'assets/app/diana-competencial.webp'), await webp(dc));
 MARCAS.dianaCompetencial = await page.evaluate(() => {
-  const b = [...document.querySelectorAll('main button')].find(e => /Sugerir perfil con IA/.test(e.textContent) && e.checkVisibility());
+  const b = [...document.querySelectorAll('main button')].find(e => /Redactar descriptores con IA/.test(e.textContent) && e.checkVisibility());
   if (!b) return null;
   const x = b.getBoundingClientRect();
   return [+(x.left / innerWidth * 100).toFixed(1), +(x.top / innerHeight * 100).toFixed(1), +(x.width / innerWidth * 100).toFixed(1), +(x.height / innerHeight * 100).toFixed(1)];
@@ -517,10 +517,14 @@ await pestana('Pizarra y herramientas');
   });
   const TAM = { timer: [290, 350], wheel: [290, 340], calc: [270, 380] };   // lo que mide cada una al abrirse
   const ventana = (tipo, x, y) => ({ id: tipo, tipo, rect: { x: r(x), y: r(y), width: TAM[tipo][0], height: TAM[tipo][1] } });
-  // La pizarra lee dónde estaban las ventanas al montarse: se sale y se vuelve a entrar con la disposición hecha
+  // La pizarra lee dónde estaban las ventanas al montarse. Desde el 19-11-2026 sigue montada al cambiar de
+  // pantalla, así que salir y volver a entrar ya no basta: se recarga la app con la disposición hecha
   const disponer = async ventanas => {
-    await pestana('Resumen');
     await page.evaluate(v => localStorage.setItem('aulapro_pizarra_actual', JSON.stringify(v)), ventanas);
+    await page.reload();
+    await page.locator('.sidebar .nav-item').first().waitFor();
+    await page.waitForTimeout(1500);
+    await menu('En clase');
     await pestana('Pizarra y herramientas');
     await page.mouse.move(5, 5);
     await page.waitForTimeout(400);
@@ -728,7 +732,7 @@ await tabPT('Grupos');
 await page.waitForTimeout(800);
 await pantalla('pt-grupos', 'Mi alumnado: grupos', null, { extra: EXTRA_ALUMNADO });
 await tabPT('Alumnado');
-await page.getByText('Alumno 1', { exact: true }).first().click();
+await page.locator('main .sec.active').getByText('Alumno 1', { exact: true }).first().click();
 await page.waitForTimeout(1500);
 await pantalla('pt-al-resumen', 'Alumno: resumen', null, { extra: EXTRA_ALUMNO });
 for (const [pestana, id] of [['Programa', 'pt-al-programa'], ['Sesiones', 'pt-al-sesiones'], ['Coordinaciones', 'pt-al-coord'], ['Documentos', 'pt-al-docs'], ['Datos', 'pt-al-datos']]) {

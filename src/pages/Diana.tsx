@@ -336,7 +336,7 @@ export function Diana({ classes, students, evaluations, rubrics, dianas, lawDocu
    * Evaluaciones que traen nota por competencia: las que se hicieron con una
    * rúbrica cuyos criterios llevan competencias LOMLOE asociadas (hoy, solo
    * las que genera una Situación de Aprendizaje). El resto de evaluaciones no
-   * aportan nada aquí, aunque sí cuentan para «Sugerir perfil con IA».
+   * aportan nada aquí, aunque sí van de contexto en «Redactar descriptores con IA».
    */
   const competencyEvals = useMemo(
     () => studentEvals.filter(e => e.competencyScores && Object.keys(e.competencyScores).length > 0),
@@ -405,14 +405,13 @@ export function Diana({ classes, students, evaluations, rubrics, dianas, lawDocu
   }, [studentId, scores, descriptors, onSaveDiana, toast, t]);
 
   /**
-   * Sugiere el perfil con IA, pero ya no le deja adivinar lo que se puede
-   * calcular. Los sectores con evaluaciones etiquetadas por competencia
-   * tienen un valor real (el mismo que calcula `handleFillFromEvaluations`):
-   * a la IA solo se le pide que redacte su descriptor citando esa evidencia
-   * concreta, nunca que invente un número distinto. Solo para los sectores
-   * SIN ninguna evaluación etiquetada se le pide que infiera una puntuación,
-   * y ahí a partir de un historial legible —con el nombre de cada criterio o
-   * ítem, no su id— en vez del resumen casi opaco de antes.
+   * La IA redacta, no puntúa (19-11-2026; antes infería un nivel de 1 a 4 en
+   * los sectores sin datos, contra la decisión del 3-11-2026 de que la IA no
+   * pone notas, y eso es lo que dicen la web, la privacidad y las
+   * condiciones). Solo escribe el descriptor de los sectores que ya tienen un
+   * nivel calculado de las evaluaciones del docente (el mismo que da
+   * `handleFillFromEvaluations`), citando esa evidencia. Los sectores sin
+   * datos no se tocan: su nivel y su descriptor los pone el docente.
    */
   const handleAiSuggest = useCallback(async () => {
     if (!student) return;
@@ -421,16 +420,19 @@ export function Diana({ classes, students, evaluations, rubrics, dianas, lawDocu
     const sectorLabel = (sid: SectorId) => t(DIANA_SECTORS.find(s => s.id === sid)!.label);
 
     const bySector = porSector;
-    const sectoresConDatos = SECTOR_IDS.filter(sid => bySector[sid].length > 0);
-    const sectoresSinDatos = SECTOR_IDS.filter(sid => bySector[sid].length === 0);
+    const sectoresConDatos = SECTOR_IDS.filter(sid => nivelDelSector(bySector[sid]) !== null);
+    if (sectoresConDatos.length === 0) {
+      toast(t('La IA no propone niveles: solo redacta el descriptor de los sectores que ya tienen un nivel calculado de tus evaluaciones, y este alumno aún no tiene ninguno. Marca tú los niveles o evalúa antes con rúbricas o dianas que tengan competencias.'));
+      return;
+    }
 
-    const objectiveBlock = sectoresConDatos.length === 0 ? '' : sectoresConDatos.map(sid => {
+    const objectiveBlock = sectoresConDatos.map(sid => {
       const entries = bySector[sid];
       const avg = entries.reduce((a, e) => a + e.value, 0) / entries.length;
       const detalle = entries.map(e => e.etiqueta).join(', ');
       return lang === 'en'
-        ? `- ${sectorLabel(sid)} (${sid}): REAL calculated value ${avg.toFixed(1)}/4, from: ${detalle}`
-        : `- ${sectorLabel(sid)} (${sid}): valor REAL ya calculado ${avg.toFixed(1)}/4, a partir de: ${detalle}`;
+        ? `- ${sectorLabel(sid)} (${sid}): level already calculated ${avg.toFixed(1)}/4, from: ${detalle}`
+        : `- ${sectorLabel(sid)} (${sid}): nivel ya calculado ${avg.toFixed(1)}/4, a partir de: ${detalle}`;
     }).join('\n');
 
     const evalSummary = studentEvals.length === 0
@@ -448,36 +450,43 @@ export function Diana({ classes, students, evaluations, rubrics, dianas, lawDocu
         }).join('\n\n');
 
     const systemPrompt = lang === 'en'
-      ? `You are an expert in competency-based education, helping a teacher complete a student's Learner Profile (6 competency sectors, 1-4 scale). Some sectors already have a REAL value calculated from tagged assessments, listed below: never invent a different number for those, only write a descriptor that cites that concrete evidence (name the assessment and the competency code). For sectors with no data at all, infer a score from the qualitative history and the teacher's notes — be conservative: with weak or contradictory evidence, prefer a middle score (2 or 3) over guessing an extreme. Reply ONLY with valid JSON, no extra text.`
-      : `Eres un experto en educación competencial, ayudando a un docente a completar la Diana Competencial de un alumno (6 sectores, escala 1-4). Algunos sectores ya tienen un valor REAL calculado a partir de evaluaciones etiquetadas, listado más abajo: no inventes un número distinto para esos, limítate a redactar su descriptor citando esa evidencia concreta (nombra la evaluación y el código de competencia). Para los sectores sin ningún dato, infiere una puntuación a partir del historial cualitativo y las notas del docente — sé conservador: con evidencia débil o contradictoria, prefiere una puntuación intermedia (2 o 3) antes que adivinar un extremo. Responde ÚNICAMENTE con JSON válido, sin texto adicional.`;
+      ? `You are an expert in competency-based education, helping a teacher word the descriptors of a student's Learner Profile. The levels are already calculated from the teacher's own assessments and are listed below: do not propose, change or comment on any level or grade, and do not assess any sector that is not on the list. Only write, for each listed sector, a short descriptor that cites that concrete evidence (name the assessment and the competency code). Reply ONLY with valid JSON, no extra text.`
+      : `Eres un experto en educación competencial y ayudas a un docente a redactar los descriptores de la Diana Competencial de un alumno. Los niveles ya están calculados a partir de las evaluaciones del propio docente y se listan más abajo: no propongas, cambies ni comentes ningún nivel ni ninguna nota, y no valores ningún sector que no esté en la lista. Limítate a redactar, para cada sector de la lista, un descriptor breve que cite esa evidencia concreta (nombra la evaluación y el código de competencia). Responde ÚNICAMENTE con JSON válido, sin texto adicional.`;
 
+    const listaSectores = sectoresConDatos.map(sid => `${sectorLabel(sid)} (${sid})`).join(', ');
     const userPrompt = lang === 'en' ? `Student: ${student.name}
-Class: ${cls?.name ?? 'N/A'} — ${cls?.subject ?? ''}
+Class: ${cls?.name ?? 'N/A'}, ${cls?.subject ?? ''}
 Teacher's notes: ${textoLibreParaIA(student.notes || '') || 'None'}
-${objectiveBlock ? `\nREAL data already calculated, per sector:\n${objectiveBlock}\n` : ''}
-Qualitative assessment history:
+
+Levels already calculated, per sector:
+${objectiveBlock}
+
+Assessment history, as context:
 ${evalSummary}
 
-${sectoresSinDatos.length > 0 ? `Infer a score (1=Below expectations, 2=Approaching expectations, 3=Meeting expectations, 4=Exceeding expectations) for these sectors with no real data yet: ${sectoresSinDatos.map(sid => `${sectorLabel(sid)} (${sid})`).join(', ')}.\n\n` : ''}Write a descriptor, in English, for ALL 6 sectors (ds1 Communication, ds2 Mathematics, ds3 Digital, ds4 Social, ds5 Learning to learn, ds6 Enterprise) — for the ones with real data, ground it in that evidence; for the rest, in the qualitative history.` : `Alumno: ${student.name}
-Clase: ${cls?.name ?? 'N/A'} — ${cls?.subject ?? ''}
+Write a descriptor, in English, only for these sectors: ${listaSectores}.` : `Alumno: ${student.name}
+Clase: ${cls?.name ?? 'N/A'}, ${cls?.subject ?? ''}
 Notas del profesor: ${textoLibreParaIA(student.notes || '') || 'Ninguna'}
-${objectiveBlock ? `\nDatos REALES ya calculados, por sector:\n${objectiveBlock}\n` : ''}
-Historial cualitativo de evaluaciones:
+
+Niveles ya calculados, por sector:
+${objectiveBlock}
+
+Historial de evaluaciones, como contexto:
 ${evalSummary}
 
-${sectoresSinDatos.length > 0 ? `Infiere una puntuación (1=Insuficiente, 2=Suficiente, 3=Bien, 4=Excelente) para estos sectores que todavía no tienen dato real: ${sectoresSinDatos.map(sid => `${sectorLabel(sid)} (${sid})`).join(', ')}.\n\n` : ''}Redacta un descriptor, en español de España, para LOS 6 SECTORES (ds1 Comunicación, ds2 Matemática, ds3 Digital, ds4 Social, ds5 Aprender a aprender, ds6 Emprendimiento) — en los que tienen dato real, apóyalo en esa evidencia; en el resto, en el historial cualitativo.`;
+Redacta un descriptor, en español de España, solo para estos sectores: ${listaSectores}.`;
 
-    const scoreProps = Object.fromEntries(
-      sectoresSinDatos.map(sid => [sid, { type: 'INTEGER', description: '1 a 4' }]),
-    );
-    const descProps = Object.fromEntries(SECTOR_IDS.map(sid => [sid, { type: 'STRING' }]));
+    // El esquema solo admite descriptores, y solo de los sectores con nivel calculado: la IA no tiene dónde escribir un número
     const responseSchema = {
       type: 'OBJECT',
       properties: {
-        ...(sectoresSinDatos.length > 0 ? { scores: { type: 'OBJECT', properties: scoreProps, required: sectoresSinDatos } } : {}),
-        descriptors: { type: 'OBJECT', properties: descProps, required: SECTOR_IDS },
+        descriptors: {
+          type: 'OBJECT',
+          properties: Object.fromEntries(sectoresConDatos.map(sid => [sid, { type: 'STRING' }])),
+          required: sectoresConDatos,
+        },
       },
-      required: sectoresSinDatos.length > 0 ? ['scores', 'descriptors'] : ['descriptors'],
+      required: ['descriptors'],
     };
 
     const files: InlineFile[] = lawDocument ? [lawDocument] : [];
@@ -490,28 +499,26 @@ ${sectoresSinDatos.length > 0 ? `Infiere una puntuación (1=Insuficiente, 2=Sufi
 
     if (!raw) return;
 
-    const parsed = parseGeminiJson<{ scores?: Partial<ScoreMap>; descriptors: DescriptorMap }>(raw);
-    if (!parsed?.descriptors) { toast(t('La IA no devolvió un perfil válido. Vuelve a intentarlo.')); return; }
+    const parsed = parseGeminiJson<{ descriptors: Partial<DescriptorMap> }>(raw);
+    if (!parsed?.descriptors) { toast(t('La IA no devolvió unos descriptores válidos. Vuelve a intentarlo.')); return; }
 
-    // Los sectores con dato real se quedan con ESE valor pase lo que pase en
-    // la respuesta: no es una sugerencia, es lo que ya salió de evaluar.
-    const newScores = { ...emptyScores() };
-    for (const sid of SECTOR_IDS) {
-      const nivel = nivelDelSector(bySector[sid]);
-      if (nivel !== null) {
-        newScores[sid] = nivel;
-      } else {
-        const v = parsed.scores?.[sid];
-        if (typeof v === 'number' && v >= 1 && v <= 4) newScores[sid] = v;
+    // El nivel es el calculado, nunca uno de la respuesta; lo que el docente tenía en los demás sectores se queda como estaba
+    setScores(prev => {
+      const next = { ...prev };
+      for (const sid of sectoresConDatos) {
+        const nivel = nivelDelSector(bySector[sid]);
+        if (nivel !== null) next[sid] = nivel;
       }
-    }
-    setScores(newScores);
-
-    const newDesc = { ...emptyDescriptors() };
-    for (const sid of SECTOR_IDS) {
-      if (typeof parsed.descriptors[sid] === 'string') newDesc[sid] = parsed.descriptors[sid];
-    }
-    setDescriptors(newDesc);
+      return next;
+    });
+    setDescriptors(prev => {
+      const next = { ...prev };
+      for (const sid of sectoresConDatos) {
+        const texto = parsed.descriptors[sid];
+        if (typeof texto === 'string' && texto.trim()) next[sid] = texto;
+      }
+      return next;
+    });
 
     setSaved(false);
   }, [student, studentEvals, porSector, dianas, rubrics, classes, classId, lawDocument, toast, lang, t]);
@@ -659,7 +666,7 @@ ${sectoresSinDatos.length > 0 ? `Infiere una puntuación (1=Insuficiente, 2=Sufi
                         {t('Generando...')}
                       </span>
                     ) : (
-                      <><Sparkles size={14} />{t('Sugerir perfil con IA')}</>
+                      <><Sparkles size={14} />{t('Redactar descriptores con IA')}</>
                     )}
                   </button>
                 </div>

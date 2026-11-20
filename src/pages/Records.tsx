@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react';
 import { Printer, FileSpreadsheet, FileDown, ArrowRight, Users, Eye } from 'lucide-react';
-import type { Class, Student, GradeCategory, GradeItem, GradeMap, Evaluation } from '../types';
-import { PERIODS, LOMLOE_COMPETENCES } from '../lib/utils';
-import { isMarksCategory, sumaDePesos } from '../services/classMarks';
+import type { Class, Student, GradeCategory, GradeItem, GradeMap, Evaluation, ClassMark, MarksBlockConfig } from '../types';
+import { PERIODS, LOMLOE_COMPETENCES, isoDate, fromIsoDate } from '../lib/utils';
+import { conVecinos, enRango, guardarRangos, rangoDe, rangosGuardados, type RangoDeFechas } from '../lib/periodos';
+import { applyClassMarks, BLOCK_ITEM_PREFIX, isMarksCategory, sumaDePesos } from '../services/classMarks';
 import { useToast } from '../components/ui/Toast';
 import { ClassChips } from '../components/ui/ClassChips';
 import { useI18n, monthLabel, type Lang } from '../i18n';
@@ -21,6 +22,12 @@ interface Props {
   gradeCategories: GradeCategory[];
   gradeItems: GradeItem[];
   grades: GradeMap;
+  /**
+   * Las anotaciones de trabajo diario y actitud y la configuración de su bloque. El acta lo calcula con las
+   * anotaciones de las fechas de la evaluación, así que el cuaderno llega aquí sin ese bloque ya sumado.
+   */
+  classMarks?: ClassMark[];
+  marksConfigs?: Record<string, MarksBlockConfig>;
   evaluations: Evaluation[];
   comunidad?: ComunidadId;
   teacherName: string;
@@ -57,14 +64,56 @@ function num(n: number | null, locale = 'es-ES', decimals = 1): string {
 /** Apellidos primero, como se ordenan las actas en España (el orden de lista de toda la app). */
 const byName = compararAlumnos;
 
+const SIN_ANOTACIONES: ClassMark[] = [];
+const SIN_BLOQUES: Record<string, MarksBlockConfig> = {};
+
+/**
+ * Una fecha de la evaluación. Mientras se teclea pasa por valores a medias («0002-…», un mes antes que el
+ * año): se quedan en el campo sin guardarse, y solo cuenta la fecha cuando está entera y dentro de su tope.
+ */
+function FechaDeEvaluacion({ valor, min, max, etiqueta, onCambio }: {
+  valor: string; min?: string; max?: string; etiqueta: string; onCambio: (v: string) => void;
+}) {
+  const [borrador, setBorrador] = useState<string | null>(null);
+  return (
+    <input type="date" className="tb-select" value={borrador ?? valor} min={min} max={max} aria-label={etiqueta}
+      onChange={e => {
+        const v = e.target.value;
+        const vale = /^\d{4}-\d{2}-\d{2}$/.test(v) && v >= '2020-01-01' && (!min || v >= min) && (!max || v <= max);
+        if (vale) { setBorrador(null); onCambio(v); } else setBorrador(v);
+      }}
+      onBlur={() => setBorrador(null)} />
+  );
+}
+
 export function Records({
-  classes, students, gradeCategories, gradeItems, grades, evaluations, comunidad,
+  classes, students, gradeCategories: categoriasDelCuaderno, gradeItems: actividadesDelCuaderno, grades: notasDelCuaderno,
+  classMarks = SIN_ANOTACIONES, marksConfigs = SIN_BLOQUES, evaluations, comunidad,
   teacherName, course, onNav,
 }: Props) {
   const { toast } = useToast();
   const { t, lang, locale } = useI18n();
   const [classId, setClassId] = useState(classes[0]?.id ?? '');
   const [period, setPeriod]   = useState<string>(PERIODS[0]);
+  // Cada evaluación cuenta las notas de sus fechas (lib/periodos.ts); «Final de curso», todas
+  const [hoy] = useState(() => isoDate());
+  const [rangos, setRangos] = useState(() => rangosGuardados(hoy));
+  const rango = useMemo(() => rangoDe(period, hoy, rangos), [period, hoy, rangos]);
+  const cambiarRango = (r: RangoDeFechas) => {
+    if (!r.desde || !r.hasta || r.desde > r.hasta) return;
+    // Las evaluaciones vecinas se ajustan para que no quede ningún día sin evaluación (lib/periodos.ts)
+    const nuevos = conVecinos(period, r, hoy, rangos);
+    guardarRangos(nuevos, hoy);
+    setRangos(nuevos);
+  };
+  // El bloque de trabajo diario y actitud, con las anotaciones de las fechas de la evaluación: sin esto
+  // el acta de la 1.ª llevaría las de todo el curso, o ninguna si la última anotación caía fuera
+  const { gradeCategories, gradeItems, grades } = useMemo(() => applyClassMarks({
+    classes, students, gradeCategories: categoriasDelCuaderno, gradeItems: actividadesDelCuaderno, grades: notasDelCuaderno,
+    classMarks: classMarks.filter(m => enRango(m.date, rango)), marksConfigs,
+  }), [classes, students, categoriasDelCuaderno, actividadesDelCuaderno, notasDelCuaderno, classMarks, marksConfigs, rango]);
+  const diaCorto = (f: string) => fromIsoDate(f).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' });
+  const textoPeriodo = rango ? t('{periodo} (del {desde} al {hasta})', { periodo: t(period), desde: diaCorto(rango.desde), hasta: diaCorto(rango.hasta) }) : t(period);
   const [showCategories, setShowCategories] = useState(true);
   const [showLabel, setShowLabel]           = useState(true);
   const [showSignature, setShowSignature]   = useState(true);
@@ -95,8 +144,14 @@ export function Records({
     [materiasOficiales, activeSubject],
   );
   const evsDeClase = useMemo(
-    () => evaluations.filter(e => e.class_id === clsId),
-    [evaluations, clsId],
+    () => evaluations.filter(e => e.class_id === clsId && enRango(e.date, rango)),
+    [evaluations, clsId, rango],
+  );
+  /** Las actividades del cuaderno que caen en la evaluación elegida. */
+  const itemsDelPeriodo = useMemo(
+    // La columna del bloque de anotaciones ya viene calculada con las de estas fechas: no se filtra por la suya
+    () => gradeItems.filter(i => i.id.startsWith(BLOCK_ITEM_PREFIX) || enRango(i.date, rango)),
+    [gradeItems, rango],
   );
   const columnasEspecificas = useMemo(
     () => (materiaDeLaClase ? notasDeMateria(materiaDeLaClase.entry, materiaDeLaClase.grupo, []).competencias : []),
@@ -118,7 +173,7 @@ export function Records({
 
   /** Media de un alumno dentro de una categoría (con el peso de cada prueba). */
   function categoryAverage(studentId: string, categoryId: string): number | null {
-    return mediaDeCategoria(gradeItems.filter(i => i.category_id === categoryId), grades, studentId);
+    return mediaDeCategoria(itemsDelPeriodo.filter(i => i.category_id === categoryId), grades, studentId);
   }
 
   /** Nota final: media de las categorías ponderada por su peso. */
@@ -177,7 +232,7 @@ export function Records({
       label: rounded === null ? null : gradeLabel(rounded, lang),
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [roster, cats, gradeItems, grades, lang]);
+  }), [roster, cats, itemsDelPeriodo, grades, lang]);
 
   const stats = useMemo(() => {
     const graded = rows.filter(r => r.final !== null).map(r => r.final as number);
@@ -372,6 +427,17 @@ export function Records({
           <select className="tb-select" value={period} onChange={e => setPeriod(e.target.value)} aria-label={t('Evaluación')}>
             {PERIODS.map(p => <option key={p} value={p}>{t(p)}</option>)}
           </select>
+          {rango && (
+            <span className="acta-fechas" title={t('El acta cuenta las notas y las evaluaciones de estas fechas. Cámbialas si tu centro cierra la evaluación otro día: se recuerdan en este dispositivo.')}>
+              <label>{t('Del')} <FechaDeEvaluacion valor={rango.desde} max={rango.hasta} etiqueta={t('Primer día de la evaluación')}
+                onCambio={v => cambiarRango({ desde: v, hasta: rango.hasta })} /></label>
+              <label>{t('al')} <FechaDeEvaluacion valor={rango.hasta} min={rango.desde} etiqueta={t('Último día de la evaluación')}
+                onCambio={v => cambiarRango({ desde: rango.desde, hasta: v })} /></label>
+            </span>
+          )}
+          {rango && roster.length > 0 && stats.graded === 0 && (
+            <span className="acta-fechas" role="status">{t('No hay notas entre estas fechas. Cambia las fechas o elige «Final de curso».')}</span>
+          )}
         </div>
 
         <div className="toolbar-row" style={{ gap: 18 }}>
@@ -418,7 +484,7 @@ export function Records({
             <dl className="acta-meta">
               <div><dt>{t('Grupo')}</dt><dd>{cls?.name}</dd></div>
               <div><dt>{t('Materia')}</dt><dd>{activeSubject || '—'}</dd></div>
-              <div><dt>{t('Periodo')}</dt><dd>{t(period)}</dd></div>
+              <div><dt>{t('Periodo')}</dt><dd>{textoPeriodo}</dd></div>
               <div><dt>{t('Docente')}</dt><dd>{teacherName || '—'}</dd></div>
             </dl>
 
@@ -489,7 +555,7 @@ export function Records({
             {showCompetencias && (hayClave || hayEspecificas) && (
               <div className="acta-comp">
                 <h2 className="acta-comp-title">{t('Evaluación por competencias')}</h2>
-                <div className="acta-comp-meta">{cls?.name} · {activeSubject} · {t(period)}</div>
+                <div className="acta-comp-meta">{cls?.name} · {activeSubject} · {textoPeriodo}</div>
 
                 {hayClave && (
                   <>

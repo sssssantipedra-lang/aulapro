@@ -164,12 +164,18 @@ describe('carga y borrado', () => {
     expect(vuelta.fotos).toEqual(datos.fotos);
   });
 
-  it('al vaciar el curso quedan las agendas sin alumno y sus fotos', () => {
+  it('al vaciar el curso se conserva el alumnado con sus grupos, programas, agendas y fotos, y se va lo del curso', () => {
     const otro = apoyoParaOtroCurso(datos);
-    expect(otro.alumnos).toEqual([]);
+    expect(otro.alumnos).toEqual(datos.alumnos);
+    expect(otro.grupos).toEqual(datos.grupos);
+    expect(otro.programas).toEqual(datos.programas);
+    expect(otro.agendas).toEqual(datos.agendas);
+    expect(otro.fotos).toEqual(datos.fotos);
+    expect(otro.sesiones).toEqual([]);
     expect(otro.coordinaciones).toEqual([]);
-    expect(otro.agendas.map(a => a.id)).toEqual(['ag2']);
-    expect(otro.fotos.map(f => f.id)).toEqual(['f2']);
+    expect(otro.evaluaciones).toEqual([]);
+    expect(otro.documentos).toEqual([]);
+    expect(otro.acsAula).toEqual([]);
   });
 
   it('una foto que no es una imagen o un paso con una foto que no existe no se cargan', () => {

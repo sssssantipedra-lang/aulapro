@@ -22,6 +22,7 @@
  * compilación para la web (`vite build --mode web`): la app de escritorio, la
  * de Android y `npm run dev` siguen como antes.
  */
+import { ocupado } from '../lib/ocupado';
 import { createProfileStore } from './profileStore';
 import { idbFs, idbKv } from './webFs';
 import { createEspejo } from './espejo';
@@ -160,10 +161,24 @@ const docs: DocsBridge = {
 
 /* ── Versión nueva ── */
 
+/** Cuánto tiene que haber estado la app en segundo plano para que volver cuente como abrirla de nuevo. */
+const RATO_FUERA = 60_000;
+
+/** Escribiendo en un campo o con una ventana abierta: no es momento de recargar. */
+function docenteOcupado(): boolean {
+  const a = document.activeElement as HTMLElement | null;
+  if (a && (a.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(a.tagName))) return true;
+  if (document.querySelector('.modal-overlay.open') || document.fullscreenElement) return true;
+  // Una generación de IA a medias (se perdería la respuesta y el cupo ya gastado) o la pizarra viva, con su
+  // temporizador, sus grupos y su dibujo: recargar se los llevaría. La versión nueva espera a otra vuelta.
+  return ocupado() || !!document.querySelector('.pz-raiz');
+}
+
 function createUpdate(): UpdateBridge {
   let registro: ServiceWorkerRegistration | null = null;
   // Sin avisos (decisión del dueño, 29-10-2026): una versión nueva se descarga sola mientras se
-  // trabaja y se pone la próxima vez que se abre la app, antes de que el docente haga nada.
+  // trabaja y se pone la próxima vez que se abre la app (o se vuelve a ella tras un rato en segundo
+  // plano), antes de que el docente haga nada.
   // Cambiarla a mitad de sesión rompería las pantallas que aún no se habían abierto.
   let pedido = false;
   if ('serviceWorker' in navigator) {
@@ -178,6 +193,19 @@ function createUpdate(): UpdateBridge {
       if (r.waiting && navigator.serviceWorker.controller) { pedido = true; r.waiting.postMessage('activar'); }
       // Quien deja la app abierta días enteros también la descarga
       setInterval(() => { r.update().catch(() => {}); }, 60 * 60 * 1000);
+      // Volver a la app es abrirla (19-11-2026): una app instalada en la tableta o el móvil casi nunca se
+      // cierra del todo, se deja en segundo plano, y la versión nueva se quedaba esperando días. Al volver
+      // tras un rato fuera se busca versión y, si ya hay una descargada, se pone en ese momento, antes de
+      // que el docente haga nada; nunca si está escribiendo o tiene una ventana abierta.
+      let ocultaDesde = 0;
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') { ocultaDesde = Date.now(); return; }
+        const fuera = ocultaDesde ? Date.now() - ocultaDesde : 0;
+        ocultaDesde = 0;
+        if (fuera < RATO_FUERA) return;
+        if (r.waiting && navigator.serviceWorker.controller && !docenteOcupado()) { pedido = true; r.waiting.postMessage('activar'); }
+        else r.update().catch(() => {});
+      });
     }).catch(() => { /* sin service worker la app funciona igual, solo que no sin conexión */ });
     // El código de las pantallas, los dibujos y los pictogramas se guardan cuando hay licencia y sesión (`sesionWeb.ts`)
   }

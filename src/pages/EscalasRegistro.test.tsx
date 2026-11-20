@@ -88,8 +88,24 @@ describe('Escalas de registro', () => {
     await user.selectOptions(ventana.getByLabelText('Clase'), 'c2');
     expect(ventana.getByText('Alumno 3')).toBeTruthy();
     expect(ventana.getByRole('button', { name: 'Alumno 3, Golpea con la palma: bien hecho' }).getAttribute('aria-pressed')).toBe('true');
+    // Solo se guarda lo que cambia: al corregir la marca recuperada, una evaluación nueva de ese alumno
+    await user.click(ventana.getByRole('button', { name: 'Alumno 3, Golpea con la palma: mejorable' }));
     await user.click(ventana.getByRole('button', { name: 'Guardar valoración' }));
     expect(p.onAddEvaluation).toHaveBeenCalledOnce();
-    expect(p.onAddEvaluation.mock.calls[0][0]).toMatchObject({ student_id: 's3', class_id: 'c2', grade: 10 });
+    expect(p.onAddEvaluation.mock.calls[0][0]).toMatchObject({ student_id: 's3', class_id: 'c2', scores: { i1: 1 } });
+  });
+
+  it('guardar sin haber cambiado nada no crea evaluaciones repetidas', async () => {
+    const user = userEvent.setup();
+    const previa: Evaluation = {
+      id: 'e0', rubric_id: 'reg1', rubric_name: 'Saque de voleibol', student_id: 's3', student_name: 'Alumno 3', class_id: 'c2',
+      date: '2026-10-01', scores: { i1: 2 }, notes: '', instrument: 'diana', grade: 10,
+    };
+    const p = pinta([escala], [previa]);
+    await user.click(screen.getByRole('button', { name: /Valorar a la clase/ }));
+    const ventana = within(document.querySelector('.modal-overlay.open') as HTMLElement);
+    await user.selectOptions(ventana.getByLabelText('Clase'), 'c2');
+    await user.click(ventana.getByRole('button', { name: 'Guardar valoración' }));
+    expect(p.onAddEvaluation).not.toHaveBeenCalled();
   });
 });

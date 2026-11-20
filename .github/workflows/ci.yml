@@ -21,6 +21,7 @@ concurrency:
 jobs:
   comprobar:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Descargar el código
         uses: actions/checkout@v4
