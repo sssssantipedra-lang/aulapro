@@ -114,7 +114,32 @@ menú. No sale nada del dispositivo.
 En las pantallas que trabajan clase a clase (Cuaderno, Asistencia, Informes,
 Actas…) la clase se elige arriba: con pocas clases, botones con su color; con
 más de seis, un desplegable agrupado en Primaria, ESO y otras clases, con
-flechas a los lados para pasar a la anterior o la siguiente. La versión de la aplicación y los créditos están al pie de Configuración.
+flechas a los lados para pasar a la anterior o la siguiente.
+LA CLASE QUE SE ABRE EN CADA PANTALLA: Cuaderno, Asistencia, Anotar actitud,
+Actas, Informes, Distribución de aula, Diana competencial, la pizarra y, en
+Educación Física, En la pista, Equipos y Pruebas físicas se abren en la clase
+que toca según el horario de la Agenda: la que está en marcha o la que empieza
+en los próximos 10 minutos. Si no hay clase en ese momento, se abre la última
+con la que se trabajó en cualquier pantalla. En los festivos y las vacaciones
+del calendario escolar el horario no cuenta. En el selector, la clase de ahora
+lleva un punto y la palabra «Ahora» (o «A las 11:00» si está a punto de
+empezar); si se está mirando otra, el botón «Ahora: …» devuelve a ella con un
+toque. Las tarjetas de clase del Inicio y los botones de la franja de En clase
+abren la clase que nombran, y los enlaces de una pantalla a otra («Ajustar en
+el cuaderno», «Ir al Cuaderno») conservan la clase que se estaba viendo. Hace
+falta tener el horario en la Agenda. La clase recordada se guarda solo en el
+dispositivo.
+MOVERSE CON EL NAVEGADOR: cada pantalla tiene su propia dirección, así que el
+botón de atrás del navegador, y el gesto de atrás en el móvil y la tableta,
+devuelven a la pantalla anterior, y el de adelante, a la siguiente. Al recargar
+la página se sigue en la misma pantalla. Cualquier pantalla se puede guardar en
+los marcadores o favoritos del navegador (por ejemplo Asistencia o el Cuaderno)
+y abrirla directamente; si hace falta, primero pide entrar. Con una ventana
+abierta, atrás la cierra y deja en la pantalla en la que se estaba. La
+dirección de una pantalla que el perfil no tiene lleva al Inicio, y al cambiar
+de perfil se empieza siempre por el Inicio. En la dirección no va nunca nada
+del alumnado.
+La versión de la aplicación y los créditos están al pie de Configuración.
 Así, por ejemplo, las Actas están en «Documentos → Actas» y la Distribución de
 aula en «En clase → Distribución de aula». Cada grupo se pliega y despliega
 pulsando su cabecera, y la barra entera se estrecha con la flecha de arriba. En
@@ -297,8 +322,8 @@ en el Cuaderno, si a una actividad que casi toda la clase tiene calificada le
 falta la nota de alguien (dice de quién); y al guardar una situación de
 aprendizaje, pasar sus sesiones a Sesiones.
 Pasar lista por clase y día. Al entrar se abre la clase que toca según el
-horario (la que está en marcha o, si no, la siguiente de hoy); se cambia
-arriba. Cuatro botones con su nombre escrito: Presente, Falta, Retraso y
+horario (la que está en marcha o la que empieza en los próximos 10 minutos;
+si no, la última con la que se trabajó); se cambia arriba. Cuatro botones con su nombre escrito: Presente, Falta, Retraso y
 Justificada (en el móvil, solo el icono); pulsar el nombre del alumno va
 cambiando el estado; volver a pulsar el botón del estado marcado lo quita (el alumno
 queda sin marcar). Hay botón de «Todos presentes» para marcar la clase entera de
@@ -359,7 +384,8 @@ La forma rápida de anotar el trabajo diario y la actitud: toda la clase en
 una lista y, en cada fila, un botón por anotación: «Participa», «Buen
 comportamiento», «Mal comportamiento», «Sin tarea» y «Sin material» (en
 Educación Física, las de la pista). Un toque, una anotación; no hace falta
-sentar antes a nadie. Se abre en la clase que toca según el horario.
+sentar antes a nadie. Se abre en la clase que toca según el horario o, sin
+clase en ese momento, en la última con la que se trabajó.
 - Arriba, el selector de clase y, si la clase tiene varias asignaturas, cuál.
 - El número sobre cada botón es lo anotado ese día; la flecha de la fila
   deshace la última anotación de ese alumno ese día. A la derecha, la nota del
@@ -469,8 +495,8 @@ inteligencia artificial. Para evaluar están las rúbricas, las dianas y las
 escalas de registro, y la nota la pone siempre el docente.
 
 [diana] DIANA COMPETENCIAL
-Perfil visual de competencias clave de un alumno, en forma de diana. Se elige
-clase y alumno. Debajo, «Competencias específicas»: por asignatura con currículo
+Perfil visual de competencias clave de un alumno, en forma de diana. La clase
+viene puesta (la que toca o la última usada) y se elige al alumno. Debajo, «Competencias específicas»: por asignatura con currículo
 oficial, la nota de cada criterio de evaluación (media de las veces que se ha
 evaluado), de cada competencia específica (media de sus criterios) y del área
 (media de sus competencias). Sale de las evaluaciones con criterios oficiales
@@ -613,7 +639,7 @@ recibe su propia copia, que se puede retocar sin cambiar las demás.
 
 [resources] RECURSOS
 Fichas de trabajo con historia, generadas con la IA a partir de un tema, el
-área y el nivel. Para el profesorado de PT y AL, en vez de «Clase» sale
+área y el nivel, o hechas sin IA (ver SIN LA CLAVE DE LA IA, más abajo). Para el profesorado de PT y AL, en vez de «Clase» sale
 «Adaptada a»: al elegir a un alumno de apoyo se rellenan su nivel y, en «Más
 opciones», lo que se le cuenta a la IA (sus apoyos, sus barreras, cómo
 aprende y sus objetivos de este trimestre, sin su nombre ni su diagnóstico),
@@ -626,11 +652,39 @@ Tipos de ejercicio: respuesta abierta, completar, opción múltiple, problema,
 tabla, relacionar, colorear, sopa de letras, verdadero o falso, ordenar,
 crucigrama y cómic (la sopa, el crucigrama y las figuras los dibuja la propia
 aplicación).
-CREAR, EN DOS PASOS: 1) «¿Qué quieres crear?», cuatro tarjetas grandes (con su icono de color, una explicación y la elegida marcada):
-«Ficha de ejercicios», «Comprensión lectora», «Escape room» y «Tarjetas»; 2)
+CREAR, EN DOS PASOS: 1) «¿Qué quieres crear?», cinco tarjetas grandes (con su icono de color, una explicación y la elegida marcada):
+«Ficha de ejercicios», «Comprensión lectora», «Escape room», «Tarjetas» y «Al
+instante (sin IA)»; 2)
 «¿De qué trata?», con la clase, el área y el curso. Debajo, dos casillas:
 «Lectura fácil» (para dislexia) y «Con pictogramas». Lo demás está recogido en
 «Personalizar»: número de ejercicios, aspecto, dibujos y cómo es el grupo.
+SIN LA CLAVE DE LA IA: Recursos se puede usar sin clave y sin cupo, por dos
+caminos. 1) «Empezar en blanco», junto a «Crear ficha»: abre el editor con la
+estructura vacía de lo elegido (una ficha con sus tres bloques de menos a
+más, un escape room con tres salas y su candado, una comprensión lectora con
+el texto por escribir o un mazo de tarjetas); lo escrito en «¿De qué trata?»
+queda como título. En el editor, cada bloque tiene «Añadir ejercicio»: se
+elige el tipo en el desplegable y entra vacío para escribirlo. En un
+ejercicio abierto se le cambia el tipo con el desplegable de su cabecera
+(conserva el enunciado, la solución y las líneas que encajan, y pregunta
+antes si se va a perder algo), se duplica con «Duplicar», y en las tablas y
+los cómics se añaden o se quitan filas, columnas y viñetas. Al final está
+«Añadir bloque». Un ejercicio recién añadido y sin escribir no se imprime ni
+se proyecta. 2) La tarjeta «Al instante (sin IA)»: cuatro hojas que monta la
+aplicación en el dispositivo, sin espera: sopa de letras (de 3 a 16 palabras,
+una por línea o separadas por comas), crucigrama (de 2 a 14 palabras, cada
+una con su pista detrás de dos puntos), hoja de operaciones (sumas, restas,
+multiplicaciones y divisiones; entre qué números, de 6 a 60 operaciones, con
+o sin llevadas; en las multiplicaciones el segundo número va del 2 al 10 y
+las divisiones son siempre exactas) y fracciones con pizzas (leer, colorear y
+unir). Si una palabra no cabe o no tiene pista, la aplicación dice cuál se
+queda fuera. La hoja se abre en el editor y se retoca, se guarda y se imprime
+como cualquier ficha. «Imprimir el solucionario en una página aparte» (en el
+editor; en «Al instante» viene marcada) añade al final del PDF y del Word una
+página para el docente con la solución de cada ejercicio; sin marcarla, las
+soluciones solo se ven en el editor. Siguen necesitando la clave «Crear
+ficha», «Añadir ejercicio con IA», «Rehacer», «Adaptar» y «4 tarjetas más con
+IA».
 Al crearla se abre el EDITOR: a la izquierda los bloques (título, historia,
 explicación, instrucciones, cada misión y sus ejercicios, final); a la derecha
 la vista previa A4, igual que se imprime. Cada ejercicio sale en una línea

@@ -141,7 +141,7 @@ Pendiente:
 - «Actividades con móviles» no funciona en la versión web: un navegador no puede abrir un servidor en la wifi del aula.
 - `docs/COMPARTIR.md` dice que faltan las capturas nuevas de «Trabajo compartido», pero `CLAUDE.md` dice que se rehicieron el 26-10-2026. Hay que comprobarlo y dejar uno de los dos bien.
 - Textos de la pantalla antigua de «Trabajo compartido» que siguen en el diccionario (`src/i18n/core.ts` y `ca.ts`).
-- «Asistencia» y «Anotar actitud» buscan la clase que toca sin mirar el calendario escolar; «En clase» ya lo mira.
+- ~~«Asistencia» y «Anotar actitud» buscan la clase que toca sin mirar el calendario escolar; «En clase» ya lo mira.~~ Hecho el 20-11-2026: todas las pantallas usan la regla de la clase activa, con calendario (`src/lib/claseActiva.ts`).
 - PT y AL:
   - Faltan el formato oficial de Cataluña y el de Madrid.
   - Faltan los PDF de la normativa valenciana y catalana.

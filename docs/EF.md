@@ -27,6 +27,7 @@ Para el profesorado de Educación Física, con o sin tutoría. Decisiones del du
 - Aspectos: participa, se esfuerza, no participa, juego limpio, mala actitud, sin equipación, sin aseo.
 - Son anotaciones del cuaderno (`EF_MARK_TYPES` en `src/services/classMarks.ts`) y cuentan en el bloque «Trabajo diario y actitud». En EF sus partes se llaman «Vestimenta e higiene», «Actitud y juego limpio» y «Participación y esfuerzo».
 - La asignatura de EF de una clase se reconoce por el nombre (`esAsignaturaEF`).
+- Desde el 20-11-2026, En la pista, Equipos y Pruebas físicas usan el selector de clase común (`ClassChips`) y se abren en la clase activa (la de ahora según el horario o la última usada, `useClaseActiva`); Exentos, Actividades y Sesiones la toman como clase de partida. «Cuaderno» de En la pista lleva la clase que se veía.
 
 ## Exentos y lesiones
 
