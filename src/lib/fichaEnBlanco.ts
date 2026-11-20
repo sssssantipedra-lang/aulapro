@@ -308,6 +308,19 @@ export function sinFilaDeTabla(ex: FichaExercise): FichaExercise {
   };
 }
 
+/** La última fila tiene algo escrito: quitarla se lleva ese texto, así que antes se pregunta. */
+export function ultimaFilaEscrita(ex: FichaExercise): boolean {
+  const filas = ex.filas ?? [];
+  return filas.length > 1 && filas[filas.length - 1].some(c => (c ?? '').trim() !== '');
+}
+
+/** La última columna tiene algo escrito, en su cabecera o en alguna fila. */
+export function ultimaColumnaEscrita(ex: FichaExercise): boolean {
+  const n = (ex.columnas ?? []).length;
+  if (n <= 2) return false;
+  return (ex.columnas![n - 1] ?? '').trim() !== '' || (ex.filas ?? []).some(f => (f[n - 1] ?? '').trim() !== '');
+}
+
 export function conColumnaDeTabla(ex: FichaExercise): FichaExercise {
   const columnas = ex.columnas ?? [];
   if (columnas.length >= MAX_COLUMNAS_TABLA) return ex;

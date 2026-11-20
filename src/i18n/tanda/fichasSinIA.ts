@@ -94,6 +94,8 @@ export const EN: Record<string, string> = {
   'Quitar la última fila': 'Remove the last row',
   'Añadir columna': 'Add column',
   'Quitar la última columna': 'Remove the last column',
+  'La última fila tiene texto escrito. ¿Quitarla?': 'The last row has text in it. Remove it?',
+  'La última columna tiene texto escrito. ¿Quitarla?': 'The last column has text in it. Remove it?',
 
   /* ── Solucionario ── */
   'Imprimir el solucionario en una página aparte': 'Print the answer key on a separate page',
@@ -195,6 +197,8 @@ export const CA: Record<string, string> = {
   'Quitar la última fila': 'Treure l\'última fila',
   'Añadir columna': 'Afegir una columna',
   'Quitar la última columna': 'Treure l\'última columna',
+  'La última fila tiene texto escrito. ¿Quitarla?': 'L\'última fila té text escrit. Vols treure-la?',
+  'La última columna tiene texto escrito. ¿Quitarla?': 'L\'última columna té text escrit. Vols treure-la?',
 
   /* ── Solucionario ── */
   'Imprimir el solucionario en una página aparte': 'Imprimir el solucionari en una pàgina a part',

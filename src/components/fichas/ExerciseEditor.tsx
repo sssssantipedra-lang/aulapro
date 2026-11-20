@@ -14,7 +14,7 @@ import { DibujosEditor } from './DibujosEditor';
 import { FraccionesEditor } from './FraccionesEditor';
 import { quitarNegritas } from '../../lib/negritas';
 import {
-  MAX_COLUMNAS_TABLA, MAX_FILAS_TABLA, MAX_VINETAS, ejercicioSinEscribir, conColumnaDeTabla, conFilaDeTabla, conVineta, sinColumnaDeTabla, sinFilaDeTabla, sinVineta,
+  MAX_COLUMNAS_TABLA, MAX_FILAS_TABLA, MAX_VINETAS, ejercicioSinEscribir, conColumnaDeTabla, conFilaDeTabla, conVineta, sinColumnaDeTabla, sinFilaDeTabla, sinVineta, ultimaColumnaEscrita, ultimaFilaEscrita,
 } from '../../lib/fichaEnBlanco';
 
 const QUICK = ['Más fácil', 'Más difícil', 'Otro distinto', 'Más visual y motivador'];
@@ -265,12 +265,12 @@ export function ExerciseEditor({ ex, n, id, selected, first, last, busy, aiDisab
           <span className="fe-hint">{t('Las celdas vacías son las que rellena el alumnado.')}</span>
           <span className="fsi-tabla-grupo">
             <span className="fe-lbl">{t('Filas')}</span>
-            <button type="button" className="ico-btn sm" title={t('Quitar la última fila')} aria-label={t('Quitar la última fila')} disabled={(ex.filas?.length ?? 0) <= 1} onClick={() => onChange(sinFilaDeTabla(ex))}><Minus size={14} /></button>
+            <button type="button" className="ico-btn sm" title={t('Quitar la última fila')} aria-label={t('Quitar la última fila')} disabled={(ex.filas?.length ?? 0) <= 1} onClick={() => { if (!ultimaFilaEscrita(ex) || window.confirm(t('La última fila tiene texto escrito. ¿Quitarla?'))) onChange(sinFilaDeTabla(ex)); }}><Minus size={14} /></button>
             <button type="button" className="ico-btn sm" title={t('Añadir fila')} aria-label={t('Añadir fila')} disabled={(ex.filas?.length ?? 0) >= MAX_FILAS_TABLA} onClick={() => onChange(conFilaDeTabla(ex))}><Plus size={14} /></button>
           </span>
           <span className="fsi-tabla-grupo">
             <span className="fe-lbl">{t('Columnas')}</span>
-            <button type="button" className="ico-btn sm" title={t('Quitar la última columna')} aria-label={t('Quitar la última columna')} disabled={ex.columnas.length <= 2} onClick={() => onChange(sinColumnaDeTabla(ex))}><Minus size={14} /></button>
+            <button type="button" className="ico-btn sm" title={t('Quitar la última columna')} aria-label={t('Quitar la última columna')} disabled={ex.columnas.length <= 2} onClick={() => { if (!ultimaColumnaEscrita(ex) || window.confirm(t('La última columna tiene texto escrito. ¿Quitarla?'))) onChange(sinColumnaDeTabla(ex)); }}><Minus size={14} /></button>
             <button type="button" className="ico-btn sm" title={t('Añadir columna')} aria-label={t('Añadir columna')} disabled={ex.columnas.length >= MAX_COLUMNAS_TABLA} onClick={() => onChange(conColumnaDeTabla(ex))}><Plus size={14} /></button>
           </span>
         </div>

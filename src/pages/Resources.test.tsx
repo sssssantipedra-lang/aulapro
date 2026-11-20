@@ -524,6 +524,14 @@ describe('Recursos · sin IA', () => {
     await userEvent.selectOptions(screen.getByLabelText('Cambiar tipo'), 'abierta');
     expect(confirmar).toHaveBeenCalledTimes(1);
     expect((screen.getByLabelText('Cambiar tipo') as HTMLSelectElement).value).toBe('tabla_rellenar');
+    // Quitar la última columna (vacía) no pregunta; la última fila, con texto, sí, y sin aceptar se queda
+    await userEvent.click(screen.getByRole('button', { name: 'Quitar la última columna' }));
+    expect(confirmar).toHaveBeenCalledTimes(1);
+    expect(screen.queryByLabelText('Columna 3')).toBeNull();
+    await userEvent.type(screen.getByLabelText('Fila 4, columna 1'), 'vaca');
+    await userEvent.click(screen.getByRole('button', { name: 'Quitar la última fila' }));
+    expect(confirmar).toHaveBeenLastCalledWith('La última fila tiene texto escrito. ¿Quitarla?');
+    expect(screen.getAllByLabelText(/^Fila \d, columna 1$/)).toHaveLength(4);
     confirmar.mockRestore();
   });
 
@@ -608,6 +616,13 @@ describe('Recursos · sin IA', () => {
     await userEvent.click(screen.getByRole('radio', { name: /Escribes las palabras/ }));
     await userEvent.click(screen.getByRole('button', { name: 'Crear al instante' }));
     expect(await screen.findByText('Escribe al menos 3 palabras para la sopa de letras.')).toBeTruthy();
+    // Dos de las tres no caben en la rejilla: no sale una sopa de una sola palabra
+    await userEvent.type(screen.getByLabelText(/Palabras/), 'sol, electroencefalografista, otorrinolaringologia');
+    expect(screen.getByText(/Demasiado largas para la rejilla/)).toBeTruthy();
+    await userEvent.click(screen.getByRole('button', { name: 'Crear al instante' }));
+    expect(screen.getByRole('button', { name: 'Crear al instante' })).toBeTruthy();
+    expect(onSave).not.toHaveBeenCalled();
+    await userEvent.clear(screen.getByLabelText(/Palabras/));
     await userEvent.type(screen.getByLabelText(/Palabras/), 'sol, luna, mar, cometa');
     await userEvent.click(screen.getByRole('button', { name: 'Crear al instante' }));
     await userEvent.click(screen.getByRole('button', { name: /^Guardar$/ }));

@@ -1058,13 +1058,16 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
             <div className="fe-paso"><span className="fe-paso-n">2</span>{t('¿Qué hoja quieres?')}</div>
             <GeneradorInstante nivel={nivel || activeClass?.name || ''} onCrear={handleInstante} avisar={toast}>
               <div className="frow fe-quien">
-                <div className="fgroup">
-                  <label className="flabel" htmlFor="resources-i2">{t('Clase')}</label>
-                  <select id="resources-i2" className="finput" value={classId} onChange={e => pickClass(e.target.value)}>
-                    <option value="">{t('Sin clase concreta')}</option>
-                    {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                  </select>
-                </div>
+                {/* Sin clases (PT y AL, o un perfil recién creado) no hay nada que elegir */}
+                {classes.length > 0 && (
+                  <div className="fgroup">
+                    <label className="flabel" htmlFor="resources-i2">{t('Clase')}</label>
+                    <select id="resources-i2" className="finput" value={classId} onChange={e => pickClass(e.target.value)}>
+                      <option value="">{t('Sin clase concreta')}</option>
+                      {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    </select>
+                  </div>
+                )}
                 <div className="fgroup">
                   <label className="flabel" htmlFor="resources-i3">{t('Área o asignatura')}</label>
                   <input id="resources-i3" className="finput" value={area} onChange={e => setArea(e.target.value)} />

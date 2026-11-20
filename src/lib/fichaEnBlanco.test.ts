@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   MAX_COLUMNAS_TABLA, MAX_FILAS_TABLA, MAX_VINETAS, bloqueVacio, cambiarTipo, conColumnaDeTabla, conFilaDeTabla, conVineta,
-  dificultadDelSiguiente, duplicarEjercicio, ejercicioSinEscribir, ejercicioVacio, enumerar, fichaEnBlanco, lineasDe, loQuePierde, PIERDE, sinColumnaDeTabla, sinFilaDeTabla, sinVineta,
+  dificultadDelSiguiente, duplicarEjercicio, ejercicioSinEscribir, ejercicioVacio, enumerar, fichaEnBlanco, lineasDe, loQuePierde, PIERDE, sinColumnaDeTabla, sinFilaDeTabla, sinVineta, ultimaColumnaEscrita, ultimaFilaEscrita,
 } from './fichaEnBlanco';
 import { TIPOS, prepareExercise, type FichaExercise } from '../services/resources';
 import { buildFichaHtml } from '../services/exportFicha';
@@ -282,6 +282,22 @@ describe('duplicar, tablas y cómics', () => {
     for (let i = 0; i < 30; i++) t = sinFilaDeTabla(sinColumnaDeTabla(t));
     expect(t.filas).toHaveLength(1);
     expect(t.columnas).toHaveLength(2);
+  });
+
+  it('sabe si la última fila o la última columna tienen algo escrito, para preguntar antes de quitarlas', () => {
+    const vacia = ejercicioVacio('tabla_rellenar');
+    expect(ultimaFilaEscrita(vacia)).toBe(false);
+    expect(ultimaColumnaEscrita(vacia)).toBe(false);
+    const conTexto: FichaExercise = { ...vacia, columnas: ['Animal', 'Patas', ''], filas: [['vaca', '4', ''], ['', '', ''], ['', ' ', 'sí']] };
+    expect(ultimaFilaEscrita(conTexto)).toBe(true);
+    expect(ultimaColumnaEscrita(conTexto)).toBe(true);
+    expect(ultimaFilaEscrita({ ...conTexto, filas: [['vaca', '4', ''], ['', '', '']] })).toBe(false);
+    expect(ultimaColumnaEscrita({ ...conTexto, filas: [['vaca', '4', ''], ['', '', '']] })).toBe(false);
+    // La cabecera también cuenta
+    expect(ultimaColumnaEscrita({ ...vacia, columnas: ['', '', 'Total'] })).toBe(true);
+    // Lo que no se puede quitar (una sola fila, dos columnas) no pregunta
+    expect(ultimaFilaEscrita({ ...vacia, filas: [['a', 'b', 'c']] })).toBe(false);
+    expect(ultimaColumnaEscrita({ ...vacia, columnas: ['a', 'b'], filas: [['1', '2']] })).toBe(false);
   });
 
   it('al quitar una fila se va también su dibujo', () => {

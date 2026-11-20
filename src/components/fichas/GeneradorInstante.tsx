@@ -76,6 +76,8 @@ export function GeneradorInstante({ nivel, onCrear, avisar, children }: Props) {
     if (gen === 'sopa') {
       if (listaPalabras.length < MIN_PALABRAS_SOPA) { avisar(t('Escribe al menos {n} palabras para la sopa de letras.', { n: MIN_PALABRAS_SOPA })); return; }
       r = fichaSopa({ titulo, palabras: listaPalabras }, t);
+      // Las demasiado largas no entran (se dice junto al cuadro): con menos de tres dentro no hay sopa que buscar
+      if ((r.content.actividades[0].ejercicios[0].palabras?.length ?? 0) < MIN_PALABRAS_SOPA) { avisar(t('Escribe al menos {n} palabras para la sopa de letras.', { n: MIN_PALABRAS_SOPA })); return; }
     } else if (gen === 'crucigrama') {
       if (leidas.pistas.length < MIN_PALABRAS_CRUCIGRAMA) { avisar(t('Escribe al menos {n} palabras con su pista, así: «sol: estrella que nos da luz».', { n: MIN_PALABRAS_CRUCIGRAMA })); return; }
       r = fichaCrucigrama({ titulo, pistas: leidas.pistas }, t);
