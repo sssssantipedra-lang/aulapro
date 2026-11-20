@@ -210,6 +210,21 @@ export function cambiarTipo(ex: FichaExercise, tipo: FichaExerciseType, o: Opcio
   }
 }
 
+/**
+ * Un ejercicio recién añadido al que aún no se le ha escrito nada: sin enunciado y sin contenido propio (ni
+ * líneas, ni dibujos, ni pizzas, ni figura). No se imprime ni cuenta en la numeración de la hoja: saldría un
+ * número suelto. Una tabla o un cómic sí se pintan vacíos, porque su cuadrícula y sus bocadillos ya son el ejercicio.
+ */
+export function ejercicioSinEscribir(ex: FichaExercise): boolean {
+  if ((ex.enunciado ?? '').trim()) return false;
+  if (ex.tipo === 'tabla_rellenar' && ex.columnas?.length && ex.filas?.length) return false;
+  if (ex.tipo === 'comic' && ex.vinetas?.length) return false;
+  if (lineasDe(ex).length || limpias(ex.derecha).length || ex.leyenda?.length || limpias(ex.bancoPalabras).length) return false;
+  if (ex.fracciones?.length || ex.dibujos?.length || ex.imagenes?.length || ex.figura) return false;
+  if (ex.categorias?.some(c => c.dibujos.length)) return false;
+  return true;
+}
+
 /** Una copia suelta del ejercicio, para ponerla debajo y retocarla. */
 export function duplicarEjercicio(ex: FichaExercise): FichaExercise {
   return JSON.parse(JSON.stringify(ex)) as FichaExercise;

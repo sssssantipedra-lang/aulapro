@@ -14,7 +14,7 @@ import { DibujosEditor } from './DibujosEditor';
 import { FraccionesEditor } from './FraccionesEditor';
 import { quitarNegritas } from '../../lib/negritas';
 import {
-  MAX_COLUMNAS_TABLA, MAX_FILAS_TABLA, MAX_VINETAS, conColumnaDeTabla, conFilaDeTabla, conVineta, sinColumnaDeTabla, sinFilaDeTabla, sinVineta,
+  MAX_COLUMNAS_TABLA, MAX_FILAS_TABLA, MAX_VINETAS, ejercicioSinEscribir, conColumnaDeTabla, conFilaDeTabla, conVineta, sinColumnaDeTabla, sinFilaDeTabla, sinVineta,
 } from '../../lib/fichaEnBlanco';
 
 const QUICK = ['Más fácil', 'Más difícil', 'Otro distinto', 'Más visual y motivador'];
@@ -80,6 +80,7 @@ export function ExerciseEditor({ ex, n, id, selected, first, last, busy, aiDisab
   // El tipo que ya tiene siempre está en su desplegable, aunque hoy no se ofrezca (un «contar» al que se le quitó el hilo)
   const tiposAMano = disponibles.includes(ex.tipo) ? disponibles : [ex.tipo, ...disponibles];
   const unaPorLinea = t('Una por línea');
+  const sinEscribir = ejercicioSinEscribir(ex);
 
   const run = (instruccion: string) => {
     onRegenerate(instruccion, tipo || undefined);
@@ -92,7 +93,7 @@ export function ExerciseEditor({ ex, n, id, selected, first, last, busy, aiDisab
       <button type="button" className="fe-ex-mini" data-block={id} onClick={onSelect} aria-label={t('Editar el ejercicio {n}', { n })}>
         <span className="fe-ex-n">{n}</span>
         <span className="fe-type">{TIPO_EMOJI[ex.tipo]} {t(TIPO_LABEL[ex.tipo])}</span>
-        <span className="fe-ex-prev">{quitarNegritas(ex.enunciado)}</span>
+        <span className={`fe-ex-prev${sinEscribir ? ' fsi-sin' : ''}`}>{sinEscribir ? t('Sin escribir: no se imprime') : quitarNegritas(ex.enunciado)}</span>
       </button>
     );
   }

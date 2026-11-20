@@ -36,3 +36,5 @@ select.fe-type.fe-type-sel:hover { border-color:var(--accent); }
 .fsi-tabla-grupo { display:inline-flex; align-items:center; gap:4px; }
 .fsi-mas { align-self:flex-start; }
 .fe-comic-row .ico-btn { flex-shrink:0; }
+
+.fe-ex-prev.fsi-sin { font-style:italic; color:var(--text-3); }

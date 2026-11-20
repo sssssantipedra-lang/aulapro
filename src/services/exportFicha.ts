@@ -27,6 +27,7 @@ import type { FichaExercise, FichaExerciseType, FichaActivity, FichaCandado, Fic
 import type { FichaLectura } from '../lib/lectura';
 import { crosswordCells, type Crossword } from '../lib/crossword';
 import { normalizeLetters } from '../lib/wordSearch';
+import { ejercicioSinEscribir } from '../lib/fichaEnBlanco';
 import { fichaTheme } from '../lib/fichaThemes';
 import { loadThemeArt } from '../lib/themeArtDoc';
 import { cargarFuenteCuaderno } from '../lib/fuenteCuaderno';
@@ -384,13 +385,15 @@ function solucionDeEjercicioHtml(ex: FichaExercise): string {
 function solucionarioHtml(
   actividades: FichaActivity[], o: { titulo: string; label: (i: number) => string; cuaderno: boolean; escape: boolean; marca: string }, t: Tr,
 ): string {
-  const bloques = actividades.filter(a => a.ejercicios.length).length;
-  if (!bloques) return '';
+  // Como en la hoja: los ejercicios sin escribir no salen ni cuentan
+  const escritos = actividades.map(a => a.ejercicios.filter(e => !ejercicioSinEscribir(e)));
+  if (!escritos.some(l => l.length)) return '';
   const cuerpo = actividades.map((act, a) => {
-    if (!act.ejercicios.length) return '';
-    const uno = act.ejercicios.length === 1;
-    const letras = o.cuaderno && act.ejercicios.some(e => e.tipo === 'calculos');
-    const items = act.ejercicios.map((ex, i) =>
+    const lista = escritos[a];
+    if (!lista.length) return '';
+    const uno = lista.length === 1;
+    const letras = o.cuaderno && lista.some(e => e.tipo === 'calculos');
+    const items = lista.map((ex, i) =>
       `<div class="sol-ej">${uno && o.cuaderno ? '' : `<b class="sol-n">${letras ? String.fromCharCode(65 + i) : i + 1}.</b>`}<div class="sol-cuerpo">${solucionDeEjercicioHtml(ex)}</div></div>`).join('');
     const codigo = o.escape && act.candado?.codigo ? `<div class="sol-ej"><b class="sol-n">🔒</b><div class="sol-cuerpo"><div class="sol-txt">${esc(t('Código'))}: <b>${esc(act.candado.codigo)}</b></div></div></div>` : '';
     return `<section class="sol-bloque"><h3>${esc(act.titulo ? `${o.label(a)}: ${act.titulo}` : o.label(a))}</h3>${items}${codigo}</section>`;
@@ -499,11 +502,13 @@ export function buildFichaHtml(f: Ficha, lang: Lang, opts: FichaHtmlOptions = {}
     const ejerciciosHtml = act.ejercicios.map((ex, i) => {
       const id = `${actIdx}-${i}`;
       // En «Cuaderno», un verdadero o falso largo puede partirse entre dos páginas por una fila
-      const clases = [opts.selected === id ? 'is-selected' : '', cuaderno && ex.tipo === 'verdadero_falso' ? 'largo' : ''].filter(Boolean).join(' ');
+      // Un ejercicio añadido a mano y aún sin escribir no se imprime ni gasta número
+      const clases = [opts.selected === id ? 'is-selected' : '', cuaderno && ex.tipo === 'verdadero_falso' ? 'largo' : '', ejercicioSinEscribir(ex) ? 'vacio' : ''].filter(Boolean).join(' ');
       return `<li${mark(`data-ex="${id}"`)}${clases ? ` class="${clases}"` : ''}>${exerciseBodyHtml(ex, color, t, pic, cuaderno, ilus, lang, nuevoId)}</li>`;
     }).join('');
     // «Cuaderno»: un solo ejercicio no lleva número; con listas de cálculos, letras (A., B.), para no confundirlas con las líneas 1., 2.
-    const numeracion = !cuaderno ? '' : act.ejercicios.length === 1 ? ' sin' : act.ejercicios.some(e => e.tipo === 'calculos') ? ' letras' : '';
+    const escritos = act.ejercicios.filter(e => !ejercicioSinEscribir(e));
+    const numeracion = !cuaderno ? '' : escritos.length === 1 ? ' sin' : escritos.some(e => e.tipo === 'calculos') ? ' letras' : '';
     const sel = opts.selected === String(actIdx) ? ' is-selected' : '';
     const candado = escape && act.candado ? candadoHtml(act.candado, actIdx, actividades.length, color, t) : '';
     if (pic) {
@@ -782,6 +787,7 @@ const FICHA_DOC_STYLE = `
 .ficha-ejercicios { list-style: none; counter-reset: ej; margin: 0; padding: 14px 16px 4px; border: 1.5px var(--bs); border-top: none; border-radius: 0 0 var(--r) var(--r); }
 .ficha-actividad:not(:has(.act-header)) .ficha-ejercicios { border-radius: var(--r); border-top: 1.5px var(--bs); }
 .ficha-ejercicios > li { counter-increment: ej; margin-bottom: 18px; break-inside: avoid; page-break-inside: avoid; }
+.ficha-doc .ficha-ejercicios > li.vacio { display: none; }
 .ficha-ejercicios > li:last-child { margin-bottom: 4px; }
 .ficha-ejercicios > li::before { content: counter(ej) '. '; font-weight: 800; color: var(--num, var(--c)); }
 .ficha-enunciado { display: inline; font-size: 13px; line-height: 1.6; }
@@ -1971,11 +1977,13 @@ export async function buildFichaDocxBlob(f: Ficha, lang: Lang): Promise<Blob> {
       children.push(new Paragraph({ text: '', spacing: { after: 100 } }));
     }
     if (visual) pushVisualActivityDocx(children, act, color, imgs);
+    // Como en el PDF: los ejercicios añadidos a mano y aún sin escribir no salen
+    const escritos = act.ejercicios.filter(e => !ejercicioSinEscribir(e));
     // «Cuaderno»: un solo ejercicio no lleva número; con listas de cálculos, letras
     const marcador = (i: number): Marcador | undefined => !cuaderno ? undefined
-      : act.ejercicios.length === 1 ? ''
-      : act.ejercicios.some(e => e.tipo === 'calculos') ? `${String.fromCharCode(65 + i)}. ` : undefined;
-    for (const [i, ex] of act.ejercicios.entries()) await pushExerciseDocx(children, ex, i, color.bg, t, imgs, marcador(i), cuaderno, ilus, lang, fp);
+      : escritos.length === 1 ? ''
+      : escritos.some(e => e.tipo === 'calculos') ? `${String.fromCharCode(65 + i)}. ` : undefined;
+    for (const [i, ex] of escritos.entries()) await pushExerciseDocx(children, ex, i, color.bg, t, imgs, marcador(i), cuaderno, ilus, lang, fp);
     if (act.recuadro) pushRecuadroDocx(children, act.recuadro, t);
     if (visual && act.recuerda?.length) pushRecuerdaDocx(children, act, imgs, t);
     if (escape && act.candado) {
@@ -2042,7 +2050,7 @@ export async function buildFichaDocxBlob(f: Ficha, lang: Lang): Promise<Blob> {
   }
 
   // El solucionario, en una página aparte: en Word, solo el texto (la sopa dice dónde está cada palabra y el crucigrama, sus palabras)
-  if (c.solucionario && formato !== 'tarjetas' && actividades.some(act => act.ejercicios.length)) {
+  if (c.solucionario && formato !== 'tarjetas' && actividades.some(act => act.ejercicios.some(e => !ejercicioSinEscribir(e)))) {
     children.push(new Paragraph({
       pageBreakBefore: true, spacing: { after: 60 },
       children: [
@@ -2052,12 +2060,13 @@ export async function buildFichaDocxBlob(f: Ficha, lang: Lang): Promise<Blob> {
     }));
     children.push(new Paragraph({ children: [new TextRun({ text: c.titulo || f.title, color: '475569', size: 20 })], spacing: { after: 160 } }));
     actividades.forEach((act, a) => {
-      if (!act.ejercicios.length) return;
+      const lista = act.ejercicios.filter(e => !ejercicioSinEscribir(e));
+      if (!lista.length) return;
       const label = `${t(escape ? 'Sala' : theme.paso)} ${a + 1}`;
       children.push(new Paragraph({ children: [new TextRun({ text: act.titulo ? `${label}: ${act.titulo}` : label, bold: true, color: theme.oscuro, size: 22 })], spacing: { before: 120, after: 40 } }));
-      const uno = act.ejercicios.length === 1;
-      const letras = cuaderno && act.ejercicios.some(e => e.tipo === 'calculos');
-      act.ejercicios.forEach((ex, i) => {
+      const uno = lista.length === 1;
+      const letras = cuaderno && lista.some(e => e.tipo === 'calculos');
+      lista.forEach((ex, i) => {
         const n = uno && cuaderno ? '' : `${letras ? String.fromCharCode(65 + i) : i + 1}. `;
         children.push(new Paragraph({
           children: [new TextRun({ text: n, bold: true, size: 20 }), new TextRun({ text: quitarNegritas((ex.solucion ?? '').trim()) || '—', size: 20 })],

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   MAX_COLUMNAS_TABLA, MAX_FILAS_TABLA, MAX_VINETAS, bloqueVacio, cambiarTipo, conColumnaDeTabla, conFilaDeTabla, conVineta,
-  dificultadDelSiguiente, duplicarEjercicio, ejercicioVacio, fichaEnBlanco, lineasDe, pierdeAlCambiar, sinColumnaDeTabla, sinFilaDeTabla, sinVineta,
+  dificultadDelSiguiente, duplicarEjercicio, ejercicioSinEscribir, ejercicioVacio, fichaEnBlanco, lineasDe, pierdeAlCambiar, sinColumnaDeTabla, sinFilaDeTabla, sinVineta,
 } from './fichaEnBlanco';
 import { TIPOS, prepareExercise, type FichaExercise } from '../services/resources';
 import { buildFichaHtml } from '../services/exportFicha';
@@ -225,5 +225,63 @@ describe('duplicar, tablas y cómics', () => {
     expect(c.vinetas).toHaveLength(MAX_VINETAS);
     c = sinVineta(sinVineta(sinVineta(sinVineta(c, 0), 0), 0), 0);
     expect(c.vinetas).toHaveLength(2);
+  });
+});
+
+describe('ejercicios sin escribir', () => {
+  it('un ejercicio recién añadido sin enunciado ni contenido está sin escribir; con algo propio, no', () => {
+    for (const tipo of ['abierta', 'problema', 'completar', 'opcion_multiple', 'relacionar', 'colorear', 'sopa_letras', 'verdadero_falso', 'ordenar', 'crucigrama', 'calculos', 'clasificar', 'contestar', 'en_texto', 'dibujar'] as const) {
+      expect(ejercicioSinEscribir(ejercicioVacio(tipo)), tipo).toBe(true);
+    }
+    // La cuadrícula de una tabla, los bocadillos de un cómic y las pizzas ya son el ejercicio
+    for (const tipo of ['tabla_rellenar', 'comic', 'fracciones'] as const) expect(ejercicioSinEscribir(ejercicioVacio(tipo)), tipo).toBe(false);
+    expect(ejercicioSinEscribir({ ...ejercicioVacio('abierta'), enunciado: ' ¿Qué come la vaca? ' })).toBe(false);
+    expect(ejercicioSinEscribir({ ...ejercicioVacio('calculos'), lineas: ['2 + 2'] })).toBe(false);
+    expect(ejercicioSinEscribir({ ...ejercicioVacio('relacionar'), derecha: ['a'] })).toBe(false);
+    expect(ejercicioSinEscribir({ ...ejercicioVacio('contar'), dibujos: [{ ilustracion: 'gra-vaca', cantidad: 3 }] })).toBe(false);
+  });
+
+  it('en la hoja no se pinta ni gasta número: el siguiente es el 1, y con uno solo escrito no hay numeración', () => {
+    const c = fichaEnBlanco('ficha');
+    c.actividades[0].ejercicios = [ejercicioVacio('abierta'), { ...ejercicioVacio('abierta'), enunciado: 'Escribe tu nombre.' }];
+    const html = buildFichaHtml(comoFicha(c), 'es', { preview: true });
+    expect(html).toMatch(/<li data-ex="0-0" class="vacio">/);
+    expect(html).toMatch(/<li data-ex="0-1">/);
+    expect(html).toContain('ficha-ejercicios sin');
+    expect(html).toContain('li.vacio { display: none; }');
+  });
+
+  it('el solucionario salta los que están sin escribir y numera como la hoja', () => {
+    const c = fichaEnBlanco('ficha');
+    c.solucionario = true;
+    c.actividades[0].ejercicios = [
+      ejercicioVacio('abierta'),
+      { ...ejercicioVacio('abierta'), enunciado: '¿Cuánto es 2 + 2?', solucion: 'Cuatro' },
+      { ...ejercicioVacio('abierta'), enunciado: '¿Y 3 + 3?', solucion: 'Seis' },
+    ];
+    const html = buildFichaHtml(comoFicha(c), 'es');
+    const sol = html.slice(html.indexOf('<section class="ficha-solucionario"'));
+    expect(sol).toContain('<b class="sol-n">1.</b><div class="sol-cuerpo"><div class="sol-txt">Cuatro</div>');
+    expect(sol).toContain('<b class="sol-n">2.</b><div class="sol-cuerpo"><div class="sol-txt">Seis</div>');
+    expect(sol).not.toContain('sol-n">3.');
+    // Sin pedirlo, o para medir la hoja del alumnado, no sale
+    expect(buildFichaHtml(comoFicha(c), 'es', { solucionario: false })).not.toContain('<section class="ficha-solucionario"');
+    expect(buildFichaHtml(comoFicha({ ...c, solucionario: undefined }), 'es')).not.toContain('ficha-solucionario');
+  });
+
+  it('el solucionario pinta la sopa con sus palabras marcadas y el crucigrama resuelto', () => {
+    const c = fichaEnBlanco('ficha');
+    c.solucionario = true;
+    c.actividades[0].ejercicios = [
+      prepareExercise({ tipo: 'sopa_letras', enunciado: 'Busca.', palabras: ['sol', 'luna'], solucion: '' }),
+      prepareExercise({ tipo: 'crucigrama', enunciado: 'Completa.', pistas: [{ palabra: 'sol', pista: 'Estrella' }, { palabra: 'luna', pista: 'Satélite' }], solucion: '' }),
+    ];
+    const html = buildFichaHtml(comoFicha(c), 'es');
+    const sol = html.slice(html.indexOf('<section class="ficha-solucionario"'));
+    // Siete casillas, o seis si las dos palabras se cruzan en la L
+    const marcadas = (sol.match(/<span class="on">/g) ?? []).length;
+    expect(marcadas === 7 || marcadas === 6).toBe(true);
+    expect(sol).toContain('sol-cruci');
+    expect((sol.match(/<span class="cw-cell">/g) ?? []).length).toBe(6);
   });
 });
