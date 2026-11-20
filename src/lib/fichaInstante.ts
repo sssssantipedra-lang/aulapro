@@ -102,12 +102,14 @@ export interface PedidoSopa { titulo?: string; palabras: string[] }
 
 /** Una ficha con una sopa de letras: las palabras que caben, su rejilla y dónde está cada una. */
 export function fichaSopa(p: PedidoSopa, t: Tr): FichaInstante {
-  const pedidas = p.palabras.map(x => x.trim()).filter(x => normalizeLetters(x).length >= 2).slice(0, MAX_PALABRAS_SOPA);
+  const validas = p.palabras.map(x => x.trim()).filter(x => normalizeLetters(x).length >= 2);
+  // Una palabra que no cabe ni en la rejilla más grande no se intenta: la haría crecer para nada
+  const pedidas = validas.filter(x => normalizeLetters(x).length <= MAX_LETRAS_PALABRA).slice(0, MAX_PALABRAS_SOPA);
   // Con espacios o guiones («arco iris») se busca todo seguido: en la lista sale como se escribió
   const { rejilla, posiciones } = buildWordSearchGrid(pedidas);
   const colocadas = new Set(posiciones.map(x => x.palabra));
   const palabras = pedidas.map(x => x.toUpperCase()).filter(x => colocadas.has(x));
-  const fuera = pedidas.filter(x => !colocadas.has(x.toUpperCase()));
+  const fuera = validas.filter(x => !colocadas.has(x.toUpperCase()));
   const ex: FichaExercise = {
     tipo: 'sopa_letras',
     enunciado: t('Busca estas {n} palabras en la sopa de letras. Pueden estar en horizontal, en vertical o en diagonal.', { n: palabras.length }),
@@ -318,11 +320,34 @@ export function generarCuentas(p: PedidoOperaciones, rand: () => number = Math.r
   return out.map((c, i) => ({ c, i, peso: pesoDeCuenta(c) })).sort((x, y) => x.peso - y.peso || x.i - y.i).map(x => x.c);
 }
 
-/** Una lista en tres partes seguidas y parejas (las primeras, las más largas): los tres peldaños de la escalera. */
-export function enTresPartes<X>(lista: X[]): X[][] {
+/**
+ * Una lista en tres partes seguidas y parejas: los tres peldaños de la escalera. Lo que sobra al repartir va a las
+ * primeras; con `giro`, a las siguientes (para que, al juntar varias listas, no se lleve todo lo que sobra el primer bloque).
+ */
+export function enTresPartes<X>(lista: X[], giro = 0): X[][] {
   const n = lista.length;
   const a = Math.ceil(n / 3), b = Math.ceil((n - a) / 2);
-  return [lista.slice(0, a), lista.slice(a, a + b), lista.slice(a + b)];
+  const medidas = [a, b, n - a - b];
+  const g = ((giro % 3) + 3) % 3;
+  const [x, y] = [...medidas.slice(3 - g), ...medidas.slice(0, 3 - g)];
+  return [lista.slice(0, x), lista.slice(x, x + y), lista.slice(x + y)];
+}
+
+/**
+ * Las cuentas en los tres peldaños de la escalera. Cada operación sube por su cuenta: sus cuentas, de la que menos
+ * cuesta a la que más, se parten en tres, y cada bloque junta la parte que le toca de todas (primero las sumas,
+ * después las restas…). Así en una hoja de sumas y multiplicaciones los tres bloques tienen de las dos, cada vez
+ * más difíciles, en vez de dejar todas las multiplicaciones para el final.
+ */
+export function enEscalera(cuentas: Cuenta[]): Cuenta[][] {
+  const bloques: Cuenta[][] = [[], [], []];
+  let giro = 0;
+  for (const op of OPERACIONES) {
+    const suyas = cuentas.filter(c => c.op === op).map((c, i) => ({ c, i, peso: pesoDeCuenta(c) })).sort((x, y) => x.peso - y.peso || x.i - y.i).map(x => x.c);
+    if (!suyas.length) continue;
+    enTresPartes(suyas, giro++).forEach((parte, k) => bloques[k].push(...parte));
+  }
+  return bloques;
 }
 
 /** El ejercicio «Lista de cálculos» de unas cuentas, con su solución exacta. */
@@ -345,14 +370,16 @@ export function tituloDeOperaciones(ops: Operacion[], t: Tr): string {
 }
 
 /**
- * Una hoja de operaciones. Con seis cuentas o más va de menos a más: las cuentas se ordenan por lo que
- * cuestan y se reparten en los tres bloques de la escalera, cada uno con su lista de cálculos y su
- * solución. `null` si en ese rango no sale ninguna cuenta.
+ * Una hoja de operaciones. Con seis cuentas o más va de menos a más: se reparten en los tres bloques de
+ * la escalera (`enEscalera`), cada uno con su lista de cálculos y su solución. `null` si en ese rango no
+ * sale ninguna cuenta.
  */
 export function fichaOperaciones(p: PedidoOperaciones, t: Tr, lang: Lang = 'es', rand: () => number = Math.random): FichaInstante | null {
   const cuentas = generarCuentas(p, rand);
   if (!cuentas.length) return null;
-  const partes = cuentas.length >= MIN_OPERACIONES ? enTresPartes(cuentas) : [cuentas];
+  const escalera = cuentas.length >= MIN_OPERACIONES ? enEscalera(cuentas) : [];
+  // Con muy pocas de alguna operación un peldaño podría quedarse vacío: entonces, un solo bloque
+  const partes = escalera.length && escalera.every(b => b.length) ? escalera : [cuentas];
   const actividades: FichaActivity[] = partes.map((parte, i) => ({
     titulo: '',
     ...(partes.length === 3 ? { dificultad: DIFICULTADES[i] } : {}),

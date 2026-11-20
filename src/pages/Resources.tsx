@@ -114,7 +114,7 @@ const TIPOS_CREACION: { id: TipoCreacion; icono: React.ReactNode; color: string;
   { id: 'lectura', icono: <BookOpen size={24} />, color: '#0ea5e9', label: 'Comprensión lectora', desc: 'Un texto con dibujos y actividades sobre él.', dato: 'Cuento, poema, noticia…' },
   { id: 'escape', icono: <KeyRound size={24} />, color: '#f59e0b', label: 'Escape room', desc: 'Cada bloque es una sala con su candado.', dato: 'Se puede proyectar en clase' },
   { id: 'tarjetas', icono: <Layers size={24} />, color: '#8b5cf6', label: 'Tarjetas', desc: 'Pregunta delante y respuesta detrás.', dato: 'Se puede proyectar en clase' },
-  { id: 'instante', icono: <Zap size={24} />, color: '#10b981', label: 'Al instante (sin IA)', desc: 'Sopa de letras, crucigrama, operaciones o fracciones con pizzas.', dato: 'Sin clave, sin espera y sin errores de cuentas' },
+  { id: 'instante', icono: <Zap size={24} />, color: '#10b981', label: 'Al instante (sin IA)', desc: 'Sopa de letras, crucigrama, operaciones o fracciones con pizzas.', dato: 'Sin clave ni espera' },
 ];
 
 /** Cuántos ejercicios (o tarjetas) se proponen al elegir cada tipo. */

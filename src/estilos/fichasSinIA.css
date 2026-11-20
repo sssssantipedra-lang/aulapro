@@ -11,7 +11,7 @@
 
 /* ── Al instante: los cuatro generadores y su formulario ── */
 .fsi-gens.ev-cards { grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:12px; }
-.fsi-gens .ev-card { min-height:0; padding:14px 16px 12px; }
+.fsi-gens.fe-tipos .ev-card { min-height:150px; padding:14px 16px 12px; }
 .fsi-gens .ev-card-ttl { font-size:15.5px; }
 .fsi-emoji { font-size:22px; line-height:1; }
 .fsi-form { display:flex; flex-direction:column; gap:12px; margin-top:14px; }

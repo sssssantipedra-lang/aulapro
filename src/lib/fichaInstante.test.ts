@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  FACTOR_MAX, FACTOR_MIN, MAX_OPERACIONES, OPERACIONES, cuentaTexto, ejercicioDeCuentas, enTresPartes, fichaCrucigrama, fichaFracciones, fichaOperaciones,
+  FACTOR_MAX, FACTOR_MIN, MAX_OPERACIONES, OPERACIONES, cuentaTexto, ejercicioDeCuentas, enEscalera, enTresPartes, fichaCrucigrama, fichaFracciones, fichaOperaciones,
   fichaSopa, generarCuentas, llevadas, palabrasDeTexto, pesoDeCuenta, pistasDeTexto, resultadoDe, signoDe, tituloDeOperaciones, type Cuenta,
 } from './fichaInstante';
 import { translate } from '../i18n';
@@ -67,6 +67,8 @@ describe('sopa de letras al instante', () => {
     const { content, fuera } = fichaSopa({ palabras: ['sol', 'luna', 'mar', larga] }, t);
     expect(fuera).toEqual([larga]);
     expect(content.actividades[0].ejercicios[0].palabras).toEqual(['SOL', 'LUNA', 'MAR']);
+    // No se intenta colocar: la rejilla no crece por una palabra que no va a caber
+    expect(content.actividades[0].ejercicios[0].rejilla).toHaveLength(10);
   });
 
   it('es una ficha «Cuaderno» de un bloque, con el título pedido o el suyo, y se pinta', () => {
@@ -208,6 +210,25 @@ describe('cuentas', () => {
     expect(enTresPartes([1, 2, 3, 4, 5, 6, 7]).map(p => p.length)).toEqual([3, 2, 2]);
     expect(enTresPartes([1, 2, 3, 4, 5, 6]).flat()).toEqual([1, 2, 3, 4, 5, 6]);
     expect(enTresPartes([1, 2, 3, 4, 5, 6, 7, 8]).map(p => p.length)).toEqual([3, 3, 2]);
+    expect(enTresPartes([1, 2, 3, 4, 5, 6, 7], 1).map(p => p.length)).toEqual([2, 3, 2]);
+    expect(enTresPartes([1, 2, 3, 4, 5, 6, 7], 2).map(p => p.length)).toEqual([2, 2, 3]);
+    expect(enTresPartes([1, 2, 3, 4, 5, 6, 7], 2).flat()).toEqual([1, 2, 3, 4, 5, 6, 7]);
+  });
+
+  it('en la escalera cada operación sube por su cuenta y los tres bloques tienen de todas', () => {
+    const cuentas = generarCuentas({ operaciones: ['suma', 'multiplicacion'], min: 2, max: 300, cantidad: 24 }, azar(9));
+    const bloques = enEscalera(cuentas);
+    expect(bloques.map(b => b.length)).toEqual([8, 8, 8]);
+    expect(bloques.flat()).toHaveLength(24);
+    for (const b of bloques) {
+      expect(b.filter(c => c.op === 'suma')).toHaveLength(4);
+      // Dentro del bloque, primero las sumas y después las multiplicaciones
+      expect(b.map(c => c.op)).toEqual([...Array(4).fill('suma'), ...Array(4).fill('multiplicacion')]);
+    }
+    for (const op of ['suma', 'multiplicacion'] as const) {
+      const pesos = bloques.flatMap(b => b.filter(c => c.op === op)).map(pesoDeCuenta);
+      expect([...pesos].sort((x, y) => x - y)).toEqual(pesos);
+    }
   });
 
   it('el título dice las operaciones', () => {
