@@ -13,6 +13,7 @@
 import { useRef, useState } from 'react';
 import { GripVertical } from 'lucide-react';
 import type { CalEvent, ScheduleBlock } from '../../types';
+import { colorDeCapa, type ApunteDeAgenda } from '../../lib/capasAgenda';
 import { useI18n } from '../../i18n';
 import {
   PASO_MIN, PX_POR_MIN, aMin, cambioDeArrastre, colocarDia, deMin, moverBloque, rangoHorario,
@@ -31,12 +32,20 @@ interface Props {
   onMover: (b: ScheduleBlock) => void;
   onAbrirApoyo: (b: ScheduleBlock) => void;
   onEditarEvento: (ev: CalEvent) => void;
+  /** Lo que tiene fecha en otras pantallas (sesiones, cuaderno, reuniones…): solo se enseña, y cada apunte abre la suya. */
+  apuntesPorFecha?: Record<string, ApunteDeAgenda[]>;
+  onAbrirApunte?: (a: ApunteDeAgenda) => void;
+  /** Lo que se lee al pasar por encima de un apunte: de qué pantalla y de qué clase es. */
+  detalleDeApunte?: (a: ApunteDeAgenda) => string;
+  /** Con el filtro por clase puesto, los bloques de las demás clases se atenúan. */
+  claseResaltada?: string;
 }
 
 interface Arrastre { id: string; nuevo: ScheduleBlock }
 
 export function HorarioSemana({
   dias, etiquetas, hoy, bloques, apoyo, eventosPorFecha, isoDe, onEditar, onMover, onAbrirApoyo, onEditarEvento,
+  apuntesPorFecha = {}, onAbrirApunte, detalleDeApunte, claseResaltada,
 }: Props) {
   const { t } = useI18n();
   const rango = rangoHorario([...bloques, ...apoyo]);
@@ -137,6 +146,15 @@ export function HorarioSemana({
                 {ev.time && <b>{ev.time}</b>} {ev.name}
               </button>
             ))}
+            {(apuntesPorFecha[ds] ?? []).map(a => (
+              <button
+                key={a.id} type="button" className={`wk-event wk-apunte${a.hecho ? ' hecho' : ''}`}
+                style={{ '--ev-c': colorDeCapa(a.capa) } as React.CSSProperties}
+                onClick={() => onAbrirApunte?.(a)} title={detalleDeApunte?.(a) ?? t('Abrir en su pantalla')}
+              >
+                {a.hora && <b>{a.hora}</b>} {a.titulo || t('Sin título')}
+              </button>
+            ))}
           </div>
         );
       })}
@@ -164,7 +182,7 @@ export function HorarioSemana({
               return (
                 <div
                   key={b.id} role="button" tabIndex={0}
-                  className={`wk-bloque${esApoyo ? ' apoyo' : ''}${movido ? ' origen' : ''}`}
+                  className={`wk-bloque${esApoyo ? ' apoyo' : ''}${movido ? ' origen' : ''}${claseResaltada && b.class_id !== claseResaltada ? ' de-otra-clase' : ''}`}
                   style={{ ...e, background: b.color }}
                   data-inicio={b.time_start} data-dia={b.day}
                   aria-label={`${b.subject}, ${b.time_start}–${b.time_end}`}

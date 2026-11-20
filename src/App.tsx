@@ -173,6 +173,8 @@ function AppInner() {
   // Al profesorado de PT y AL, su menú y su Inicio (ver lib/navigation.ts).
   const tipo = st.currentUser?.tipo ?? 'aula';
   const especialista = tipo === 'apoyo';
+  /** Para la Agenda: una capa cuya pantalla este perfil no tiene en su menú no se ofrece. */
+  const pantallaDelPerfil = useCallback((s: Section) => enMenu(s, tipo), [tipo]);
   // Se memoriza para no crear una lista nueva en cada render: Aula Live la usa
   // como origen de la ruleta y reiniciaría el giro cada vez que cambie. Para
   // el de PT y AL, la ruleta es de su alumnado de apoyo, no de clases que no tiene.
@@ -592,6 +594,9 @@ function AppInner() {
                 onNav={s => setSection(s as Section)}
                 comunidad={st.currentUser.community}
                 provincia={st.currentUser.provincia}
+                sesiones={st.ef.sesiones} gradeItems={st.gradeItems} gradeCategories={st.gradeCategories} workSessions={st.workSessions}
+                marcas={st.ef.marcas} pruebas={st.ef.pruebas} students={st.students}
+                esEF={tipo === 'ef'} tienePantalla={pantallaDelPerfil}
               />
             )}
             {section === 'evaluar' && (

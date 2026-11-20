@@ -58,6 +58,7 @@ import type { EfData, ImagenSesion, InstrumentoRefEF, ModalidadEF, SesionEF } fr
 import type { InlineFile } from '../services/gemini';
 import { ValorarRegistro } from '../components/ValorarRegistro';
 import { useClaseActiva, useRecordarClase } from '../hooks/useClaseActiva';
+import { clasePedida } from '../lib/claseActiva';
 
 /** La sesión sin sus imágenes: lo que se compara y lo que va al borrador. */
 const sinImagenes = (s: SesionEF): SesionEF => (s.imagenes ? (({ imagenes: _i, ...r }) => { void _i; return r; })(s) : s);
@@ -140,7 +141,11 @@ export function Sesiones({
   const [altSel, setAltSel] = useState<string[]>([]);
   const esEF = perfil === 'ef';
   /** La clase abierta (`''` = sesiones sin clase); `null`, la portada con las tarjetas. */
-  const [claseVista, setClaseVista] = useState<string | null>(null);
+  // Quien llega con una clase pedida (un apunte de la Agenda) entra ya en ella, no en la portada
+  const [claseVista, setClaseVista] = useState<string | null>(() => {
+    const pedida = clasePedida();
+    return pedida && classes.some(c => c.id === pedida) ? pedida : null;
+  });
   // Una sesión nueva sin clase abierta empieza en la clase activa (la de ahora o la última con la que se trabajó)
   const [claseActiva] = useClaseActiva(classes);
   const recordarClase = useRecordarClase();
