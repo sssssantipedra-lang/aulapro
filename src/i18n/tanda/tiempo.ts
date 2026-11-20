@@ -58,6 +58,7 @@ export const EN: Record<string, string> = {
   "Nada de esta clase para este día": "Nothing for this class on this day",
   "{n} marca": "{n} result",
   "{n} marcas": "{n} results",
+  "Elige el primer día y cada cuántos días lectivos hay sesión, y AulaPro reparte las pendientes en su orden. Nada cambia hasta que pulses «Poner estas fechas».": "Choose the first day and how many school days apart the lessons are, and AulaPro spreads the pending ones in order. Nothing changes until you press «Set these dates».",
 };
 
 export const CA: Record<string, string> = {
@@ -116,4 +117,5 @@ export const CA: Record<string, string> = {
   "Nada de esta clase para este día": "Res d’aquesta classe per a aquest dia",
   "{n} marca": "{n} marca",
   "{n} marcas": "{n} marques",
+  "Elige el primer día y cada cuántos días lectivos hay sesión, y AulaPro reparte las pendientes en su orden. Nada cambia hasta que pulses «Poner estas fechas».": "Tria el primer dia i cada quants dies lectius hi ha sessió, i AulaPro reparteix les pendents en el seu ordre. No canvia res fins que prems «Posa aquestes dates».",
 };

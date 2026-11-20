@@ -623,7 +623,7 @@ export function Agenda({
             bloques={scheduleBlocks} apoyo={apoyoBlocks} eventosPorFecha={eventsByDate}
             onEditar={openEditBlock} onMover={onUpdateBlock} onEditarEvento={openEditEvent}
             apuntesPorFecha={apuntesPorFecha} onAbrirApunte={abrirApunte} claseResaltada={claseFiltrada || undefined}
-            detalleDeApunte={a => [t(CAPAS.find(c => c.id === a.capa)!.label), nombreDeClase(a.claseId), a.titulo].filter(Boolean).join(' · ')}
+            detalleDeApunte={a => [t(CAPAS.find(c => c.id === a.capa)!.label), nombreDeClase(a.claseId), a.tipo === 'prueba' ? t(a.titulo) : a.titulo].filter(Boolean).join(' · ')}
             onAbrirApoyo={b => { requestGrupos(grupoDeBloque(b.id)); onNav('apoyo-alumnado'); }}
           />
         </div>

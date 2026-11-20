@@ -2,7 +2,7 @@
 
 /* ── Sesiones: «Poner fechas» en la cabecera del grupo y «No se dio» en la fila ── */
 .ses-grupo-hd { flex-wrap:wrap; }
-.ses-grupo-fechas { display:inline-flex; align-items:center; gap:5px; }
+.ses-grupo-fechas { display:inline-flex; align-items:center; gap:5px; min-height:40px; }
 .ses-nodio { flex-shrink:0; display:inline-flex; align-items:center; justify-content:center; gap:5px; min-width:40px; height:40px; margin-top:4px; padding:0 8px; background:none; border:none; border-radius:10px; color:var(--text-3); font:inherit; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap; }
 .ses-nodio:hover, .ses-nodio:focus-visible { background:var(--surface); color:var(--accent-d); }
 .ses-nodio.atrasada { color:var(--text-2); border:0.5px solid var(--border); background:var(--surface); }
@@ -14,7 +14,7 @@
 .pf-opciones .fgroup { margin:0; }
 .pf-asignaturas { flex:1 1 260px; min-width:0; }
 .pf-chips { display:flex; flex-wrap:wrap; gap:6px; }
-.pf-chip { display:inline-flex; align-items:center; gap:5px; min-height:36px; padding:6px 13px; border-radius:99px; border:1px solid var(--border); background:var(--card); color:var(--text-2); font:inherit; font-size:13px; font-weight:600; cursor:pointer; }
+.pf-chip { display:inline-flex; align-items:center; gap:5px; min-height:40px; padding:6px 13px; border-radius:99px; border:1px solid var(--border); background:var(--card); color:var(--text-2); font:inherit; font-size:13px; font-weight:600; cursor:pointer; }
 .pf-chip.on { background:var(--accent-l); border-color:var(--accent); color:var(--accent-d); }
 .pf-cada { width:90px; }
 .pf-nota { display:flex; align-items:flex-start; gap:6px; margin:0; font-size:12.5px; line-height:1.5; color:var(--text-2); }
@@ -26,7 +26,7 @@
 .pf-item + .pf-item { border-top:0.5px solid var(--border); }
 .pf-salto { display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; padding:6px 12px; font-size:12px; line-height:1.4; color:var(--accent-d); background:color-mix(in srgb, var(--accent) 9%, var(--card)); }
 .pf-salto.quitado { color:var(--text-2); background:var(--surface); }
-.pf-reponer { display:inline-flex; align-items:center; gap:4px; min-height:30px; padding:3px 9px; border-radius:99px; border:0.5px solid var(--border); background:var(--card); color:var(--text-2); font:inherit; font-size:12px; font-weight:600; cursor:pointer; }
+.pf-reponer { display:inline-flex; align-items:center; gap:4px; min-height:40px; padding:3px 9px; border-radius:99px; border:0.5px solid var(--border); background:var(--card); color:var(--text-2); font:inherit; font-size:12px; font-weight:600; cursor:pointer; }
 .pf-fila { display:grid; grid-template-columns:28px minmax(0,1fr) auto 40px; align-items:center; gap:8px; padding:7px 6px 7px 12px; }
 .pf-num { width:24px; height:24px; border-radius:50%; background:var(--surface-2); color:var(--text-2); font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; }
 .pf-titulo { display:flex; flex-direction:column; gap:2px; min-width:0; font-size:13.5px; }
@@ -51,14 +51,14 @@
 .ag-capas { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px 18px; margin-bottom:14px; }
 .ag-capas-chips { display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
 .ag-capas-ttl { font-size:12.5px; font-weight:700; color:var(--text-2); margin-right:2px; }
-.ag-capa { display:inline-flex; align-items:center; gap:7px; min-height:36px; padding:6px 12px; border-radius:99px; border:1px solid var(--border); background:var(--card); color:var(--text-3); font:inherit; font-size:12.5px; font-weight:600; cursor:pointer; }
+.ag-capa { display:inline-flex; align-items:center; gap:7px; min-height:40px; padding:6px 12px; border-radius:99px; border:1px solid var(--border); background:var(--card); color:var(--text-3); font:inherit; font-size:12.5px; font-weight:600; cursor:pointer; }
 .ag-capa-marca { width:10px; height:10px; border-radius:3px; border:1.5px solid var(--ag-c); background:transparent; }
 .ag-capa.on { color:var(--text); border-color:color-mix(in srgb, var(--ag-c) 55%, var(--border)); background:color-mix(in srgb, var(--ag-c) 9%, var(--card)); }
 .ag-capa.on .ag-capa-marca { background:var(--ag-c); }
 .ag-capa:not(.on) { text-decoration:line-through; }
 .ag-filtro { display:flex; align-items:center; gap:8px; }
 .ag-filtro label { font-size:12.5px; font-weight:700; color:var(--text-2); }
-.ag-filtro .finput { width:auto; min-width:150px; max-width:230px; padding-top:7px; padding-bottom:7px; }
+.ag-filtro .finput { width:auto; min-width:150px; max-width:230px; min-height:40px; padding-top:7px; padding-bottom:7px; }
 .cal-dot.cal-capa { width:6px; height:6px; border-radius:1.5px; margin-top:1.5px; }
 .cal-day.selected .cal-dot { outline:1px solid rgba(255,255,255,.7); }
 .ag-apuntes { list-style:none; margin:12px 0 0; padding:0; display:flex; flex-direction:column; gap:8px; }

@@ -77,7 +77,8 @@ export function ApuntesDelDia({ apuntes, classes, onAbrir }: ListaProps) {
               onClick={() => onAbrir(a)} title={t('Abrir en su pantalla')}>
               <span className="ag-apunte-hora">{a.hora ?? ''}</span>
               <span className="ag-apunte-txt">
-                <strong>{a.titulo || t('Sin título')}</strong>
+                {/* El nombre de una prueba física de partida va en castellano y se traduce al enseñarlo */}
+                <strong>{(a.tipo === 'prueba' ? t(a.titulo) : a.titulo) || t('Sin título')}</strong>
                 <span>{datos.join(' · ')}{a.hecho && <span className="ag-apunte-hecho"><Check size={12} aria-hidden="true" />{t('Completada')}</span>}</span>
               </span>
               <ArrowRight size={15} aria-hidden="true" />

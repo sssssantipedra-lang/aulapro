@@ -129,7 +129,9 @@ function Contenido({ peticion, classes, bloques, eventos = [], comunidad: comuni
     <div className="pf">
       <p className="pf-intro">
         {modo === 'poner'
-          ? t('Elige el primer día y AulaPro reparte las sesiones pendientes, en su orden, en las horas de esta clase en tu horario. Nada cambia hasta que pulses «Poner estas fechas».')
+          ? (conHorario
+            ? t('Elige el primer día y AulaPro reparte las sesiones pendientes, en su orden, en las horas de esta clase en tu horario. Nada cambia hasta que pulses «Poner estas fechas».')
+            : t('Elige el primer día y cada cuántos días lectivos hay sesión, y AulaPro reparte las pendientes en su orden. Nada cambia hasta que pulses «Poner estas fechas».'))
           : t('Esta sesión pasa a la clase siguiente y las que vienen detrás se corren solo si se pisan con ella. Nada cambia hasta que pulses «Correr las fechas».')}
       </p>
 

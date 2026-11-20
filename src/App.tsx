@@ -175,6 +175,8 @@ function AppInner() {
   const especialista = tipo === 'apoyo';
   /** Para la Agenda: una capa cuya pantalla este perfil no tiene en su menú no se ofrece. */
   const pantallaDelPerfil = useCallback((s: Section) => enMenu(s, tipo), [tipo]);
+  /** Las pruebas físicas con nombre (las de partida y las del docente), para la capa de la Agenda. */
+  const pruebasEF = useMemo(() => (tipo === 'ef' ? pruebasDe(st.ef) : []), [tipo, st.ef]);
   // Se memoriza para no crear una lista nueva en cada render: Aula Live la usa
   // como origen de la ruleta y reiniciaría el giro cada vez que cambie. Para
   // el de PT y AL, la ruleta es de su alumnado de apoyo, no de clases que no tiene.
@@ -595,7 +597,7 @@ function AppInner() {
                 comunidad={st.currentUser.community}
                 provincia={st.currentUser.provincia}
                 sesiones={st.ef.sesiones} gradeItems={st.gradeItems} gradeCategories={st.gradeCategories} workSessions={st.workSessions}
-                marcas={st.ef.marcas} pruebas={st.ef.pruebas} students={st.students}
+                marcas={st.ef.marcas} pruebas={pruebasEF} students={st.students}
                 esEF={tipo === 'ef'} tienePantalla={pantallaDelPerfil}
               />
             )}

@@ -152,7 +152,7 @@ export function HorarioSemana({
                 style={{ '--ev-c': colorDeCapa(a.capa) } as React.CSSProperties}
                 onClick={() => onAbrirApunte?.(a)} title={detalleDeApunte?.(a) ?? t('Abrir en su pantalla')}
               >
-                {a.hora && <b>{a.hora}</b>} {a.titulo || t('Sin título')}
+                {a.hora && <b>{a.hora}</b>} {(a.tipo === 'prueba' ? t(a.titulo) : a.titulo) || t('Sin título')}
               </button>
             ))}
           </div>
