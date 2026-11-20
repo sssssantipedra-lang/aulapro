@@ -2,12 +2,12 @@ import { esDeAsignatura, modeloAcs } from '../lib/acsModelos';
 import { AyudaVideo } from '../components/AyudaVideo';
 import type { AcsApoyo } from '../types/apoyo';
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
-import { Paperclip, X, BookOpen, FileText, Brain, Plus, Download, Pencil, Settings2, Users, ArrowRight, Sparkles, Send, Trash2, Database, Flag, Check, Hand } from 'lucide-react';
+import { Paperclip, X, BookOpen, FileText, Brain, Plus, Download, Pencil, Settings2, Users, ArrowRight, Sparkles, Send, Trash2, Database, Flag, Check, Hand, ChevronDown, ChevronUp } from 'lucide-react';
 import { callGemini, hasApiKey, type InlineFile, type ChatTurn } from '../services/gemini';
 import { ACEPTA_ADJUNTO, useAdjuntoParaIA } from '../hooks/useAdjuntoParaIA';
 import { preguntaParaIA } from '../lib/preguntaParaIA';
 import { buildTeacherContext, chatSystemPrompt, type TeacherData, type ChatMessage } from '../services/aiContext';
-import { fileToBase64, isoDate, nombreDePila } from '../lib/utils';
+import { fileToBase64, fromIsoDate, isoDate, nombreDePila, PERIODS } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
 import { Modal } from '../components/ui/Modal';
 import { RichText } from '../components/ui/RichText';
@@ -19,7 +19,7 @@ import { ClassChips } from '../components/ui/ClassChips';
 import type { Class, Student, GradeCategory, GradeItem, GradeMap, ClassMark, MarksBlockConfig, Evaluation } from '../types';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
 import {
-  isMarksCategory, blockConfig, sumaDePesos, blockActive, marksFor, studentBlock,
+  isMarksCategory, blockConfig, blockKey, sumaDePesos, blockActive, marksFor, studentBlock, BLOCK_ITEM_PREFIX,
   TARGETS, targetLabel, esAsignaturaEF, nombreDelBloque, BLOCK_NAME, MAX_BLOCK_POINTS, type MarkTarget,
 } from '../services/classMarks';
 import { requestSettingsPanel } from '../lib/settingsNav';
@@ -27,9 +27,14 @@ import { requestActitud } from '../lib/actitudNav';
 import { downloadFile } from '../lib/download';
 import { compararAlumnos } from '../lib/alumnado';
 import { CARPETAS } from '../lib/carpetas';
-import { mediaDeCategoria, pesoEnLaNotaFinal, porcentajesEnCategoria, hayPesosElegidos } from '../lib/ponderacion';
+import { mediaPonderada, pesoEnLaNotaFinal, porcentajesEnCategoria, hayPesosElegidos } from '../lib/ponderacion';
 import { PesosDeNotas } from '../components/PesosDeNotas';
 import { useClaseActiva } from '../hooks/useClaseActiva';
+import { CURSO_ENTERO, diaParaNueva, periodoDeFecha } from '../lib/periodos';
+import { categoriasDe, cuadernoDe, notasDeCurso, reglaFinal, type ReglaFinal } from '../lib/cuadernoEvaluacion';
+import { useEvaluacionElegida, type EvaluacionElegida } from '../hooks/useEvaluacionElegida';
+import { SelectorEvaluacion } from '../components/SelectorEvaluacion';
+import { NotasDeCurso } from '../components/cuaderno/NotasDeCurso';
 
 // El currículo (unos 650 KB) se abre con la pestaña «Por competencias», no con el cuaderno
 const CompetenciasDeLaClase = lazy(() => import('../components/curriculum/CompetenciasDeLaClase')
@@ -72,25 +77,6 @@ interface Props {
 
 /* ══════════════════ Utilidades de cálculo ══════════════════ */
 
-/** Media ponderada de un alumno: media de cada categoría × su peso. */
-function weightedAverage(
-  studentId: string,
-  categories: GradeCategory[],
-  items: GradeItem[],
-  grades: GradeMap,
-): number | null {
-  let sum = 0;
-  let weightUsed = 0;
-  for (const cat of categories) {
-    const avg = mediaDeCategoria(items.filter(i => i.category_id === cat.id), grades, studentId);
-    if (avg === null) continue;
-    sum += avg * cat.weight;
-    weightUsed += cat.weight;
-  }
-  if (weightUsed === 0) return null;
-  return sum / weightUsed;
-}
-
 function fmtNota(n: number | null, locale = 'es-ES'): string {
   if (n === null) return '—';
   return n.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
@@ -102,6 +88,14 @@ function notaColor(n: number | null): string {
   if (n < 7) return 'var(--grade-mid)';
   return 'var(--grade-good)';
 }
+
+/** Dónde se recuerda, en el dispositivo, si en «Curso» se ve la tabla de todas las actividades. */
+const CLAVE_VER_TODAS = 'aulapro_cuaderno_curso_actividades';
+
+/** Cómo se nombra cada evaluación dentro de una frase. */
+const LA_EVALUACION: Record<string, string> = {
+  [PERIODS[0]]: 'la 1.ª evaluación', [PERIODS[1]]: 'la 2.ª evaluación', [PERIODS[2]]: 'la 3.ª evaluación', [PERIODS[3]]: 'todo el curso',
+};
 
 /* ══════════════════ Celda de nota editable ══════════════════ */
 
@@ -209,10 +203,11 @@ const EF_CATEGORIES_EN: { name: string; weight: number }[] = [
 ];
 
 function GradesTab({
-  classes, students, gradeCategories, gradeItems, grades, classMarks, marksConfigs, onSaveMarksConfig,
+  classes, students, gradeCategories: todasLasCategorias, gradeItems: todasLasActividades, grades: notasGuardadas,
+  classMarks, marksConfigs, onSaveMarksConfig,
   onAddCategory, onUpdateCategory, onDeleteCategory,
-  onAddItem, onUpdateItem, onDeleteItem, onSetGrade, onNav, acsAula = [], comunidad, clase,
-}: Omit<Props, 'lawDocument' | 'onLawDocumentChange'> & { clase: ReturnType<typeof useClaseActiva> }) {
+  onAddItem, onUpdateItem, onDeleteItem, onSetGrade, onNav, acsAula = [], comunidad, clase, ev,
+}: Omit<Props, 'lawDocument' | 'onLawDocumentChange'> & { clase: ReturnType<typeof useClaseActiva>; ev: EvaluacionElegida }) {
   const { toast } = useToast();
   const { t, locale, lang } = useI18n();
   // La clase la lleva la página: es la misma en «Calificaciones» y en «Por competencias»
@@ -252,18 +247,55 @@ function GradesTab({
     () => students.filter(s => s.class_id === clsId).sort(compararAlumnos),
     [students, clsId],
   );
-  const myCategories = useMemo(
-    () => gradeCategories.filter(c =>
-      c.class_id === clsId &&
-      // Las categorías creadas antes de que hubiera varias asignaturas no
-      // llevan ninguna: son de la principal, la primera de la lista.
-      (c.subject ?? subjects[0] ?? '') === activeSubject),
-    [gradeCategories, clsId, activeSubject, subjects],
+  /**
+   * El cuaderno de la evaluación que se está viendo (20-11-2026, `lib/cuadernoEvaluacion.ts`): solo las
+   * actividades de sus fechas y el bloque de anotaciones calculado con las de esas fechas, la misma cuenta
+   * que el acta. En «Curso», todas, con la nota de cada evaluación y la final al lado.
+   */
+  const esCurso = ev.periodo === CURSO_ENTERO;
+  const entrada = useMemo(() => ({
+    classes: cls ? [cls] : [], students: myStudents,
+    gradeCategories: todasLasCategorias.filter(c => c.class_id === clsId),
+    gradeItems: todasLasActividades.filter(i => i.class_id === clsId),
+    grades: notasGuardadas, classMarks: classMarks.filter(m => m.class_id === clsId), marksConfigs,
+  }), [cls, clsId, myStudents, todasLasCategorias, todasLasActividades, notasGuardadas, classMarks, marksConfigs]);
+  /** Cómo sale la nota final de curso de esta clase y asignatura: evaluación continua si no se ha elegido otra cosa. */
+  const regla = useMemo(() => reglaFinal(marksConfigs[blockKey(clsId, activeSubject)]), [marksConfigs, clsId, activeSubject]);
+  const deCurso = useMemo(
+    () => (esCurso && cls ? notasDeCurso(entrada, cls, activeSubject, regla, ev.hoy, ev.rangos) : null),
+    [esCurso, entrada, cls, activeSubject, regla, ev.hoy, ev.rangos],
   );
+  const vista = useMemo(
+    () => deCurso?.curso ?? cuadernoDe(entrada, ev.periodo, ev.hoy, ev.rangos),
+    [deCurso, entrada, ev.periodo, ev.hoy, ev.rangos],
+  );
+  const { gradeItems, grades } = vista;
+  const myCategories = useMemo(() => (cls ? categoriasDe(vista, cls, activeSubject) : []), [vista, cls, activeSubject]);
   const myItems = useMemo(() => {
     const mine = new Set(myCategories.map(c => c.id));
     return gradeItems.filter(i => i.class_id === clsId && mine.has(i.category_id));
   }, [gradeItems, clsId, myCategories]);
+  /** Todas las actividades de la asignatura, de cualquier evaluación (sin la columna del bloque de anotaciones). */
+  const deTodoElCurso = useMemo(() => {
+    const principal = subjects[0] ?? '';
+    const suyas = new Set(todasLasCategorias.filter(c => c.class_id === clsId && !isMarksCategory(c.id) && (c.subject ?? principal) === activeSubject).map(c => c.id));
+    return todasLasActividades.filter(i => i.class_id === clsId && suyas.has(i.category_id) && !i.id.startsWith(BLOCK_ITEM_PREFIX));
+  }, [todasLasCategorias, todasLasActividades, clsId, activeSubject, subjects]);
+  /** La nota de un alumno en lo que se está viendo: la de la evaluación o, en «Curso», la final con la regla elegida. */
+  const notaDe = (studentId: string): number | null =>
+    (deCurso ? deCurso.notas.get(studentId)?.final ?? null : mediaPonderada(myCategories, myItems, grades, studentId));
+  /** En «Curso» la tabla de todas las actividades va plegada: lo primero son las notas de cada evaluación y la final. */
+  const [verTodas, setVerTodas] = useState(() => { try { return localStorage.getItem(CLAVE_VER_TODAS) === '1'; } catch { return false; } });
+  const cambiarVerTodas = (v: boolean) => { setVerTodas(v); try { localStorage.setItem(CLAVE_VER_TODAS, v ? '1' : '0'); } catch { /* sin almacenamiento */ } };
+  const nombreCorto = (p: string) => t(LA_EVALUACION[p] ?? p);
+  const diaCorto = (f: string) => fromIsoDate(f).toLocaleDateString(locale, { day: 'numeric', month: 'long' });
+  /** Las actividades que cuentan juntas con una de esa fecha: las de su evaluación o, con evaluación continua y viendo el curso, todas. */
+  const cuentanCon = (fecha: string) => {
+    if (esCurso && regla.modo === 'continua') return () => true;
+    const suya = periodoDeFecha(fecha, ev.hoy, ev.rangos);
+    return (i: GradeItem) => !i.date || periodoDeFecha(i.date, ev.hoy, ev.rangos) === suya;
+  };
+
   /**
    * Las categorías del docente, sin el bloque de anotaciones: ese no se edita
    * como las demás. Su peso interno se calcula para que valga su % de la nota
@@ -292,10 +324,11 @@ function GradesTab({
   const block = useMemo(() => {
     if (!cls) return null;
     const cfg = blockConfig(marksConfigs, cls.id, activeSubject);
-    const marks = marksFor(classMarks, cls, activeSubject);
+    // Las anotaciones de las fechas de la evaluación que se está viendo
+    const marks = marksFor(classMarks, cls, activeSubject).filter(m => ev.cuenta(m.date));
     const perStudent = new Map(myStudents.map(s => [s.id, studentBlock(marks.filter(m => m.student_id === s.id), cfg)]));
     return { cfg, active: blockActive(cfg, marks.length), count: marks.length, perStudent };
-  }, [cls, activeSubject, marksConfigs, classMarks, myStudents]);
+  }, [cls, activeSubject, marksConfigs, classMarks, myStudents, ev]);
   /** Lo que pesa el bloque en la nota final, en % (0 si no cuenta). */
   const blockPct = block?.active ? Math.round(block.cfg.points * 100) / 10 : 0;
   const pesos = sumaDePesos(weightSum, blockPct);
@@ -352,9 +385,23 @@ function GradesTab({
     if (TARGETS.some(tg => !(bases[tg] >= 0 && bases[tg] <= 10))) { toast(t('La nota de partida debe estar entre 0 y 10')); return; }
     const wSum = TARGETS.reduce((a, tg) => a + weights[tg], 0);
     if (Math.abs(wSum - 100) > 0.05) { toast(t('Los pesos del bloque deben sumar 100% (ahora suman {n}%)', { n: dec(Math.round(wSum * 100) / 100) })); return; }
-    onSaveMarksConfig(cls.id, activeSubject, { ...(bf.name.trim() ? { name: bf.name.trim() } : {}), enabled: bf.enabled, points, step, weights, bases });
+    // La regla de la nota final de curso va guardada con el bloque: se conserva
+    const final = block?.cfg.final;
+    onSaveMarksConfig(cls.id, activeSubject, { ...(bf.name.trim() ? { name: bf.name.trim() } : {}), enabled: bf.enabled, points, step, weights, bases, ...(final ? { final } : {}) });
     setBlockOpen(false);
     toast(t('✅ Bloque actualizado'));
+  }
+
+  /** Guarda la regla de la nota final en una clase y asignatura (con el resto de su configuración como estaba). */
+  function guardarRegla(nueva: ReglaFinal, classId: string, subject: string) {
+    const { final: _f, ...cfg } = blockConfig(marksConfigs, classId, subject); void _f;
+    onSaveMarksConfig(classId, subject, nueva.modo === 'media' ? { ...cfg, final: { modo: 'media', pesos: [...nueva.pesos] } } : cfg);
+  }
+  const otrasAsignaturas = classes.flatMap(c => (c.subjects?.length ? c.subjects : [c.subject]).map(s2 => ({ c, s: s2 })))
+    .filter(x => !(x.c.id === clsId && x.s === activeSubject));
+  function reglaParaTodas() {
+    otrasAsignaturas.forEach(x => guardarRegla(regla, x.c.id, x.s));
+    toast(t(regla.modo === 'media' ? '✅ Todas tus clases calculan la nota final con la media de las evaluaciones' : '✅ Todas tus clases calculan la nota final con evaluación continua'));
   }
 
   /* ── Modales: abrir ── */
@@ -362,7 +409,7 @@ function GradesTab({
     setCatName(cat === 'new' ? '' : cat.name);
     setCatWeight(cat === 'new' ? '' : String(cat.weight));
     setCatItemWeights(cat === 'new' ? {} : Object.fromEntries(
-      gradeItems.filter(i => i.category_id === cat.id && typeof i.weight === 'number').map(i => [i.id, dec(i.weight!)])));
+      myItems.filter(i => i.category_id === cat.id && typeof i.weight === 'number').map(i => [i.id, dec(i.weight!)])));
     setConfirmDel(false);
     setCatModal(cat);
   }
@@ -370,7 +417,8 @@ function GradesTab({
   function openItemModal(item: GradeItem | 'new') {
     setItemName(item === 'new' ? '' : item.name);
     setItemCat(item === 'new' ? (ownCategories[0]?.id ?? '') : item.category_id);
-    setItemDate(item === 'new' ? isoDate() : item.date);
+    // Una actividad nueva cae en la evaluación que se está viendo (la fecha se puede cambiar)
+    setItemDate(item === 'new' ? diaParaNueva(ev.periodo, ev.hoy, ev.rangos) : item.date);
     setItemWeight(item !== 'new' && typeof item.weight === 'number' ? dec(item.weight) : '');
     setConfirmDel(false);
     setItemModal(item);
@@ -387,7 +435,8 @@ function GradesTab({
       toast(t('✅ Categoría creada'));
     } else if (catModal) {
       const nuevos: GradeItem[] = [];
-      for (const i of gradeItems.filter(x => x.category_id === catModal.id)) {
+      // Solo las que se ven y se han podido editar: las de otras evaluaciones conservan su peso
+      for (const i of (pesosEditables ? myItems.filter(x => x.category_id === catModal.id) : [])) {
         const txt = (catItemWeights[i.id] ?? '').trim();
         const w = txt === '' ? undefined : parseDec(txt);
         if (w !== undefined && !(w >= 0 && w <= 100)) { toast(t('Lo que cuenta cada nota debe estar entre 0 y 100')); return; }
@@ -408,11 +457,17 @@ function GradesTab({
     if (w !== undefined && !(w >= 0 && w <= 100)) { toast(t('Lo que cuenta cada nota debe estar entre 0 y 100')); return; }
     if (itemModal === 'new') {
       onAddItem({ id: 'gi' + Date.now(), class_id: clsId, category_id: itemCat, name, date: itemDate, ...(w !== undefined ? { weight: w } : {}) });
-      toast(t('✅ Columna de nota añadida'));
+      // Si por su fecha no cae en la evaluación que se está viendo, se dice dónde ha ido: si no, parecería que no se ha guardado
+      const suya = periodoDeFecha(itemDate, ev.hoy, ev.rangos);
+      toast(ev.cuenta(itemDate) ? t('✅ Columna de nota añadida')
+        : suya ? t('✅ Añadida. Por su fecha cuenta en {evaluacion}: cambia de evaluación para verla.', { evaluacion: nombreCorto(suya) })
+        : t('✅ Añadida. Su fecha es de otro curso: solo sale en «Curso».'));
     } else if (itemModal) {
       const { weight: _w, ...resto } = itemModal; void _w;
       onUpdateItem({ ...resto, name, category_id: itemCat, date: itemDate, ...(w !== undefined ? { weight: w } : {}) });
-      toast(t('✅ Actualizada'));
+      const suya = periodoDeFecha(itemDate, ev.hoy, ev.rangos);
+      toast(ev.cuenta(itemDate) || !suya ? t('✅ Actualizada')
+        : t('✅ Actualizada. Por su fecha ahora cuenta en {evaluacion}.', { evaluacion: nombreCorto(suya) }));
     }
     setItemModal(null);
   }
@@ -421,22 +476,36 @@ function GradesTab({
   function exportCsv() {
     if (myStudents.length === 0) { toast(t('No hay alumnos en esta clase')); return; }
     const cols = myCategories.flatMap(cat => myItems.filter(i => i.category_id === cat.id).map(i => ({ cat, item: i })));
-    const header = [t('Alumno'), ...cols.map(c => `${c.cat.name} - ${c.item.name}`), t('Media ponderada')];
+    const num = (v: number | null | undefined) => (typeof v === 'number' ? v.toFixed(2).replace('.', ',') : '');
+    // En una evaluación, sus actividades y su nota; en «Curso», todas, con la nota de cada evaluación y la final
+    const header = [t('Alumno'), ...cols.map(c => `${c.cat.name} - ${c.item.name}`),
+      ...(deCurso ? [...PERIODS.slice(0, 3).map(p => t(p)), t('Nota final')] : [`${t('Media ponderada')} (${t(ev.periodo)})`])];
     const rows = myStudents.map(s => {
       const cells = cols.map(({ item }) => {
         const v = grades[item.id]?.[s.id];
         return typeof v === 'number' ? String(v).replace('.', ',') : '';
       });
-      const avg = weightedAverage(s.id, myCategories, myItems, grades);
-      return [s.name, ...cells, avg !== null ? avg.toFixed(2).replace('.', ',') : ''];
+      const n = deCurso?.notas.get(s.id);
+      return [s.name, ...cells, ...(n ? [...n.evaluaciones.map(num), num(n.final)] : [num(notaDe(s.id))])];
     });
     const csv = '\uFEFF' + [header, ...rows]
       .map(r => r.map(c => `"${c.replace(/"/g, '""')}"`).join(';'))
       .join('\r\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
-    void downloadFile(blob, `notas-${cls?.name.replace(/\s+/g, '-') ?? 'clase'}-${isoDate()}.csv`, CARPETAS.cuaderno);
+    const slug = (x: string) => x.replace(/\s+/g, '-');
+    void downloadFile(blob, `notas-${slug(cls?.name ?? 'clase')}-${slug(ev.periodo)}-${isoDate()}.csv`, CARPETAS.cuaderno);
     toast(t('✅ Notas exportadas (ábrelas con Excel)'));
   }
+
+  /** Los pesos de cada nota dentro de la categoría se cuentan entre las de una misma evaluación: con la media de las evaluaciones, no se editan viendo todo el curso. */
+  const pesosEditables = !(esCurso && regla.modo === 'media');
+
+  /** La marca de quien tiene una adaptación curricular significativa en esta materia. */
+  const marcaAcs = (s: Student) => (acsAula.some(a => a.alumnoId === s.id && esDeAsignatura(a, activeSubject)) ? (
+    <span className="sda-chip gb-acs" title={t('Tiene una adaptación curricular significativa en esta materia: califícalo con sus criterios.')}>
+      {modeloAcs(comunidad).sigla}
+    </span>
+  ) : null);
 
   /* ── Estados vacíos ── */
   if (classes.length === 0) {
@@ -476,6 +545,8 @@ function GradesTab({
             </div>
           </>
         )}
+        <span className="toolbar-sep" aria-hidden="true" />
+        <SelectorEvaluacion ev={ev} queCuenta={t('El cuaderno enseña y cuenta las actividades y las anotaciones de estas fechas.')} />
         <span className="toolbar-spacer" />
         <button className="tb-btn" onClick={exportCsv} disabled={myItems.length === 0}>
           <Download size={14} />{t('Exportar a Excel')}
@@ -595,6 +666,16 @@ function GradesTab({
             </button>
           </div>
 
+          {deCurso && myItems.length > 0 && (
+            <NotasDeCurso
+              alumnado={myStudents} notas={deCurso.notas} regla={regla}
+              onRegla={r => guardarRegla(r, clsId, activeSubject)}
+              onParaTodas={otrasAsignaturas.length > 0 ? reglaParaTodas : undefined}
+              onVerEvaluacion={ev.elegir}
+              marca={marcaAcs}
+            />
+          )}
+
           {aCompletar && (
             <Sugerencia
               titulo={aCompletar.faltan.length === 1
@@ -606,7 +687,23 @@ function GradesTab({
           )}
 
           {/* Tabla de notas */}
-          {myItems.length === 0 ? (
+          {myItems.length === 0 && deTodoElCurso.length > 0 && ev.rango ? (
+            /* La evaluación que se mira no tiene nada, pero el cuaderno sí: se dice, para que no parezca vacío */
+            <div className="card" style={{ textAlign: 'center', padding: '32px 24px' }}>
+              <p style={{ fontSize: 13.5, color: 'var(--text-2)', marginBottom: 6 }}>
+                {t('No hay actividades en {evaluacion}.', { evaluacion: nombreCorto(ev.periodo) })}
+              </p>
+              <p style={{ fontSize: 12.5, color: 'var(--text-3)', marginBottom: 18 }}>
+                {t('Va del {desde} al {hasta}. Lo que añadas ahora caerá en ella, y lo de las demás evaluaciones sigue en su sitio.', { desde: diaCorto(ev.rango.desde), hasta: diaCorto(ev.rango.hasta) })}
+              </p>
+              <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+                <button className="btn-accent" onClick={() => openItemModal('new')}>
+                  <Plus size={14} />{t('Añadir nota')}
+                </button>
+                <button className="btn-ghost" onClick={() => ev.elegir(CURSO_ENTERO)}>{t('Ver todo el curso')}</button>
+              </div>
+            </div>
+          ) : myItems.length === 0 ? (
             <div className="card" style={{ textAlign: 'center', padding: '32px 24px' }}>
               <p style={{ fontSize: 13.5, color: 'var(--text-2)', marginBottom: 6 }}>
                 {t('Ya casi está. Añade tu primera columna de notas.')}
@@ -618,7 +715,17 @@ function GradesTab({
                 <Plus size={14} />{t('Añadir nota')}
               </button>
             </div>
+          ) : esCurso && !verTodas ? (
+            <button type="button" className="nc-ver" aria-expanded={false} onClick={() => cambiarVerTodas(true)}>
+              <ChevronDown size={15} aria-hidden="true" />{t('Ver todas las actividades del curso ({n})', { n: deTodoElCurso.length })}
+            </button>
           ) : (
+            <>
+            {esCurso && (
+              <button type="button" className="nc-ver" aria-expanded onClick={() => cambiarVerTodas(false)}>
+                <ChevronUp size={15} aria-hidden="true" />{t('Ocultar las actividades del curso')}
+              </button>
+            )}
             <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
               <div style={{ overflowX: 'auto' }}>
                 <table className="gb-table">
@@ -644,7 +751,10 @@ function GradesTab({
                             : `${cat.name} · ${cat.weight}%`}
                         </th>
                       ))}
-                      <th className="gb-sticky-r" style={{ minWidth: 76, borderLeft: '2px solid var(--border)' }} rowSpan={2}>{t('Media')}</th>
+                      <th className="gb-sticky-r" style={{ minWidth: 76, borderLeft: '2px solid var(--border)' }} rowSpan={2}
+                        title={esCurso ? t('La nota final de curso, con la regla elegida arriba') : t('La nota de {evaluacion}', { evaluacion: nombreCorto(ev.periodo) })}>
+                        {t(esCurso ? 'Final@@nota' : 'Media')}
+                      </th>
                     </tr>
                     <tr>
                       {grouped.map(({ cat, items }) =>
@@ -680,16 +790,12 @@ function GradesTab({
                   </thead>
                   <tbody>
                     {myStudents.map(s => {
-                      const avg = weightedAverage(s.id, myCategories, myItems, grades);
+                      const avg = notaDe(s.id);
                       return (
                         <tr key={s.id}>
                           <td className="gb-sticky gb-student">
                             {s.name}
-                            {acsAula.some(a => a.alumnoId === s.id && esDeAsignatura(a, activeSubject)) && (
-                              <span className="sda-chip gb-acs" title={t('Tiene una adaptación curricular significativa en esta materia: califícalo con sus criterios.')}>
-                                {modeloAcs(comunidad).sigla}
-                              </span>
-                            )}
+                            {marcaAcs(s)}
                           </td>
                           {grouped.map(({ cat, items }) => {
                             const sb = isMarksCategory(cat.id) ? block?.perStudent.get(s.id) : undefined;
@@ -768,7 +874,7 @@ function GradesTab({
                       <td className="gb-sticky-r" style={{ textAlign: 'center', fontSize: 12.5, fontWeight: 800, color: 'var(--text-2)', borderLeft: '2px solid var(--border)' }}>
                         {(() => {
                           const avgs = myStudents
-                            .map(s => weightedAverage(s.id, myCategories, myItems, grades))
+                            .map(s => notaDe(s.id))
                             .filter((v): v is number => v !== null);
                           const m = avgs.length ? avgs.reduce((a, b) => a + b, 0) / avgs.length : null;
                           return fmtNota(m, locale);
@@ -779,6 +885,7 @@ function GradesTab({
                 </table>
               </div>
             </div>
+            </>
           )}
         </>
       )}
@@ -870,8 +977,10 @@ function GradesTab({
           <input id="notebook-f2" className="finput" value={catWeight} onChange={e => setCatWeight(e.target.value)} placeholder={t('Ej: 60')} inputMode="numeric" />
         </div>
         {catModal !== 'new' && catModal !== null && (() => {
-          const suyas = gradeItems.filter(i => i.category_id === catModal.id)
+          // Las de la evaluación que se está viendo: los pesos de cada nota se reparten entre las que cuentan juntas
+          const suyas = myItems.filter(i => i.category_id === catModal.id)
             .sort((a, b) => (a.date || '').localeCompare(b.date || '') || a.name.localeCompare(b.name, 'es'));
+          if (!pesosEditables) return suyas.length > 1 ? <p className="sda-note">{t('Lo que cuenta cada nota dentro de la categoría se cambia en su evaluación (1.ª, 2.ª o 3.ª): con la media de las evaluaciones, las notas se reparten el peso dentro de cada una.')}</p> : null;
           return suyas.length > 1 ? <PesosDeNotas items={suyas} valores={catItemWeights} onChange={setCatItemWeights} /> : null;
         })()}
         <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
@@ -914,10 +1023,21 @@ function GradesTab({
             <input id="notebook-f5" className="finput" type="date" value={itemDate} onChange={e => setItemDate(e.target.value)} />
           </div>
         </div>
+        {/* La fecha decide en qué evaluación cuenta: se dice siempre, para que no haya sorpresas al cambiarla */}
+        <p className="sda-note nc-donde" role="status">
+          {(() => {
+            const suya = periodoDeFecha(itemDate, ev.hoy, ev.rangos);
+            if (!itemDate) return t('Sin fecha, sale en todas las evaluaciones.');
+            if (!suya) return t('Esa fecha es de otro curso: no cuenta en ninguna evaluación de este, solo sale en «Curso».');
+            return t('Por su fecha, cuenta en {evaluacion}.', { evaluacion: nombreCorto(suya) });
+          })()}
+        </p>
         {(() => {
           const cat = ownCategories.find(c => c.id === itemCat);
           if (!cat) return null;
-          const hermanas = gradeItems.filter(i => i.category_id === itemCat && (itemModal === 'new' || itemModal === null || i.id !== itemModal.id));
+          // Las que cuentan con ella: las de su misma evaluación (o todas, con evaluación continua y viendo el curso)
+          const hermanas = deTodoElCurso.filter(i => i.category_id === itemCat && (itemModal === 'new' || itemModal === null || i.id !== itemModal.id))
+            .filter(cuentanCon(itemDate));
           const w = itemWeight.trim() === '' ? NaN : parseDec(itemWeight);
           const yo: GradeItem = { id: '__yo', class_id: clsId, category_id: itemCat, name: '', date: '', ...(w >= 0 ? { weight: w } : {}) };
           const lista = [...hermanas, yo];
@@ -929,7 +1049,10 @@ function GradesTab({
               <input id="notebook-f6" className="finput" inputMode="decimal" value={itemWeight} onChange={e => setItemWeight(e.target.value)}
                 placeholder={t('Igual que las demás ({n}%)', { n: fmt(100 / lista.length) })} />
               <p className="sda-note">
-                {t('Cuenta un {pct}% de «{cat}», un {final}% de la nota final.', { pct: fmt(pct), cat: cat.name, final: fmt(pesoEnLaNotaFinal(yo, lista, cat.weight)) })}
+                {t(esCurso && regla.modo === 'continua'
+                  ? 'Cuenta un {pct}% de «{cat}», un {final}% de la nota final.'
+                  : 'Cuenta un {pct}% de «{cat}» en su evaluación, un {final}% de la nota de esa evaluación.',
+                { pct: fmt(pct), cat: cat.name, final: fmt(pesoEnLaNotaFinal(yo, lista, cat.weight)) })}
               </p>
             </div>
           );
@@ -1281,6 +1404,8 @@ export function Notebook(props: Props) {
   // La clase se elige una vez para todo el cuaderno: al pasar de «Calificaciones» a «Por competencias» y al
   // volver se sigue viendo la misma, aunque el horario diga que ahora toca otra
   const clase = useClaseActiva(props.classes);
+  // La evaluación que se ve («1.ª · 2.ª · 3.ª · Curso») es la misma que en las actas (`useEvaluacionElegida`)
+  const ev = useEvaluacionElegida();
 
   return (
     <section className="sec active">
@@ -1302,7 +1427,7 @@ export function Notebook(props: Props) {
         </div>
       </div>
 
-      {tab === 'grades' ? <GradesTab {...props} clase={clase} /> : tab === 'competencias' ? (
+      {tab === 'grades' ? <GradesTab {...props} clase={clase} ev={ev} /> : tab === 'competencias' ? (
         <Suspense fallback={<div className="card"><p className="ce-aviso">{t('Cargando…')}</p></div>}>
           <CompetenciasDeLaClase classes={props.classes} students={props.students} evaluations={props.evaluations} comunidad={props.comunidad} onNav={props.onNav} clase={clase[0]} onClase={clase[1]} />
         </Suspense>
