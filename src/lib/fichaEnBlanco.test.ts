@@ -1,13 +1,14 @@
 import { describe, it, expect } from 'vitest';
 import {
   MAX_COLUMNAS_TABLA, MAX_FILAS_TABLA, MAX_VINETAS, bloqueVacio, cambiarTipo, conColumnaDeTabla, conFilaDeTabla, conVineta,
-  dificultadDelSiguiente, duplicarEjercicio, ejercicioSinEscribir, ejercicioVacio, fichaEnBlanco, lineasDe, pierdeAlCambiar, sinColumnaDeTabla, sinFilaDeTabla, sinVineta,
+  dificultadDelSiguiente, duplicarEjercicio, ejercicioSinEscribir, ejercicioVacio, enumerar, fichaEnBlanco, lineasDe, loQuePierde, PIERDE, sinColumnaDeTabla, sinFilaDeTabla, sinVineta,
 } from './fichaEnBlanco';
 import { TIPOS, prepareExercise, type FichaExercise } from '../services/resources';
 import { buildFichaHtml } from '../services/exportFicha';
 import { HILOS } from './hilos';
 import { fichaTheme } from './fichaThemes';
 import type { Ficha } from '../types';
+import { CA, EN } from '../i18n/tanda/fichasSinIA';
 
 const comoFicha = (content: Ficha['content']): Ficha => ({
   id: 'f1', at: '2026-11-20T10:00:00.000Z', date: '2026-11-20', title: 'Prueba',
@@ -174,15 +175,84 @@ describe('cambiar de tipo', () => {
     expect(fr.fracciones!.length).toBeGreaterThanOrEqual(3);
   });
 
-  it('avisa de lo que se pierde: la tabla, las viñetas escritas, la columna derecha, las pistas y los dibujos', () => {
-    expect(pierdeAlCambiar(vf)).toBe(false);
-    expect(pierdeAlCambiar(ejercicioVacio('tabla_rellenar'))).toBe(false);
-    expect(pierdeAlCambiar({ ...ejercicioVacio('tabla_rellenar'), columnas: ['Base', '', ''] })).toBe(true);
-    expect(pierdeAlCambiar(ejercicioVacio('comic'))).toBe(false);
-    expect(pierdeAlCambiar({ tipo: 'comic', enunciado: '', solucion: '', vinetas: [{ personaje: '🙂', texto: 'Hola' }] })).toBe(true);
-    expect(pierdeAlCambiar({ tipo: 'relacionar', enunciado: '', solucion: '', izquierda: ['a'], derecha: ['1'] })).toBe(true);
-    expect(pierdeAlCambiar({ tipo: 'crucigrama', enunciado: '', solucion: '', pistas: [{ palabra: 'sol', pista: 'estrella' }] })).toBe(true);
-    expect(pierdeAlCambiar(ejercicioVacio('fracciones'))).toBe(true);
+  it('la figura, los pictogramas, el dibujo suelto y la pizza del enunciado acompañan al ejercicio al tipo nuevo', () => {
+    const problema: FichaExercise = {
+      tipo: 'problema', enunciado: 'Calcula el área.', solucion: '12 cm²',
+      figura: { forma: 'rectangulo', medidas: [{ etiqueta: 'base', valor: '4 cm' }, { etiqueta: 'altura', valor: '3 cm' }] },
+      imagenes: [{ picto: 'apple', cantidad: 3 }], dibujos: [{ ilustracion: 'vaca', cantidad: 1 }],
+      fracciones: [{ partes: 4, tomadas: 1 }], cogidos: 'bn',
+    };
+    const abierta = cambiarTipo(problema, 'abierta');
+    expect(abierta.figura).toBe(problema.figura);
+    expect(abierta.imagenes).toBe(problema.imagenes);
+    expect(abierta.dibujos).toBe(problema.dibujos);
+    expect(abierta.fracciones).toBe(problema.fracciones);
+    expect(abierta.cogidos).toBe('bn');
+    expect(loQuePierde(problema, abierta)).toEqual([]);
+    // A un verdadero o falso la pizza no pasa (no tiene dónde pintarse) y se avisa; la figura y el dibujo, sí
+    const vof = cambiarTipo(problema, 'verdadero_falso');
+    expect(vof.figura).toBe(problema.figura);
+    expect(vof.dibujos).toBe(problema.dibujos);
+    expect(vof.fracciones).toBeUndefined();
+    expect(loQuePierde(problema, vof)).toEqual([PIERDE.pizzas]);
+    // A una tabla, los dibujos irían uno por fila: no valen y se avisa
+    expect(loQuePierde(problema, cambiarTipo(problema, 'tabla_rellenar'))).toEqual([PIERDE.pizzas, PIERDE.dibujos]);
+  });
+
+  it('entre tipos de lista no se pierde nada, y a un tipo sin lista se avisa de las líneas', () => {
+    expect(loQuePierde(vf, prepareExercise(cambiarTipo(vf, 'opcion_multiple')))).toEqual([]);
+    expect(loQuePierde(vf, prepareExercise(cambiarTipo(vf, 'ordenar')))).toEqual([]);
+    expect(loQuePierde(vf, prepareExercise(cambiarTipo(vf, 'crucigrama')))).toEqual([]);
+    expect(loQuePierde(vf, vf)).toEqual([]);
+    // Con las flechas del teclado, de «Verdadero o falso» a «Cómic» se pasa sin querer: antes se llevaba las frases sin avisar
+    for (const tipo of ['comic', 'tabla_rellenar', 'abierta', 'problema', 'completar'] as const) {
+      expect(loQuePierde(vf, prepareExercise(cambiarTipo(vf, tipo)))).toEqual([PIERDE.lineas]);
+    }
+    expect(loQuePierde({ ...vf, afirmaciones: [] }, cambiarTipo({ ...vf, afirmaciones: [] }, 'comic'))).toEqual([]);
+  });
+
+  it('una frase que no cabe en la sopa de letras se pierde y se avisa; las mayúsculas de la sopa no cuentan', () => {
+    const cortas: FichaExercise = { tipo: 'opcion_multiple', enunciado: '', opciones: ['raíz', 'tallo', 'hoja'], solucion: '' };
+    expect(loQuePierde(cortas, prepareExercise(cambiarTipo(cortas, 'sopa_letras')))).toEqual([]);
+    const largas: FichaExercise = { tipo: 'verdadero_falso', enunciado: '', afirmaciones: ['sol', 'luna', 'Los planetas giran alrededor de una estrella'], solucion: '' };
+    const sopa = prepareExercise(cambiarTipo(largas, 'sopa_letras'));
+    expect(sopa.palabras).toEqual(['SOL', 'LUNA']);
+    expect(loQuePierde(largas, sopa)).toEqual([PIERDE.lineas]);
+  });
+
+  it('las pizzas y los dibujos del hilo sustituyen al enunciado y a la solución escritos, y se avisa', () => {
+    const escrito: FichaExercise = { tipo: 'abierta', enunciado: 'Explica con tus palabras qué es una fracción.', solucion: 'Una parte de un todo.' };
+    const fr = cambiarTipo(escrito, 'fracciones', { lang: 'es' });
+    expect(fr.enunciado).not.toBe(escrito.enunciado);
+    expect(loQuePierde(escrito, fr)).toEqual([PIERDE.enunciado, PIERDE.solucion]);
+    // Sin nada escrito no hay nada que avisar
+    expect(loQuePierde(ejercicioVacio('abierta'), cambiarTipo(ejercicioVacio('abierta'), 'fracciones', { lang: 'es' }))).toEqual([]);
+  });
+
+  it('avisa de lo propio de cada tipo: la tabla, los bocadillos, la columna derecha, las pistas, la leyenda, las pizzas, los dibujos y el recuadro', () => {
+    const pierde = (ex: FichaExercise, tipo: FichaExercise['tipo'] = 'abierta') => loQuePierde(ex, prepareExercise(cambiarTipo(ex, tipo)));
+    expect(pierde(ejercicioVacio('tabla_rellenar'))).toEqual([]);
+    expect(pierde({ ...ejercicioVacio('tabla_rellenar'), columnas: ['Base', '', ''] })).toEqual([PIERDE.tabla]);
+    expect(pierde(ejercicioVacio('comic'))).toEqual([]);
+    expect(pierde({ tipo: 'comic', enunciado: '', solucion: '', vinetas: [{ personaje: '🙂', texto: 'Hola' }] })).toEqual([PIERDE.bocadillos]);
+    expect(pierde({ tipo: 'relacionar', enunciado: '', solucion: '', izquierda: ['a'], derecha: ['1'] }, 'verdadero_falso')).toEqual([PIERDE.derecha]);
+    expect(pierde({ tipo: 'crucigrama', enunciado: '', solucion: '', pistas: [{ palabra: 'sol', pista: 'estrella' }] }, 'sopa_letras')).toEqual([PIERDE.pistas]);
+    expect(pierde({ tipo: 'colorear', enunciado: '', solucion: '', leyenda: [{ color: 'rojo', criterio: 'par' }], itemsColorear: ['2 + 2'] }, 'calculos')).toEqual([PIERDE.leyenda]);
+    expect(pierde(ejercicioVacio('fracciones'))).toEqual([PIERDE.pizzas]);
+    expect(pierde({ tipo: 'contar', enunciado: '', solucion: '', dibujos: [{ ilustracion: 'vaca', cantidad: 3 }] })).toEqual([PIERDE.dibujos]);
+    expect(pierde({ tipo: 'clasificar', enunciado: '', solucion: '', categorias: [{ nombre: 'Aves', dibujos: [] }, { nombre: '', dibujos: [] }] })).toEqual([PIERDE.dibujos]);
+    expect(pierde({ tipo: 'completar', enunciado: 'La __ da leche.', solucion: '', bancoPalabras: ['vaca', 'oveja'] })).toEqual([PIERDE.recuadro]);
+  });
+
+  it('cada cosa que se puede perder tiene su nombre en inglés y en catalán', () => {
+    for (const k of Object.values(PIERDE)) {
+      expect(EN[k], k).toBeTruthy();
+      expect(CA[k], k).toBeTruthy();
+    }
+    expect(enumerar([], 'y')).toBe('');
+    expect(enumerar(['la tabla'], 'y')).toBe('la tabla');
+    expect(enumerar(['la tabla', 'las pistas'], 'y')).toBe('la tabla y las pistas');
+    expect(enumerar(['el enunciado', 'la tabla', 'las pistas'], 'y')).toBe('el enunciado, la tabla y las pistas');
   });
 });
 

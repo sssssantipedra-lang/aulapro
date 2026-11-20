@@ -527,6 +527,29 @@ describe('Recursos · sin IA', () => {
     confirmar.mockRestore();
   });
 
+  it('cambiar un verdadero o falso escrito a un tipo sin lista dice lo que se pierde, y sin aceptar no se pierde nada', async () => {
+    localStorage.clear();
+    const confirmar = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    setup(vi.fn(), []);
+    await userEvent.click(screen.getByRole('button', { name: 'Empezar en blanco' }));
+    await userEvent.selectOptions(screen.getAllByLabelText('Tipo del ejercicio nuevo')[0], 'verdadero_falso');
+    await userEvent.click(screen.getAllByRole('button', { name: 'Añadir ejercicio' })[0]);
+    const afirmaciones = screen.getByLabelText(/Afirmaciones/);
+    await userEvent.type(afirmaciones, 'La vaca da leche{enter}El gallo pone huevos');
+    fireEvent.blur(afirmaciones);
+    // Con las flechas del teclado se pasa por «Cómic» de camino a otro tipo: antes se llevaba las frases sin avisar
+    await userEvent.selectOptions(screen.getByLabelText('Cambiar tipo'), 'comic');
+    expect(confirmar).toHaveBeenCalledTimes(1);
+    expect(confirmar.mock.calls[0][0]).toBe('Al cambiar a «Cómic» se pierde lo que no encaja: las líneas de la lista que no caben en el tipo nuevo. ¿Cambiar el tipo?');
+    expect((screen.getByLabelText('Cambiar tipo') as HTMLSelectElement).value).toBe('verdadero_falso');
+    expect((screen.getByLabelText(/Afirmaciones/) as HTMLTextAreaElement).value).toBe('La vaca da leche\nEl gallo pone huevos');
+    // Entre listas no hay nada que perder: no pregunta
+    await userEvent.selectOptions(screen.getByLabelText('Cambiar tipo'), 'ordenar');
+    expect(confirmar).toHaveBeenCalledTimes(1);
+    expect((screen.getByLabelText('Cambiar tipo') as HTMLSelectElement).value).toBe('ordenar');
+    confirmar.mockRestore();
+  });
+
   it('empezar en blanco con Tarjetas abre un mazo con una tarjeta por escribir; con Escape room, tres salas con candado', async () => {
     localStorage.clear();
     const onSave = setup(vi.fn(), []);

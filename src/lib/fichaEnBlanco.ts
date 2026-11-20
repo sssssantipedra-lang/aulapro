@@ -160,32 +160,39 @@ export function lineasDe(ex: FichaExercise): string[] {
   }
 }
 
-/** Lo que tiene el ejercicio y no cabe en una lista de líneas: se pierde al cambiarlo de tipo. */
-export function pierdeAlCambiar(ex: FichaExercise): boolean {
-  switch (ex.tipo) {
-    case 'tabla_rellenar': return !!ex.columnas?.some(c => c.trim()) || !!ex.filas?.some(f => f.some(c => c.trim()));
-    case 'comic': return !!ex.vinetas?.some(v => v.texto.trim());
-    case 'relacionar': return limpias(ex.derecha).length > 0;
-    case 'crucigrama': return !!ex.pistas?.some(p => p.pista.trim());
-    case 'colorear': return !!ex.leyenda?.length;
-    case 'fracciones': return !!ex.fracciones?.length;
-    case 'contar':
-    case 'etiquetar': return !!ex.dibujos?.length;
-    case 'clasificar': return !!ex.categorias?.some(c => c.dibujos.length || c.nombre.trim());
-    default: return false;
+/** Los tipos que admiten una pizza o una tarta al lado del enunciado (la figura de la que habla el problema). */
+const CON_PIZZA_AL_LADO: readonly FichaExerciseType[] = ['problema', 'abierta', 'completar', 'opcion_multiple'];
+/** Los tipos que usan sus dibujos a su manera (uno por grupo, por fila, por elemento): no valen de un tipo para otro. */
+const DIBUJOS_PROPIOS: readonly FichaExerciseType[] = ['contar', 'etiquetar', 'clasificar', 'fracciones', 'relacionar', 'tabla_rellenar'];
+
+/**
+ * Lo que acompaña al enunciado y vale igual con el tipo nuevo: la figura geométrica (solo la dibuja la IA: perderla
+ * sin clave no tiene arreglo), los pictogramas de una ficha visual, los dibujos sueltos del hilo y la pizza de un problema.
+ */
+function loQueAcompana(ex: FichaExercise, tipo: FichaExerciseType): Partial<FichaExercise> {
+  const out: Partial<FichaExercise> = {};
+  if (ex.figura) out.figura = ex.figura;
+  if (ex.imagenes?.length) out.imagenes = ex.imagenes;
+  if (ex.dibujos?.length && !DIBUJOS_PROPIOS.includes(ex.tipo) && !DIBUJOS_PROPIOS.includes(tipo)) out.dibujos = ex.dibujos;
+  if (ex.fracciones?.length && ex.tipo !== 'fracciones' && CON_PIZZA_AL_LADO.includes(tipo)) {
+    out.fracciones = ex.fracciones;
+    if (ex.cogidos) out.cogidos = ex.cogidos;
   }
+  return out;
 }
 
 /**
  * El mismo ejercicio con otro tipo: conserva el enunciado, la solución, las variantes de apoyo y
- * ampliación, la consigna dibujada y, si los dos tipos son listas, sus líneas. El resto de campos son
- * los del tipo nuevo, vacíos. Quien llama pasa el resultado por `prepareExercise`.
+ * ampliación, la consigna dibujada, lo que acompaña al enunciado (`loQueAcompana`) y, si los dos tipos
+ * son listas, sus líneas. El resto de campos son los del tipo nuevo, vacíos. Quien llama pasa el
+ * resultado por `prepareExercise` y, antes de aplicarlo, mira con `loQuePierde` si hay que avisar.
  */
 export function cambiarTipo(ex: FichaExercise, tipo: FichaExerciseType, o: OpcionesVacio = {}): FichaExercise {
   if (tipo === ex.tipo) return ex;
   const lineas = lineasDe(ex);
   const nuevo = ejercicioVacio(tipo, o);
   const comun: FichaExercise = {
+    ...loQueAcompana(ex, tipo),
     ...nuevo,
     // Las pizzas y los dibujos del hilo traen su enunciado y su solución, calculados: mandan sobre lo que hubiera
     enunciado: nuevo.enunciado || ex.enunciado,
@@ -208,6 +215,57 @@ export function cambiarTipo(ex: FichaExercise, tipo: FichaExerciseType, o: Opcio
     case 'colorear': return { ...comun, itemsColorear: lineas };
     default: return comun;
   }
+}
+
+const escrito = (s: string | undefined): string => (s ?? '').trim();
+
+/** Los nombres (claves en castellano, con su contexto) de lo que se puede perder al cambiar de tipo. */
+export const PIERDE = {
+  enunciado: 'el enunciado@@pierde',
+  solucion: 'la solución@@pierde',
+  lineas: 'las líneas de la lista que no caben en el tipo nuevo@@pierde',
+  tabla: 'la tabla@@pierde',
+  bocadillos: 'los bocadillos@@pierde',
+  derecha: 'la columna derecha@@pierde',
+  pistas: 'las pistas@@pierde',
+  leyenda: 'la leyenda de colores@@pierde',
+  pizzas: 'las pizzas@@pierde',
+  dibujos: 'los dibujos@@pierde',
+  recuadro: 'las palabras del recuadro@@pierde',
+} as const;
+
+/** «a», «a y b», «a, b y c». */
+export function enumerar(lista: string[], y: string): string {
+  if (lista.length <= 1) return lista[0] ?? '';
+  return `${lista.slice(0, -1).join(', ')} ${y} ${lista[lista.length - 1]}`;
+}
+
+/**
+ * Lo que se pierde al pasar de `antes` a `despues` (el ejercicio ya con su tipo nuevo y preparado): los nombres (claves
+ * de `PIERDE`) de lo que el docente había escrito y ya no está. Vacío si no se pierde nada. Se compara lo que queda, no
+ * lo que debería quedar: así cuenta también lo que el tipo nuevo no admite (una frase larga no cabe en una sopa de
+ * letras) y el enunciado que sustituyen las pizzas. Las mayúsculas de una sopa de letras no son una pérdida.
+ *
+ * El desplegable del tipo cambia con las flechas del teclado: sin este aviso, pasar por «Cómic» o «Tabla» de camino a
+ * otro tipo se llevaba la lista escrita sin decir nada.
+ */
+export function loQuePierde(antes: FichaExercise, despues: FichaExercise): string[] {
+  if (antes.tipo === despues.tipo) return [];
+  const out: string[] = [];
+  if (escrito(antes.enunciado) && escrito(despues.enunciado) !== escrito(antes.enunciado)) out.push(PIERDE.enunciado);
+  if (escrito(antes.solucion) && escrito(despues.solucion) !== escrito(antes.solucion)) out.push(PIERDE.solucion);
+  const clave = (s: string) => s.trim().toLocaleUpperCase();
+  const quedan = new Set(lineasDe(despues).map(clave));
+  if (lineasDe(antes).some(l => !quedan.has(clave(l)))) out.push(PIERDE.lineas);
+  if (antes.tipo === 'tabla_rellenar' && (antes.columnas?.some(c => c.trim()) || antes.filas?.some(f => f.some(c => c.trim())))) out.push(PIERDE.tabla);
+  if (antes.tipo === 'comic' && antes.vinetas?.some(v => v.texto.trim())) out.push(PIERDE.bocadillos);
+  if (antes.tipo === 'relacionar' && limpias(antes.derecha).length) out.push(PIERDE.derecha);
+  if (antes.tipo === 'crucigrama' && antes.pistas?.some(p => p.pista.trim())) out.push(PIERDE.pistas);
+  if (antes.tipo === 'colorear' && antes.leyenda?.length) out.push(PIERDE.leyenda);
+  if (antes.fracciones?.length && despues.fracciones !== antes.fracciones) out.push(PIERDE.pizzas);
+  if ((antes.dibujos?.length && despues.dibujos !== antes.dibujos) || antes.categorias?.some(c => c.dibujos.length || c.nombre.trim())) out.push(PIERDE.dibujos);
+  if (limpias(antes.bancoPalabras).length && !limpias(despues.bancoPalabras).length) out.push(PIERDE.recuadro);
+  return out;
 }
 
 /**

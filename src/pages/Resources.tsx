@@ -60,7 +60,7 @@ import { useBorrador } from '../hooks/useBorrador';
 import { AvisoBorrador, EstadoBorrador } from '../components/AvisoBorrador';
 import type { ApoyoData } from '../types/apoyo';
 import { compararNombres } from '../lib/alumnado';
-import { bloqueVacio, cambiarTipo, dificultadDelSiguiente, duplicarEjercicio, ejercicioVacio, fichaEnBlanco, pierdeAlCambiar, type QueEnBlanco } from '../lib/fichaEnBlanco';
+import { bloqueVacio, cambiarTipo, dificultadDelSiguiente, duplicarEjercicio, ejercicioVacio, enumerar, fichaEnBlanco, loQuePierde, type QueEnBlanco } from '../lib/fichaEnBlanco';
 import type { FichaInstante } from '../lib/fichaInstante';
 import { GeneradorInstante } from '../components/fichas/GeneradorInstante';
 
@@ -494,8 +494,11 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
   function handleChangeType(a: number, i: number, nuevoTipo: FichaExerciseType) {
     const ex = content?.actividades[a]?.ejercicios[i];
     if (!ex || ex.tipo === nuevoTipo) return;
-    if (pierdeAlCambiar(ex) && !window.confirm(t('Al cambiar el tipo se pierde lo que no encaja en el nuevo (la tabla, las viñetas, las pistas o los dibujos). El enunciado y la solución se conservan. ¿Cambiar?'))) return;
-    patchEx(a, i, prepareExercise(cambiarTipo(ex, nuevoTipo, { lang, hilo: hiloDeLaFicha() })));
+    const nuevo = prepareExercise(cambiarTipo(ex, nuevoTipo, { lang, hilo: hiloDeLaFicha() }));
+    // Se avisa de lo que el tipo nuevo no conserva (con las flechas del teclado el desplegable cambia sin querer)
+    const pierde = loQuePierde(ex, nuevo).map(k => t(k));
+    if (pierde.length && !window.confirm(t('Al cambiar a «{tipo}» se pierde lo que no encaja: {lista}. ¿Cambiar el tipo?', { tipo: t(TIPO_LABEL[nuevoTipo]), lista: enumerar(pierde, t('y@@lista')) }))) return;
+    patchEx(a, i, nuevo);
   }
 
   function handleDuplicate(a: number, i: number) {
