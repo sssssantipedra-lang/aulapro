@@ -11,6 +11,17 @@ import { COMPOSITOR_CA } from './compositor';
 import { LECTURA_CA } from './lectura';
 import { PIZARRA_CA } from './pizarra';
 import { MEJORAS_CA } from './mejoras';
+import { CA as TANDA_CLASEACTIVA_CA } from './tanda/claseActiva';
+import { CA as TANDA_EVALUARCLASE_CA } from './tanda/evaluarClase';
+import { CA as TANDA_DESHACER_CA } from './tanda/deshacer';
+import { CA as TANDA_FICHASSINIA_CA } from './tanda/fichasSinIA';
+import { CA as TANDA_NAVEGACION_CA } from './tanda/navegacion';
+import { CA as TANDA_TRIMESTRES_CA } from './tanda/trimestres';
+import { CA as TANDA_CURSO_CA } from './tanda/curso';
+import { CA as TANDA_TIEMPO_CA } from './tanda/tiempo';
+import { CA as TANDA_DARLACLASE_CA } from './tanda/darLaClase';
+import { CA as TANDA_INFORMEREGLAS_CA } from './tanda/informeReglas';
+import { CA as TANDA_RUBRICASMODELO_CA } from './tanda/rubricasModelo';
 import { COMPARTIR_CA } from './compartir';
 import { WEB_CA } from './web';
 import { IMAGENES_CA } from './imagenes';
@@ -2011,6 +2022,17 @@ export const CA: Record<string, string> = {
   ...LECTURA_CA,
   ...PIZARRA_CA,
   ...MEJORAS_CA,
+  ...TANDA_CLASEACTIVA_CA,
+  ...TANDA_EVALUARCLASE_CA,
+  ...TANDA_DESHACER_CA,
+  ...TANDA_FICHASSINIA_CA,
+  ...TANDA_NAVEGACION_CA,
+  ...TANDA_TRIMESTRES_CA,
+  ...TANDA_CURSO_CA,
+  ...TANDA_TIEMPO_CA,
+  ...TANDA_DARLACLASE_CA,
+  ...TANDA_INFORMEREGLAS_CA,
+  ...TANDA_RUBRICASMODELO_CA,
   ...COMPARTIR_CA,
   ...WEB_CA,
   ...IMAGENES_CA,
