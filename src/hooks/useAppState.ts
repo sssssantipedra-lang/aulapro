@@ -90,6 +90,9 @@ const REPONIBLES = [
   'gradeCategories', 'gradeItems', 'grades', 'dianaProfiles', 'attendance', 'reports', 'selfAssessments',
   'learningSituations', 'fichas', 'workSessions', 'seatingPlans', 'classMarks', 'marksConfigs', 'apoyo', 'ef',
 ] as const satisfies readonly (keyof Reponible)[];
+/** Si se añade una colección al perfil y no se apunta arriba, esto no compila: «Deshacer» no la repondría. */
+const REPONIBLES_COMPLETO: Exclude<keyof Reponible, (typeof REPONIBLES)[number]> extends never ? true : never = true;
+void REPONIBLES_COMPLETO;
 
 function emptySnapshot(): ProfileSnapshot {
   return {
@@ -439,30 +442,17 @@ export function useAppState() {
   const deshacerBorrado = useCallback((): boolean => {
     const p = borradoPendiente;
     if (!p?.despues || p.perfil !== profileId) return false;
+    // Una por colección (el tipo lo exige): una colección nueva del perfil sin su línea aquí no compila
+    const reponer: { [K in keyof Reponible]: (valor: Reponible[K]) => void } = {
+      tasks: setTasks, classes: setClasses, students: setStudents, blocks: setScheduleBlocks, events: setCalEvents,
+      rubrics: setRubrics, dianas: setDianas, evaluations: setEvaluations, gradeCategories: setGradeCategories,
+      gradeItems: setGradeItems, grades: setGrades, dianaProfiles: setDianaProfiles, attendance: setAttendance,
+      reports: setReports, selfAssessments: setSelfAssessments, learningSituations: setLearningSituations,
+      fichas: setFichas, workSessions: setWorkSessions, seatingPlans: setSeatingPlans, classMarks: setClassMarks,
+      marksConfigs: setMarksConfigs, apoyo: setApoyo, ef: setEf,
+    };
     const v = loQueVuelve(p, REPONIBLES);
-    if (v.tasks) setTasks(v.tasks);
-    if (v.classes) setClasses(v.classes);
-    if (v.students) setStudents(v.students);
-    if (v.blocks) setScheduleBlocks(v.blocks);
-    if (v.events) setCalEvents(v.events);
-    if (v.rubrics) setRubrics(v.rubrics);
-    if (v.dianas) setDianas(v.dianas);
-    if (v.evaluations) setEvaluations(v.evaluations);
-    if (v.gradeCategories) setGradeCategories(v.gradeCategories);
-    if (v.gradeItems) setGradeItems(v.gradeItems);
-    if (v.grades) setGrades(v.grades);
-    if (v.dianaProfiles) setDianaProfiles(v.dianaProfiles);
-    if (v.attendance) setAttendance(v.attendance);
-    if (v.reports) setReports(v.reports);
-    if (v.selfAssessments) setSelfAssessments(v.selfAssessments);
-    if (v.learningSituations) setLearningSituations(v.learningSituations);
-    if (v.fichas) setFichas(v.fichas);
-    if (v.workSessions) setWorkSessions(v.workSessions);
-    if (v.seatingPlans) setSeatingPlans(v.seatingPlans);
-    if (v.classMarks) setClassMarks(v.classMarks);
-    if (v.marksConfigs) setMarksConfigs(v.marksConfigs);
-    if (v.apoyo) setApoyo(v.apoyo);
-    if (v.ef) setEf(v.ef);
+    for (const k of REPONIBLES) if (k in v) (reponer[k] as (valor: unknown) => void)(v[k]);
     setBorradoPendiente(null);
     // El registro se escribe en castellano, como el resto de sus líneas
     log('create', 'system', 'deshacer', 'Deshizo un borrado', textoDeBorrados(p.borrados, (k, vars) => translate('es', k, vars)));
