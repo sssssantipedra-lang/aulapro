@@ -13,6 +13,7 @@
  */
 import type { BackupInfo, FolderInfo, TeacherProfile } from '../services/storage';
 import { perfilVacio } from '../lib/contenidoPerfil';
+import { copiasQueSobran, MAX_COPIAS } from '../lib/copiasEscalonadas';
 
 /**
  * Por qué se hace una copia con nombre (además de las automáticas): antes de vaciar el curso, de cargar una copia
@@ -49,7 +50,8 @@ export interface Fs {
   list: (path: string) => Promise<FsEntry[]>;
 }
 
-export const MAX_BACKUPS = 12;
+/** Cuántas copias automáticas se conservan como mucho; cuáles, lo decide `lib/copiasEscalonadas.ts`. */
+export const MAX_BACKUPS = MAX_COPIAS;
 const ROOT = 'AulaPro';
 const PROFILES_FILE = `${ROOT}/perfiles.json`;
 
@@ -152,8 +154,10 @@ export function createProfileStore(fs: Fs) {
 
   /**
    * `motivo`: las copias con nombre van también al Drive u OneDrive de la versión web (`vaADrive` en `driveFs.ts`).
-   * Un perfil vacío no se copia: si los datos no se han podido leer, una copia vacía iría sustituyendo a las buenas,
-   * que solo se conservan las 12 más recientes (dos horas de copias automáticas).
+   * Un perfil vacío no se copia: si los datos no se han podido leer, una copia vacía iría sustituyendo a las buenas.
+   * Se conservan 12 como mucho, escalonadas (20-11-2026; antes, las 12 últimas, dos horas de uso): las 5 más
+   * recientes, la primera de cada uno de los últimos días y la primera de cada una de las últimas semanas
+   * (`copiasQueSobran`, `lib/copiasEscalonadas.ts`).
    */
   async function backup(id: string, motivo?: MotivoCopia) {
     const data = await loadData(id);
@@ -161,9 +165,8 @@ export function createProfileStore(fs: Fs) {
     const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
     const file = `${backupsDir(id)}/copia-${stamp}${motivo ? '-' + motivo : ''}.json`;
     await writeJson(file, data);
-    // Solo se conservan las más recientes
-    const names = (await fs.list(backupsDir(id))).map(f => f.name).filter(n => n.startsWith('copia-') && n.endsWith('.json')).sort();
-    for (const old of names.slice(0, Math.max(0, names.length - MAX_BACKUPS))) {
+    const names = (await fs.list(backupsDir(id))).map(f => f.name).filter(n => n.startsWith('copia-') && n.endsWith('.json'));
+    for (const old of copiasQueSobran(names)) {
       await fs.remove(`${backupsDir(id)}/${old}`).catch(() => {});
     }
     return file;

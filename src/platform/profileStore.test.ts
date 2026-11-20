@@ -61,25 +61,38 @@ describe('guardado por perfiles en Android', () => {
     expect(await store.loadData(p.id)).toEqual({ n: 5 });
   });
 
-  it('copias de seguridad: crea, lista, restaura y conserva solo las últimas', async () => {
+  it('copias de seguridad: crea, lista, restaura y conserva las últimas y una de cada día y de cada semana', async () => {
     vi.useFakeTimers();
     try {
       const { fs } = memoryFs();
       const store = createProfileStore(fs);
       const p = await store.createProfile({ name: 'Ana' });
       expect(await store.backup(p.id)).toBeNull(); // sin datos no hay copia
-      await store.saveData(p.id, { v: 1 });
-      for (let i = 0; i < MAX_BACKUPS + 3; i++) {
-        vi.setSystemTime(new Date(Date.UTC(2026, 9, 1, 10, 0, i)));
-        await store.backup(p.id);
+      // Seis semanas de lunes a viernes, con ocho copias cada mañana (cada 10 minutos desde las 10:00)
+      const lunes = new Date(2026, 8, 7);
+      let n = 0;
+      for (let dia = 0; dia < 42; dia++) {
+        if (dia % 7 > 4) continue;
+        for (let i = 0; i < 8; i++) {
+          vi.setSystemTime(new Date(lunes.getFullYear(), lunes.getMonth(), lunes.getDate() + dia, 10, i * 10, 0));
+          await store.saveData(p.id, { v: ++n });
+          await store.backup(p.id);
+        }
       }
       const list = await store.listBackups(p.id);
       expect(list).toHaveLength(MAX_BACKUPS);
-      await store.saveData(p.id, { v: 2 });
+      // La más reciente es la última que se hizo, y la más antigua tiene más de dos semanas
+      expect(JSON.parse((await fs.read(`AulaPro/perfiles/${p.id}/copias/${list[0].file}`))!)).toEqual({ v: n });
+      const nombres = list.map(b => b.file).sort();
+      const dias = (a: string, b: string) => (Date.parse(b.slice(6, 16)) - Date.parse(a.slice(6, 16))) / 86_400_000;
+      expect(dias(nombres[0], nombres[nombres.length - 1])).toBeGreaterThanOrEqual(14);
+      // Hay una de cada uno de los cuatro últimos días
+      expect(new Set(nombres.map(x => x.slice(6, 16))).size).toBeGreaterThanOrEqual(7);
+      await store.saveData(p.id, { v: -1 });
       expect(await store.restoreBackup(p.id, list[0].file)).toBe(true);
-      expect(await store.loadData(p.id)).toEqual({ v: 1 });
+      expect(await store.loadData(p.id)).toEqual({ v: n });
       const info = await store.folderInfo(p.id);
-      expect(info.backups).toHaveLength(MAX_BACKUPS);
+      expect(info.backups.length).toBeLessThanOrEqual(MAX_BACKUPS);
       expect(info.bytes).toBeGreaterThan(0);
     } finally {
       vi.useRealTimers();
