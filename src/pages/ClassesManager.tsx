@@ -2,7 +2,7 @@ import { leerListado, mismoNombreEnClase } from '../lib/alumnado';
 import { AyudaVideo } from '../components/AyudaVideo';
 import { useState, useId, useEffect } from 'react';
 import {
-  Users, Plus, Search, X, Trash2, Upload, AlertTriangle, Info, Pencil, Check, ChevronLeft,
+  Users, Plus, Search, X, Trash2, Upload, AlertTriangle, Info, Pencil, Check, ChevronLeft, Layers,
 } from 'lucide-react';
 import type { Class, Student, Alert, Evaluation, Rubric, GradeCategory, GradeItem, GradeMap } from '../types';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
@@ -20,6 +20,7 @@ import { RadarDeClase } from '../components/clases/RadarDeClase';
 import { radarDeClase, type Radar } from '../lib/radarClase';
 import { useI18n } from '../i18n';
 import { useRecordarClase } from '../hooks/useClaseActiva';
+import { CrearVariosGrupos } from '../components/clases/CrearVariosGrupos';
 
 // ─── palette ─────────────────────────────────────────────────────────────────
 const PALETTE = ['#0284c7', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#3b82f6'] as const;
@@ -151,6 +152,8 @@ export function ClassesManager({
   const [editClass, setEditClass] = useState<Omit<Class, 'id'>>(blankClass());
   /** La clase que se está editando; `null` si el formulario crea una nueva. */
   const [editingClassId, setEditingClassId] = useState<string | null>(null);
+  /** En «Nueva clase», el formulario de crear varios grupos de una vez (`CrearVariosGrupos`). */
+  const [varios, setVarios] = useState(false);
 
   // ── currículo oficial de la clase del formulario ──
   // Las asignaturas se marcan de la lista oficial del curso (el currículo de la
@@ -269,7 +272,18 @@ export function ClassesManager({
     setEditClass(blankClass());
     setEditingClassId(null);
     setOtraAsignatura('');
+    setVarios(false);
     setClassModal(true);
+  }
+
+  /** Varios grupos de una vez: se crean todos y se vuelve a la portada, donde se ven juntos. */
+  function crearVarios(nuevas: Class[]) {
+    nuevas.forEach(onAddClass);
+    setClassModal(false);
+    setVarios(false);
+    if (nuevas.length > 1 || classes.length > 0) { setActiveClassId(''); setSearch(''); }
+    else setActiveClassId(nuevas[0].id);
+    notify(t(nuevas.length === 1 ? 'Clase creada' : 'Se han creado {n} clases. Entra en cada una para añadir su alumnado.', { n: nuevas.length }));
   }
 
   /** El mismo formulario, con la clase ya rellena. */
@@ -278,6 +292,7 @@ export function ClassesManager({
     setEditClass({ ...rest, subjects: [...(c.subjects ?? [c.subject])] });
     setEditingClassId(id);
     setOtraAsignatura('');
+    setVarios(false);
     setClassModal(true);
   }
 
@@ -747,9 +762,28 @@ export function ClassesManager({
       <div className={`modal-overlay${classModal ? ' open' : ''}`} onClick={e => { if (e.target === e.currentTarget) setClassModal(false); }}>
         <div className="modal">
           <div className="modal-hd">
-            <span className="modal-title">{t(editingClassId ? 'Editar clase' : 'Nueva clase')}</span>
+            <span className="modal-title">{t(editingClassId ? 'Editar clase' : varios ? 'Crear varios grupos' : 'Nueva clase')}</span>
             <button className="ico-btn" onClick={() => setClassModal(false)} aria-label={t('Cerrar')} title={t('Cerrar')}><X size={18} /></button>
           </div>
+
+          {/* Una clase o varios grupos de una vez (solo al crear) */}
+          {!editingClassId && (
+            <div className="vg-modo" role="group" aria-label={t('Qué quieres crear')}>
+              <button type="button" className={`chip sm accent${varios ? '' : ' on'}`} aria-pressed={!varios} onClick={() => setVarios(false)}>
+                {t('Una clase')}
+              </button>
+              <button type="button" className={`chip sm accent${varios ? ' on' : ''}`} aria-pressed={varios} onClick={() => setVarios(true)}>
+                <Layers size={13} />{t('Crear varios grupos')}
+              </button>
+            </div>
+          )}
+
+          {varios && !editingClassId ? (
+            <CrearVariosGrupos
+              classes={classes} comunidad={comunidad} palette={PALETTE} nuevoId={newId}
+              onCrear={crearVarios} onCancelar={() => setClassModal(false)}
+            />
+          ) : (<>
 
           <div className="frow">
             <div className="fgroup">
@@ -881,6 +915,7 @@ export function ClassesManager({
             <button className="btn-ghost" onClick={() => setClassModal(false)}>{t('Cancelar')}</button>
             <button className="btn-accent" onClick={saveClass}>{t(editingClassId ? 'Guardar cambios' : 'Crear clase')}</button>
           </div>
+          </>)}
         </div>
       </div>
 

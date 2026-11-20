@@ -1,1 +1,13 @@
 /* Estilos de la mejora «curso» (tanda del 20-11-2026). Los comunes siguen en index.css. */
+
+/* «Crear varios grupos» (components/clases/CrearVariosGrupos.tsx), dentro de la ventana de «Nueva clase» */
+.vg-modo { display:flex; gap:6px; flex-wrap:wrap; margin:-6px 0 16px; }
+.vg-nota { font-size:12.5px; color:var(--text-2); line-height:1.55; margin:0 0 14px; }
+.vg-ayuda { font-size:12px; color:var(--text-3); line-height:1.5; margin:7px 0 0; }
+.vg .chip.vg-materia { white-space:normal; height:auto; min-height:34px; padding:6px 14px; text-align:left; }
+.vg-lista { background:var(--surface); border-radius:11px; padding:12px 14px; }
+.vg-lista-ttl { font-size:13px; font-weight:800; color:var(--text); }
+.vg-lista-sub { font-weight:600; color:var(--text-2); }
+.vg-grupos { list-style:none; display:flex; flex-wrap:wrap; gap:6px; margin:10px 0 0; padding:0; max-height:150px; overflow-y:auto; }
+.vg-grupos li { font-size:12.5px; font-weight:700; color:var(--text); background:var(--card); border:1px solid var(--border); border-radius:99px; padding:4px 11px; }
+.vg-existen { color:var(--text-2); }
