@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   FACTOR_MAX, FACTOR_MIN, MAX_OPERACIONES, OPERACIONES, cuentaTexto, ejercicioDeCuentas, enEscalera, enTresPartes, fichaCrucigrama, fichaFracciones, fichaOperaciones,
-  fichaSopa, generarCuentas, llevadas, palabrasDeTexto, pesoDeCuenta, pistasDeTexto, resultadoDe, signoDe, tituloDeOperaciones, type Cuenta,
+  fichaSopa, generarCuentas, llevadas, palabrasDeTexto, pesoDeCuenta, pistasDeTexto, rangoSugerido, resultadoDe, signoDe, tituloDeOperaciones, type Cuenta,
 } from './fichaInstante';
 import { translate } from '../i18n';
 import { buildFichaHtml } from '../services/exportFicha';
@@ -229,6 +229,16 @@ describe('cuentas', () => {
       const pesos = bloques.flatMap(b => b.filter(c => c.op === op)).map(pesoDeCuenta);
       expect([...pesos].sort((x, y) => x - y)).toEqual(pesos);
     }
+  });
+
+  it('propone un rango de números según el curso, y uno pequeño si no lo reconoce', () => {
+    expect(rangoSugerido('1º Primaria A')).toEqual({ min: 1, max: 10 });
+    expect(rangoSugerido('2º de Primaria')).toEqual({ min: 1, max: 50 });
+    expect(rangoSugerido('4º Primaria')).toEqual({ min: 10, max: 999 });
+    expect(rangoSugerido('6º Primaria A')).toEqual({ min: 100, max: 9999 });
+    expect(rangoSugerido('1º ESO A')).toEqual({ min: 10, max: 999 });
+    expect(rangoSugerido('')).toEqual({ min: 1, max: 20 });
+    expect(rangoSugerido(undefined)).toEqual({ min: 1, max: 20 });
   });
 
   it('el título dice las operaciones', () => {

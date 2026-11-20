@@ -47,10 +47,17 @@ export function GeneradorInstante({ nivel, onCrear, avisar, children }: Props) {
   const [pistas, setPistas] = useState('');
 
   const [ops, setOps] = useState<Operacion[]>(['suma', 'resta']);
-  const [sugerido] = useState(() => rangoSugerido(nivel));
+  const sugerido = rangoSugerido(nivel);
   // Como texto, para poder borrar el número y escribir otro sin que salte a 0
   const [min, setMin] = useState(String(sugerido.min));
   const [max, setMax] = useState(String(sugerido.max));
+  // Al elegir otra clase el rango propuesto sigue a su curso, salvo que el docente ya lo haya cambiado a mano
+  const [nivelVisto, setNivelVisto] = useState(nivel);
+  const [rangoTocado, setRangoTocado] = useState(false);
+  if (nivel !== nivelVisto) {
+    setNivelVisto(nivel);
+    if (!rangoTocado) { setMin(String(sugerido.min)); setMax(String(sugerido.max)); }
+  }
   const [cantidad, setCantidad] = useState('18');
   const [sinLlevadas, setSinLlevadas] = useState(false);
   const [respuesta, setRespuesta] = useState<'caja' | 'linea'>('caja');
@@ -150,11 +157,11 @@ export function GeneradorInstante({ nivel, onCrear, avisar, children }: Props) {
             <div className="fsi-fila">
               <div className="fgroup">
                 <label className="flabel" htmlFor="fsi-min">{t('Números del')}</label>
-                <input id="fsi-min" className="finput" type="number" inputMode="numeric" min={0} max={MAX_NUMERO} value={min} onChange={e => setMin(e.target.value)} />
+                <input id="fsi-min" className="finput" type="number" inputMode="numeric" min={0} max={MAX_NUMERO} value={min} onChange={e => { setMin(e.target.value); setRangoTocado(true); }} />
               </div>
               <div className="fgroup">
                 <label className="flabel" htmlFor="fsi-max">{t('al')}</label>
-                <input id="fsi-max" className="finput" type="number" inputMode="numeric" min={0} max={MAX_NUMERO} value={max} onChange={e => setMax(e.target.value)} />
+                <input id="fsi-max" className="finput" type="number" inputMode="numeric" min={0} max={MAX_NUMERO} value={max} onChange={e => { setMax(e.target.value); setRangoTocado(true); }} />
               </div>
               <div className="fgroup">
                 <label className="flabel" htmlFor="fsi-cantidad">{t('Cuántas operaciones')}</label>
