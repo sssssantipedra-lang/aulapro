@@ -7,6 +7,7 @@ import { AvisoCopiaWeb, AvisoPdfWeb, CarpetaWebAviso } from './components/Carpet
 import { AvisoPasarAWeb } from './components/AvisoPasarAWeb';
 import { DatosIlegiblesPantalla } from './components/DatosIlegibles';
 import { AvisoSinGuardar } from './components/AvisoSinGuardar';
+import { AvisoDeshacer } from './components/ui/AvisoDeshacer';
 import { CONECTAR_YA, ConectarDriveWeb, EntrarWeb } from './pages/EntrarWeb';
 import { AceptarCondiciones } from './components/AceptarCondiciones';
 import { condicionesAceptadas } from './lib/condiciones';
@@ -431,6 +432,7 @@ function AppInner() {
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
       <AvisoSinGuardar motivo={st.errorGuardado} exportar={st.exportData} />
+      <AvisoDeshacer pendiente={st.borradoPendiente} onDeshacer={st.deshacerBorrado} onOlvidar={st.olvidarBorrado} />
       {isWebApp() && <AvisoCopiaWeb exportar={st.exportData} oculto={section === 'profile' || !!st.errorGuardado} onIrADatos={() => { setSection('profile'); setMenuOpen(false); }} />}
       {(!phone || menuOpen) && <Sidebar
         mini={menuMini}

@@ -317,7 +317,7 @@ export function Sesiones({
   /* ── Acciones sobre varias sesiones ── */
   function eliminarVarias(ids: string[]) {
     if (ids.length === 0) return;
-    if (!window.confirm(t(ids.length === 1 ? '¿Eliminar la sesión elegida? No se puede deshacer.' : '¿Eliminar las {n} sesiones elegidas? No se puede deshacer.', { n: ids.length }))) return;
+    if (!window.confirm(t(ids.length === 1 ? '¿Eliminar la sesión elegida?' : '¿Eliminar las {n} sesiones elegidas?', { n: ids.length }))) return;
     onChangeEf(d => ({ ...d, sesiones: quitarSesiones(d.sesiones, new Set(ids)) }));
     toast(t(ids.length === 1 ? '{n} sesión eliminada.' : '{n} sesiones eliminadas.', { n: ids.length }));
   }
