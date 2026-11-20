@@ -1741,7 +1741,7 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
   /**
    * Recoge el encargo de «Dar la clase», si lo hay y la pizarra se ve (oculta no tiene medidas para colocar
    * la ventana: lo recogerá al enseñarse). **No borra nada**: la sesión va a la ventana que ya la tenía
-   * (conservando lo marcado), a una vacía o a una ventana nueva; las demás se quedan como estaban.
+   * (conservando lo marcado), a una vacía o a una ventana nueva; los planes que hubiera conservan lo suyo.
    */
   const atenderEncargo = useCallback(() => {
     if (!hayEncargo() || estaOculta(rootRef.current)) return;
@@ -1752,7 +1752,11 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
     const planes = actuales.filter(v => v.tipo === 'agenda').map(v => leerPlanDeVentana(v.id));
     const destino = ventanaParaPlan(planes, encargo.plan?.sesion.origen ?? null);
     if (!destino && actuales.length >= MAX_VENTANAS) return;
-    const nueva = destino ? null : nuevaVentana(actuales, 'agenda', encargo.plan ? PLAN_CON_SESION : undefined);
+    // Una sesión que necesita ventana nueva: los otros planes del día se minimizan a su icono (siguen ahí, con lo
+    // suyo, a un toque). Las ventanas no tienen fondo y dos planes, uno encima del otro, no se podrían leer.
+    const apartar = !destino && !!encargo.plan;
+    const conSitio = apartar ? actuales.map(v => (v.tipo === 'agenda' ? { ...v, min: true } : v)) : actuales;
+    const nueva = destino ? null : nuevaVentana(conSitio, 'agenda', encargo.plan ? PLAN_CON_SESION : undefined);
     const id = destino?.id ?? nueva!.id;
     if (encargo.plan) {
       const antes = planes.find(p => p.id === id);
@@ -1761,7 +1765,10 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
     }
     const area = areaPizarra();
     setVentanas(prev => {
-      if (nueva) return prev.some(v => v.id === nueva.id) ? prev : [...prev, nueva];
+      if (nueva) {
+        if (prev.some(v => v.id === nueva.id)) return prev;
+        return [...(apartar ? prev.map(v => (v.tipo === 'agenda' ? { ...v, min: true } : v)) : prev), nueva];
+      }
       // La que ya había pasa delante, a la vista y, si se ha rellenado, con sitio para la sesión
       const v = prev.find(x => x.id === id);
       if (!v) return prev;

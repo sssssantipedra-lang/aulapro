@@ -503,7 +503,6 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
                       <span className="home-event-name">{s.titulo}</span>
                       <span className="home-tl-room">{[s.clase, fromIsoDate(s.fecha).toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' })].filter(Boolean).join(' · ')}</span>
                     </span>
-                    {onDarLaClase && s.fecha === isoDate(now) && <BotonDarLaClase compacto titulo={s.titulo} onClick={() => onDarLaClase(s.id)} />}
                   </li>
                 ))}
               </ul>
