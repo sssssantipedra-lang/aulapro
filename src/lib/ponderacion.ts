@@ -46,3 +46,21 @@ export function mediaDeCategoria(items: GradeItem[], grades: GradeMap, studentId
 export function pesoEnLaNotaFinal(item: GradeItem, itemsDeLaCategoria: GradeItem[], pesoCategoria: number): number {
   return ((porcentajesEnCategoria(itemsDeLaCategoria).get(item.id) ?? 0) * pesoCategoria) / 100;
 }
+
+/**
+ * La nota de un alumno con unas categorías y unas actividades: la media de cada categoría por su peso. Una
+ * categoría sin ninguna nota del alumno no resta: los pesos son relativos, como dentro de la categoría.
+ * Es la cuenta del cuaderno y del acta (20-11-2026: cada uno tenía la suya, iguales).
+ */
+export function mediaPonderada(
+  categorias: readonly { id: string; weight: number }[], items: readonly GradeItem[], grades: GradeMap, studentId: string,
+): number | null {
+  let suma = 0, pesos = 0;
+  for (const cat of categorias) {
+    const media = mediaDeCategoria(items.filter(i => i.category_id === cat.id), grades, studentId);
+    if (media === null) continue;
+    suma += media * cat.weight;
+    pesos += cat.weight;
+  }
+  return pesos > 0 ? suma / pesos : null;
+}

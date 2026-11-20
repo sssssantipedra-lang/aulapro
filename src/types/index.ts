@@ -786,6 +786,13 @@ export interface MarksBlockConfig {
   bases: Record<MarkTarget, number>;
   /** Lo que suma o resta cada anotación. */
   step: number;
+  /**
+   * Cómo sale la nota final de curso de esta clase y asignatura (20-11-2026). Va aquí porque esta es la
+   * configuración del cuaderno que ya se guarda por clase y asignatura, y así viaja con el perfil y sus
+   * copias. Ausente = evaluación continua (todas las notas del curso juntas, lo de siempre). `media` = la
+   * media de las tres evaluaciones con esos pesos (1.ª, 2.ª y 3.ª). Ver `lib/cuadernoEvaluacion.ts`.
+   */
+  final?: { modo: 'media'; pesos: number[] };
 }
 
 export interface ClassMark {

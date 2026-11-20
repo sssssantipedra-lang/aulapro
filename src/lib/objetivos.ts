@@ -10,7 +10,8 @@
  * clase (`gradeItemIdFor`). Sin clases, funciona como antes: la evaluación se
  * guarda en el Historial y el cuaderno no se toca.
  */
-import { gradeFromLevels, gradeItemIdFor, levelsOf, type ClassTarget, type Evaluation, type EvalDiana, type GradeTarget, type Rubric } from '../types';
+import { gradeFromLevels, gradeItemIdFor, levelsOf, type ClassTarget, type Evaluation, type EvalDiana, type GradeItem, type GradeTarget, type Rubric } from '../types';
+import { evaluacionDe, mismaEvaluacion } from './periodos';
 
 /** Todas las clases del instrumento, la principal primero. */
 export function objetivosDe(inst: GradeTarget): ClassTarget[] {
@@ -33,6 +34,38 @@ export const objetivoPara = (inst: GradeTarget, classId: string): ClassTarget | 
 /** La columna del cuaderno de ese instrumento en esa clase. */
 export function idColumna(inst: GradeTarget & { id: string }, classId: string): string {
   return classId === inst.class_id ? gradeItemIdFor(inst.id) : gradeItemIdFor(inst.id, classId);
+}
+
+/**
+ * Las columnas del cuaderno de un destino (20-11-2026): la de siempre (`base`, el id de `destinosDe`) y las
+ * que se han ido abriendo en otras evaluaciones (`base@2026-2`). La de siempre va primero.
+ */
+export function columnasDeDestino(base: string, gradeItems: readonly GradeItem[]): GradeItem[] {
+  return gradeItems.filter(i => i.id === base || i.id.startsWith(base + '@'))
+    .sort((a, b) => Number(b.id === base) - Number(a.id === base) || (a.date || '').localeCompare(b.date || ''));
+}
+
+/**
+ * La columna del cuaderno en la que cae una evaluación con ese instrumento hecha el día `fecha`. La columna
+ * es por evaluación (como las pruebas físicas de EF): usar la rúbrica en el segundo trimestre no cambia la
+ * nota del primero. Manda la fecha de la columna, como en el resto del cuaderno: es de la evaluación en la
+ * que cae su fecha, así que una columna de antes de este cambio sigue valiendo para la suya, y si el docente
+ * le cambia la fecha (o cambia las fechas de las evaluaciones) pasa a contar donde caiga.
+ *
+ * Si ninguna columna del destino es de esa evaluación, dice con qué id crearla: la primera conserva el id de
+ * siempre y las siguientes llevan la evaluación detrás.
+ */
+export function columnaDeEvaluacion(base: string, fecha: string, gradeItems: readonly GradeItem[]): { id: string; existe: boolean } {
+  const suyas = columnasDeDestino(base, gradeItems);
+  const hay = suyas.find(i => mismaEvaluacion(i.date, fecha));
+  if (hay) return { id: hay.id, existe: true };
+  if (!suyas.some(i => i.id === base)) return { id: base, existe: false };
+  const ocupados = new Set(suyas.map(i => i.id));
+  const clave = /^\d{4}-\d{2}-\d{2}/.test(fecha) ? evaluacionDe(fecha.slice(0, 10)) : 'otra';
+  let id = `${base}@${clave}`;
+  // Ese id puede estar ocupado por una columna a la que después se le cambió la fecha a otra evaluación
+  for (let n = 2; ocupados.has(id); n++) id = `${base}@${clave}-${n}`;
+  return { id, existe: false };
 }
 
 /** Lo que se guarda: sin `otras_clases` vacío ni repetidas. */

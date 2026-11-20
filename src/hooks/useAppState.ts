@@ -6,7 +6,7 @@ import type {
   LearningSituation, Ficha, WorkSession, SeatingPlan, ClassMark, MarksBlockConfig,
 } from '../types';
 import { normalizeClass } from '../types';
-import { destinosDe, notaDeDestino, objetivoPara, objetivosDe } from '../lib/objetivos';
+import { columnaDeEvaluacion, destinosDe, notaDeDestino, objetivoPara, objetivosDe } from '../lib/objetivos';
 import { mismaEvaluacionDelDia } from '../lib/evaluacionDelDia';
 import { evaluacionVigente } from '../lib/evaluarClase';
 import { isoDate } from '../lib/utils';
@@ -643,8 +643,11 @@ export function useAppState() {
 
       const value = notaDeDestino(inst, destino, ev);
       if (typeof value !== 'number') continue;
-      const itemId = destino.id;
-      const isNew = !m.gradeItems.some(i => i.id === itemId);
+      // La columna es por evaluación (20-11-2026): la que el instrumento ya tiene en la evaluación de esa
+      // fecha o, si no tiene, una nueva. Así evaluar en el segundo trimestre no cambia la nota del primero.
+      // El id sale siempre igual con el mismo cuaderno delante: evaluar a varios seguidos no la duplica.
+      const { id: itemId, existe } = columnaDeEvaluacion(destino.id, ev.date, m.gradeItems);
+      const isNew = !existe;
 
       // El updater comprueba de nuevo la existencia: así evaluar a dos alumnos
       // seguidos no puede duplicar la columna.
@@ -653,7 +656,8 @@ export function useAppState() {
         class_id: destino.class_id,
         category_id: destino.category_id as string,
         name: destino.subject && destinos.length > 1 ? `${inst.name} · ${destino.subject}` : inst.name,
-        date: isoDate(),
+        // La fecha de la evaluación, que es la que decide en qué evaluación del curso cuenta la columna
+        date: /^\d{4}-\d{2}-\d{2}/.test(ev.date) ? ev.date.slice(0, 10) : isoDate(),
       }]);
 
       setGrades(prev => ({ ...prev, [itemId]: { ...(prev[itemId] ?? {}), [ev.student_id]: value } }));
@@ -696,21 +700,18 @@ export function useAppState() {
     log('delete', 'evaluation', id, `Evaluación de ${ev.student_name} con «${ev.rubric_name}»`,
       typeof ev.grade === 'number' ? `nota ${formatGrade(ev.grade)}` : undefined);
     if (!ev.student_id || typeof ev.grade !== 'number') return;
-    // De la más reciente a la más antigua por fecha; a igual fecha, la lista ya va de nueva a antigua
-    const conNota = m.evaluations
-      .filter(e => e.rubric_id === ev.rubric_id && e.student_id === ev.student_id && e.class_id === ev.class_id && typeof e.grade === 'number')
-      .map((e, i) => ({ e, i }))
-      .sort((a, b) => b.e.date.localeCompare(a.e.date) || a.i - b.i)
-      .map(x => x.e);
-    if (conNota[0]?.id !== id) return;
-    const anterior = conNota[1];
+    // La vigente es la más reciente de su misma evaluación del curso (cada evaluación tiene su columna): si se
+    // borra esa, manda la anterior de esa evaluación; una de otro trimestre no ocupa su sitio
+    if (evaluacionVigente(m.evaluations, ev)?.id !== id) return;
+    const anterior = evaluacionVigente(m.evaluations.filter(e => e.id !== id), ev);
     if (anterior) { routeToNotebook(anterior); return; }
     const inst = m.rubrics.find(r => r.id === ev.rubric_id) ?? m.dianas.find(d => d.id === ev.rubric_id);
     if (!inst) return;
     const destinos = objetivoPara(inst, ev.class_id)
       ? destinosDe(inst, ev.class_id)
       : ev.class_id ? [] : destinosDe(inst, objetivosDe(inst)[0]?.class_id ?? '');
-    const columnas = destinos.map(d => d.id).filter(c => m.grades[c]?.[ev.student_id] !== undefined);
+    const columnas = destinos.map(d => columnaDeEvaluacion(d.id, ev.date, m.gradeItems))
+      .filter(c => c.existe && m.grades[c.id]?.[ev.student_id] !== undefined).map(c => c.id);
     if (!columnas.length) return;
     setGrades(prev => {
       const next = { ...prev };

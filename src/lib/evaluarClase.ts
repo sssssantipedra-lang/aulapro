@@ -7,6 +7,7 @@
 import type { Class, Evaluation, ScheduleBlock } from '../types';
 import { bloqueQueToca } from './claseQueToca';
 import { clasesDe } from './objetivos';
+import { mismaEvaluacion } from './periodos';
 import type { GradeTarget } from '../types';
 
 /** Lo marcado a un alumno: el nivel de cada criterio o ítem y las observaciones. */
@@ -72,14 +73,16 @@ export function hechoEnRonda(estado: EstadoDeAlumno, rondaNueva: boolean): boole
 
 /**
  * La evaluación que manda en el cuaderno para el alumno, el instrumento y la clase de `ev`: la más reciente
- * con nota (a igual fecha, la que va antes en la lista). Es la regla de `deleteEvaluation` y la que usa
- * `updateEvaluation`: una corrección solo lleva su nota al cuaderno si la corregida es la vigente.
+ * con nota (a igual fecha, la que va antes en la lista) **de su misma evaluación del curso** (20-11-2026: la
+ * columna del cuaderno es por evaluación, así que la del segundo trimestre no le quita el sitio a la del
+ * primero). Es la regla de `deleteEvaluation` y la que usa `updateEvaluation`: una corrección solo lleva su
+ * nota al cuaderno si la corregida es la vigente.
  */
 export function evaluacionVigente(evaluations: readonly Evaluation[], ev: Evaluation): Evaluation | undefined {
   let mejor: Evaluation | undefined;
   for (const e of evaluations) {
     if (e.rubric_id !== ev.rubric_id || e.student_id !== ev.student_id || e.class_id !== ev.class_id) continue;
-    if (typeof e.grade !== 'number') continue;
+    if (typeof e.grade !== 'number' || !mismaEvaluacion(e.date, ev.date)) continue;
     if (!mejor || e.date > mejor.date) mejor = e;
   }
   return mejor;
