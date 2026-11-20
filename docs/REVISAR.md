@@ -142,6 +142,7 @@ Pendiente:
 - `docs/COMPARTIR.md` dice que faltan las capturas nuevas de «Trabajo compartido», pero `CLAUDE.md` dice que se rehicieron el 26-10-2026. Hay que comprobarlo y dejar uno de los dos bien.
 - Textos de la pantalla antigua de «Trabajo compartido» que siguen en el diccionario (`src/i18n/core.ts` y `ca.ts`).
 - ~~«Asistencia» y «Anotar actitud» buscan la clase que toca sin mirar el calendario escolar; «En clase» ya lo mira.~~ Hecho el 20-11-2026: todas las pantallas usan la regla de la clase activa, con calendario (`src/lib/claseActiva.ts`).
+- Al eliminar una clase no se van sus bloques del horario ni su distribución de aula (visto el 20-11-2026 al repasar «Deshacer»; ya era así).
 - PT y AL:
   - Faltan el formato oficial de Cataluña y el de Madrid.
   - Faltan los PDF de la normativa valenciana y catalana.
