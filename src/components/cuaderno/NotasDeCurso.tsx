@@ -108,7 +108,8 @@ export function NotasDeCurso({ alumnado, notas, regla, onRegla, onParaTodas, onV
               {[0, 1, 2].map(k => (
                 <th key={k}>
                   <button type="button" className="gb-item-hd" onClick={() => onVerEvaluacion(PERIODS[k])} title={t('Ver la {evaluacion}', { evaluacion: t(PERIODS[k]) })}>
-                    <span className="gb-item-name">{t(PERIODS[k])}</span>
+                    <span className="gb-item-name nc-largo">{t(PERIODS[k])}</span>
+                    <span className="gb-item-name nc-corto" aria-hidden="true">{t(CORTO[k])}</span>
                     {media && <span className="gb-item-cat">{`${dec(Math.round(pct[k] * 10) / 10)}%`}</span>}
                   </button>
                 </th>

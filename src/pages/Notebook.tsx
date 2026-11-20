@@ -545,7 +545,7 @@ function GradesTab({
             </div>
           </>
         )}
-        <span className="toolbar-sep" aria-hidden="true" />
+        <span className="toolbar-sep ev-sel-sep" aria-hidden="true" />
         <SelectorEvaluacion ev={ev} queCuenta={t('El cuaderno enseña y cuenta las actividades y las anotaciones de estas fechas.')} />
         <span className="toolbar-spacer" />
         <button className="tb-btn" onClick={exportCsv} disabled={myItems.length === 0}>

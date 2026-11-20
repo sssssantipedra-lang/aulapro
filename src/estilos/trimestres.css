@@ -38,7 +38,19 @@ td.nc-final { font-size:13.5px; }
 .nc-ver:hover { background:var(--surface); color:var(--text); }
 .nc-donde { margin-top:-6px; margin-bottom:12px; }
 
+.nc-corto { display:none; }
+
+/* Con el dedo, las fichas del selector son más altas */
+@media (pointer: coarse) {
+  .ev-sel-chips .chip { height:36px; min-width:44px; justify-content:center; }
+  .ev-sel-fechas { height:38px; }
+}
+
 @media (max-width: 760px) {
+  .ev-sel-sep { display:none; }
+  .nc-largo { display:none; }
+  .nc-corto { display:inline; }
+  .nc-tabla .gb-table th { padding:6px 4px; }
   .ev-sel { width:100%; }
   .ev-sel-chips { flex:1; justify-content:space-between; }
   .ev-sel-chips .chip { flex:1; justify-content:center; height:36px; padding:0 6px; }
