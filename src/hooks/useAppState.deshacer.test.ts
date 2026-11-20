@@ -161,6 +161,21 @@ describe('deshacer un borrado', () => {
     expect(hecho).toBe(false);
   });
 
+  it('vaciar el curso o cargar otros datos se lleva el aviso: «Deshacer» no los cubre', async () => {
+    const { result } = conEjemplo();
+    act(() => result.current.deleteRubric(result.current.rubrics[0].id));
+    expect(result.current.borradoPendiente).not.toBeNull();
+    await act(async () => { await result.current.clearSchoolYear(); });
+    expect(result.current.borradoPendiente).toBeNull();
+    expect(result.current.classes).toEqual([]);
+
+    act(() => result.current.loadDemoData('es'));
+    act(() => result.current.deleteRubric(result.current.rubrics[0].id));
+    expect(result.current.borradoPendiente).not.toBeNull();
+    act(() => result.current.loadDemoData('es'));
+    expect(result.current.borradoPendiente).toBeNull();
+  });
+
   it('borrar algo que no existe no deja aviso', () => {
     const { result } = conEjemplo();
     act(() => result.current.deleteRubric('no-existe'));

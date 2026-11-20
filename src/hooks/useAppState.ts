@@ -207,6 +207,8 @@ export function useAppState() {
   const [apoyo, setApoyo]                     = useState<ApoyoData>(APOYO_VACIO);
   const [ef, setEf]                           = useState<EfData>(EF_VACIO);
   const [auditLog, setAuditLog]               = useState<AuditEntry[]>([]);
+  /** El último borrado, mientras se puede deshacer (más abajo, «Deshacer tras un borrado»). */
+  const [borradoPendiente, setBorradoPendiente] = useState<BorradoPendiente<Reponible> | null>(null);
 
   // El documento de normativa (base64, puede ser enorme) solo vive en memoria
   const [lawDocument, setLawDocument] = useState<{ name: string; mimeType: string; base64: string } | null>(null);
@@ -249,6 +251,8 @@ export function useAppState() {
     // La conversación con el asistente habla de los alumnos del perfil que se
     // acaba de dejar atrás: no puede seguir abierta en el siguiente.
     setChat([]);
+    // Y un borrado de antes de cargar otros datos (otro perfil, una copia) ya no se puede deshacer
+    setBorradoPendiente(null);
   }, []);
 
   /* ── Carga al entrar en un perfil ── */
@@ -309,7 +313,6 @@ export function useAppState() {
   const pintadoRef = useRef<Reponible>(snapshot);
   useEffect(() => { pintadoRef.current = snapshot; }, [snapshot]);
 
-  const [borradoPendiente, setBorradoPendiente] = useState<BorradoPendiente<Reponible> | null>(null);
   // Ajuste durante el pintado: el primero tras un borrado fija cómo ha quedado todo; en los siguientes, si se ha
   // tocado algo de lo que el borrado cambió (o se ha cambiado de perfil), deja de poderse deshacer
   const borradoAhora = borradoAlPintar(borradoPendiente, profileId, snapshot as Reponible, REPONIBLES);
@@ -1059,6 +1062,7 @@ export function useAppState() {
    * Devuelve cuántas clases, alumnos, evaluaciones, situaciones de aprendizaje y fichas nuevos entran.
    */
   const importarPaquete = useCallback((remote: SharedBundle, modo: MergeMode) => {
+    setBorradoPendiente(null);
     const merged = mergeBundle(
       { classes, students, gradeCategories, gradeItems, grades, rubrics, dianas, evaluations, learningSituations, fichas },
       remote, modo,
@@ -1095,6 +1099,7 @@ export function useAppState() {
   /* ── Datos de ejemplo y limpieza ── */
   const loadDemoData = useCallback((lang: Lang = 'es') => {
     const d = demoSnapshot(lang);
+    setBorradoPendiente(null);
     setTasks(d.tasks);
     setClasses(d.classes.map(normalizeClass));
     setStudents(d.students);
@@ -1147,6 +1152,8 @@ export function useAppState() {
    */
   const clearSchoolYear = useCallback(async () => {
     if (profileId) await store.backup(profileId, 'antes-de-vaciar');
+    // Vaciar el curso no se deshace con el aviso (tiene su copia «antes-de-vaciar»), y se lleva el que hubiera
+    setBorradoPendiente(null);
     setTasks([]);
     setClasses([]);
     setStudents([]);

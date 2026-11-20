@@ -18,8 +18,12 @@
 .deshacer:focus-within .deshacer-barra span { animation-play-state:paused; }
 @media (hover:hover) { .deshacer:hover .deshacer-barra span { animation-play-state:paused; } }
 @media (prefers-reduced-motion: reduce) { .deshacer { animation:none; } .deshacer-barra { display:none; } }
+/* El aviso corto de siempre («Clase eliminada», «Recuperado…») sale en el mismo sitio: mientras este está, va encima */
+.con-deshacer .toast { bottom:calc(24px + var(--deshacer-alto, 60px) + 10px); }
 /* En el móvil ocupa el ancho y sube por encima del botón de ayuda */
 @media (max-width:640px) {
   .deshacer { left:12px; right:12px; bottom:84px; transform:none; width:auto; max-width:none; }
+  .deshacer-ico { display:none; }
   @keyframes deshacer-entra { from { opacity:0; transform:translateY(14px); } }
+  .con-deshacer .toast { bottom:calc(84px + var(--deshacer-alto, 60px) + 10px); }
 }

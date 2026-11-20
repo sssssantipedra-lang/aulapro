@@ -64,6 +64,16 @@ export function AvisoDeshacer({ pendiente, onDeshacer, onOlvidar, duracion = DUR
     return () => { if (r.timer !== null) clearTimeout(r.timer); r.timer = null; };
   }, [id, duracion]);
 
+  // El aviso corto de siempre (`.toast`, «Clase eliminada») sale en el mismo sitio: mientras este está a la vista,
+  // sube por encima de él (estilos/deshacer.css) en vez de taparlo
+  useEffect(() => {
+    if (id === null) return;
+    const raiz = document.documentElement;
+    raiz.classList.add('con-deshacer');
+    raiz.style.setProperty('--deshacer-alto', `${caja.current?.offsetHeight ?? 60}px`);
+    return () => { raiz.classList.remove('con-deshacer'); raiz.style.removeProperty('--deshacer-alto'); };
+  }, [id]);
+
   // Ctrl+Z (⌘Z) deshace, salvo que se esté escribiendo: ahí es el deshacer del propio campo
   useEffect(() => {
     if (id === null) return;
