@@ -4,12 +4,12 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Plus, Pencil, Trash2, ClipboardCheck, X, Paperclip, Sparkles, ChevronDown, Copy, Search, FileDown,
 } from 'lucide-react';
-import type { Rubric, RubricCriterion, Evaluation, Class, Student, EvalDiana, GradeCategory, GradeTarget, OfficialCriterionRef } from '../types';
+import type { Rubric, RubricCriterion, Evaluation, Class, Student, EvalDiana, GradeCategory, GradeTarget, OfficialCriterionRef, ScheduleBlock } from '../types';
 import { GradeTargetsPicker } from '../components/GradeTargetPicker';
 import { buildRubricaHtml, guardarInstrumentoPdf, nombresDeClases } from '../services/exportInstrumento';
 import type { InlineFile } from '../services/gemini';
 import { callGemini, parseGeminiJson } from '../services/gemini';
-import { competenciasClaveValidas, isoDate, newId } from '../lib/utils';
+import { competenciasClaveValidas, isoDate } from '../lib/utils';
 import { levelsOf, levelColor, gradeFromLevels, defaultLevels, competencyScoresFor, type AchievementLevel } from '../types';
 import { officialCriteriaScoresFor } from '../lib/curriculum/evaluacionPorCriterios';
 import { useToast } from '../components/ui/Toast';
@@ -29,6 +29,9 @@ import { useBorradorVentana } from '../hooks/useBorrador';
 import { AvisoBorrador } from '../components/AvisoBorrador';
 import { ACEPTA_ADJUNTO, useAdjuntoParaIA } from '../hooks/useAdjuntoParaIA';
 import { textoLibreParaIA } from '../lib/documentoParaIA';
+import { idDeEvaluacion, marcados, type Marcado } from '../lib/evaluarClase';
+import { useEvaluarClase, type GuardarEvaluacion } from '../hooks/useEvaluarClase';
+import { AlumnoQueSeEvalua, CabeceraDeEvaluarClase, ListaDeClase, PieDeEvaluarClase } from '../components/evaluar/EvaluarClasePartes';
 
 /* ─── Props ─── */
 interface Props {
@@ -45,7 +48,11 @@ interface Props {
   onAddDiana: (d: EvalDiana) => void;
   onUpdateDiana: (d: EvalDiana) => void;
   onDeleteDiana: (id: string) => void;
-  onAddEvaluation: (ev: Evaluation) => void;
+  onAddEvaluation: GuardarEvaluacion;
+  /** Corregir una evaluación ya hecha (al volver a un alumno evaluado hoy, la ventana la actualiza en vez de crear otra). */
+  onUpdateEvaluation?: (ev: Evaluation) => void;
+  /** El horario: la ventana de evaluar se abre con la clase que toca. */
+  scheduleBlocks?: ScheduleBlock[];
   defaultOpenEvalRubricId?: string;
   defaultOpenEvalStudentId?: string;
   defaultOpenEvalClassId?: string;
@@ -620,25 +627,64 @@ interface EvalModalProps {
   lawDocument: InlineFile | null;
   defaultClassId?: string;
   defaultStudentId?: string;
+  /** Las evaluaciones ya hechas: quién está evaluado y, al entrar en un alumno evaluado hoy, lo que se le marcó. */
+  evaluations?: Evaluation[];
+  /** El horario, para abrir con la clase que toca. */
+  scheduleBlocks?: ScheduleBlock[];
+  /** Una evaluación ya hecha que se abre para corregirla (desde el Historial). */
+  corrigiendo?: Evaluation | null;
   onClose: () => void;
-  onSave: (ev: Evaluation) => void;
+  onSave: GuardarEvaluacion;
+  /** Actualizar una evaluación ya hecha, en vez de crear otra. */
+  onUpdate?: (ev: Evaluation) => void;
 }
 
-/** Evaluar a un alumno con una rúbrica. También lo usan las sesiones de EF. */
+/**
+ * Evaluar a la clase con una rúbrica (20-11-2026; antes, un alumno por ventana): la lista del alumnado al
+ * lado, «Guardar y siguiente» sin cerrar y «Poner a todos este nivel» (`hooks/useEvaluarClase.ts`). Con
+ * `corrigiendo`, corrige una evaluación ya hecha. También lo usan las sesiones de EF y el Historial.
+ */
 export function EvalModal({
   open, rubric, classes, students, lawDocument,
-  defaultClassId, defaultStudentId,
-  onClose, onSave,
+  defaultClassId, defaultStudentId, evaluations, scheduleBlocks, corrigiendo,
+  onClose, onSave, onUpdate,
 }: EvalModalProps) {
   const { toast } = useToast();
   const { t, lang } = useI18n();
-  const [classId, setClassId] = useState('');
-  const [studentId, setStudentId] = useState('');
-  const [scores, setScores] = useState<Record<string, number>>({});
-  const [notes, setNotes] = useState('');
 
   /** Los niveles de esta rúbrica: los suyos, o los cuatro clásicos. */
   const levels = levelsOf(rubric);
+  const caja = useRef<HTMLDivElement>(null);
+
+  /** La evaluación de un alumno con lo marcado. Lo que no se marca no cuenta: la nota sale solo de lo marcado. */
+  function construir(alumno: { id: string; name: string }, clase: string, m: Marcado): Evaluation {
+    const r = rubric!;
+    return {
+      id: idDeEvaluacion(),
+      rubric_id: r.id,
+      rubric_name: r.name,
+      student_id: alumno.id,
+      student_name: alumno.name,
+      class_id: clase,
+      date: isoDate(),
+      scores: m.scores,
+      notes: m.notes,
+      instrument: 'rubric',
+      // Sin nota no hay nada que llevar al cuaderno: la evaluación se quedaba
+      // solo en el Historial y había que copiar la calificación a mano.
+      grade: gradeFromLevels(m.scores, r.criteria.map(c => c.id), levels) ?? undefined,
+      max_level: Math.max(...levels.map(l => l.value)),
+      competencyScores: competencyScoresFor(r.criteria, m.scores),
+      officialCriteriaScores: officialCriteriaScoresFor(r.criteria, m.scores, Math.max(...levels.map(l => l.value))),
+    };
+  }
+
+  const clase = useEvaluarClase({
+    open, instrumento: rubric, tipo: 'rubric', ids: rubric?.criteria.map(c => c.id) ?? [],
+    classes, students, evaluations, scheduleBlocks, defaultClassId, defaultStudentId, corrigiendo,
+    construir, onSave, onUpdate, onClose,
+  });
+  const { scores, notes, setScores, setNotes, studentId } = clase;
 
   /* AI work evaluation */
   const [workDesc, setWorkDesc] = useState('');
@@ -654,30 +700,17 @@ export function EvalModal({
   /* Reset when rubric/modal changes */
   useResetOnChange(`${open}:${rubric?.id ?? ''}:${defaultClassId ?? ''}:${defaultStudentId ?? ''}`, () => {
     if (!open || !rubric) return;
-    setScores({});
-    setNotes('');
     setWorkDesc('');
     trabajo.quitar();
     setWorkFileErr('');
-    // La rúbrica ya sabe a qué clase va: no hacer elegir lo que no tiene opción.
-    setClassId(defaultClassId ?? rubric.class_id ?? '');
-    setStudentId(defaultStudentId ?? '');
   });
 
-  const classStudents = students.filter(s => s.class_id === classId);
-
-  /**
-   * Qué clases se pueden elegir al evaluar.
-   *
-   * Si la rúbrica declara dónde se recoge la nota, solo esas clases (una o varias): dejar
-   * elegir otra llevaría la calificación a un cuaderno que no es el suyo. Y la
-   * asignatura que se muestra es la de la rúbrica, no la principal de la clase,
-   * que puede ser distinta —una clase de varias asignaturas— y hacer creer que
-   * se está evaluando otra cosa.
+  /*
+   * Qué clases se pueden elegir al evaluar (`evalClasses` de `useEvaluarClase`): si la rúbrica declara dónde
+   * se recoge la nota, solo esas (una o varias); dejar elegir otra llevaría la calificación a un cuaderno que
+   * no es el suyo. Y la asignatura que se muestra es la de la rúbrica, no la principal de la clase, que
+   * puede ser distinta (una clase de varias asignaturas) y hacer creer que se está evaluando otra cosa.
    */
-  const evalClasses = rubric && clasesDe(rubric).length
-    ? classes.filter(c => clasesDe(rubric).includes(c.id))
-    : classes;
   // Cada clase de la rúbrica tiene su asignatura
   const subjectLabel = (c: { id: string; subject: string }) => (rubric && objetivoPara(rubric, c.id)?.subject) || c.subject;
 
@@ -772,44 +805,11 @@ export function EvalModal({
     if (raw) setNotes(raw.trim());
   }
 
-  /* ── Save ── */
-  function handleSave() {
-    if (!rubric || !studentId) return;
-    // Lo que no se marca cuenta como 0 en la nota: se dice antes de guardar (19-11-2026; antes se guardaba sin avisar)
-    const sinMarcar = rubric.criteria.filter(c => scores[c.id] === undefined).length;
-    if (sinMarcar > 0 && !window.confirm(t(sinMarcar === 1
-      ? 'Queda {n} criterio sin marcar: la nota se calculará solo con lo marcado. ¿Guardar así?'
-      : 'Quedan {n} criterios sin marcar: la nota se calculará solo con lo marcado. ¿Guardar así?', { n: sinMarcar }))) return;
-    const student = students.find(s => s.id === studentId);
-    const ev: Evaluation = {
-      id: newId('ev'),
-      rubric_id: rubric.id,
-      rubric_name: rubric.name,
-      student_id: studentId,
-      student_name: student?.name ?? '',
-      class_id: classId,
-      date: isoDate(),
-      scores,
-      notes,
-      instrument: 'rubric',
-      // Sin nota no hay nada que llevar al cuaderno: la evaluación se quedaba
-      // solo en el Historial y había que copiar la calificación a mano.
-      grade: gradeFromLevels(scores, rubric.criteria.map(c => c.id), levels) ?? undefined,
-      max_level: Math.max(...levels.map(l => l.value)),
-      competencyScores: competencyScoresFor(rubric.criteria, scores),
-      officialCriteriaScores: officialCriteriaScoresFor(rubric.criteria, scores, Math.max(...levels.map(l => l.value))),
-    };
-    onSave(ev);
-    onClose();
-  }
-
-  const canSave = !!studentId && Object.keys(scores).length > 0;
-
   if (!rubric) return null;
 
   return (
-    <div className={`modal-overlay${open ? ' open' : ''}`} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="modal wide" style={{ maxHeight: '92vh', width: 760 }}>
+    <div className={`modal-overlay${open ? ' open' : ''}`} onClick={e => { if (e.target === e.currentTarget) clase.cerrar(); }}>
+      <div ref={caja} className={`modal wide evc-modal${clase.enClase ? ' evc-con-lista' : ''}`} role="dialog" aria-modal="true" aria-label={rubric.name}>
         {/* Header */}
         <div className="modal-hd">
           <div>
@@ -818,38 +818,17 @@ export function EvalModal({
               {t('Haz clic en el nivel para cada criterio')}
             </p>
           </div>
-          <button className="ico-btn" onClick={onClose} aria-label={t('Cerrar')} title={t('Cerrar')}><X size={18} /></button>
+          <button className="ico-btn" onClick={clase.cerrar} aria-label={t('Cerrar')} title={t('Cerrar')}><X size={18} /></button>
         </div>
 
-        {/* Class + Student selectors */}
-        <div className="frow" style={{ marginBottom: 16 }}>
-          <div className="fgroup" style={{ marginBottom: 0 }}>
-            <label className="flabel" htmlFor="rubrics-f5">{t('Clase')}</label>
-            <select
-              id="rubrics-f5"
-              className="finput"
-              value={classId}
-              onChange={e => { setClassId(e.target.value); setStudentId(''); }}
-            >
-              <option value="">{t('Selecciona clase...')}</option>
-              {evalClasses.map(c => <option key={c.id} value={c.id}>{c.name} – {subjectLabel(c)}</option>)}
-            </select>
-          </div>
-          <div className="fgroup" style={{ marginBottom: 0 }}>
-            <label className="flabel" htmlFor="rubrics-f6">{t('Alumno')}</label>
-            <select
-              id="rubrics-f6"
-              className="finput"
-              value={studentId}
-              onChange={e => setStudentId(e.target.value)}
-              disabled={!classId}
-            >
-              <option value="">{t('Selecciona alumno...')}</option>
-              {classStudents.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-            </select>
-          </div>
-        </div>
+        {/* La clase se elige una vez; el alumnado, en la lista */}
+        <CabeceraDeEvaluarClase clase={clase} asignatura={subjectLabel} idSelect="rubrics-f5" />
 
+        <div className="evc-cuerpo">
+        {clase.enClase && <ListaDeClase clase={clase} niveles={levels} />}
+        <div className="evc-ficha">
+        <AlumnoQueSeEvalua clase={clase} />
+        {studentId && <>
         {/* Rubric table */}
         <div style={{ overflowX: 'auto', marginBottom: 16 }}>
           <table className="rtable">
@@ -877,7 +856,14 @@ export function EvalModal({
                       <td key={lv.value} style={{ verticalAlign: 'top' }}>
                         <div
                           className={`level-cell${selected ? ' selected' : ''}`}
-                          onClick={() => setScores(prev => ({ ...prev, [cr.id]: lv.value }))}
+                          // Pulsar el nivel que ya está puesto lo quita (20-11-2026): hace falta para dejar sin marcar un criterio tras «Poner a todos»
+                          onClick={() => setScores(prev => {
+                            if (prev[cr.id] !== lv.value) return { ...prev, [cr.id]: lv.value };
+                            const { [cr.id]: _fuera, ...resto } = prev; void _fuera;
+                            return resto;
+                          })}
+                          role="button" aria-pressed={selected}
+                          aria-label={`${cr.name}: ${lv.value}, ${t(lv.label)}`}
                           style={{
                             borderColor: selected ? color : undefined,
                             background: selected ? `${color}1a` : undefined,
@@ -968,7 +954,7 @@ export function EvalModal({
             <label className="flabel" style={{ marginBottom: 0 }}>{t('Observaciones')}</label>
             <button
               className="btn-ia btn-ia-sm"
-              disabled={Object.keys(scores).length === 0 || obsGenerating}
+              disabled={marcados(scores, rubric.criteria.map(c => c.id)) === 0 || obsGenerating}
               onClick={handleGenerateObs}
             >
               {obsGenerating
@@ -986,9 +972,13 @@ export function EvalModal({
           />
         </div>
 
+        </>}
+        </div>
+        </div>
+
         {/* Total + Save */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 14, borderTop: '0.5px solid var(--border)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <PieDeEvaluarClase clase={clase} alGuardar={() => caja.current?.scrollTo?.({ top: 0 })}>
+          {studentId && <>
             <span style={{ fontSize: 13, color: 'var(--text-2)', fontWeight: 600 }}>{t('Puntuación total:')}</span>
             <span className="score-pill">{totalScore} / {maxScore}</span>
             {maxScore > 0 && (
@@ -996,14 +986,8 @@ export function EvalModal({
                 ({Math.round((totalScore / maxScore) * 100)}%)
               </span>
             )}
-          </div>
-          <div style={{ display: 'flex', gap: 10 }}>
-            <button className="btn-ghost" onClick={onClose}>{t('Cancelar')}</button>
-            <button className="btn-accent" disabled={!canSave} onClick={handleSave}>
-              <ClipboardCheck size={14} />{t('Guardar evaluación')}
-            </button>
-          </div>
-        </div>
+          </>}
+        </PieDeEvaluarClase>
       </div>
     </div>
   );
@@ -1015,7 +999,7 @@ export function EvalModal({
 export function Rubrics({
   rubrics, dianas, evaluations, classes, students, gradeCategories, lawDocument,
   onAddRubric, onUpdateRubric, onDeleteRubric,
-  onAddDiana, onUpdateDiana, onDeleteDiana, onAddEvaluation,
+  onAddDiana, onUpdateDiana, onDeleteDiana, onAddEvaluation, onUpdateEvaluation, scheduleBlocks,
   defaultOpenEvalRubricId, defaultOpenEvalStudentId, defaultOpenEvalClassId,
   onEvalOpened, comunidad, vista = 'rubrics', busquedaInicial = '', onBusquedaUsada,
 }: Props) {
@@ -1090,10 +1074,6 @@ export function Rubrics({
     else onAddRubric(r);
   }
 
-  function handleSaveEval(ev: Evaluation) {
-    onAddEvaluation(ev);
-  }
-
   function handleDelete(id: string) {
     onDeleteRubric(id);
     setConfirmDeleteId(null);
@@ -1156,6 +1136,8 @@ export function Rubrics({
           onUpdateDiana={onUpdateDiana}
           onDeleteDiana={onDeleteDiana}
           onAddEvaluation={onAddEvaluation}
+          onUpdateEvaluation={onUpdateEvaluation}
+          scheduleBlocks={scheduleBlocks}
           comunidad={comunidad}
         />
       ) : (
@@ -1268,7 +1250,7 @@ export function Rubrics({
 
                 {/* Evaluar button */}
                 <button className="btn-accent" onClick={() => openEval(r)} style={{ justifyContent: 'center', width: '100%' }}>
-                  <ClipboardCheck size={14} />{t('Evaluar alumno')}
+                  <ClipboardCheck size={14} />{t('Evaluar a la clase')}
                 </button>
               </div>
             );
@@ -1358,8 +1340,11 @@ export function Rubrics({
         lawDocument={lawDocument}
         defaultClassId={evalDefaultClassId}
         defaultStudentId={evalDefaultStudentId}
+        evaluations={evaluations}
+        scheduleBlocks={scheduleBlocks}
         onClose={() => setEvalModalOpen(false)}
-        onSave={handleSaveEval}
+        onSave={onAddEvaluation}
+        onUpdate={onUpdateEvaluation}
       />
 
       {/* Delete confirm */}

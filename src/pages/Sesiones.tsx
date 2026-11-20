@@ -77,7 +77,9 @@ interface Props {
   /** Para valorar a la clase con un instrumento de la sesión, sin salir de ella. */
   evaluations?: Evaluation[];
   lawDocument?: InlineFile | null;
-  onAddEvaluation?: (ev: Evaluation) => void;
+  onAddEvaluation?: (ev: Evaluation, opciones?: { otroTrabajo?: boolean }) => void;
+  /** Corregir una evaluación ya hecha: la ventana de evaluar a la clase actualiza la de hoy en vez de crear otra. */
+  onUpdateEvaluation?: (ev: Evaluation) => void;
   /** Educación Física (con su banco, circuitos e IA de sesiones) o docente de aula; por defecto, EF. */
   perfil?: 'ef' | 'aula';
   /** Las situaciones de aprendizaje, para asociarles sesiones o crear una con ellas. */
@@ -117,7 +119,7 @@ function minutosDeClase(blocks: ScheduleBlock[], claseId: string, fecha: string)
 
 export function Sesiones({
   classes, students, scheduleBlocks, ef, onChangeEf, comunidad, rubrics = [], dianas = [], onAddDiana, onNav, evaluations = [], lawDocument = null,
-  onAddEvaluation, perfil = 'ef', learningSituations = [], onSaveSda, onAbrirSda, acsAula = [],
+  onAddEvaluation, onUpdateEvaluation, perfil = 'ef', learningSituations = [], onSaveSda, onAbrirSda, acsAula = [],
 }: Props) {
   const { t, lang, locale } = useI18n();
   const { toast } = useToast();
@@ -696,7 +698,7 @@ export function Sesiones({
       </Modal>
 
       {evaluando && editando && (() => {
-        const alGuardar = (ev: Evaluation) => onAddEvaluation?.(ev);
+        const alGuardar = (ev: Evaluation, opciones?: { otroTrabajo?: boolean }) => onAddEvaluation?.(ev, opciones);
         const cerrar = () => setEvaluando(null);
         const rubrica = evaluando.tipo === 'rubrica' ? rubrics.find(r => r.id === evaluando.id) : undefined;
         const diana = evaluando.tipo !== 'rubrica' ? dianas.find(d => d.id === evaluando.id) : undefined;
@@ -708,10 +710,12 @@ export function Sesiones({
             )}
             {evaluando.tipo === 'rubrica' && rubrica && (
               <EvalRubricaModal open rubric={rubrica} classes={classes} students={students} lawDocument={lawDocument}
+                evaluations={evaluations} scheduleBlocks={scheduleBlocks} onUpdate={onUpdateEvaluation}
                 defaultClassId={editando.claseId} onClose={cerrar} onSave={alGuardar} />
             )}
             {evaluando.tipo === 'diana' && diana && (
               <EvalDianaModal open diana={diana} classes={classes} students={students}
+                evaluations={evaluations} scheduleBlocks={scheduleBlocks} onUpdate={onUpdateEvaluation}
                 defaultClassId={editando.claseId} onClose={cerrar} onSave={alGuardar} />
             )}
           </Suspense>

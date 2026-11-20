@@ -332,8 +332,10 @@ function AppInner() {
    * registro, que se abren con lo ya valorado y siempre corrigen.
    */
   const { evaluations: evaluacionesHechas, dianas: dianasHechas, addEvaluation } = st;
-  const guardarEvaluacion = useCallback((ev: Evaluation) => {
-    const repetida = evaluacionesHechas.some(e => mismaEvaluacionDelDia(ev, e));
+  const guardarEvaluacion = useCallback((ev: Evaluation, opciones: { otroTrabajo?: boolean } = {}) => {
+    // Con «Evaluar a la clase» (20-11-2026) la ventana ya carga la evaluación de hoy y la corrige con
+    // `updateEvaluation`; si llega aquí una nueva con `otroTrabajo`, el docente ya ha dicho que no es una corrección
+    const repetida = !opciones.otroTrabajo && evaluacionesHechas.some(e => mismaEvaluacionDelDia(ev, e));
     const esEscala = dianasHechas.some(d => d.id === ev.rubric_id && d.tipo === 'registro');
     const sustituir = repetida && (esEscala || window.confirm(t('Hoy ya has evaluado a {name} con «{instrumento}». Si estás corrigiendo esa evaluación, pulsa Aceptar y esta la sustituirá. Si es otro trabajo, pulsa Cancelar y se guardarán las dos.', { name: ev.student_name, instrumento: ev.rubric_name })));
     addEvaluation(ev, { sustituir });
@@ -625,6 +627,8 @@ function AppInner() {
                 onUpdateDiana={st.updateDiana}
                 onDeleteDiana={st.deleteDiana}
                 onAddEvaluation={guardarEvaluacion}
+                onUpdateEvaluation={st.updateEvaluation}
+                scheduleBlocks={st.scheduleBlocks}
                 gradeCategories={st.gradeCategories}
                 comunidad={st.currentUser?.community}
               />
@@ -686,6 +690,7 @@ function AppInner() {
                 dianas={st.dianas}
                 onOpenEval={() => setSection('rubrics')}
                 onDeleteEval={st.deleteEvaluation}
+                onUpdateEval={st.updateEvaluation}
               />
             )}
             {section === 'notebook' && (
@@ -933,7 +938,7 @@ function AppInner() {
                 perfil={tipo === 'ef' ? 'ef' : 'aula'}
                 classes={st.classes} students={st.students} acsAula={st.apoyo.acsAula} scheduleBlocks={st.scheduleBlocks} ef={st.ef} onChangeEf={st.setEf}
                 comunidad={st.currentUser?.community} rubrics={st.rubrics} dianas={st.dianas} onAddDiana={st.addDiana}
-                onNav={s => setSection(s)} evaluations={st.evaluations} lawDocument={st.lawDocument} onAddEvaluation={guardarEvaluacion}
+                onNav={s => setSection(s)} evaluations={st.evaluations} lawDocument={st.lawDocument} onAddEvaluation={guardarEvaluacion} onUpdateEvaluation={st.updateEvaluation}
                 learningSituations={st.learningSituations} onSaveSda={st.saveLearningSituation}
                 onAbrirSda={() => setSection(tipo === 'ef' ? 'ef-sda' : 'learning-situations')}
               />

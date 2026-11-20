@@ -1,8 +1,14 @@
-import { Fragment, useState, useMemo } from 'react';
-import { Plus, ChevronDown, ChevronUp, Search, ClipboardList, Trash2, X } from 'lucide-react';
+import { Fragment, lazy, Suspense, useState, useMemo } from 'react';
+import { Plus, ChevronDown, ChevronUp, Search, ClipboardList, Pencil, Trash2, X } from 'lucide-react';
 import type { Evaluation, Class, Student, Rubric, EvalDiana } from '../types';
 import { useI18n } from '../i18n';
 import { compararNombres } from '../lib/alumnado';
+import { esRegistro } from '../lib/registro';
+import { CorregirRegistro } from '../components/evaluar/CorregirRegistro';
+
+// Las ventanas de evaluar, para corregir una evaluación: solo se cargan al pulsar «Corregir»
+const EvalRubricaModal = lazy(() => import('./Rubrics').then(m => ({ default: m.EvalModal })));
+const EvalDianaModal = lazy(() => import('./EvalDianas').then(m => ({ default: m.DianaEvalModal })));
 
 interface Props {
   evaluations: Evaluation[];
@@ -13,6 +19,8 @@ interface Props {
   onOpenEval: (rubricId: string, studentId: string, classId: string) => void;
   /** Quitar una evaluación equivocada: sale del Historial, de las medias y, si llevó nota, del cuaderno. */
   onDeleteEval?: (id: string) => void;
+  /** Corregir una evaluación: se abre la ventana del instrumento con lo marcado y, al guardar, se actualiza esa (20-11-2026). */
+  onUpdateEval?: (ev: Evaluation) => void;
 }
 
 function formatDate(iso: string): string {
@@ -40,8 +48,8 @@ function ScoreBar({ score, max }: { score: number; max: number }) {
   );
 }
 
-function ExpandedRow({ evaluation, rubric, diana, onDelete }: {
-  evaluation: Evaluation; rubric: Rubric | undefined; diana: EvalDiana | undefined; onDelete?: () => void;
+function ExpandedRow({ evaluation, rubric, diana, onDelete, onCorregir }: {
+  evaluation: Evaluation; rubric: Rubric | undefined; diana: EvalDiana | undefined; onDelete?: () => void; onCorregir?: () => void;
 }) {
   const { t } = useI18n();
   // Los ítems de una diana cumplen aquí el papel de los criterios: los dos
@@ -104,14 +112,19 @@ function ExpandedRow({ evaluation, rubric, diana, onDelete }: {
               <strong style={{ fontWeight: 700 }}>{t('Notas:')} </strong>{evaluation.notes}
             </div>
           )}
-          {onDelete && (
-            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <button type="button" className="btn-ghost" style={{ color: 'var(--danger)' }}
+          {(onDelete || onCorregir) && (
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap' }}>
+              {onCorregir && (
+                <button type="button" className="btn-ghost" onClick={onCorregir}>
+                  <Pencil size={14} />{t('Corregir')}
+                </button>
+              )}
+              {onDelete && <button type="button" className="btn-ghost" style={{ color: 'var(--danger)' }}
                 onClick={() => {
                   if (window.confirm(t('¿Eliminar esta evaluación de {name}? Deja de contar en las medias y en las competencias. En el cuaderno, su nota pasa a ser la de la evaluación anterior con este instrumento o, si no hay otra, la casilla se queda vacía.', { name: evaluation.student_name }))) onDelete();
                 }}>
                 <Trash2 size={14} />{t('Eliminar esta evaluación')}
-              </button>
+              </button>}
             </div>
           )}
         </div>
@@ -120,13 +133,20 @@ function ExpandedRow({ evaluation, rubric, diana, onDelete }: {
   );
 }
 
-export function History({ evaluations, classes, students, rubrics, dianas, onOpenEval, onDeleteEval }: Props) {
+export function History({ evaluations, classes, students, rubrics, dianas, onOpenEval, onDeleteEval, onUpdateEval }: Props) {
   const { t, locale } = useI18n();
   const [filterClassId, setFilterClassId] = useState('');
   const [filterStudentId, setFilterStudentId] = useState('');
   const [filterRubricId, setFilterRubricId] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  /** La evaluación que se está corrigiendo, con su instrumento (si se borró el instrumento, no se puede corregir). */
+  const [corrigiendoId, setCorrigiendoId] = useState<string | null>(null);
+  const corrigiendo = corrigiendoId ? evaluations.find(e => e.id === corrigiendoId) : undefined;
+  const rubricaCorregida = corrigiendo && (corrigiendo.instrument ?? 'rubric') === 'rubric' ? rubrics.find(r => r.id === corrigiendo.rubric_id) : undefined;
+  const dianaCorregida = corrigiendo && corrigiendo.instrument === 'diana' ? dianas.find(d => d.id === corrigiendo.rubric_id) : undefined;
+  const sePuedeCorregir = (ev: Evaluation) => !!onUpdateEval && !!ev.student_id && ev.rubric_id !== 'autoeval'
+    && ((ev.instrument ?? 'rubric') === 'rubric' ? rubrics.some(r => r.id === ev.rubric_id) : dianas.some(d => d.id === ev.rubric_id));
   const [sortField, setSortField] = useState<'date' | 'student' | 'rubric' | 'score'>('date');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
 
@@ -425,7 +445,8 @@ export function History({ evaluations, classes, students, rubrics, dianas, onOpe
                       </tr>
                       {isExpanded && (
                         <ExpandedRow key={`exp-${ev.id}`} evaluation={ev} rubric={rubric} diana={diana}
-                          onDelete={onDeleteEval ? () => { setExpandedId(null); onDeleteEval(ev.id); } : undefined} />
+                          onDelete={onDeleteEval ? () => { setExpandedId(null); onDeleteEval(ev.id); } : undefined}
+                          onCorregir={sePuedeCorregir(ev) ? () => setCorrigiendoId(ev.id) : undefined} />
                       )}
                     </Fragment>
                   );
@@ -453,6 +474,25 @@ export function History({ evaluations, classes, students, rubrics, dianas, onOpe
             </button>
           </div>
         </div>
+      )}
+
+      {corrigiendo && onUpdateEval && (
+        <Suspense fallback={null}>
+          {rubricaCorregida && (
+            <EvalRubricaModal open rubric={rubricaCorregida} classes={classes} students={students} lawDocument={null}
+              evaluations={evaluations} corrigiendo={corrigiendo}
+              onClose={() => setCorrigiendoId(null)} onSave={onUpdateEval} onUpdate={onUpdateEval} />
+          )}
+          {dianaCorregida && !esRegistro(dianaCorregida) && (
+            <EvalDianaModal open diana={dianaCorregida} classes={classes} students={students}
+              evaluations={evaluations} corrigiendo={corrigiendo}
+              onClose={() => setCorrigiendoId(null)} onSave={onUpdateEval} onUpdate={onUpdateEval} />
+          )}
+          {dianaCorregida && esRegistro(dianaCorregida) && (
+            <CorregirRegistro escala={dianaCorregida} evaluacion={corrigiendo}
+              onClose={() => setCorrigiendoId(null)} onGuardar={onUpdateEval} />
+          )}
+        </Suspense>
       )}
     </section>
   );

@@ -1,1 +1,98 @@
 /* Estilos de la mejora «evaluarClase» (tanda del 20-11-2026). Los comunes siguen en index.css. */
+
+/* «Evaluar a la clase»: la ventana de la rúbrica y la de la diana, con la lista del alumnado al lado
+   (`components/evaluar/EvaluarClasePartes.tsx`). Sin lista (corregir una evaluación) conserva su ancho de antes. */
+.modal.wide.evc-modal { width:760px; max-height:92vh; }
+.modal.wide.evc-modal.evc-diana { width:780px; }
+.modal.wide.evc-modal.evc-con-lista { width:1060px; }
+.modal.wide.evc-modal.evc-diana.evc-con-lista { width:1080px; }
+
+.evc-clase { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+.evc-clase .flabel { margin:0; }
+.evc-clase .finput { width:auto; min-width:220px; max-width:100%; cursor:pointer; }
+.evc-clase-unica { font-size:13.5px; font-weight:700; color:var(--text); }
+.evc-corrigiendo { font-size:13.5px; color:var(--text-2); margin:0 0 8px; }
+.evc-corrigiendo strong { color:var(--text); }
+
+.evc-cuerpo { display:grid; grid-template-columns:minmax(0,1fr); gap:16px; align-items:start; margin-bottom:6px; }
+.evc-con-lista .evc-cuerpo { grid-template-columns:236px minmax(0,1fr); }
+.evc-ficha { min-width:0; }
+.evc-diana-zona { grid-template-columns:minmax(0,1fr) 260px; }
+
+/* La lista: se queda a la vista mientras se desplaza la rúbrica, con su propio desplazamiento si la clase es larga */
+.evc-lista { position:sticky; top:0; display:flex; flex-direction:column; gap:9px; min-width:0; max-height:calc(92vh - 190px); padding:12px 10px; border-radius:12px; background:var(--surface); border:0.5px solid var(--border); }
+.evc-cuenta { display:flex; align-items:baseline; justify-content:space-between; gap:8px; flex-wrap:wrap; padding:0 4px; font-size:12.5px; color:var(--text-2); }
+.evc-cuenta strong { font-size:15px; font-weight:800; color:var(--text); }
+.evc-cuenta-sin { font-size:11.5px; font-weight:700; color:var(--warn-fg); }
+.evc-barra { height:5px; margin:0 4px; border-radius:99px; background:var(--border); overflow:hidden; flex-shrink:0; }
+.evc-barra span { display:block; height:100%; border-radius:99px; background:var(--ok); transition:width 0.25s; }
+.evc-vacio { margin:6px 4px; font-size:12.5px; color:var(--text-3); }
+
+.evc-alumnos { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:2px; min-height:0; overflow-y:auto; overscroll-behavior:contain; }
+.evc-al { display:flex; align-items:center; gap:8px; width:100%; min-height:40px; padding:6px 8px; border:1.5px solid transparent; border-radius:9px; background:none; color:var(--text); font-family:var(--font); font-size:13px; font-weight:600; text-align:left; cursor:pointer; transition:background var(--t), border-color var(--t); }
+.evc-al:hover { background:rgba(var(--accent-rgb),0.08); }
+.evc-al.sel { background:var(--card); border-color:var(--accent-d); box-shadow:0 1px 4px rgba(0,0,0,0.06); }
+.evc-al:focus-visible { outline:2px solid var(--accent-d); outline-offset:1px; }
+.evc-marca { flex:0 0 18px; width:18px; height:18px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:1.5px solid var(--border); background:var(--card); color:#fff; }
+.evc-hoy .evc-marca { background:var(--ok); border-color:var(--ok); }
+.evc-antes .evc-marca { background:var(--text-3); border-color:var(--text-3); }
+.evc-sin .evc-marca { border-color:var(--warn); background:var(--warn); box-shadow:inset 0 0 0 3.5px var(--card); }
+.evc-nombre { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.evc-dato { flex-shrink:0; font-size:11px; font-weight:700; color:var(--text-3); white-space:nowrap; }
+.evc-hoy .evc-dato { color:var(--ok-fg); }
+.evc-sin .evc-dato { color:var(--warn-fg); }
+
+/* «Poner a todos este nivel» */
+.evc-todos { flex-shrink:0; padding:9px 6px 2px; border-top:0.5px solid var(--border); }
+.evc-todos-t { display:flex; align-items:center; gap:6px; font-size:12px; font-weight:800; color:var(--text-2); margin-bottom:7px; }
+.evc-niveles { display:flex; gap:6px; flex-wrap:wrap; }
+.evc-nivel { min-width:40px; height:40px; padding:0 8px; border-radius:10px; border:1.5px solid var(--border); background:var(--card); font-family:var(--font); font-size:14px; font-weight:800; cursor:pointer; transition:transform 0.1s; }
+.evc-nivel:hover { transform:translateY(-1px); }
+.evc-todos-a { margin:7px 0 0; font-size:11.5px; line-height:1.4; color:var(--text-3); }
+.evc-enlace { padding:0; border:none; background:none; font-family:var(--font); font-size:inherit; font-weight:700; color:var(--accent-d); text-decoration:underline; text-underline-offset:2px; cursor:pointer; }
+.evc-todos .evc-enlace { margin-top:6px; font-size:11.5px; min-height:28px; }
+
+/* A quién se evalúa y qué pasará al guardar */
+.evc-quien { margin-bottom:12px; }
+.evc-quien-n { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; }
+.evc-quien-n strong { font-size:16px; font-weight:800; color:var(--text); }
+.evc-quien-n span { font-size:12px; color:var(--text-3); }
+.evc-aviso { margin:6px 0 0; padding:8px 12px; border-radius:9px; background:var(--warn-bg); border:1px solid rgba(245,158,11,0.3); font-size:12.5px; line-height:1.45; color:var(--warn-fg); }
+.evc-corrigiendo + .evc-aviso, .evc-ficha > .evc-aviso { margin:0 0 14px; }
+.evc-elige { margin:0; padding:36px 18px; border-radius:12px; background:var(--surface); text-align:center; font-size:13.5px; color:var(--text-2); }
+
+/* El pie, pegado abajo: «Guardar y siguiente» siempre a mano aunque la rúbrica sea larga.
+   Pegado al borde de la ventana, no a su relleno (22 px, `.modal`), como la cabecera de `Modal`. */
+.evc-pie { position:sticky; bottom:-22px; z-index:2; display:flex; align-items:center; justify-content:space-between; gap:10px 14px; flex-wrap:wrap; margin:14px -24px -22px; padding:12px 24px 16px; background:var(--card); border-top:0.5px solid var(--border); border-radius:0 0 var(--r-lg) var(--r-lg); }
+.evc-pie-suelto { position:static; }
+.evc-pie-dato { display:flex; align-items:center; gap:10px; min-height:20px; }
+.evc-pie-btns { display:flex; gap:10px; flex-wrap:wrap; margin-left:auto; }
+.evc-pie .btn-accent, .evc-pie .btn-ghost { min-height:40px; }
+
+/* Corregir una valoración de una escala de registro desde el Historial */
+.evc-registro { list-style:none; margin:14px 0 0; padding:0; display:flex; flex-direction:column; }
+.evc-registro li { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:9px 0; border-top:0.5px solid var(--border); font-size:13.5px; color:var(--text); }
+.evc-registro li:first-child { border-top:none; }
+
+/* Tableta en vertical y móvil: la lista pasa arriba y se desliza de lado, para dejar todo el ancho a la rúbrica */
+@media (max-width: 900px) {
+  .evc-con-lista .evc-cuerpo { grid-template-columns:minmax(0,1fr); gap:12px; }
+  .evc-lista { position:static; max-height:none; padding:10px; }
+  .evc-alumnos { flex-direction:row; gap:6px; overflow-x:auto; overflow-y:hidden; padding-bottom:6px; scroll-snap-type:x proximity; }
+  .evc-alumnos li { flex:0 0 auto; scroll-snap-align:center; }
+  .evc-al { width:auto; max-width:190px; padding:6px 12px 6px 8px; border-color:var(--border); background:var(--card); }
+  .evc-al.sel { background:var(--accent-l); }
+  .evc-dato { display:none; }
+  .evc-todos { display:flex; align-items:center; gap:6px 10px; flex-wrap:wrap; padding:8px 2px 0; }
+  .evc-todos-t { margin:0; }
+  .evc-todos-a { flex-basis:100%; margin:0; }
+  .evc-todos .evc-enlace { margin:0; }
+}
+@media (max-width: 640px) {
+  .evc-diana-zona { grid-template-columns:minmax(0,1fr); }
+  .evc-clase { flex-wrap:wrap; gap:4px 10px; }
+  .evc-clase .finput { flex:1; min-width:0; }
+  .evc-pie-btns { width:100%; }
+  .evc-pie-btns .btn-accent { flex:1; justify-content:center; }
+}
+@media (prefers-reduced-motion: reduce) { .evc-barra span, .evc-nivel, .evc-al { transition:none; } .evc-nivel:hover { transform:none; } }
