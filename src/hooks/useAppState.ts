@@ -8,6 +8,7 @@ import type {
 import { normalizeClass } from '../types';
 import { destinosDe, notaDeDestino, objetivoPara, objetivosDe } from '../lib/objetivos';
 import { mismaEvaluacionDelDia } from '../lib/evaluacionDelDia';
+import { evaluacionVigente } from '../lib/evaluarClase';
 import { isoDate } from '../lib/utils';
 import { buildDemoData } from '../lib/demoData';
 import { buildDemoApoyo } from '../lib/demoApoyo';
@@ -628,6 +629,26 @@ export function useAppState() {
     });
   }, [log, routeToNotebook]);
 
+  /**
+   * Corrige una evaluación ya hecha (20-11-2026): la sustituye en su sitio, con su mismo id, en vez de crear
+   * otra. La nota va al cuaderno con la regla de `deleteEvaluation`: solo si la corregida es la vigente (la
+   * más reciente con nota de ese alumno con ese instrumento en esa clase, `evaluacionVigente`). Corregir una
+   * más antigua no toca el cuaderno, que ya lleva la nota de otra posterior.
+   */
+  const updateEvaluation = useCallback((ev: Evaluation) => {
+    const m = mirrorRef.current;
+    const antes = m.evaluations.find(e => e.id === ev.id);
+    if (!antes) return;
+    setEvaluations(prev => prev.map(e => (e.id === ev.id ? ev : e)));
+    log('update', 'evaluation', ev.id, `Evaluación de ${ev.student_name} con «${ev.rubric_name}»`,
+      'corregida' + (typeof ev.grade === 'number'
+        ? ` · nota ${typeof antes.grade === 'number' && antes.grade !== ev.grade ? `${formatGrade(antes.grade)} → ` : ''}${formatGrade(ev.grade)}`
+        : ''));
+    const eraVigente = evaluacionVigente(m.evaluations, antes)?.id === antes.id;
+    const vigente = evaluacionVigente(m.evaluations.map(e => (e.id === ev.id ? ev : e)), ev);
+    if (vigente && (vigente.id === ev.id || eraVigente)) routeToNotebook(vigente);
+  }, [log, routeToNotebook]);
+
   /* ── Cuaderno ── */
   const addGradeCategory = useCallback((c: GradeCategory) => {
     setGradeCategories(prev => [...prev, c]);
@@ -1054,7 +1075,7 @@ export function useAppState() {
     addCalEvent, updateCalEvent, deleteCalEvent,
     addRubric, updateRubric, deleteRubric,
     addDiana, updateDiana, deleteDiana,
-    addEvaluation, deleteEvaluation,
+    addEvaluation, updateEvaluation, deleteEvaluation,
     addGradeCategory, updateGradeCategory, deleteGradeCategory,
     addGradeItem, updateGradeItem, deleteGradeItem,
     setGrade,
