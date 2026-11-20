@@ -60,7 +60,7 @@ import { useBorrador } from '../hooks/useBorrador';
 import { AvisoBorrador, EstadoBorrador } from '../components/AvisoBorrador';
 import type { ApoyoData } from '../types/apoyo';
 import { compararNombres } from '../lib/alumnado';
-import { bloqueVacio, cambiarTipo, dificultadDelSiguiente, duplicarEjercicio, ejercicioVacio, enumerar, fichaEnBlanco, loQuePierde, type QueEnBlanco } from '../lib/fichaEnBlanco';
+import { bloqueVacio, cambiarTipo, dificultadDelSiguiente, duplicarEjercicio, ejercicioVacio, enumerar, fichaEnBlanco, loQuePierde, sinEjerciciosSinEscribir, type QueEnBlanco } from '../lib/fichaEnBlanco';
 import type { FichaInstante } from '../lib/fichaInstante';
 import { GeneradorInstante } from '../components/fichas/GeneradorInstante';
 
@@ -429,9 +429,14 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
     setMenuFicha(null);
     if (f.content.interactivas) {
       setProjecting({ titulo: f.title, cards: f.content.tarjetasInteractivas ?? [] });
-    } else if (onProject) {
-      onProject(f);
+    } else {
+      proyectar(f);
     }
+  }
+
+  /** A Pizarra y herramientas va lo que se imprime: sin los ejercicios añadidos a mano que aún no se han escrito. */
+  function proyectar(f: Ficha) {
+    onProject?.({ ...f, content: sinEjerciciosSinEscribir(f.content) });
   }
 
   function editFicha(f: Ficha) {
@@ -663,7 +668,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
               </>
             )}
             {onProject && !content.interactivas && (
-              <button type="button" className="btn-ghost" onClick={() => onProject(ficha)} title={t('Proyectarla a pantalla completa en Aula Live')}>
+              <button type="button" className="btn-ghost" onClick={() => proyectar(ficha)} title={t('Proyectarla a pantalla completa en Aula Live')}>
                 <MonitorPlay size={14} />{t('Proyectar')}
               </button>
             )}

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   MAX_COLUMNAS_TABLA, MAX_FILAS_TABLA, MAX_VINETAS, bloqueVacio, cambiarTipo, conColumnaDeTabla, conFilaDeTabla, conVineta,
-  dificultadDelSiguiente, duplicarEjercicio, ejercicioSinEscribir, ejercicioVacio, enumerar, fichaEnBlanco, lineasDe, loQuePierde, PIERDE, sinColumnaDeTabla, sinFilaDeTabla, sinVineta, ultimaColumnaEscrita, ultimaFilaEscrita,
+  dificultadDelSiguiente, duplicarEjercicio, ejercicioSinEscribir, ejercicioVacio, enumerar, fichaEnBlanco, lineasDe, loQuePierde, PIERDE, sinColumnaDeTabla, sinEjerciciosSinEscribir, sinFilaDeTabla, sinVineta, ultimaColumnaEscrita, ultimaFilaEscrita,
 } from './fichaEnBlanco';
 import { TIPOS, prepareExercise, type FichaExercise } from '../services/resources';
 import { buildFichaHtml } from '../services/exportFicha';
@@ -253,6 +253,26 @@ describe('cambiar de tipo', () => {
     expect(enumerar(['la tabla'], 'y')).toBe('la tabla');
     expect(enumerar(['la tabla', 'las pistas'], 'y')).toBe('la tabla y las pistas');
     expect(enumerar(['el enunciado', 'la tabla', 'las pistas'], 'y')).toBe('el enunciado, la tabla y las pistas');
+  });
+});
+
+describe('lo que se proyecta', () => {
+  it('va sin los ejercicios sin escribir, con los bloques en su sitio; sin nada que quitar, la misma ficha', () => {
+    const escrito: FichaExercise = { tipo: 'abierta', enunciado: 'Escribe tres animales.', solucion: '' };
+    const c = { ...fichaEnBlanco('ficha', { titulo: 'Granja' }) };
+    c.actividades = [
+      { ...c.actividades[0], ejercicios: [ejercicioVacio('abierta'), escrito, ejercicioVacio('tabla_rellenar')] },
+      { ...c.actividades[1], ejercicios: [ejercicioVacio('opcion_multiple')] },
+      c.actividades[2],
+    ];
+    const limpio = sinEjerciciosSinEscribir(c);
+    expect(limpio.actividades.map(a => a.ejercicios.map(e => e.tipo))).toEqual([['abierta', 'tabla_rellenar'], [], []]);
+    expect(limpio.actividades.map(a => a.dificultad)).toEqual([1, 2, 3]);
+    // La ficha del editor no se toca
+    expect(c.actividades[0].ejercicios).toHaveLength(3);
+    expect(sinEjerciciosSinEscribir(limpio)).toBe(limpio);
+    const tarjetas = fichaEnBlanco('tarjetas');
+    expect(sinEjerciciosSinEscribir(tarjetas)).toBe(tarjetas);
   });
 });
 

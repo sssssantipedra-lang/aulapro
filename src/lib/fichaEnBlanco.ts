@@ -283,6 +283,15 @@ export function ejercicioSinEscribir(ex: FichaExercise): boolean {
   return true;
 }
 
+/**
+ * La ficha sin los ejercicios que aún no se han escrito: lo que se proyecta en clase es lo mismo que se imprime
+ * (el proyector pinta cada ejercicio con su número, y uno vacío salía como un número suelto). Los bloques no se tocan.
+ */
+export function sinEjerciciosSinEscribir(c: FichaContent): FichaContent {
+  if (!c.actividades?.some(a => a.ejercicios.some(ejercicioSinEscribir))) return c;
+  return { ...c, actividades: c.actividades.map(a => ({ ...a, ejercicios: a.ejercicios.filter(e => !ejercicioSinEscribir(e)) })) };
+}
+
 /** Una copia suelta del ejercicio, para ponerla debajo y retocarla. */
 export function duplicarEjercicio(ex: FichaExercise): FichaExercise {
   return JSON.parse(JSON.stringify(ex)) as FichaExercise;
