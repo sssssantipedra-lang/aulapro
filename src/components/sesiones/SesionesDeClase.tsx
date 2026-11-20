@@ -5,9 +5,9 @@
  * SdA con ellas). Las archivadas salen aparte y se restauran.
  */
 import { useState } from 'react';
-import { ArrowLeft, Archive, ArchiveRestore, ChevronDown, Lightbulb, Link2, ListChecks, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Archive, ArchiveRestore, CalendarDays, ChevronDown, Lightbulb, Link2, ListChecks, Plus, Trash2 } from 'lucide-react';
 import { useI18n } from '../../i18n';
-import { agruparPorSda, moverEnLista } from '../../lib/sesiones';
+import { agruparPorSda, moverEnLista, type GrupoSda } from '../../lib/sesiones';
 import type { LearningSituation } from '../../types';
 import type { SesionEF } from '../../types/ef';
 
@@ -40,12 +40,14 @@ interface Props {
   onAsociar: (ids: string[]) => void;
   onCrearSda: (ids: string[]) => void;
   onAbrirSda?: () => void;
+  /** «Poner fechas» a las sesiones pendientes de un grupo, repartidas en el horario. */
+  onPonerFechas?: (grupo: GrupoSda) => void;
   /** Si crear una SdA con IA está disponible en este perfil. */
   puedeCrearSda: boolean;
 }
 
 export function SesionesDeClase({
-  nombre, color, sesiones, sdas, fila, onVolver, onNueva, onEliminar, onArchivar, onOrdenar, onAsociar, onCrearSda, onAbrirSda, puedeCrearSda,
+  nombre, color, sesiones, sdas, fila, onVolver, onNueva, onEliminar, onArchivar, onOrdenar, onAsociar, onCrearSda, onAbrirSda, onPonerFechas, puedeCrearSda,
 }: Props) {
   const { t } = useI18n();
   const [seleccionando, setSeleccionando] = useState(false);
@@ -150,6 +152,12 @@ export function SesionesDeClase({
                 <span className="sda-count">{g.sesiones.length}</span>
                 {hechasG > 0 && <span className="ap-sub" style={{ marginLeft: 'auto' }}>{t('{hechas} de {total} sesiones completadas', { hechas: hechasG, total: g.sesiones.length })}</span>}
               </button>
+              {onPonerFechas && !seleccionando && g.sesiones.some(x => !x.completada) && (
+                <button type="button" className="btn-ghost ses-grupo-abrir ses-grupo-fechas" onClick={() => onPonerFechas(g)}
+                  title={t('Repartir las sesiones pendientes en las horas de esta clase en tu horario')}>
+                  <CalendarDays size={14} aria-hidden="true" />{t('Poner fechas')}
+                </button>
+              )}
               {g.sda && onAbrirSda && <button type="button" className="btn-ghost ses-grupo-abrir" onClick={onAbrirSda}>{t('Ver la SdA')}</button>}
             </div>
             {!plegado && <ul className="ap-lista ef-sesiones">{g.sesiones.map(s => fila(s, conSeleccion(s), ordenDe(ids, !!g.sda, s.id)))}</ul>}

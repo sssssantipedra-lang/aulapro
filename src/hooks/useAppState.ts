@@ -33,6 +33,7 @@ import {
   type AuditEntry, type AuditAction, type AuditEntity,
 } from '../services/audit';
 import {
+  esCambio,
   anotarBorrado, borradoAlPintar, borradoDeApoyo, borradoDeEF, loQueVuelve, textoDeBorrados,
   type Borrado, type BorradoPendiente,
 } from '../lib/deshacer';
@@ -460,7 +461,7 @@ export function useAppState() {
     for (const k of REPONIBLES) if (k in v) (reponer[k] as (valor: unknown) => void)(v[k]);
     setBorradoPendiente(null);
     // El registro se escribe en castellano, como el resto de sus líneas
-    log('create', 'system', 'deshacer', 'Deshizo un borrado', textoDeBorrados(p.borrados, (k, vars) => translate('es', k, vars)));
+    log('create', 'system', 'deshacer', esCambio(p.borrados) ? 'Deshizo un cambio' : 'Deshizo un borrado', textoDeBorrados(p.borrados, (k, vars) => translate('es', k, vars)));
     return true;
   }, [borradoPendiente, profileId, log]);
 
@@ -1219,6 +1220,8 @@ export function useAppState() {
     apoyo, setApoyo: cambiarApoyo,
     ef, setEf: cambiarEf,
     borradoPendiente: borradoPendiente?.despues ? borradoPendiente : null, deshacerBorrado, olvidarBorrado,
+    /** Antes de un cambio de varias cosas a la vez que también debe poder deshacerse (las fechas de las sesiones). */
+    apuntarCambio: apuntarBorrado,
     syncSource, importarPaquete,
     auditLog, clearAuditLog,
     loadDemoData, exportData, importData, clearSchoolYear,

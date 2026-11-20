@@ -16,7 +16,7 @@ import { useAcsParaIA } from '../hooks/useAcsParaIA';
 import { palabrasDeNombres } from '../lib/barreras';
 import type { AcsApoyo } from '../types/apoyo';
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
-import { Plus, Sparkles, Trash2, FileDown, CalendarDays, MapPin, Bandage, Copy, Circle, CheckCircle2, Eye, Check, ChevronUp, ChevronDown, GripVertical } from 'lucide-react';
+import { Plus, Sparkles, Trash2, FileDown, CalendarDays, MapPin, Bandage, Copy, Circle, CheckCircle2, Eye, Check, ChevronUp, ChevronDown, GripVertical, CalendarX2 } from 'lucide-react';
 import { Modal } from '../components/ui/Modal';
 import { DocPreview } from '../components/DocPreview';
 import { CopiarAClases } from '../components/CopiarAClases';
@@ -39,13 +39,15 @@ import { limitacionesParaIA, prepararSesion } from '../services/efIA';
 import { alumnadoParaIA } from '../lib/ef';
 import { guardarSesionPdf, buildSesionHtml } from '../services/exportSesionEF';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
-import type { Class, EvalDiana, Evaluation, LearningSituation, Rubric, ScheduleBlock, Student } from '../types';
+import type { CalEvent, Class, EvalDiana, Evaluation, LearningSituation, Rubric, ScheduleBlock, Student } from '../types';
 import { SesionEvaluacionCircuito } from '../components/ef/SesionEvaluacionCircuito';
 import { ETIQUETA_INSTRUMENTO } from '../lib/instrumentosSesion';
 import { htmlInstrumento } from '../services/instrumentoEmbebido';
 import { pizarraSvg } from '../lib/pizarraEF';
 import type { OrdenFila } from '../components/sesiones/SesionesDeClase';
-import { archivarSesiones, asociarASda, ordenarGrupo, quitarSesiones } from '../lib/sesiones';
+import { agruparPorSda, archivarSesiones, asociarASda, ordenarGrupo, quitarSesiones, type GrupoSda } from '../lib/sesiones';
+import { aplicarFechas, type FechaPropuesta } from '../lib/repartoSesiones';
+import { PonerFechas, type PeticionDeFechas } from '../components/sesiones/PonerFechas';
 import { ClasesDeSesiones } from '../components/sesiones/ClasesDeSesiones';
 import { SesionesDeClase } from '../components/sesiones/SesionesDeClase';
 import { AsociarASda } from '../components/sesiones/AsociarASda';
@@ -87,6 +89,10 @@ interface Props {
   onSaveSda?: (s: LearningSituation) => void;
   /** Ir a Situaciones de aprendizaje. */
   onAbrirSda?: () => void;
+  /** Los eventos de la Agenda: al poner fechas se avisa si uno cae en un día propuesto. */
+  calEvents?: CalEvent[];
+  /** Se llama justo antes de cambiar las fechas de varias sesiones, para que el cambio se pueda deshacer. */
+  onApuntarCambio?: (cuantas: number) => void;
 }
 
 const EvalRubricaModal = lazy(() => import('./Rubrics').then(m => ({ default: m.EvalModal })));
@@ -120,6 +126,7 @@ function minutosDeClase(blocks: ScheduleBlock[], claseId: string, fecha: string)
 export function Sesiones({
   classes, students, scheduleBlocks, ef, onChangeEf, comunidad, rubrics = [], dianas = [], onAddDiana, onNav, evaluations = [], lawDocument = null,
   onAddEvaluation, onUpdateEvaluation, perfil = 'ef', learningSituations = [], onSaveSda, onAbrirSda, acsAula = [],
+  calEvents = [], onApuntarCambio,
 }: Props) {
   const { t, lang, locale } = useI18n();
   const { toast } = useToast();
@@ -148,6 +155,8 @@ export function Sesiones({
   /** Valorar a la clase con un instrumento de la sesión, sin salir de ella. */
   const [evaluando, setEvaluando] = useState<InstrumentoRefEF | null>(null);
   const [preview, setPreview] = useState<{ html: string; title: string } | null>(null);
+  /** «Poner fechas» a un grupo de sesiones, o «No se dio» desde una: la ventana que lo enseña antes de aplicarlo. */
+  const [fechando, setFechando] = useState<PeticionDeFechas | null>(null);
 
   /* Autoguardado: una sesión nueva (la prepare la IA o la escriba el docente) o con cambios, y sin guardar, se conserva */
   const borrador = useBorradorVentana<SesionEF>('sesion-ef', !!editando, s => s.titulo || s.objetivo);
@@ -347,6 +356,32 @@ export function Sesiones({
     onChangeEf(d => ({ ...d, sesiones: asociarASda(d.sesiones, ids, sda.id) }));
   }
 
+  /* ── Poner fechas y «No se dio» ── */
+  /** Lo que hace falta para fechar un grupo: su clase, sus sesiones en orden y por dónde proponer la asignatura. */
+  function peticionDe(g: GrupoSda, modo: PeticionDeFechas['modo'], desdeId?: string): PeticionDeFechas {
+    const claseId = g.sesiones[0]?.claseId && classes.some(c => c.id === g.sesiones[0].claseId) ? g.sesiones[0].claseId : undefined;
+    return {
+      modo, claseId, sesiones: g.sesiones, ...(desdeId ? { desdeId } : {}),
+      grupo: g.sda?.title ?? t('Sin situación de aprendizaje'), clave: `${claseId ?? ''}|${g.key}`,
+      pistas: [...(g.sda?.request.areas ?? []), ...(esEF ? ['Educación Física', 'EF'] : [])],
+    };
+  }
+
+  /** «No se dio»: el grupo de la sesión (las de su clase y su situación de aprendizaje), como se ve en la pantalla. */
+  function abrirNoSeDio(s: SesionEF) {
+    const grupo = agruparPorSda(sesionesAbiertas.filter(x => !x.archivada), sdasDeLaClase(claseAbierta?.id)).find(g => g.sesiones.some(x => x.id === s.id));
+    if (grupo) setFechando(peticionDe(grupo, 'correr', s.id));
+  }
+
+  function ponerFechas(propuestas: FechaPropuesta[]) {
+    setFechando(null);
+    if (propuestas.length === 0) return;
+    // Se apunta antes de cambiar: el aviso de «Deshacer» devuelve las fechas de antes
+    onApuntarCambio?.(propuestas.length);
+    onChangeEf(d => ({ ...d, sesiones: aplicarFechas(d.sesiones, propuestas) }));
+    if (!onApuntarCambio) toast(t(propuestas.length === 1 ? 'Fecha cambiada a {n} sesión.' : 'Fecha cambiada a {n} sesiones.', { n: propuestas.length }));
+  }
+
   async function pdf(s: SesionEF) {
     const res = await guardarSesionPdf(s, datosPdf(s), lang);
     if (res.error === 'not-desktop') toast(t('Guardar en PDF solo está disponible en la aplicación de escritorio.'));
@@ -416,6 +451,13 @@ export function Sesiones({
           </span>
           {s.objetivo.trim() && <span className="ap-sub">{s.objetivo}</span>}
         </button>
+        {!seleccion && s.fecha && !s.completada && !s.archivada && (
+          <button type="button" className={`ses-nodio${s.fecha < hoy ? ' atrasada' : ''}`} onClick={() => abrirNoSeDio(s)}
+            title={t('No se dio: correr esta y las siguientes')}
+            aria-label={t('«{nombre}» no se dio: correr esta y las siguientes', { nombre: s.titulo || t('Sin título') })}>
+            <CalendarX2 size={17} aria-hidden="true" />{s.fecha < hoy && <span>{t('No se dio')}</span>}
+          </button>
+        )}
       </li>
     );
   };
@@ -476,9 +518,14 @@ export function Sesiones({
           onEliminar={eliminarVarias} onArchivar={archivarVarias} onOrdenar={ordenarVarias}
           onAsociar={ids => setAsociando(ids)} onCrearSda={ids => setCreandoSda(ids)}
           onAbrirSda={onAbrirSda} puedeCrearSda={!!onSaveSda}
+          onPonerFechas={g => setFechando(peticionDe(g, 'poner'))}
         />
       )}
 
+      <PonerFechas
+        peticion={fechando} classes={classes} bloques={scheduleBlocks} eventos={calEvents} comunidad={comunidad}
+        onAplicar={ponerFechas} onClose={() => setFechando(null)}
+      />
       <AsociarASda
         open={!!asociando} onClose={() => setAsociando(null)} cuantas={asociando?.length ?? 0}
         sdas={learningSituations} claseId={claseAbierta?.id} onElegir={asociarVarias}

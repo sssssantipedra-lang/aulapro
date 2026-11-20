@@ -121,6 +121,11 @@ export interface CalEvent {
   urgency: 'alta' | 'media' | 'baja';
   color: string;
   desc: string;
+  /**
+   * La clase a la que afecta (un examen, una entrega, una salida), si es de una sola (20-11-2026). Opcional: un
+   * claustro o un festivo no son de ninguna. Si la clase ya no existe, el evento se queda sin ella, sin romperse.
+   */
+  classId?: string;
 }
 
 export interface Task {

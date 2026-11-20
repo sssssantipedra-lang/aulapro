@@ -23,7 +23,9 @@ export type TipoBorrado =
   | 'rubrica' | 'diana' | 'escala' | 'evaluacion' | 'categoria' | 'columna' | 'lista' | 'informe'
   | 'autoevaluacion' | 'sda' | 'ficha' | 'reunion' | 'formacion' | 'anotacion'
   | 'grupo' | 'programa' | 'documento' | 'coordinacion' | 'adaptacion' | 'agenda' | 'foto'
-  | 'exento' | 'apoyoEF' | 'prueba' | 'baremo' | 'actividad' | 'sesion' | 'material' | 'instalacion' | 'circuito' | 'pizarra';
+  | 'exento' | 'apoyoEF' | 'prueba' | 'baremo' | 'actividad' | 'sesion' | 'material' | 'instalacion' | 'circuito' | 'pizarra'
+  /** No es un borrado sino un cambio que también se deshace: las fechas de varias sesiones puestas o corridas de una vez. */
+  | 'fechas';
 
 /** Una cosa borrada, para decirla en el aviso. */
 export interface Borrado {
@@ -79,15 +81,24 @@ export const DICHO: Record<TipoBorrado, { uno?: string; sin: string; varios?: st
   instalacion: { uno: 'la instalación «{nombre}»', sin: 'una instalación', varios: '{n} instalaciones' },
   circuito: { uno: 'el circuito «{nombre}»', sin: 'un circuito', varios: '{n} circuitos' },
   pizarra: { uno: 'la pizarra «{nombre}»', sin: 'una pizarra', varios: '{n} pizarras' },
+  fechas: { sin: 'la fecha de una sesión', varios: 'la fecha de {n} sesiones' },
 };
 
 /** La frase del aviso y la de varios tipos mezclados. */
 export const FRASE_BORRADO = 'Has eliminado {que}.';
 export const VARIOS_ELEMENTOS = '{n} elementos';
+/**
+ * Lo que no es un borrado sino un cambio de varias cosas a la vez que se deshace igual (se apunta antes de
+ * hacerlo, con `apuntarCambio` de `useAppState`): el aviso dice «Has cambiado…» en vez de «Has eliminado…».
+ */
+export const FRASE_CAMBIO = 'Has cambiado {que}.';
+const CAMBIOS: ReadonlySet<TipoBorrado> = new Set<TipoBorrado>(['fechas']);
+/** Si lo apuntado es un cambio y no un borrado (para el dibujo del aviso). */
+export const esCambio = (borrados: readonly Borrado[]): boolean => borrados.length > 0 && borrados.every(b => CAMBIOS.has(b.tipo));
 
 /** Todas las claves de traducción de este archivo (para la prueba que exige las tres lenguas). */
 export function clavesDeDeshacer(): string[] {
-  const out = [FRASE_BORRADO, VARIOS_ELEMENTOS];
+  const out = [FRASE_BORRADO, FRASE_CAMBIO, VARIOS_ELEMENTOS];
   for (const d of Object.values(DICHO)) out.push(...[d.uno, d.sin, d.varios].filter((x): x is string => !!x));
   return out;
 }
@@ -123,7 +134,7 @@ export function textoDeBorrados(borrados: Borrado[], t: Traducir, locale = 'es-E
       que = t(dicho.uno, { nombre, fecha: primero.fecha ? diaLegible(primero.fecha, locale) : '' });
     } else que = t(dicho.sin);
   }
-  return t(FRASE_BORRADO, { que });
+  return t(esCambio(borrados) ? FRASE_CAMBIO : FRASE_BORRADO, { que });
 }
 
 /* ── El borrado pendiente de deshacer ── */

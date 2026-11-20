@@ -943,6 +943,7 @@ function AppInner() {
                 onNav={s => setSection(s)} evaluations={st.evaluations} lawDocument={st.lawDocument} onAddEvaluation={guardarEvaluacion} onUpdateEvaluation={st.updateEvaluation}
                 learningSituations={st.learningSituations} onSaveSda={st.saveLearningSituation}
                 onAbrirSda={() => setSection(tipo === 'ef' ? 'ef-sda' : 'learning-situations')}
+                calEvents={st.calEvents} onApuntarCambio={n => st.apuntarCambio({ tipo: 'fechas', cuantos: n })}
               />
             )}
             {section === 'ef-actividades' && (
