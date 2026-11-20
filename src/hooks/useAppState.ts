@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type SetStateAction } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type SetStateAction } from 'react';
 import type {
   Class, Student, ScheduleBlock, CalEvent, Task, Rubric, Evaluation,
   GradeCategory, GradeItem, GradeMap, DianaProfile, EvalDiana,
@@ -312,9 +312,14 @@ export function useAppState() {
 
   /* ── «Deshacer» tras un borrado (ver `lib/deshacer.ts`) ── */
 
-  /** El perfil tal como se pintó por última vez: de aquí sale el «antes» de cada borrado. */
+  /**
+   * El perfil tal como se pintó por última vez: de aquí sale el «antes» de cada borrado. Se apunta en el mismo
+   * momento en que se pinta (`useLayoutEffect`), no un instante después: si entre medias llegara un borrado,
+   * su «antes» sería el de un pintado atrás y deshacerlo se llevaría lo último que entró (una ficha recién
+   * generada, por ejemplo).
+   */
   const pintadoRef = useRef<Reponible>(snapshot);
-  useEffect(() => { pintadoRef.current = snapshot; }, [snapshot]);
+  useLayoutEffect(() => { pintadoRef.current = snapshot; }, [snapshot]);
 
   // Ajuste durante el pintado: el primero tras un borrado fija cómo ha quedado todo; en los siguientes, si se ha
   // tocado algo de lo que el borrado cambió (o se ha cambiado de perfil), deja de poderse deshacer
