@@ -7,6 +7,17 @@ import { chromium } from 'playwright';
 
 const url = process.argv[2];
 if (!url) { console.error('Falta la dirección'); process.exit(2); }
+// Todo esto tarda menos de un minuto. Con una descarga atascada, esperar al service worker no acababa nunca
+// y el trabajo de GitHub se quedó seis horas colgado (20-11-2026): ahora hay tope, aquí y en cada espera.
+const TOPE = setTimeout(() => {
+  console.log('::error::La comprobación de la versión web publicada no ha terminado en 5 minutos');
+  process.exit(1);
+}, 5 * 60_000);
+/** Lo que devuelva `promesa`, o `{ error }` si no llega en `ms`. */
+const conTope = (promesa, ms, que) => Promise.race([
+  promesa,
+  new Promise(r => setTimeout(() => r({ error: `${que}: sin respuesta en ${ms / 1000} s` }), ms)),
+]);
 const browser = await chromium.launch();
 const ctx = await browser.newContext();
 const page = await ctx.newPage();
@@ -26,23 +37,23 @@ async function abrir(paso) {
 await abrir('Primera visita');
 // La app no se recarga sola al quedar guardada: la página sigue siendo la misma
 await page.evaluate(() => { window.__sinRecargar = true; });
-const guardados = await page.evaluate(async () => {
+const guardados = await conTope(page.evaluate(async () => {
   const reg = await navigator.serviceWorker.ready;
   for (let i = 0; i < 120 && !navigator.serviceWorker.controller; i++) await new Promise(r => setTimeout(r, 500));
   await new Promise(r => setTimeout(r, 2000));
   if (!window.__sinRecargar) return { error: 'la página se recargó sola' };
   const k = await caches.keys();
   return { activo: !!reg.active, archivos: k.length ? (await (await caches.open(k[0])).keys()).length : 0 };
-}).catch(e => ({ error: e.message }));
+}).catch(e => ({ error: e.message })), 120_000, 'el service worker no ha quedado listo');
 console.log('  Guardado para usar sin conexión:', JSON.stringify(guardados));
 if (!guardados.archivos) mal++;
 // «Sin pagar, no hay app» (1-11-2026): sin sesión, el código de las pantallas no sale (web/funciones/api/_puerta.js)
-const puerta = await page.evaluate(async () => {
+const puerta = await conTope(page.evaluate(async () => {
   const sw = await (await fetch('sw.js', { cache: 'no-store' })).text();
   const privado = JSON.parse(sw.match(/const PRIVADO = (\[.*?\]);/s)?.[1] ?? '[]');
   if (!privado.length) return { error: 'el service worker no trae la lista PRIVADO' };
   return { bloque: privado[0], estado: (await fetch(privado[0], { cache: 'no-store' })).status };
-}).catch(e => ({ error: e.message }));
+}).catch(e => ({ error: e.message })), 60_000, 'la puerta no contesta');
 console.log('  Código de las pantallas sin sesión:', JSON.stringify(puerta));
 if (puerta.estado !== 401) { mal++; console.log('✘ La puerta de /app/assets/ está abierta sin sesión'); } else console.log('✔ La puerta está cerrada sin sesión');
 // El mismo bloque con otras formas de escribir la dirección, que el alojamiento sirve igual (las 7 que se
@@ -57,7 +68,7 @@ if (puerta.bloque) {
     `/app/assets/${f.replace(/\.js$/, '.JS')}`, `/app/assets/${f}%20`, `/app/assets/${f}/`, `/app//assets/${f}`, `/app/%61ssets/${f}`, `/app/assets%2F${f}`,
     `/app/assets/${f}%2F.css`, `/app/assets/${f}/.css`, `/app/assets/${f};.css`, `/app/assets/${f}%3F.css`, `/app/assets/${f}%23.png`];
   for (const v of variantes) {
-    const r = await fetch(origin + v, { cache: 'no-store' }).catch(() => null);
+    const r = await fetch(origin + v, { cache: 'no-store', signal: AbortSignal.timeout(20_000) }).catch(() => null);
     const cuerpo = r ? await r.text() : '';
     if (r?.ok && cuerpo.length > 200 && !/^\s*</.test(cuerpo)) { mal++; console.log(`✘ La puerta se salta con ${v}`); }
   }
@@ -68,4 +79,5 @@ await abrir('Tercera visita');
 await ctx.setOffline(true);
 await abrir('Sin conexión');
 await browser.close();
+clearTimeout(TOPE);
 if (mal) { console.log(`::error::La versión web publicada falla en ${mal} comprobaciones`); process.exit(1); }
