@@ -24,7 +24,14 @@
 .fsi-fila .fgroup { min-width:0; }
 .fsi-signo { display:inline-block; min-width:14px; text-align:center; font-size:15px; }
 @media (max-width: 900px) { .fsi-fila { grid-template-columns:repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 420px) { .fsi-fila { grid-template-columns:minmax(0, 1fr); } }
+/* En el móvil, las cuatro hojas en dos columnas y sin la explicación: caben en una pantalla */
+@media (max-width: 760px) {
+  .fsi-gens.ev-cards { grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px; }
+  .fsi-gens.fe-tipos .ev-card { min-height:0; padding:12px 12px 10px; }
+  .fsi-gens .ev-card-txt { display:none; }
+  .fsi-gens .ev-card-ttl { font-size:14px; }
+  .fsi-gens .ev-card-ft { margin-top:6px; }
+}
 
 /* ── Editor: a mano y sin IA ── */
 select.fe-type.fe-type-sel { appearance:auto; font-family:var(--font); height:26px; padding:0 4px 0 8px; max-width:210px; cursor:pointer; text-overflow:ellipsis; }
@@ -38,3 +45,15 @@ select.fe-type.fe-type-sel:hover { border-color:var(--accent); }
 .fe-comic-row .ico-btn { flex-shrink:0; }
 
 .fe-ex-prev.fsi-sin { font-style:italic; color:var(--text-3); }
+@media (pointer: coarse), (max-width: 760px) { select.fe-type.fe-type-sel { height:34px; } }
+/* Móvil: con «Sin guardar» y la hora del borrador, el título del editor se quedaba sin sitio y la hora se salía */
+@media (max-width: 760px) {
+  .fe .fe-top-ttl { flex:1 1 100%; flex-wrap:wrap; row-gap:4px; }
+  .fe .fe-top-ttl strong { flex:1 1 55%; }
+}
+/* Móvil: el título del bloque, en su propia línea (junto al nivel y los botones no quedaba sitio para escribirlo) */
+@media (max-width: 560px) {
+  .fe-act-hd { flex-wrap:wrap; }
+  .fe-act-hd .fe-act-lbl { margin-right:auto; }
+  .fe-act-hd .fe-act-ttl { order:9; flex:1 1 100%; }
+}
