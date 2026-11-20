@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import type { Class, Evaluation, ScheduleBlock } from '../types';
 import {
-  claseDePartida, comoCorreccion, estadoDe, evaluacionQueCorrige, evaluacionVigente, idDeEvaluacion,
-  marcados, marcasATodos, mismasMarcas, porGuardar, siguientePendiente, sinCeros, ultimasPorAlumno,
+  claseDePartida, comoCorreccion, esRondaNueva, estadoDe, evaluacionQueCorrige, evaluacionVigente, hechoEnRonda, idDeEvaluacion,
+  marcados, marcasATodos, marcasValidas, mismasMarcas, porGuardar, siguientePendiente, sinCeros, ultimasPorAlumno,
 } from './evaluarClase';
 
 const ev = (p: Partial<Evaluation>): Evaluation => ({
@@ -195,5 +195,35 @@ describe('idDeEvaluacion', () => {
   it('no se repite al guardar a varios alumnos seguidos', () => {
     const ids = new Set(Array.from({ length: 200 }, idDeEvaluacion));
     expect(ids.size).toBe(200);
+  });
+});
+
+describe('esRondaNueva y hechoEnRonda', () => {
+  const hoy = '2026-11-20';
+  const orden = ['s1', 's2'];
+  it('es una vuelta nueva si todos tienen evaluación y alguna no es de hoy', () => {
+    expect(esRondaNueva(orden, { s1: ev({ date: '2026-10-01' }), s2: ev({ date: '2026-10-02' }) }, hoy)).toBe(true);
+    expect(esRondaNueva(orden, { s1: ev({ date: hoy }), s2: ev({ date: '2026-10-02' }) }, hoy)).toBe(true);
+  });
+  it('no lo es si falta alguien por evaluar, si todos son de hoy o si la clase no tiene alumnado', () => {
+    expect(esRondaNueva(orden, { s1: ev({ date: '2026-10-01' }) }, hoy)).toBe(false);
+    expect(esRondaNueva(orden, { s1: ev({ date: hoy }), s2: ev({ date: hoy }) }, hoy)).toBe(false);
+    expect(esRondaNueva([], {}, hoy)).toBe(false);
+  });
+  it('en la primera vuelta cuenta cualquier evaluación; en una nueva, solo la de hoy', () => {
+    expect(hechoEnRonda('antes', false)).toBe(true);
+    expect(hechoEnRonda('hoy', false)).toBe(true);
+    expect(hechoEnRonda('pendiente', false)).toBe(false);
+    expect(hechoEnRonda('antes', true)).toBe(false);
+    expect(hechoEnRonda('hoy', true)).toBe(true);
+  });
+});
+
+describe('marcasValidas', () => {
+  it('deja solo los criterios que el instrumento sigue teniendo y los niveles de su escala', () => {
+    expect(marcasValidas({ a: 5, b: 3, z: 2, c: 0 }, ['a', 'b', 'c'], [1, 2, 3, 4])).toEqual({ b: 3 });
+  });
+  it('sin escala, vale cualquier nivel marcado de sus criterios', () => {
+    expect(marcasValidas({ a: 5, z: 2 }, ['a', 'b'])).toEqual({ a: 5 });
   });
 });

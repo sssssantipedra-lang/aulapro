@@ -56,6 +56,21 @@ export function estadoDe(ultima: Evaluation | undefined, hoy: string): EstadoDeA
 }
 
 /**
+ * Si se abre la ventana para volver a evaluar a la clase: todos tienen ya una evaluación con ese instrumento
+ * (la del trimestre pasado, la de otra tarea) y no todas son de hoy. Entonces «hecho» es estar evaluado hoy:
+ * si contaran las de antes, la ventana se abriría con «25 de 25 evaluados» y sin «Poner a todos este nivel».
+ * Con alguien todavía sin evaluar no lo es: se está terminando la primera vuelta, quizá en varios días.
+ */
+export function esRondaNueva(orden: readonly string[], ultimas: Record<string, Evaluation | undefined>, hoy: string): boolean {
+  return orden.length > 0 && orden.every(id => !!ultimas[id]) && orden.some(id => ultimas[id]!.date !== hoy);
+}
+
+/** Si un alumno cuenta como hecho: evaluado alguna vez o, cuando se vuelve a evaluar a la clase, evaluado hoy. */
+export function hechoEnRonda(estado: EstadoDeAlumno, rondaNueva: boolean): boolean {
+  return rondaNueva ? estado === 'hoy' : estado !== 'pendiente';
+}
+
+/**
  * La evaluación que manda en el cuaderno para el alumno, el instrumento y la clase de `ev`: la más reciente
  * con nota (a igual fecha, la que va antes en la lista). Es la regla de `deleteEvaluation` y la que usa
  * `updateEvaluation`: una corrección solo lleva su nota al cuaderno si la corregida es la vigente.
@@ -116,6 +131,21 @@ export function siguientePendiente(orden: readonly string[], actual: string, hec
 export function sinCeros(scores: Record<string, number>): Record<string, number> {
   const out: Record<string, number> = {};
   for (const [k, v] of Object.entries(scores)) if (typeof v === 'number' && v > 0) out[k] = v;
+  return out;
+}
+
+/**
+ * Lo marcado en una evaluación ya hecha que todavía vale con el instrumento de ahora: solo los criterios o
+ * ítems que sigue teniendo y solo los niveles de su escala. Si el instrumento cambió después (se quitó un
+ * criterio, se pasó de cinco niveles a cuatro), lo que ya no existe se queda sin marcar al corregir: un 5 en
+ * una escala que ahora llega a 4 daría una nota por encima de 10, que además iría al cuaderno.
+ */
+export function marcasValidas(scores: Record<string, number>, ids: readonly string[], niveles?: readonly number[]): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const id of ids) {
+    const v = scores[id];
+    if (typeof v === 'number' && v > 0 && (!niveles || niveles.includes(v))) out[id] = v;
+  }
   return out;
 }
 

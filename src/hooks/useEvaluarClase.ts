@@ -17,8 +17,8 @@ import { compararAlumnos } from '../lib/alumnado';
 import { clasesDe } from '../lib/objetivos';
 import { isoDate } from '../lib/utils';
 import {
-  claseDePartida, comoCorreccion, estadoDe, evaluacionQueCorrige, marcados, marcasATodos, mismasMarcas,
-  porGuardar, siguientePendiente, sinCeros, ultimasPorAlumno,
+  claseDePartida, comoCorreccion, esRondaNueva, estadoDe, evaluacionQueCorrige, hechoEnRonda, marcados, marcasATodos,
+  marcasValidas, mismasMarcas, porGuardar, siguientePendiente, sinCeros, ultimasPorAlumno,
   type Borrador, type EstadoDeAlumno, type Marcado,
 } from '../lib/evaluarClase';
 
@@ -32,6 +32,8 @@ export interface FilaDeClase {
   estado: EstadoDeAlumno;
   /** Su evaluación más reciente con este instrumento en esta clase. */
   ultima?: Evaluation;
+  /** Cuenta como hecho: evaluado alguna vez o, si se vuelve a evaluar a la clase, evaluado hoy. */
+  hecho: boolean;
   /** Tiene niveles marcados que aún no se han guardado. */
   sinGuardar: boolean;
 }
@@ -43,6 +45,8 @@ interface Opciones {
   tipo: 'rubric' | 'diana';
   /** Los ids de sus criterios o de sus ítems. */
   ids: string[];
+  /** Los valores de su escala de niveles: lo marcado en una evaluación antigua con un nivel que ya no existe no se carga. */
+  niveles?: number[];
   classes: Class[];
   students: Student[];
   /** Para saber a quién se ha evaluado ya y cargar lo marcado. */
@@ -65,7 +69,7 @@ const VACIO: Marcado = { scores: {}, notes: '' };
 const SIN_EVALUACIONES: Evaluation[] = [];
 
 export function useEvaluarClase(o: Opciones) {
-  const { open, instrumento, tipo, ids, classes, students, scheduleBlocks, defaultClassId, defaultStudentId, construir, onSave, onUpdate, onClose } = o;
+  const { open, instrumento, tipo, ids, niveles, classes, students, scheduleBlocks, defaultClassId, defaultStudentId, construir, onSave, onUpdate, onClose } = o;
   const evaluations = o.evaluations ?? SIN_EVALUACIONES;
   // La versión al día de la que se corrige, por si cambia con la ventana abierta
   const corrigiendo = o.corrigiendo ? evaluations.find(e => e.id === o.corrigiendo!.id) ?? o.corrigiendo : null;
@@ -76,6 +80,12 @@ export function useEvaluarClase(o: Opciones) {
   const [classId, setClassId] = useState('');
   const [studentId, setStudentId] = useState('');
   const [borradores, setBorradores] = useState<Record<string, Borrador>>({});
+  /**
+   * Se vuelve a evaluar a una clase que ya tenía evaluación de todos con este instrumento (`esRondaNueva`):
+   * cuentan como hechos los evaluados hoy. Se decide al abrir y al cambiar de clase, no en cada guardado,
+   * para que la cuenta no cambie de sentido a mitad de la vuelta.
+   */
+  const [rondaNueva, setRondaNueva] = useState(false);
 
   /** Las clases en las que se puede evaluar: las del instrumento, o todas si no declara ninguna. */
   const evalClasses = useMemo(() => {
@@ -85,22 +95,34 @@ export function useEvaluarClase(o: Opciones) {
 
   const alumnadoDe = (clase: string) => students.filter(s => s.class_id === clase).sort(compararAlumnos);
 
+  /** Al abrir una clase: decide si se vuelve a evaluar a todos y devuelve el primero de la lista que falta, para empezar a marcar sin elegir a nadie. */
+  function entrarEnClase(clase: string, dia: string): string {
+    if (!instrumento) return '';
+    const u = ultimasPorAlumno(evaluations, instrumento.id, tipo, clase);
+    const orden = alumnadoDe(clase).map(s => s.id);
+    const nueva = esRondaNueva(orden, u, dia);
+    setRondaNueva(nueva);
+    return siguientePendiente(orden, '', id => hechoEnRonda(estadoDe(u[id], dia), nueva)) ?? '';
+  }
+
   useResetOnChange(`${open}:${instrumento?.id ?? ''}:${defaultClassId ?? ''}:${defaultStudentId ?? ''}:${o.corrigiendo?.id ?? ''}`, () => {
     if (!open || !instrumento) return;
     const dia = isoDate();
     setHoy(dia);
     setBorradores({});
     if (corrigiendo) {
+      setRondaNueva(false);
       setClassId(corrigiendo.class_id);
       setStudentId(corrigiendo.student_id);
       return;
     }
     const clase = claseDePartida({ instrumento, classes, evaluations, scheduleBlocks, pedida: defaultClassId });
     setClassId(clase);
-    // De partida, el primero de la lista que falta: así se empieza a marcar sin elegir a nadie
-    const ultimas = ultimasPorAlumno(evaluations, instrumento.id, tipo, clase);
-    setStudentId(defaultStudentId ?? siguientePendiente(alumnadoDe(clase).map(s => s.id), '', id => !!ultimas[id]) ?? '');
+    const primero = entrarEnClase(clase, dia);
+    if (defaultStudentId) setStudentId(defaultStudentId);
+    else setStudentId(primero);
   });
+
 
   const alumnado = useMemo(
     () => students.filter(s => s.class_id === classId).sort(compararAlumnos),
@@ -119,14 +141,15 @@ export function useEvaluarClase(o: Opciones) {
     const b = borradores[id];
     if (b) return b;
     const c = corrigeDe(id);
-    return c ? { scores: c.scores, notes: c.notes ?? '' } : VACIO;
+    return c ? { scores: marcasValidas(c.scores, ids, niveles), notes: c.notes ?? '' } : VACIO;
   };
   const tieneCambios = (id: string) => porGuardar(borradores[id], corrigeDe(id), ids);
 
-  const filas: FilaDeClase[] = alumnado.map(s => ({
-    id: s.id, name: s.name, estado: estadoDe(ultimas[s.id], hoy), ultima: ultimas[s.id], sinGuardar: tieneCambios(s.id),
-  }));
-  const hechos = filas.filter(f => f.estado !== 'pendiente').length;
+  const filas: FilaDeClase[] = alumnado.map(s => {
+    const estado = estadoDe(ultimas[s.id], hoy);
+    return { id: s.id, name: s.name, estado, ultima: ultimas[s.id], hecho: hechoEnRonda(estado, rondaNueva), sinGuardar: tieneCambios(s.id) };
+  });
+  const hechos = filas.filter(f => f.hecho).length;
   const sinGuardar = corrigiendo ? (tieneCambios(corrigiendo.student_id) ? [corrigiendo.student_id] : []) : filas.filter(f => f.sinGuardar).map(f => f.id);
 
   const alumno: { id: string; name: string } | undefined = !studentId ? undefined
@@ -139,7 +162,7 @@ export function useEvaluarClase(o: Opciones) {
    * Pero si al alumno elegido se le está haciendo una evaluación nueva teniendo ya una de otro día, es que se
    * vuelve a evaluar a la clase (otro trimestre, otra tarea): entonces, al siguiente que no esté evaluado hoy.
    */
-  const otraRonda = !!ultima && ultima.date !== hoy && !corrige;
+  const otraRonda = rondaNueva || (!!ultima && ultima.date !== hoy && !corrige);
   const siguienteId = corrigiendo ? undefined
     : siguientePendiente(alumnado.map(s => s.id), studentId, otraRonda ? id => ultimas[id]?.date === hoy : id => !!ultimas[id]);
 
@@ -161,14 +184,17 @@ export function useEvaluarClase(o: Opciones) {
   /** Lo que se guarde será una evaluación nueva, aunque hoy ya tenga una: es otro trabajo. */
   const otroTrabajo = () => studentId && setBorradores(prev => ({ ...prev, [studentId]: { scores: {}, notes: '', editId: null } }));
   /** Cargar la evaluación de otro día para corregirla. */
-  const corregirAnterior = () => ultima && setBorradores(prev => ({ ...prev, [studentId]: { scores: { ...ultima.scores }, notes: ultima.notes ?? '', editId: ultima.id } }));
+  const corregirAnterior = () => ultima && setBorradores(prev => ({ ...prev, [studentId]: { scores: marcasValidas(ultima.scores, ids, niveles), notes: ultima.notes ?? '', editId: ultima.id } }));
   /** Dejar al alumno como al entrar: sin lo marcado y sin haber elegido corregir u otro trabajo. */
   const volver = () => setBorradores(prev => { const { [studentId]: _fuera, ...resto } = prev; void _fuera; return resto; });
 
   /* ── Poner a todos este nivel ── */
 
-  /** A quién alcanza: quien no tiene evaluación ni marcas propias (lo puesto antes con otro nivel sí se cambia). */
-  const alcanza = (f: FilaDeClase) => f.estado === 'pendiente' && (!borradores[f.id] || borradores[f.id].deTodos || marcados(borradores[f.id].scores, ids) === 0);
+  /**
+   * A quién alcanza: quien falta (sin evaluación o, si se vuelve a evaluar a la clase, sin la de hoy) y no
+   * tiene marcas propias (lo puesto antes con otro nivel sí se cambia).
+   */
+  const alcanza = (f: FilaDeClase) => !f.hecho && (!borradores[f.id] || borradores[f.id].deTodos || marcados(borradores[f.id].scores, ids) === 0);
   const paraTodos = corrigiendo ? [] : filas.filter(alcanza);
   const conNivelDeTodos = filas.filter(f => borradores[f.id]?.deTodos);
   const nivelDeTodos: number | null = conNivelDeTodos.length ? borradores[conNivelDeTodos[0].id].scores[ids[0]] ?? null : null;
@@ -178,7 +204,8 @@ export function useEvaluarClase(o: Opciones) {
     const quienes = paraTodos.map(f => f.id);
     setBorradores(prev => {
       const next = { ...prev };
-      for (const id of quienes) next[id] = { ...prev[id], scores: marcasATodos(ids, nivel), notes: prev[id]?.notes ?? '', deTodos: true };
+      // Sin `editId`: lo puesto a todos es siempre una evaluación nueva, nunca la corrección de una de otro día
+      for (const id of quienes) next[id] = { scores: marcasATodos(ids, nivel), notes: prev[id]?.notes ?? '', deTodos: true };
       return next;
     });
     if (!studentId) setStudentId(quienes[0]);
@@ -280,8 +307,7 @@ export function useEvaluarClase(o: Opciones) {
     if (id === classId || !instrumento || !confirmarPerder()) return;
     setBorradores({});
     setClassId(id);
-    const u = ultimasPorAlumno(evaluations, instrumento.id, tipo, id);
-    setStudentId(siguientePendiente(alumnadoDe(id).map(s => s.id), '', a => !!u[a]) ?? '');
+    setStudentId(entrarEnClase(id, hoy));
   }
 
   return {
@@ -290,6 +316,8 @@ export function useEvaluarClase(o: Opciones) {
     corrigiendo, hoy,
     classId, evalClasses, cambiarClase,
     filas, hechos, sinGuardar,
+    /** Toda la clase tenía ya evaluación con este instrumento: se vuelve a evaluar y cuentan las de hoy. */
+    rondaNueva,
     studentId, elegirAlumno: setStudentId, alumno,
     scores: actual.scores, notes: actual.notes, setScores, setNotes,
     /** La evaluación que se corregirá al guardar al alumno elegido, si la hay. */

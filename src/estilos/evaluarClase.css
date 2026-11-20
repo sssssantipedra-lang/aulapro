@@ -113,6 +113,10 @@
   .evc-pie-btns .btn-ghost:first-child { display:none; }
   .evc-pie-btns .btn-ghost, .evc-pie-btns .btn-accent { padding-left:12px; padding-right:12px; white-space:nowrap; }
   .evc-pie-btns .btn-accent { flex:1; justify-content:center; }
+  /* Con «Guardar todo» al lado no caben los dos en una línea sin meterse debajo del botón de la ayuda: se reparten
+     el ancho que queda y parten su texto en dos líneas */
+  .evc-pie-btns .evc-guardar-todo, .evc-pie-btns .evc-guardar-todo ~ .btn-accent { flex:1 1 0; min-width:0; white-space:normal; line-height:1.2; text-align:left; padding-top:6px; padding-bottom:6px; }
+  .evc-pie-btns .evc-guardar-todo svg, .evc-pie-btns .evc-guardar-todo ~ .btn-accent svg { flex-shrink:0; }
 
   /* La rúbrica, sin desplazamiento lateral: cada criterio en su línea y debajo sus niveles repartidos a lo ancho.
      La fila de nombres de nivel se quita (cada casilla lleva su número, su color y su descriptor). */

@@ -32,14 +32,14 @@ export function ListaDeClase({ clase, niveles }: { clase: EvaluarClase; niveles:
   // El alumno elegido, a la vista: al pasar al siguiente la lista lo sigue
   useEffect(() => {
     lista.current?.querySelector('[aria-current="true"]')?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
-  }, [studentId]);
+  }, [studentId, clase.nivelDeTodos]);
 
   const nota = (g: number | undefined) => (typeof g === 'number' ? g.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) : '');
 
   return (
     <aside className="evc-lista" aria-label={t('Alumnado de la clase')}>
       <div className="evc-cuenta" aria-live="polite">
-        <span><strong>{t('{hechos} de {total}', { hechos, total: filas.length })}</strong> {t('evaluados')}</span>
+        <span><strong>{t('{hechos} de {total}', { hechos, total: filas.length })}</strong> {t(clase.rondaNueva ? 'evaluados hoy' : 'evaluados')}</span>
         {sinGuardar.length > 0 && <span className="evc-cuenta-sin">{t('{n} sin guardar', { n: sinGuardar.length })}</span>}
       </div>
       <div className="evc-barra" aria-hidden="true"><span style={{ width: `${filas.length ? (hechos / filas.length) * 100 : 0}%` }} /></div>
@@ -49,7 +49,8 @@ export function ListaDeClase({ clase, niveles }: { clase: EvaluarClase; niveles:
       ) : (
         <ol className="evc-alumnos" ref={lista}>
           {filas.map(f => {
-            const cual = f.sinGuardar ? 'sin' : f.estado;
+            // Al volver a evaluar a la clase, quien solo tiene la evaluación de otro día sale sin marca (con su fecha): le falta la de hoy
+            const cual = f.sinGuardar ? 'sin' : f.hecho ? f.estado : 'pendiente';
             const dato = f.sinGuardar ? t('sin guardar')
               : f.estado === 'hoy' ? nota(f.ultima?.grade)
               : f.estado === 'antes' && f.ultima ? fecha(f.ultima.date) : '';
@@ -61,7 +62,7 @@ export function ListaDeClase({ clase, niveles }: { clase: EvaluarClase; niveles:
                 <button type="button" className={`evc-al evc-${cual}${f.id === studentId ? ' sel' : ''}`}
                   aria-current={f.id === studentId ? 'true' : undefined} aria-label={`${f.name}, ${leido}`}
                   onClick={() => clase.elegirAlumno(f.id)}>
-                  <span className="evc-marca" aria-hidden="true">{(f.estado !== 'pendiente' && !f.sinGuardar) && <Check size={12} strokeWidth={3} />}</span>
+                  <span className="evc-marca" aria-hidden="true">{(f.hecho && !f.sinGuardar) && <Check size={12} strokeWidth={3} />}</span>
                   <span className="evc-nombre">{f.name}</span>
                   {dato && <span className="evc-dato">{dato}</span>}
                 </button>

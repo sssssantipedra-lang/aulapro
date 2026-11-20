@@ -533,7 +533,7 @@ export function DianaEvalModal({ open, defaultClassId, diana, classes, students,
   }
 
   const clase = useEvaluarClase({
-    open, instrumento: diana, tipo: 'diana', ids: diana?.items.map(i => i.id) ?? [],
+    open, instrumento: diana, tipo: 'diana', ids: diana?.items.map(i => i.id) ?? [], niveles: levelsOf(diana).map(l => l.value),
     classes, students, evaluations, scheduleBlocks, defaultClassId, corrigiendo,
     construir, onSave, onUpdate, onClose,
   });

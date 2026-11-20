@@ -680,7 +680,7 @@ export function EvalModal({
   }
 
   const clase = useEvaluarClase({
-    open, instrumento: rubric, tipo: 'rubric', ids: rubric?.criteria.map(c => c.id) ?? [],
+    open, instrumento: rubric, tipo: 'rubric', ids: rubric?.criteria.map(c => c.id) ?? [], niveles: levels.map(l => l.value),
     classes, students, evaluations, scheduleBlocks, defaultClassId, defaultStudentId, corrigiendo,
     construir, onSave, onUpdate, onClose,
   });

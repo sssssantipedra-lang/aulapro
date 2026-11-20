@@ -111,20 +111,72 @@ describe('useEvaluarClase', () => {
     expect(onUpdate.mock.calls[0][0]).toMatchObject({ id: 'vieja', date: '2026-01-10', scores: { a: 4, b: 4 } });
   });
 
-  it('al volver a evaluar a una clase ya evaluada otro día, «Guardar y siguiente» recorre a quien no está evaluado hoy', () => {
+  it('al volver a evaluar a una clase ya evaluada otro día, cuentan las de hoy y «Guardar y siguiente» recorre a quien no está evaluado hoy', () => {
     const antes = ['s1', 's2', 's3'].map(id => ev({ id: 'v' + id, student_id: id, date: '2026-01-10' }));
     const { h, onSave } = montar(antes);
-    // Con toda la clase evaluada no se elige a nadie: el docente toca a quien quiere
-    expect(h.result.current.studentId).toBe('');
-    act(() => h.result.current.elegirAlumno('s1'));
+    // Nadie está hecho en esta vuelta: se empieza por el primero de la lista, con evaluación nueva
+    expect(h.result.current.rondaNueva).toBe(true);
+    expect(h.result.current.hechos).toBe(0);
+    expect(h.result.current.filas.map(f => f.hecho)).toEqual([false, false, false]);
+    expect(h.result.current.studentId).toBe('s1');
+    expect(h.result.current.corrige).toBeUndefined();
     expect(h.result.current.siguienteId).toBe('s2');
     act(() => h.result.current.setScores({ a: 2, b: 2 }));
     act(() => { h.result.current.guardarYSeguir(); });
     expect(onSave).toHaveBeenCalledTimes(1);
     expect(h.result.current.studentId).toBe('s2');
-    // Quien ya está evaluado hoy se salta
+    // Quien ya está evaluado hoy se salta y cuenta
     h.rerender({ evs: [ev({ id: 'hoy1', student_id: 's1' }), ev({ id: 'hoy3', student_id: 's3' }), ...antes] });
     expect(h.result.current.siguienteId).toBeUndefined();
+    expect(h.result.current.hechos).toBe(2);
+    expect(h.result.current.rondaNueva).toBe(true);
+  });
+
+  it('al volver a evaluar a la clase, «Poner a todos este nivel» alcanza a quien no está evaluado hoy y crea evaluaciones nuevas', () => {
+    const antes = ['s1', 's2', 's3'].map(id => ev({ id: 'v' + id, student_id: id, date: '2026-01-10' }));
+    const { h, onSave, onUpdate } = montar([ev({ id: 'hoy2', student_id: 's2' }), ...antes]);
+    expect(h.result.current.rondaNueva).toBe(true);
+    expect(h.result.current.hechos).toBe(1);
+    expect(h.result.current.paraTodos).toBe(2);
+    act(() => h.result.current.ponerATodos(3));
+    expect(h.result.current.sinGuardar).toEqual(['s1', 's3']);
+    act(() => { h.result.current.guardarTodos(); });
+    // Las de otro día no se tocan: son dos evaluaciones más
+    expect(onUpdate).not.toHaveBeenCalled();
+    expect(onSave.mock.calls.map(c => c[0].student_id)).toEqual(['s1', 's3']);
+  });
+
+  it('con toda la clase evaluada hoy no es una vuelta nueva: no se elige a nadie y no hay a quién poner un nivel', () => {
+    const { h } = montar(['s1', 's2', 's3'].map(id => ev({ id: 'h' + id, student_id: id })));
+    expect(h.result.current.rondaNueva).toBe(false);
+    expect(h.result.current.hechos).toBe(3);
+    expect(h.result.current.studentId).toBe('');
+    expect(h.result.current.paraTodos).toBe(0);
+  });
+
+  it('con alguien sin evaluar se sigue en la primera vuelta: quien se evaluó otro día cuenta como hecho', () => {
+    const { h } = montar([ev({ id: 'v1', student_id: 's1', date: '2026-01-10' }), ev({ id: 'v2', student_id: 's2', date: '2026-01-11' })]);
+    expect(h.result.current.rondaNueva).toBe(false);
+    expect(h.result.current.hechos).toBe(2);
+    expect(h.result.current.studentId).toBe('s3');
+    expect(h.result.current.paraTodos).toBe(1);
+  });
+
+  it('al corregir una evaluación hecha con otra escala o con criterios que ya no están, lo que no vale se queda sin marcar', () => {
+    // Se evaluó con cinco niveles y un criterio «z» que la rúbrica ya no tiene; ahora la escala llega a 4
+    const vieja = ev({ id: 'vieja', scores: { a: 5, b: 3, z: 2 }, date: '2026-01-10' });
+    const onUpdate = vi.fn();
+    const h = renderHook(() => useEvaluarClase({
+      open: true, instrumento: rubrica, tipo: 'rubric', ids, niveles: [1, 2, 3, 4], classes, students, evaluations: [vieja], corrigiendo: vieja,
+      construir: (alumno, clase, m) => ev({ id: 'x', student_id: alumno.id, class_id: clase, scores: m.scores }),
+      onSave: vi.fn(), onUpdate, onClose: vi.fn(),
+    }));
+    expect(h.result.current.scores).toEqual({ b: 3 });
+    expect(h.result.current.hayQueGuardar).toBe(false);
+    act(() => h.result.current.setScores(p => ({ ...p, a: 4 })));
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    act(() => { h.result.current.guardarYSeguir(); });
+    expect(onUpdate.mock.calls[0][0]).toMatchObject({ id: 'vieja', date: '2026-01-10', scores: { a: 4, b: 3 } });
   });
 
   it('«Poner a todos este nivel» deja un punto de partida a quien falta y «Guardar todo» los guarda de una vez', () => {
