@@ -23,6 +23,7 @@ import { isoDate } from '../lib/utils';
 import { hasApiKey, type InlineFile } from '../services/gemini';
 import { corregirPorFoto, MAX_FOTOS_SOLUCIONES, MAX_FOTOS_TRABAJO, type TipoTrabajo } from '../services/evaluarFoto';
 import type { Class, GradeCategory, GradeItem, Section, Student } from '../types';
+import { useClaseActiva } from '../hooks/useClaseActiva';
 
 interface Props {
   classes: Class[];
@@ -53,7 +54,7 @@ export function EvalFoto({ classes, students, gradeCategories, gradeItems, onAdd
   const { t, locale } = useI18n();
   const { toast } = useToast();
   const nombreCurso = useNombreCurso();
-  const [claseId, setClaseId] = useState(classes[0]?.id ?? '');
+  const [claseId, setClaseId] = useClaseActiva(classes);
   const [asignatura, setAsignatura] = useState('');
   const [alumnoId, setAlumnoId] = useState('');
   const [tipo, setTipo] = useState<TipoTrabajo>('examen');

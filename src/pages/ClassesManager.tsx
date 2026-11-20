@@ -19,6 +19,7 @@ import { ClassCards } from '../components/clases/ClassCards';
 import { RadarDeClase } from '../components/clases/RadarDeClase';
 import { radarDeClase, type Radar } from '../lib/radarClase';
 import { useI18n } from '../i18n';
+import { useRecordarClase } from '../hooks/useClaseActiva';
 
 // ─── palette ─────────────────────────────────────────────────────────────────
 const PALETTE = ['#0284c7', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#3b82f6'] as const;
@@ -133,6 +134,9 @@ export function ClassesManager({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- una vez, al entrar
   }, []);
   const [activeClassId, setActiveClassId] = useState<string>(inicial?.class_id ?? (claseInicial && classes.some(c => c.id === claseInicial) ? claseInicial : classes.length === 1 ? classes[0].id : ''));
+  // Abrir una clase aquí cuenta como elegirla: las demás pantallas la abren después si no hay otra en marcha
+  const recordarClase = useRecordarClase();
+  useEffect(() => recordarClase(activeClassId), [recordarClase, activeClassId]);
   const activeClass = classes.find(c => c.id === activeClassId) ?? null;
 
   // ── search ──

@@ -30,6 +30,7 @@ import {
   FONDOS, fondoPorId, leerVentanas, leerEscenas, ajustarRect, siguienteId, enCascada, huecoLibre, rectVisible, LADO_MINIMIZADA, borrarDatosDeVentana, MAX_ESCENAS, MAX_VENTANAS,
   type FondoId, type Rect, type Escena,
 } from '../lib/pizarraAula';
+import { useRecordarClase } from '../hooks/useClaseActiva';
 
 /* ════════════════════════════════════════════════════════════
    Aula Live — panel de herramientas para proyectar en clase
@@ -1555,6 +1556,8 @@ const Separador = () => <span className="flex-shrink-0" style={{ width: 1, heigh
 export default function SecClassroom({ studentNames = [], clases = [], claseInicial, fichas = [], projectFicha = null, onProjectDone }: ClassroomProps) {
   const { t } = useI18n();
   const [claseId, setClaseId] = useState(claseInicial ?? '');
+  // La clase que se elige aquí queda como la última usada, igual que en el resto de pantallas (`lib/claseActiva.ts`)
+  const recordarClase = useRecordarClase();
   // La pizarra sigue montada entre clases: al volver a ella a otra hora, la clase que toca llega como cambio
   // de la propiedad y se sigue (como antes, que cada entrada abría la clase del momento). Lo que el docente
   // eligió a mano no se pisa mientras la clase que toca sea la misma.
@@ -1858,7 +1861,7 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
             <label className="cl-clase" title={t('La ruleta usa los nombres de esta clase')}>
               <Users size={15} aria-hidden="true" />
               <span className="sr-only">{t('Clase')}</span>
-              <select value={clase?.id ?? ''} onChange={e => setClaseId(e.target.value)}>
+              <select value={clase?.id ?? ''} onChange={e => { setClaseId(e.target.value); recordarClase(e.target.value); }}>
                 {clases.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </label>

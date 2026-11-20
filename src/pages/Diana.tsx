@@ -14,6 +14,7 @@ import { CompetenciasEspecificas } from '../components/curriculum/CompetenciasEs
 import type { ComunidadId } from '../lib/curriculum/comunidades';
 import { useNotasPorCompetencias } from '../hooks/useNotasPorCompetencias';
 import { evidenciasPorSector, nivelDelSector, type SectorId } from '../lib/dianaSectores';
+import { useClaseActiva } from '../hooks/useClaseActiva';
 
 interface Props {
   classes: Class[];
@@ -309,7 +310,8 @@ function DianaChart({ scores, onSetScore, selectedSector, onSelectSector }: Dian
 export function Diana({ classes, students, evaluations, rubrics, dianas, lawDocument, dianaProfiles, onSaveDiana, comunidad }: Props) {
   const { toast } = useToast();
   const { t, lang } = useI18n();
-  const [classId, setClassId] = useState('');
+  // Se abre en la clase activa (la de ahora o la última con la que se trabajó): solo queda elegir al alumno
+  const [classId, setClassId] = useClaseActiva(classes);
   const [studentId, setStudentId] = useState('');
   const [scores, setScores] = useState<ScoreMap>(emptyScores());
   const [descriptors, setDescriptors] = useState<DescriptorMap>(emptyDescriptors());
@@ -372,7 +374,7 @@ export function Diana({ classes, students, evaluations, rubrics, dianas, lawDocu
     setDescriptors(emptyDescriptors());
     setSelectedSector(null);
     setSaved(false);
-  }, []);
+  }, [setClassId]);
 
   const handleStudentChange = useCallback((id: string) => {
     setStudentId(id);
@@ -594,7 +596,7 @@ Redacta un descriptor, en español de España, solo para estos sectores: ${lista
       {/* Barra: clase y alumno */}
       <div className="toolbar">
         <select id="diana-clase" className="tb-select" value={classId} aria-label={t('Clase')} onChange={e => handleClassChange(e.target.value)}>
-          <option value="">{t('— Selecciona una clase —')}</option>
+          {classes.length === 0 && <option value="">{t('— Selecciona una clase —')}</option>}
           {classes.map(c => (
             <option key={c.id} value={c.id}>{c.name} · {c.subject}</option>
           ))}

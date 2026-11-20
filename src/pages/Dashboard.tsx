@@ -35,6 +35,7 @@ import { useCalendarioEscolar } from '../hooks/useCalendarioEscolar';
 import { textoDeDato } from '../lib/resumenAlumno';
 import type { Radar } from '../lib/radarClase';
 import { semanaConAlgo, type Semana } from '../lib/semana';
+import { useFijarClase } from '../hooks/useClaseActiva';
 
 interface Props {
   user: User | null;
@@ -185,6 +186,8 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
     gradeCategories: gradeCategories.filter(c => !isMarksCategory(c.id)),
   });
   const nav = (s: Section) => onNav(s);
+  // Lo que lleva a una pantalla desde una clase concreta la fija antes: esa pantalla se abre en ella
+  const fijarClase = useFijarClase();
 
   if (classes.length === 0) {
     return (
@@ -531,7 +534,7 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
           {agruparPorEtapa(classAverages.map(a => ({ ...a, name: a.cls.name, etapa: a.cls.etapa, curso: a.cls.curso })))
             .flatMap(g => g.clases)
             .map(({ cls, avg, failing, count }) => (
-              <button key={cls.id} type="button" className="home-cls" style={{ '--j-c': cls.color } as React.CSSProperties} onClick={() => nav('notebook')}>
+              <button key={cls.id} type="button" className="home-cls" style={{ '--j-c': cls.color } as React.CSSProperties} onClick={() => { fijarClase(cls.id); nav('notebook'); }}>
                 <span className="home-cls-name">{cls.name}</span>
                 <span className="home-cls-avg" style={{ color: gradeColor(avg) }}>
                   {avg === null ? '—' : avg.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}

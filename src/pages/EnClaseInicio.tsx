@@ -13,6 +13,7 @@ import { useCalendarioEscolar } from '../hooks/useCalendarioEscolar';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
 import { isoDate } from '../lib/utils';
 import { useI18n } from '../i18n';
+import { useFijarClase } from '../hooks/useClaseActiva';
 
 interface Props {
   classes: Class[];
@@ -27,6 +28,8 @@ interface Props {
 
 export function EnClaseInicio({ classes, scheduleBlocks, classMarks, seatingPlans, comunidad, provincia, onNav }: Props) {
   const { t } = useI18n();
+  // Los botones de la franja llevan a la clase que la franja enseña, también cuando es la siguiente y no la de ahora
+  const fijarClase = useFijarClase();
   // La hora se renueva cada medio minuto: sin esto, la clase de «ahora» se quedaba la de cuando se abrió la pantalla
   const [ahoraMs, setAhoraMs] = useState(() => Date.now());
   useEffect(() => {
@@ -94,10 +97,10 @@ export function EnClaseInicio({ classes, scheduleBlocks, classMarks, seatingPlan
             <strong>{clase.name}</strong>
           </span>
           <span className="ec-ahora-acts">
-            <button type="button" className="btn-ghost" onClick={() => onNav('attendance')}>
+            <button type="button" className="btn-ghost" onClick={() => { fijarClase(clase.id); onNav('attendance'); }}>
               <UserCheck size={14} />{t('Pasar lista')}
             </button>
-            <button type="button" className="btn-accent" onClick={() => onNav('actitud')}>
+            <button type="button" className="btn-accent" onClick={() => { fijarClase(clase.id); onNav('actitud'); }}>
               <Flag size={14} />{t('Anotar actitud')}
             </button>
           </span>

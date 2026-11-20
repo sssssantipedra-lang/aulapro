@@ -18,6 +18,7 @@ import type { Class, Section, Student } from '../../types';
 import type { EfData, ExentoEF } from '../../types/ef';
 import { EfApoyos } from './EfApoyos';
 import { compararAlumnos } from '../../lib/alumnado';
+import { useClaseActiva } from '../../hooks/useClaseActiva';
 
 interface Props {
   classes: Class[];
@@ -35,6 +36,7 @@ export function EfExentos({ classes, students, ef, onChangeEf, onNav }: Props) {
   const [verPasados, setVerPasados] = useState(false);
   const esNuevo = !!editando && !ef.exentos.some(e => e.id === editando.id);
   const alumnado = useMemo(() => [...students].sort(compararAlumnos), [students]);
+  const [claseActiva] = useClaseActiva(classes);
   const alumno = (id: string) => students.find(s => s.id === id);
   const clase = (id: string) => classes.find(c => c.id === alumno(id)?.class_id)?.name ?? '';
   const dia = (f: string) => fromIsoDate(f).toLocaleDateString(locale, { day: 'numeric', month: 'short' });
@@ -44,7 +46,8 @@ export function EfExentos({ classes, students, ef, onChangeEf, onNav }: Props) {
   const pasados = ef.exentos.filter(e => e.hasta && e.hasta < hoy);
 
   function nuevo() {
-    setEditando({ id: nuevoIdEF('exe'), alumnoId: alumnado[0]?.id ?? '', limitaciones: [], otra: '', desde: hoy, tarea: '', justificante: false, motivo: '' });
+    // Se empieza por el alumnado de la clase de ahora (o la última con la que se trabajó): es donde suele estar quien se lesiona
+    setEditando({ id: nuevoIdEF('exe'), alumnoId: (alumnado.find(x => x.class_id === claseActiva) ?? alumnado[0])?.id ?? '', limitaciones: [], otra: '', desde: hoy, tarea: '', justificante: false, motivo: '' });
   }
 
   function guardar() {

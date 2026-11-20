@@ -15,6 +15,8 @@ import { COLORES_EQUIPO, exentosDelDia, hacerEquipos, LIMITACIONES, MAX_EQUIPOS,
 import type { AttendanceMap, Class, Section, Student } from '../../types';
 import type { EfData, SexoEF } from '../../types/ef';
 import { compararAlumnos, compararNombres, idsEnOrdenDeLista } from '../../lib/alumnado';
+import { ClassChips } from '../../components/ui/ClassChips';
+import { useClaseActiva } from '../../hooks/useClaseActiva';
 
 interface Props {
   classes: Class[];
@@ -32,7 +34,7 @@ export function EfEquipos({ classes, students, attendance, ef, onChangeEf, onNav
   const { toast } = useToast();
   const hoy = isoDate();
   const ordenadas = useMemo(() => [...classes].sort((a, b) => compararNombres(a.name, b.name)), [classes]);
-  const [claseId, setClaseId] = useState<string | null>(null);
+  const [claseId, setClaseId] = useClaseActiva(ordenadas);
   const clase = ordenadas.find(c => c.id === claseId) ?? ordenadas[0] ?? null;
   /** Sin elegir, los mismos que los guardados, o cuatro. */
   const [cuantos, setCuantos] = useState<number | null>(null);
@@ -131,11 +133,8 @@ export function EfEquipos({ classes, students, attendance, ef, onChangeEf, onNav
         </div>
       </div>
 
-      <div className="chip-row ap-alumnos" role="tablist" aria-label={t('Clase')}>
-        {ordenadas.map(c => (
-          <button key={c.id} type="button" role="tab" aria-selected={c.id === clase.id}
-            className={`chip sm accent${c.id === clase.id ? ' on' : ''}`} onClick={() => { setClaseId(c.id); setElegido(null); setCuantos(null); }}>{c.name}</button>
-        ))}
+      <div className="ap-alumnos">
+        <ClassChips classes={ordenadas} value={clase.id} onChange={id => { setClaseId(id); setElegido(null); setCuantos(null); }} />
       </div>
 
       {alumnos.length === 0 ? (

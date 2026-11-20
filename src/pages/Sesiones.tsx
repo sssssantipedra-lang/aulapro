@@ -55,6 +55,7 @@ import { CrearSdaDeSesiones } from '../components/sesiones/CrearSdaDeSesiones';
 import type { EfData, ImagenSesion, InstrumentoRefEF, ModalidadEF, SesionEF } from '../types/ef';
 import type { InlineFile } from '../services/gemini';
 import { ValorarRegistro } from '../components/ValorarRegistro';
+import { useClaseActiva, useRecordarClase } from '../hooks/useClaseActiva';
 
 /** La sesión sin sus imágenes: lo que se compara y lo que va al borrador. */
 const sinImagenes = (s: SesionEF): SesionEF => (s.imagenes ? (({ imagenes: _i, ...r }) => { void _i; return r; })(s) : s);
@@ -131,6 +132,9 @@ export function Sesiones({
   const esEF = perfil === 'ef';
   /** La clase abierta (`''` = sesiones sin clase); `null`, la portada con las tarjetas. */
   const [claseVista, setClaseVista] = useState<string | null>(null);
+  // Una sesión nueva sin clase abierta empieza en la clase activa (la de ahora o la última con la que se trabajó)
+  const [claseActiva] = useClaseActiva(classes);
+  const recordarClase = useRecordarClase();
   /** Sesiones por asociar a una SdA y sesiones con las que crear una SdA nueva. */
   const [asociando, setAsociando] = useState<string[] | null>(null);
   const [creandoSda, setCreandoSda] = useState<string[] | null>(null);
@@ -235,13 +239,13 @@ export function Sesiones({
     toast(t('{n} sesiones copiadas a {clases}.', { n: nuevas.length, clases: destinos.map(c => c.name).join(', ') }));
   }
 
-  const vacia = (claseId: string | undefined = claseVista || classes[0]?.id): SesionEF => ({
+  const vacia = (claseId: string | undefined = claseVista || claseActiva || undefined): SesionEF => ({
     id: nuevoIdEF('ses'), titulo: '', claseId, fecha: hoy, ...(esEF && ef.instalaciones[0] ? { instalacionId: ef.instalaciones[0].id } : {}),
     objetivo: '', calentamiento: '', principal: '', calma: '', material: '', inclusion: '', planB: '',
   });
 
   function abrirIa() {
-    const claseId = classes[0]?.id ?? '';
+    const claseId = claseVista || claseActiva;
     setIa({ claseId, fecha: hoy, instalacionId: ef.instalaciones[0]?.id ?? '', tema: '', minutos: minutosDeClase(scheduleBlocks, claseId, hoy) ?? 55, banco: true, modalidad: '' });
   }
 
@@ -460,7 +464,7 @@ export function Sesiones({
               </div>
             );
           })()}
-          <ClasesDeSesiones classes={classes} sesiones={ef.sesiones} hoy={hoy} onAbrir={setClaseVista} onNueva={id => setEditando(vacia(id))} />
+          <ClasesDeSesiones classes={classes} sesiones={ef.sesiones} hoy={hoy} onAbrir={id => { recordarClase(id); setClaseVista(id); }} onNueva={id => setEditando(vacia(id))} />
         </>
       ) : (
         <SesionesDeClase
