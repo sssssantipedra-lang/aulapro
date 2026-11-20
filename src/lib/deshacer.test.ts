@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   anotarBorrado, borradoAlPintar, borradoDeApoyo, borradoDeEF, clavesDeDeshacer, coleccionesTocadas, loQueVuelve,
-  textoDeBorrados, DICHO, type BorradoPendiente,
+  mismoContenido, textoDeBorrados, DICHO, type BorradoPendiente,
 } from './deshacer';
 import { translate, EN_DICT } from '../i18n';
 import { CA } from '../i18n/ca';
@@ -114,9 +114,30 @@ describe('el borrado pendiente', () => {
     expect(borradoAlPintar(p, 'p1', { ...despues, clases: ['2B', '3C'] }, CLAVES)).toBeNull();
   });
 
-  it('un borrado que no borra nada no deja aviso', () => {
+  it('un borrado que no borra nada no deja aviso, aunque devuelva listas nuevas con lo mismo', () => {
     const antes = perfil();
     expect(borrar(antes, { ...antes })).toBeNull();
+    expect(borrar(antes, { ...antes, clases: antes.clases.filter(c => c !== 'no-existe'), notas: { ...antes.notas } })).toBeNull();
+  });
+
+  it('un cambio posterior que deja lo tocado como estaba no retira el aviso', () => {
+    const antes = perfil();
+    const despues: Perfil = { ...antes, clases: ['2B'] };
+    const p = borrar(antes, despues)!;
+    expect(borradoAlPintar(p, 'p1', { ...despues, clases: [...despues.clases] }, CLAVES)).toBe(p);
+  });
+
+  it('mismoContenido mira dentro, hasta tres niveles', () => {
+    const fila = { a1: 'present' };
+    expect(mismoContenido([1, 2], [1, 2])).toBe(true);
+    expect(mismoContenido([1, 2], [2, 1])).toBe(false);
+    expect(mismoContenido([1, 2], [1])).toBe(false);
+    expect(mismoContenido({ c1: { d1: fila } }, { c1: { d1: { ...fila } } })).toBe(true);
+    expect(mismoContenido({ c1: { d1: fila } }, { c1: { d1: { a1: 'absent' } } })).toBe(false);
+    expect(mismoContenido({ c1: { d1: fila } }, { c1: {} })).toBe(false);
+    expect(mismoContenido({ a: 1 }, { b: 1 })).toBe(false);
+    expect(mismoContenido([], {})).toBe(false);
+    expect(mismoContenido(null, {})).toBe(false);
   });
 
   it('en otro perfil no vale', () => {

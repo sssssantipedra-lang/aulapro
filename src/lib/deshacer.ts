@@ -155,10 +155,27 @@ export function anotarBorrado<T>(
   return { ...nuevo, despues: null };
 }
 
+/**
+ * Si dos colecciones tienen lo mismo. Casi siempre basta con que sean la misma referencia; pero un borrado que no
+ * encuentra nada que borrar (`filter` devuelve otra lista con los mismos elementos) o un cambio que deja las cosas
+ * como estaban no cuentan como cambio, así que se mira hasta tres niveles (la asistencia es clase, día y alumno).
+ */
+export function mismoContenido(a: unknown, b: unknown, niveles = 3): boolean {
+  if (Object.is(a, b)) return true;
+  if (niveles <= 0 || typeof a !== 'object' || typeof b !== 'object' || a === null || b === null) return false;
+  if (Array.isArray(a) || Array.isArray(b)) {
+    return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((x, i) => mismoContenido(x, b[i], niveles - 1));
+  }
+  const ka = Object.keys(a);
+  if (ka.length !== Object.keys(b).length) return false;
+  const ra = a as Record<string, unknown>, rb = b as Record<string, unknown>;
+  return ka.every(k => k in rb && mismoContenido(ra[k], rb[k], niveles - 1));
+}
+
 /** Las colecciones que el borrado cambió. */
 export function coleccionesTocadas<T extends object>(p: BorradoPendiente<T>, claves: readonly (keyof T)[]): (keyof T)[] {
   const despues = p.despues;
-  return despues ? claves.filter(k => p.antes[k] !== despues[k]) : [];
+  return despues ? claves.filter(k => !mismoContenido(p.antes[k], despues[k])) : [];
 }
 
 /**
@@ -172,9 +189,9 @@ export function borradoAlPintar<T extends object>(
 ): BorradoPendiente<T> | null {
   if (!p) return null;
   if (p.perfil !== perfil) return null;
-  if (!p.despues) return claves.some(k => p.antes[k] !== ahora[k]) ? { ...p, despues: ahora } : null;
+  if (!p.despues) return claves.some(k => !mismoContenido(p.antes[k], ahora[k])) ? { ...p, despues: ahora } : null;
   const despues = p.despues;
-  return coleccionesTocadas(p, claves).some(k => ahora[k] !== despues[k]) ? null : p;
+  return coleccionesTocadas(p, claves).some(k => !mismoContenido(ahora[k], despues[k])) ? null : p;
 }
 
 /** Lo que hay que reponer para deshacer: cada colección que cambió, como estaba antes. */
