@@ -22,7 +22,9 @@ desde el navegador de cualquier ordenador, tableta o móvil. Se entra con la cue
 de Google o de Microsoft. El trabajo se guarda en el navegador de ese dispositivo y,
 si el docente lo elige, también en su Google Drive u OneDrive o en una carpeta de su
 ordenador: nunca en un servidor de AulaPro. Hay una copia automática cada 10 minutos
-en el dispositivo.
+en el dispositivo: se conservan las cinco más recientes y, de los días y las
+semanas anteriores, la primera de cada uno (12 como mucho), así que se puede
+volver a cómo estaba el trabajo hace días o un par de semanas.
 
 COMUNIDAD AUTÓNOMA: cada perfil tiene la suya (se elige al crearlo y se cambia
 en Configuración → Perfil; aparece bajo el nombre del docente en el menú). De
@@ -139,6 +141,20 @@ abierta, atrás la cierra y deja en la pantalla en la que se estaba. La
 dirección de una pantalla que el perfil no tiene lleva al Inicio, y al cambiar
 de perfil se empieza siempre por el Inicio. En la dirección no va nunca nada
 del alumnado.
+DESHACER UN BORRADO: al eliminar algo (una clase, un alumno, una columna o una
+categoría del cuaderno, una rúbrica, una diana, una escala de registro, una
+evaluación, un informe, una situación de aprendizaje, una ficha, una sesión,
+un evento, el horario, y lo equivalente en PT y AL y en Educación Física) sale
+abajo, durante unos diez segundos, un aviso que dice qué se ha eliminado, con
+el botón «Deshacer». Al pulsarlo vuelve tal como estaba, con todo lo que se fue
+con ello (una clase vuelve con su alumnado y sus notas). También vale Ctrl+Z si
+no se está escribiendo en un campo. Solo se puede deshacer el último borrado y
+mientras el aviso está a la vista; con el ratón encima, el aviso espera. Si
+después de borrar se cambia algo de lo mismo (por ejemplo, una nota tras borrar
+una columna), el aviso se retira. No cubre «Vaciar el curso» (que hace su
+propia copia), borrar un perfil, ni lo que se quita dentro de un elemento (un
+objetivo de un programa, un criterio de una rúbrica). Pasado el aviso, la
+vuelta atrás es restaurar una copia en Configuración › Datos y copias.
 La versión de la aplicación y los créditos están al pie de Configuración.
 Así, por ejemplo, las Actas están en «Documentos → Actas» y la Distribución de
 aula en «En clase → Distribución de aula». Cada grupo se pliega y despliega
@@ -457,6 +473,24 @@ que se llama así). Cada clase tiene su propia columna en su cuaderno (la de la
 primera conserva la de siempre). Al evaluar solo salen las clases de la rúbrica,
 y su tarjeta enseña en cuáles se usa. Quitar una clase no borra la columna que ya
 tenía.
+EVALUAR A LA CLASE: en la tarjeta de la rúbrica (o de la diana), «Evaluar a la
+clase» abre una ventana con la clase que toca ya puesta (se cambia arriba) y el
+primer alumno que falta elegido. A la izquierda, la lista de la clase en orden
+de lista con quién está evaluado («12 de 25 evaluados»; en el móvil, arriba,
+como una tira que se desliza): en verde con su nota quien se evaluó hoy, en
+gris con la fecha quien se evaluó otro día y en naranja «sin guardar» quien
+tiene niveles marcados y aún no guardados. Se marca el nivel de cada criterio
+(pulsar el que ya está marcado lo quita) y «Guardar y siguiente» guarda y pasa
+al siguiente sin cerrar la ventana. Si casi toda la clase está en el mismo
+nivel, «Poner a todos este nivel» lo deja marcado a quienes faltan, sin guardar
+nada; se cambia solo a quien sea una excepción y se pulsa «Guardar todo». Nada
+se guarda hasta pulsar Guardar, y lo marcado a un alumno no se pierde al pasar
+a otro. Al volver a un alumno evaluado hoy se ve lo que se le marcó y lo que se
+cambie corrige esa evaluación; si es otro trabajo distinto, «Es otro trabajo»
+guarda una segunda. Si toda la clase ya se evaluó otro día con ese instrumento,
+es una vuelta nueva: cuentan las de hoy («0 de 25 evaluados hoy») y lo que se
+guarde son evaluaciones nuevas. En las sesiones de Educación Física, «Evaluar»
+abre la misma ventana con la clase de la sesión.
 DESCARGAR EN PDF: el icono de PDF de cada tarjeta guarda la rúbrica en blanco, en
 horizontal, con sus niveles y descriptores y las líneas de alumno, clase, fecha y
 nota, para imprimirla y evaluar en papel (abre la ventana de imprimir del navegador).
@@ -464,7 +498,9 @@ nota, para imprimirla y evaluar en papel (abre la ventana de imprimir del navega
 [dianas] DIANAS
 El otro instrumento de evaluación, en su propia pestaña de Evaluar (antes iba
 dentro de Rúbricas). Una diana tiene ítems con peso y niveles de logro, y se
-evalúa marcando el nivel de cada ítem sobre la diana. Se crea a mano o con la
+evalúa marcando el nivel de cada ítem sobre la diana, con la misma ventana
+«Evaluar a la clase» de las rúbricas (lista de la clase, «Guardar y siguiente»
+y «Poner a todos este nivel»). Se crea a mano o con la
 IA y, como las rúbricas, lleva competencias clave y criterios oficiales, y su
 nota entra en el cuaderno si declara clase y categoría. El icono de PDF de cada
 tarjeta guarda la diana en blanco (un sector numerado por ítem, un anillo por
@@ -557,9 +593,15 @@ alumno e instrumento, y buscador. Al abrir una fila, «Eliminar esta evaluación
 quita una equivocada: deja de contar en las medias y en las competencias, y en
 el cuaderno su nota pasa a ser la de la evaluación anterior con ese instrumento
 o se queda vacía (el cuaderno solo cambia si la eliminada era la más reciente).
-Al volver a evaluar a un alumno con el mismo instrumento el mismo día, la app
-pregunta si es una corrección (sustituye a la de ese día) o es otro trabajo
-(se guardan las dos); en otro día es siempre otra evaluación. Si al guardar
+Tras eliminarla, el aviso «Deshacer» la devuelve durante diez segundos.
+«Corregir», al lado, abre la ventana del instrumento con lo marcado: al guardar
+se actualiza esa misma evaluación (misma fecha, no se crea otra) y, si es la
+más reciente del alumno con ese instrumento, cambia también su nota en el
+cuaderno. Vale para rúbricas, dianas y escalas de registro; no para las
+autoevaluaciones ni si el instrumento se eliminó. Al volver a evaluar el mismo
+día a un alumno desde «Evaluar a la clase», lo que se cambie corrige la
+evaluación de ese día (o «Es otro trabajo» guarda otra); en otro día es
+siempre otra evaluación, salvo con «Corregir la del…». Si al guardar
 quedan criterios o ítems sin marcar, la app avisa: no cuentan como 0, la nota
 se calcula solo con lo marcado.
 
