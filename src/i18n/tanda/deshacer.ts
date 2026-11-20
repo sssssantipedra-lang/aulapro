@@ -112,6 +112,8 @@ export const EN: Record<string, string> = {
   'Se borrarán las respuestas de {n} alumno de «{title}».': 'The answers of {n} student in "{title}" will be deleted.',
   'Se borrarán las respuestas de {n} alumnos de «{title}».': 'The answers of {n} students in "{title}" will be deleted.',
   '¿Eliminar la sesión elegida?': 'Delete the selected session?',
+  // Las copias automáticas escalonadas (lib/copiasEscalonadas.ts)
+  'Se guardan las cinco más recientes y, de los días y las semanas anteriores, la primera de cada uno.': 'The five most recent backups are kept and, for earlier days and weeks, the first one of each.',
   '¿Eliminar las {n} sesiones elegidas?': 'Delete the {n} selected sessions?',
 };
 
@@ -220,5 +222,6 @@ export const CA: Record<string, string> = {
   'Se borrarán las respuestas de {n} alumno de «{title}».': 'S’esborraran les respostes de {n} alumne de «{title}».',
   'Se borrarán las respuestas de {n} alumnos de «{title}».': 'S’esborraran les respostes de {n} alumnes de «{title}».',
   '¿Eliminar la sesión elegida?': 'Vols eliminar la sessió triada?',
+  'Se guardan las cinco más recientes y, de los días y las semanas anteriores, la primera de cada uno.': 'Es guarden les cinc més recents i, dels dies i les setmanes anteriors, la primera de cadascun.',
   '¿Eliminar las {n} sesiones elegidas?': 'Vols eliminar les {n} sessions triades?',
 };

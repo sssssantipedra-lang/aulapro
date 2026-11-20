@@ -113,6 +113,7 @@ export function DataFolder({ profileId, courseLabel, onClearSchoolYear, apoyo = 
           <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
             {t('Copias de seguridad ({n})', { n: info.backups.length })}
           </div>
+          <p className="copias-nota">{t('Se guardan las cinco más recientes y, de los días y las semanas anteriores, la primera de cada uno.')}</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 168, overflowY: 'auto' }}>
             {info.backups.map(b => (
               <div key={b.file} style={{

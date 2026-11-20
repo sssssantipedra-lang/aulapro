@@ -27,3 +27,8 @@
   @keyframes deshacer-entra { from { opacity:0; transform:translateY(14px); } }
   .con-deshacer .toast { bottom:calc(84px + var(--deshacer-alto, 60px) + 10px); }
 }
+
+/* Configuración › Datos y copias: qué copias automáticas se conservan (lib/copiasEscalonadas.ts) */
+.copias-nota { margin:-2px 0 8px; font-size:12px; line-height:1.5; color:var(--text-3); }
+
+@media print { .deshacer { display:none; } }
