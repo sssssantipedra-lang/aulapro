@@ -61,7 +61,7 @@ import { AvisoBorrador, EstadoBorrador } from '../components/AvisoBorrador';
 import type { ApoyoData } from '../types/apoyo';
 import { compararNombres } from '../lib/alumnado';
 import { bloqueVacio, cambiarTipo, dificultadDelSiguiente, duplicarEjercicio, ejercicioVacio, enumerar, fichaEnBlanco, loQuePierde, sinEjerciciosSinEscribir, type QueEnBlanco } from '../lib/fichaEnBlanco';
-import type { FichaInstante } from '../lib/fichaInstante';
+import { areaPropuesta, type FichaInstante, type GeneradorInstante as Generador } from '../lib/fichaInstante';
 import { GeneradorInstante } from '../components/fichas/GeneradorInstante';
 
 interface Props {
@@ -343,9 +343,14 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
     abrirNueva(facil && formato !== 'tarjetas' ? { ...nueva, variante: 'lectura_facil' } : nueva, false);
   }
 
+  /** Al instante: el área que se enseña y se guarda (en una hoja de cuentas, no la de la tutoría de la clase elegida). */
+  const areaInstante = (gen: Generador) => areaPropuesta(gen, area, activeClass, t('Matemáticas'));
+
   /** La ficha que ha montado un generador al instante: se abre en el editor, como las demás. */
-  function handleInstante(r: FichaInstante) {
+  function handleInstante(r: FichaInstante, gen: Generador) {
     setTema(r.content.titulo);
+    // Lo que el formulario enseñaba como área (Matemáticas en una hoja de cuentas) es lo que se guarda y se imprime
+    setArea(areaInstante(gen));
     abrirNueva(r.content, true);
     if (r.fuera.length) toast(t('No han cabido y se han quedado fuera: {lista}', { lista: r.fuera.join(', ') }));
   }
@@ -1062,6 +1067,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
           <>
             <div className="fe-paso"><span className="fe-paso-n">2</span>{t('¿Qué hoja quieres?')}</div>
             <GeneradorInstante nivel={nivel || activeClass?.name || ''} onCrear={handleInstante} avisar={toast}>
+              {gen => (
               <div className="frow fe-quien">
                 {/* Sin clases (PT y AL, o un perfil recién creado) no hay nada que elegir */}
                 {classes.length > 0 && (
@@ -1075,9 +1081,10 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
                 )}
                 <div className="fgroup">
                   <label className="flabel" htmlFor="resources-i3">{t('Área o asignatura')}</label>
-                  <input id="resources-i3" className="finput" value={area} onChange={e => setArea(e.target.value)} />
+                  <input id="resources-i3" className="finput" value={areaInstante(gen)} onChange={e => setArea(e.target.value)} />
                 </div>
               </div>
+              )}
             </GeneradorInstante>
           </>
         )}

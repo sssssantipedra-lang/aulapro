@@ -25,11 +25,11 @@ const GENERADOR: Record<Generador, { emoji: string; color: string; label: string
 interface Props {
   /** El curso escrito o el de la clase elegida: de él sale el rango de números que se propone. */
   nivel: string;
-  onCrear: (r: FichaInstante) => void;
+  onCrear: (r: FichaInstante, gen: Generador) => void;
   /** Lo que falta para poder crear la hoja (un aviso corto). */
   avisar: (mensaje: string) => void;
-  /** Lo que la pantalla pone entre el formulario y el botón (la clase y el área). */
-  children?: ReactNode;
+  /** Lo que la pantalla pone entre el formulario y el botón (la clase y el área), según la hoja elegida. */
+  children?: (gen: Generador) => ReactNode;
 }
 
 const entero = (v: string, min: number, max: number, defecto: number): number => {
@@ -92,7 +92,7 @@ export function GeneradorInstante({ nivel, onCrear, avisar, children }: Props) {
     } else {
       r = fichaFracciones({ titulo, figuras, decimal }, t, lang);
     }
-    onCrear({ ...r, content: { ...r.content, ...(conSolucionario ? { solucionario: true } : {}) } });
+    onCrear({ ...r, content: { ...r.content, ...(conSolucionario ? { solucionario: true } : {}) } }, gen);
   }
 
   const conColumnas = ops.includes('suma') || ops.includes('resta');
@@ -214,7 +214,7 @@ export function GeneradorInstante({ nivel, onCrear, avisar, children }: Props) {
           <input id="fsi-titulo" className="finput" value={titulo} onChange={e => setTitulo(e.target.value)} placeholder={t(GENERADOR[gen].label)} />
         </div>
 
-        {children}
+        {children?.(gen)}
 
         <label className="fe-check">
           <input type="checkbox" checked={conSolucionario} onChange={e => setConSolucionario(e.target.checked)} />

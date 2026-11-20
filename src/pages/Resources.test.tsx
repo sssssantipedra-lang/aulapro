@@ -10,7 +10,7 @@ import userEvent from '@testing-library/user-event';
 import { Resources } from './Resources';
 import { I18nProvider } from '../i18n';
 import { ToastProvider } from '../components/ui/Toast';
-import type { Ficha } from '../types';
+import type { Class, Ficha } from '../types';
 
 // La IA, simulada: lo que se prueba aquí es que el editor añade lo que devuelve
 const generar = vi.hoisted(() => vi.fn());
@@ -630,6 +630,33 @@ describe('Recursos · sin IA', () => {
     expect(ex.tipo).toBe('sopa_letras');
     expect(ex.palabras).toEqual(['SOL', 'LUNA', 'MAR', 'COMETA']);
     expect(ex.posiciones).toHaveLength(4);
+  });
+
+  it('en una hoja de operaciones para una clase con otra asignatura principal, el área que se enseña y se guarda es la de matemáticas', async () => {
+    localStorage.clear();
+    const onSave = vi.fn();
+    const clase = { id: 'c2', name: '2º Primaria A', subject: 'Lengua Castellana y Literatura', subjects: ['Lengua Castellana y Literatura'] } as Class;
+    render(
+      <I18nProvider>
+        <ToastProvider>
+          <Resources classes={[clase]} fichas={[]} onSave={onSave} onDelete={() => {}} onNav={() => {}} />
+        </ToastProvider>
+      </I18nProvider>,
+    );
+    await userEvent.click(screen.getByRole('radio', { name: /Al instante/ }));
+    await userEvent.selectOptions(screen.getByLabelText('Clase'), 'c2');
+    const area = screen.getByLabelText('Área o asignatura') as HTMLInputElement;
+    expect(area.value).toBe('Matemáticas');
+    // El rango sigue al curso de la clase
+    expect((screen.getByLabelText('al') as HTMLInputElement).value).toBe('50');
+    // En una sopa de letras vale la de la clase
+    await userEvent.click(screen.getByRole('radio', { name: /Escribes las palabras/ }));
+    expect((screen.getByLabelText('Área o asignatura') as HTMLInputElement).value).toBe('Lengua Castellana y Literatura');
+    await userEvent.click(screen.getByRole('radio', { name: /Hoja de operaciones/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'Crear al instante' }));
+    await userEvent.click(screen.getByRole('button', { name: /^Guardar$/ }));
+    expect((onSave.mock.calls[0][0] as Ficha).request.area).toBe('Matemáticas');
+    expect((onSave.mock.calls[0][0] as Ficha).class_id).toBe('c2');
   });
 
   it('el solucionario se marca en el editor y sale en la hoja en una página aparte', async () => {

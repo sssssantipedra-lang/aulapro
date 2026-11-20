@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  FACTOR_MAX, FACTOR_MIN, MAX_OPERACIONES, OPERACIONES, cuentaTexto, ejercicioDeCuentas, enEscalera, enTresPartes, fichaCrucigrama, fichaFracciones, fichaOperaciones,
+  FACTOR_MAX, FACTOR_MIN, MAX_OPERACIONES, OPERACIONES, areaPropuesta, cuentaTexto, ejercicioDeCuentas, enEscalera, enTresPartes, fichaCrucigrama, fichaFracciones, fichaOperaciones,
   fichaSopa, generarCuentas, llevadas, palabrasDeTexto, pesoDeCuenta, pistasDeTexto, rangoSugerido, resultadoDe, signoDe, tituloDeOperaciones, type Cuenta,
 } from './fichaInstante';
 import { translate } from '../i18n';
@@ -296,6 +296,25 @@ describe('hoja de operaciones al instante', () => {
     const ex = ejercicioDeCuentas([{ op: 'multiplicacion', a: 7, b: 8, resultado: 56 }, { op: 'division', a: 81, b: 9, resultado: 9 }], t, 'es');
     expect(ex.lineas).toEqual(['7 × 8', '81 : 9']);
     expect(ex.solucion).toBe('1. 7 × 8 = 56; 2. 81 : 9 = 9');
+  });
+});
+
+describe('el área que se propone', () => {
+  const tutoria = { subject: 'Lengua Castellana y Literatura', subjects: ['Lengua Castellana y Literatura', 'Mates', 'Matemáticas y robótica'] };
+  it('en una hoja de cuentas o de fracciones no deja el área de la tutoría: propone las matemáticas de la clase o «Matemáticas»', () => {
+    expect(areaPropuesta('operaciones', tutoria.subject, { subject: tutoria.subject }, 'Matemáticas')).toBe('Matemáticas');
+    expect(areaPropuesta('fracciones', tutoria.subject, tutoria, 'Matemáticas')).toBe('Matemáticas y robótica');
+    expect(areaPropuesta('operaciones', 'Llengua', { subject: 'Llengua', subjects: ['Llengua', 'Matemàtiques'] }, 'Matemàtiques')).toBe('Matemàtiques');
+  });
+  it('respeta lo que escribe el docente, las clases de matemáticas, las hojas de palabras y el formulario sin clase', () => {
+    expect(areaPropuesta('operaciones', 'Refuerzo', tutoria, 'Matemáticas')).toBe('Refuerzo');
+    expect(areaPropuesta('operaciones', '', tutoria, 'Matemáticas')).toBe('');
+    expect(areaPropuesta('operaciones', 'Matemáticas', { subject: 'Matemáticas' }, 'Matemáticas')).toBe('Matemáticas');
+    expect(areaPropuesta('operaciones', 'Maths', { subject: 'Maths' }, 'Mathematics')).toBe('Maths');
+    expect(areaPropuesta('sopa', tutoria.subject, tutoria, 'Matemáticas')).toBe(tutoria.subject);
+    expect(areaPropuesta('crucigrama', tutoria.subject, tutoria, 'Matemáticas')).toBe(tutoria.subject);
+    expect(areaPropuesta('operaciones', 'Lengua', null, 'Matemáticas')).toBe('Lengua');
+    expect(areaPropuesta('operaciones', 'Lengua', undefined, 'Matemáticas')).toBe('Lengua');
   });
 });
 

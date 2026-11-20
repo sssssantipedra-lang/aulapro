@@ -23,6 +23,22 @@ type Tr = (k: string, vars?: Record<string, string | number>) => string;
 export type GeneradorInstante = 'sopa' | 'crucigrama' | 'operaciones' | 'fracciones';
 export const GENERADORES_INSTANTE: readonly GeneradorInstante[] = ['sopa', 'crucigrama', 'operaciones', 'fracciones'];
 
+/**
+ * El área que se propone para la hoja. Al elegir una clase el formulario pone su asignatura principal (en Primaria
+ * puede ser Lengua): en una hoja de cuentas o de fracciones no vale, y saldría impresa en la cabecera. Si el área es
+ * todavía esa y no es de matemáticas, se proponen las matemáticas de la clase (con el nombre que les dio el docente)
+ * o, si no las tiene, «Matemáticas». Lo que escriba el docente se respeta.
+ */
+export function areaPropuesta(
+  gen: GeneradorInstante, area: string, clase: { subject: string; subjects?: string[] } | null | undefined, matematicas: string,
+): string {
+  const deCuentas = gen === 'operaciones' || gen === 'fracciones';
+  const principal = (clase?.subject ?? '').trim();
+  const esMates = (x: string) => /matem|math/i.test(x);
+  if (!deCuentas || !principal || area.trim() !== principal || esMates(area)) return area;
+  return clase?.subjects?.find(esMates) ?? matematicas;
+}
+
 /** Lo que devuelve un generador: la ficha y, si algo de lo pedido no ha podido entrar, qué. */
 export interface FichaInstante {
   content: FichaContent;
