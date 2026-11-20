@@ -155,9 +155,9 @@ export function createProfileStore(fs: Fs) {
   /**
    * `motivo`: las copias con nombre van también al Drive u OneDrive de la versión web (`vaADrive` en `driveFs.ts`).
    * Un perfil vacío no se copia: si los datos no se han podido leer, una copia vacía iría sustituyendo a las buenas.
-   * Se conservan 12 como mucho, escalonadas (20-11-2026; antes, las 12 últimas, dos horas de uso): las 5 más
-   * recientes, la primera de cada uno de los últimos días y la primera de cada una de las últimas semanas
-   * (`copiasQueSobran`, `lib/copiasEscalonadas.ts`).
+   * Se conservan 12, escalonadas (20-11-2026; antes, las 12 últimas, dos horas de uso): las 5 más recientes, la
+   * primera de cada uno de los últimos días y la primera de cada una de las últimas semanas; alguna más si un mismo
+   * día hubo varias con nombre, que se quedan la primera y la última (`copiasQueSobran`, `lib/copiasEscalonadas.ts`).
    */
   async function backup(id: string, motivo?: MotivoCopia) {
     const data = await loadData(id);

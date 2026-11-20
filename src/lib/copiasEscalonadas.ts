@@ -14,12 +14,16 @@
  * («antes-de-vaciar», «antes-de-cargar», «antes-de-restaurar»): guarda el trabajo justo antes de un paso que lo
  * cambia entero. La copia que se queda de un día o de una semana es siempre la misma (la primera), así que no se
  * va sustituyendo por otra más nueva con el paso de las horas.
+ *
+ * Si en un día o una semana hay varias copias con nombre, se quedan la primera y la última: cuando se vacía el
+ * curso y después se carga otra copia, la que guarda el curso es la primera, y quedarse solo con la última la
+ * borraba a los 50 minutos de uso (antes del escalonado duraba dos horas). Por eso puede haber alguna más de 12.
  */
 
 export const COPIAS_RECIENTES = 5;
 export const COPIAS_DE_DIAS = 4;
 export const COPIAS_DE_SEMANAS = 3;
-/** Cuántas copias automáticas hay como mucho en el dispositivo. */
+/** Cuántas copias automáticas hay como mucho en el dispositivo (alguna más si un mismo día hubo varias con nombre). */
 export const MAX_COPIAS = COPIAS_RECIENTES + COPIAS_DE_DIAS + COPIAS_DE_SEMANAS;
 
 const NOMBRE = /^copia-(\d{4})-(\d{2})-(\d{2})T(\d{2})-(\d{2})-(\d{2})(-.+)?\.json$/;
@@ -48,11 +52,12 @@ function semanaDe(d: Date): string {
 
 interface Copia { nombre: string; fecha: Date }
 
-/** De un grupo (un día, una semana), la que se queda: la última con nombre o, si no hay, la primera. */
-function laQueSeQueda(grupo: Copia[]): Copia {
+/** De un grupo (un día, una semana), las que se quedan: la primera y la última con nombre o, si no hay, la primera. */
+function lasQueSeQuedan(grupo: Copia[]): Copia[] {
+  const primera = (g: Copia[]) => g.reduce((a, b) => (b.fecha < a.fecha ? b : a));
   const conMotivo = grupo.filter(c => copiaConMotivo(c.nombre));
-  if (conMotivo.length) return conMotivo.reduce((a, b) => (b.fecha > a.fecha ? b : a));
-  return grupo.reduce((a, b) => (b.fecha < a.fecha ? b : a));
+  if (!conMotivo.length) return [primera(grupo)];
+  return [primera(conMotivo), conMotivo.reduce((a, b) => (b.fecha > a.fecha ? b : a))];
 }
 
 /** Agrupa por una clave, conservando el orden en que aparece cada clave (de la más nueva a la más antigua). */
@@ -81,9 +86,9 @@ export function copiasQueSobran(nombres: string[]): string[] {
   const seQuedan = new Set(copias.slice(0, COPIAS_RECIENTES).map(c => c.nombre));
   const resto = copias.slice(COPIAS_RECIENTES);
   const dias = agrupar(resto, diaDe);
-  for (const dia of dias.slice(0, COPIAS_DE_DIAS)) seQuedan.add(laQueSeQueda(dia).nombre);
+  for (const dia of dias.slice(0, COPIAS_DE_DIAS)) for (const c of lasQueSeQuedan(dia)) seQuedan.add(c.nombre);
   const semanas = agrupar(dias.slice(COPIAS_DE_DIAS).flat(), semanaDe);
-  for (const semana of semanas.slice(0, COPIAS_DE_SEMANAS)) seQuedan.add(laQueSeQueda(semana).nombre);
+  for (const semana of semanas.slice(0, COPIAS_DE_SEMANAS)) for (const c of lasQueSeQuedan(semana)) seQuedan.add(c.nombre);
 
   return copias.filter(c => !seQuedan.has(c.nombre)).map(c => c.nombre);
 }

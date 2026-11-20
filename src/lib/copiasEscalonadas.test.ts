@@ -101,6 +101,22 @@ describe('qué copias se conservan', () => {
     expect(hay.length).toBeLessThanOrEqual(MAX_COPIAS);
   });
 
+  it('dos copias con nombre el mismo día: se quedan la primera (la que guarda el curso) y la última', () => {
+    // A las 9:02 se vacía el curso, a las 9:07 se carga otra copia y a las 9:12 se restaura otra: tres con nombre
+    const antesDeVaciar = copia(2026, 6, 22, 9, 2, 'antes-de-vaciar');
+    const antesDeCargar = copia(2026, 6, 22, 9, 7, 'antes-de-cargar');
+    const antesDeRestaurar = copia(2026, 6, 22, 9, 12, 'antes-de-restaurar');
+    let hay = [copia(2026, 6, 22, 9, 0), antesDeVaciar, antesDeCargar, antesDeRestaurar];
+    // Se sigue trabajando esa mañana y los días siguientes: la del curso no se va por haber otra con nombre detrás
+    for (const c of jornada(2026, 6, 22).slice(2)) { hay.push(c); hay = quedan(hay); expect(hay).toContain(antesDeVaciar); }
+    for (const d of [23, 24, 25]) for (const c of jornada(2026, 6, d)) { hay.push(c); hay = quedan(hay); }
+    expect(hay).toContain(antesDeVaciar);
+    expect(hay).toContain(antesDeRestaurar);
+    expect(hay).not.toContain(antesDeCargar);
+    // Una de más, como mucho, por ese día
+    expect(hay.length).toBeLessThanOrEqual(MAX_COPIAS + 1);
+  });
+
   it('un archivo cuyo nombre no se entiende no se borra', () => {
     const hay = [...jornada(2026, 11, 20), 'copia-rara.json', 'copia-2026-99-99.json'];
     const sobran = copiasQueSobran(hay);
