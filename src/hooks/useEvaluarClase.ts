@@ -134,8 +134,14 @@ export function useEvaluarClase(o: Opciones) {
   const actual = marcadoDe(studentId);
   const corrige = studentId ? corrigeDe(studentId) : undefined;
   const ultima = studentId ? ultimas[studentId] : undefined;
+  /*
+   * A quién se pasa con «Guardar y siguiente»: al siguiente de la lista sin ninguna evaluación con este instrumento.
+   * Pero si al alumno elegido se le está haciendo una evaluación nueva teniendo ya una de otro día, es que se
+   * vuelve a evaluar a la clase (otro trimestre, otra tarea): entonces, al siguiente que no esté evaluado hoy.
+   */
+  const otraRonda = !!ultima && ultima.date !== hoy && !corrige;
   const siguienteId = corrigiendo ? undefined
-    : siguientePendiente(alumnado.map(s => s.id), studentId, id => !!ultimas[id]);
+    : siguientePendiente(alumnado.map(s => s.id), studentId, otraRonda ? id => ultimas[id]?.date === hoy : id => !!ultimas[id]);
 
   /* ── Marcar al alumno elegido ── */
 
