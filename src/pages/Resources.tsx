@@ -7,6 +7,11 @@
  * bloque que se edita, se mueve, se borra o se rehace con IA; a la derecha,
  * la hoja A4 tal cual se imprimirá, en vivo. El tema visual se cambia con un
  * clic sin volver a generar nada.
+ *
+ * Sin IA también se crea (20-11-2026): «Empezar en blanco» abre el editor con
+ * la estructura vacía (`lib/fichaEnBlanco.ts`) y la tarjeta «Al instante»
+ * monta por código sopas, crucigramas, operaciones y fracciones
+ * (`lib/fichaInstante.ts`, `components/fichas/GeneradorInstante.tsx`).
  */
 import { CasillaAcs } from '../components/apoyo/CasillaAcs';
 import { useAcsParaIA } from '../hooks/useAcsParaIA';
@@ -15,11 +20,11 @@ import type { AcsApoyo } from '../types/apoyo';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  Sparkles, Plus, Trash2, Check, FileDown, FileType2, ArrowLeft, ArrowUp, ArrowDown, Wand2, Layers, Eye, ChevronDown, MonitorPlay, NotebookPen, BookOpen, KeyRound, Scissors, FlipHorizontal2, Image as ImageIcon, Pencil, Grid2x2,
+  Sparkles, Plus, Trash2, Check, FileDown, FileType2, ArrowLeft, ArrowUp, ArrowDown, Wand2, Layers, Eye, ChevronDown, MonitorPlay, NotebookPen, BookOpen, KeyRound, Scissors, FlipHorizontal2, Image as ImageIcon, Pencil, Grid2x2, Zap, FilePlus2,
 } from 'lucide-react';
 import type { Class, Ficha, Student } from '../types';
 import {
-  generateFicha, regenerateExercise, rewriteStory, adaptFicha, cleanCode, addExercise, moreCards, moreCardsInteractivas, conHilo, tiposDisponibles,
+  generateFicha, regenerateExercise, rewriteStory, adaptFicha, cleanCode, addExercise, moreCards, moreCardsInteractivas, conHilo, tiposDisponibles, prepareExercise, resolverHilo,
   type FichaContent, type FichaExercise, type FichaExerciseType, type FichaThemeChoice, type FichaRequest,
   type FichaFormato, type FichaVariante, type FichaTarjetaInteractiva,
 } from '../services/resources';
@@ -55,6 +60,9 @@ import { useBorrador } from '../hooks/useBorrador';
 import { AvisoBorrador, EstadoBorrador } from '../components/AvisoBorrador';
 import type { ApoyoData } from '../types/apoyo';
 import { compararNombres } from '../lib/alumnado';
+import { bloqueVacio, cambiarTipo, dificultadDelSiguiente, duplicarEjercicio, ejercicioVacio, fichaEnBlanco, pierdeAlCambiar, type QueEnBlanco } from '../lib/fichaEnBlanco';
+import type { FichaInstante } from '../lib/fichaInstante';
+import { GeneradorInstante } from '../components/fichas/GeneradorInstante';
 
 interface Props {
   classes: Class[];
@@ -95,18 +103,22 @@ type T = (k: string, v?: Record<string, string | number>) => string;
 
 const FORMATO_LABEL: Record<FichaFormato, string> = { ficha: 'Ficha', escape: 'Escape room', tarjetas: 'Tarjetas' };
 
-/** Lo que se puede crear: las cuatro tarjetas grandes del primer paso. La comprensión lectora es una ficha con texto (siempre en «Cuaderno»). */
-type TipoCreacion = FichaFormato | 'lectura';
+/**
+ * Lo que se puede crear: las tarjetas grandes del primer paso. La comprensión lectora es una ficha con texto (siempre en
+ * «Cuaderno») y «Al instante», una ficha que monta el código sin IA (sopa, crucigrama, operaciones o fracciones).
+ */
+type TipoCreacion = FichaFormato | 'lectura' | 'instante';
 
 const TIPOS_CREACION: { id: TipoCreacion; icono: React.ReactNode; color: string; label: string; desc: string; dato: string }[] = [
   { id: 'ficha', icono: <NotebookPen size={24} />, color: '#ec4899', label: 'Ficha de ejercicios', desc: 'Ejercicios de menos a más, para trabajar en la hoja.', dato: 'Se imprime en PDF o Word' },
   { id: 'lectura', icono: <BookOpen size={24} />, color: '#0ea5e9', label: 'Comprensión lectora', desc: 'Un texto con dibujos y actividades sobre él.', dato: 'Cuento, poema, noticia…' },
   { id: 'escape', icono: <KeyRound size={24} />, color: '#f59e0b', label: 'Escape room', desc: 'Cada bloque es una sala con su candado.', dato: 'Se puede proyectar en clase' },
   { id: 'tarjetas', icono: <Layers size={24} />, color: '#8b5cf6', label: 'Tarjetas', desc: 'Pregunta delante y respuesta detrás.', dato: 'Se puede proyectar en clase' },
+  { id: 'instante', icono: <Zap size={24} />, color: '#10b981', label: 'Al instante (sin IA)', desc: 'Sopa de letras, crucigrama, operaciones o fracciones con pizzas.', dato: 'Sin clave, sin espera y sin errores de cuentas' },
 ];
 
 /** Cuántos ejercicios (o tarjetas) se proponen al elegir cada tipo. */
-const NUM_POR_DEFECTO: Record<TipoCreacion, number> = { ficha: 6, lectura: 8, escape: 6, tarjetas: 12 };
+const NUM_POR_DEFECTO: Record<TipoCreacion, number> = { ficha: 6, lectura: 8, escape: 6, tarjetas: 12, instante: 6 };
 
 const VARIANTES: { id: FichaVariante; emoji: string; desc: string }[] = [
   { id: 'apoyo', emoji: '🤝', desc: 'Más guiada y con números más sencillos.' },
@@ -208,7 +220,8 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
   const [tipo, setTipo] = useState<TipoCreacion>('ficha');
   /** Tarjetas: si se eligen recortables o interactivas (se giran en pantalla). */
   const [modoTarjeta, setModoTarjeta] = useState<'recortables' | 'interactivas'>('recortables');
-  const formato: FichaFormato = tipo === 'lectura' ? 'ficha' : tipo;
+  const instante = tipo === 'instante';
+  const formato: FichaFormato = tipo === 'lectura' || tipo === 'instante' ? 'ficha' : tipo;
   // Comprensión lectora: el tipo de texto ('auto' lo elige la IA) y, para cualquier ficha, la lectura fácil (dislexia)
   const [generoLectura, setGeneroLectura] = useState<GeneroLectura | 'auto'>('auto');
   const [facil, setFacil] = useState(false);
@@ -269,7 +282,8 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
 
   const lectura = tipo === 'lectura';
   const request = (): FichaRequest => ({
-    tema, area, nivel, numEjercicios, niveles, contextoClase, formato, hilo,
+    // Una ficha empezada en blanco no tiene «¿De qué trata?»: para la IA del editor vale su título
+    tema: tema.trim() || content?.titulo || '', area, nivel, numEjercicios, niveles, contextoClase, formato, hilo,
     // La comprensión lectora es siempre «Cuaderno» y sin pictogramas; con tarjetas no hay lectura fácil
     estilo: lectura ? 'cuaderno' : estilo, visual: visual && !lectura, lectura, generoLectura, facil: facil && tipo !== 'tarjetas',
     interactivas: tipo === 'tarjetas' && modoTarjeta === 'interactivas',
@@ -305,6 +319,35 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
     setDirty(true);
     setSelected(null);
     window.scrollTo({ top: 0 });
+  }
+
+  /* ── Sin IA: en blanco y al instante ── */
+  function abrirNueva(c: FichaContent, sinGuardar: boolean) {
+    setContent(c);
+    setEditingId(null);
+    setDirty(sinGuardar);
+    setSelected(null);
+    window.scrollTo({ top: 0 });
+  }
+
+  /** Abre el editor con la estructura vacía de lo elegido en el paso 1; lo escrito en «¿De qué trata?» es su título. */
+  function handleBlank() {
+    const que: QueEnBlanco = tipo === 'tarjetas' ? (modoTarjeta === 'interactivas' ? 'interactivas' : 'tarjetas') : tipo === 'instante' ? 'ficha' : tipo;
+    const titulo = tema.trim();
+    const aspecto = lectura ? 'cuaderno' : estilo;
+    // El hilo conductor: el elegido o, con tema escrito, el que le encaja; sin tema, la hoja nace sin dibujos
+    const hiloId = que === 'ficha' && (titulo || (hilo !== 'auto' && hilo !== 'ninguno'))
+      ? resolverHilo({ tema: titulo, area, nivel, hilo }, aspecto === 'auto' ? 'cuaderno' : aspecto, 'ficha', false)?.id
+      : undefined;
+    const nueva = fichaEnBlanco(que, { titulo, estilo: aspecto, hilo: hiloId, generoLectura });
+    abrirNueva(facil && formato !== 'tarjetas' ? { ...nueva, variante: 'lectura_facil' } : nueva, false);
+  }
+
+  /** La ficha que ha montado un generador al instante: se abre en el editor, como las demás. */
+  function handleInstante(r: FichaInstante) {
+    setTema(r.content.titulo);
+    abrirNueva(r.content, true);
+    if (r.fuera.length) toast(t('No han cabido y se han quedado fuera: {lista}', { lista: r.fuera.join(', ') }));
   }
 
   function currentFicha(): Ficha | null {
@@ -436,6 +479,44 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
     edit(c => ({ ...c, actividades: c.actividades.filter((_, ai) => ai !== a) }));
     setSelected(null);
   };
+
+  /* ── A mano, sin IA: añadir un ejercicio vacío, cambiarle el tipo, duplicarlo y añadir un bloque ── */
+  const hiloDeLaFicha = () => (content?.visual || content?.lectura ? undefined : hiloPorId(content?.hilo));
+
+  function handleAddManual(a: number) {
+    if (!content) return;
+    const nuevo = prepareExercise(ejercicioVacio(addTipo[a] || 'abierta', { lang, hilo: hiloDeLaFicha() }));
+    const n = content.actividades[a]?.ejercicios.length ?? 0;
+    edit(c => ({ ...c, actividades: c.actividades.map((act, ai) => (ai === a ? { ...act, ejercicios: [...act.ejercicios, nuevo] } : act)) }));
+    setSelected(`${a}-${n}`);
+  }
+
+  function handleChangeType(a: number, i: number, nuevoTipo: FichaExerciseType) {
+    const ex = content?.actividades[a]?.ejercicios[i];
+    if (!ex || ex.tipo === nuevoTipo) return;
+    if (pierdeAlCambiar(ex) && !window.confirm(t('Al cambiar el tipo se pierde lo que no encaja en el nuevo (la tabla, las viñetas, las pistas o los dibujos). El enunciado y la solución se conservan. ¿Cambiar?'))) return;
+    patchEx(a, i, prepareExercise(cambiarTipo(ex, nuevoTipo, { lang, hilo: hiloDeLaFicha() })));
+  }
+
+  function handleDuplicate(a: number, i: number) {
+    edit(c => ({
+      ...c,
+      actividades: c.actividades.map((act, ai) => (ai === a
+        ? { ...act, ejercicios: [...act.ejercicios.slice(0, i + 1), duplicarEjercicio(act.ejercicios[i]), ...act.ejercicios.slice(i + 1)] }
+        : act)),
+    }));
+    setSelected(`${a}-${i + 1}`);
+  }
+
+  function handleAddBlock() {
+    if (!content) return;
+    const n = content.actividades.length;
+    edit(c => ({
+      ...c,
+      actividades: [...c.actividades, { ...bloqueVacio(dificultadDelSiguiente(c.actividades)), ...(c.formato === 'escape' ? { candado: { codigo: '', pista: '' } } : {}) }],
+    }));
+    setSelected(`act-${n}`);
+  }
 
   async function handleRegenerate(a: number, i: number, instruccion: string, tipo?: FichaExerciseType) {
     if (!content) return;
@@ -778,7 +859,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
                       />
                     )}
                     <span className="fe-act-lbl">{t(escape ? 'Sala' : theme.paso)} {a + 1}</span>
-                    <input className="fe-act-ttl" value={act.titulo} aria-label={t('Título del bloque')} onChange={e => patchAct(a, { titulo: e.target.value })} />
+                    <input className="fe-act-ttl" value={act.titulo} aria-label={t('Título del bloque')} placeholder={t('Título del bloque')} onChange={e => patchAct(a, { titulo: e.target.value })} />
                     <select
                       className="fe-act-niv" value={act.dificultad ?? ''} aria-label={t('Nivel del bloque')} title={t('Las fichas van de menos a más')}
                       onClick={e => e.stopPropagation()}
@@ -809,19 +890,25 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
                         onMove={dir => moveEx(a, i, dir)}
                         onDelete={() => deleteEx(a, i)}
                         onRegenerate={(ins, tipo) => handleRegenerate(a, i, ins, tipo)}
+                        onChangeType={nuevo => handleChangeType(a, i, nuevo)}
+                        onDuplicate={() => handleDuplicate(a, i)}
                       />
                     ))}
-                    {!act.ejercicios.length && <p className="fe-empty">{t('Este bloque se ha quedado sin ejercicios.')}</p>}
+                    {!act.ejercicios.length && <p className="fe-empty">{t('Este bloque aún no tiene ejercicios. Añade el primero aquí abajo.')}</p>}
                     <div className="fe-add-row">
                       <select
                         className="finput" value={addTipo[a] ?? ''} aria-label={t('Tipo del ejercicio nuevo')}
                         onChange={e => setAddTipo(m => ({ ...m, [a]: e.target.value as FichaExerciseType | '' }))}
                       >
-                        <option value="">{t('Que elija la IA')}</option>
+                        {/* Sin clave no hay «Que elija la IA»: el desplegable empieza en «Respuesta abierta», que es lo que se añade a mano sin elegir */}
+                        {!sinClave && <option value="">{t('Que elija la IA')}</option>}
                         {tiposDisponibles({ dibujos: !!content.hilo && !content.visual && !content.lectura, fracciones: content.estilo === 'cuaderno' && !content.visual && !content.lectura, lectura: !!content.lectura }).map(x => <option key={x} value={x}>{TIPO_EMOJI[x]} {t(TIPO_LABEL[x])}</option>)}
                       </select>
-                      <button type="button" className="fe-redo-btn" disabled={sinClave || adding !== null} onClick={() => handleAddExercise(a)}>
-                        {adding === a ? <span className="spin" /> : <Plus size={13} />}{t('Añadir ejercicio con IA')}
+                      <button type="button" className="btn-ghost sm" onClick={() => handleAddManual(a)} title={t('Añade un ejercicio vacío de ese tipo para escribirlo tú')}>
+                        <Plus size={14} />{t('Añadir ejercicio')}
+                      </button>
+                      <button type="button" className="fe-redo-btn" disabled={sinClave || adding !== null} onClick={() => handleAddExercise(a)} title={sinClave ? t('Hace falta la clave de la IA') : undefined}>
+                        {adding === a ? <span className="spin" /> : <Sparkles size={13} />}{t('Añadir ejercicio con IA')}
                       </button>
                     </div>
                   </div>
@@ -848,6 +935,18 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
                 </div>
               );
             })}
+
+            {!tarjetas && (
+              <div className="fsi-pie">
+                <button type="button" className="btn-ghost sm" onClick={handleAddBlock}>
+                  <Plus size={14} />{t(escape ? 'Añadir sala' : 'Añadir bloque')}
+                </button>
+                <label className="fe-check fsi-solucionario" title={t('Sale al final del PDF y del Word, con la solución de cada ejercicio. Sin marcar, las soluciones solo se ven aquí.')}>
+                  <input type="checkbox" checked={!!content.solucionario} onChange={e => edit(c => ({ ...c, solucionario: e.target.checked || undefined }))} />
+                  {t('Imprimir el solucionario en una página aparte')}
+                </label>
+              </div>
+            )}
 
             {story && historia && !tarjetas && (
               <div className={`${blockCls('cierre')} fe-story`} {...selectOn('cierre')}>
@@ -897,12 +996,12 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
       <div className="pg-hd">
         <div>
           <h1 className="pg-title">{t('Recursos')}</h1>
-          <p className="pg-sub">{t('Fichas, lecturas y juegos listos para imprimir: la IA los crea y tú los retocas.')}</p>
+          <p className="pg-sub">{t('Fichas, lecturas y juegos listos para imprimir: con IA, al instante o en blanco, y tú los retocas.')}</p>
         </div>
       </div>
 
       {sinClave && (
-        <AiKeyNotice message={t('Para generar recursos hace falta la clave gratuita de Google que se configura en Configuración.')} action={t('Configurar la IA')} onAction={() => { requestSettingsPanel('ia'); onNav('profile'); }} />
+        <AiKeyNotice message={t('Sin la clave gratuita de Google puedes empezar en blanco o crear hojas al instante. Para que la IA escriba los recursos, configúrala.')} action={t('Configurar la IA')} onAction={() => { requestSettingsPanel('ia'); onNav('profile'); }} />
       )}
 
       {borrador.encontrado && (
@@ -911,7 +1010,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
 
       <div className="card fe-create" style={{ marginBottom: 16 }}>
         <div className="fe-paso"><span className="fe-paso-n">1</span>{t('¿Qué quieres crear?')}</div>
-        <div className="ev-cards cuatro fe-tipos" role="radiogroup" aria-label={t('Qué quieres crear')}>
+        <div className="ev-cards cinco fe-tipos fsi-tipos" role="radiogroup" aria-label={t('Qué quieres crear')}>
           {TIPOS_CREACION.map(x => (
             <button
               key={x.id} type="button" role="radio" aria-checked={tipo === x.id}
@@ -951,6 +1050,28 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
           </div>
         )}
 
+        {instante && (
+          <>
+            <div className="fe-paso"><span className="fe-paso-n">2</span>{t('¿Qué hoja quieres?')}</div>
+            <GeneradorInstante nivel={nivel || activeClass?.name || ''} onCrear={handleInstante} avisar={toast}>
+              <div className="frow fe-quien">
+                <div className="fgroup">
+                  <label className="flabel" htmlFor="resources-i2">{t('Clase')}</label>
+                  <select id="resources-i2" className="finput" value={classId} onChange={e => pickClass(e.target.value)}>
+                    <option value="">{t('Sin clase concreta')}</option>
+                    {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                </div>
+                <div className="fgroup">
+                  <label className="flabel" htmlFor="resources-i3">{t('Área o asignatura')}</label>
+                  <input id="resources-i3" className="finput" value={area} onChange={e => setArea(e.target.value)} />
+                </div>
+              </div>
+            </GeneradorInstante>
+          </>
+        )}
+
+        {!instante && (<>
         <div className="fe-paso"><span className="fe-paso-n">2</span>{t('¿De qué trata?')}</div>
         <div className="fgroup">
           <input
@@ -1117,8 +1238,18 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
               ? <><span className="spin" />{t('Creando…')}</>
               : <><Sparkles size={15} />{t(tipo === 'escape' ? 'Crear escape room' : tipo === 'tarjetas' ? 'Crear tarjetas' : tipo === 'lectura' ? 'Crear comprensión lectora' : 'Crear ficha')}</>}
           </button>
+          {!generating && (
+            <>
+              <span className="fsi-o">{t('o@@crear')}</span>
+              <button type="button" className="btn-ghost fe-crear-btn" onClick={handleBlank} title={t('Abre el editor con la estructura vacía para escribirla tú, sin IA')}>
+                <FilePlus2 size={15} />{t('Empezar en blanco')}
+              </button>
+              <span className="fe-hint">{t(tipo === 'tarjetas' ? 'Sin IA: un mazo vacío para escribir tú las tarjetas.' : tipo === 'escape' ? 'Sin IA: las tres salas con su candado, para escribirlas tú.' : 'Sin IA: los tres bloques de menos a más, para añadir tú los ejercicios.')}</span>
+            </>
+          )}
           {generating && <span className="fe-hint">{t(lectura ? 'La IA está escribiendo el texto y las actividades. Tarda unos segundos.' : 'La IA está escribiendo la historia y los ejercicios. Tarda unos segundos.')}</span>}
         </div>
+        </>)}
       </div>
 
       <div className="card">

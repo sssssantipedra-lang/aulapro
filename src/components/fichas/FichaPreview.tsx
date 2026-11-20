@@ -65,7 +65,7 @@ export function FichaPreview({ ficha, lang, selected, onSelect, onDensidad }: Pr
   // El compositor: mide la hoja tal como se imprime con cada densidad y elige la que mejor la deja
   const conDensidad = admiteDensidad(ficha.content);
   const htmlMedir = useMemo(
-    () => (conDensidad ? buildFichaHtml(ficha, lang, { art, pictos, ilustraciones, fontCss, densidad: 'normal' }) : ''),
+    () => (conDensidad ? buildFichaHtml(ficha, lang, { art, pictos, ilustraciones, fontCss, densidad: 'normal', solucionario: false }) : ''),
     [conDensidad, ficha, lang, art, pictos, ilustraciones, fontCss],
   );
   const [composicion, setComposicion] = useState<Composicion | null>(null);
