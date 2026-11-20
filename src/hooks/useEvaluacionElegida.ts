@@ -40,12 +40,10 @@ export function useEvaluacionElegida(): EvaluacionElegida {
 
   const cambiarRango = useCallback((r: RangoDeFechas) => {
     if (!r.desde || !r.hasta || r.desde > r.hasta) return;
-    setRangos(antes => {
-      const nuevos = conVecinos(periodo, r, hoy, antes);
-      guardarRangos(nuevos, hoy);
-      return nuevos;
-    });
-  }, [periodo, hoy]);
+    const nuevos = conVecinos(periodo, r, hoy, rangos);
+    guardarRangos(nuevos, hoy);
+    setRangos(nuevos);
+  }, [periodo, hoy, rangos]);
 
   return useMemo(() => ({
     hoy, periodo, elegir, rangos, cambiarRango,
