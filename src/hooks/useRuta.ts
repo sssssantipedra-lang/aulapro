@@ -137,13 +137,13 @@ export function useRuta({ profileId, tipo }: {
     };
     window.addEventListener('popstate', alCambiar);
     window.addEventListener('hashchange', alCambiar);
-    window.addEventListener('pointerdown', alTocar, true);
-    window.addEventListener('keydown', alTocar, true);
+    // «click» también: un lector de pantalla pulsa un botón sin puntero ni teclado
+    const TOQUES = ['pointerdown', 'keydown', 'click'] as const;
+    for (const ev of TOQUES) window.addEventListener(ev, alTocar, true);
     return () => {
       window.removeEventListener('popstate', alCambiar);
       window.removeEventListener('hashchange', alCambiar);
-      window.removeEventListener('pointerdown', alTocar, true);
-      window.removeEventListener('keydown', alTocar, true);
+      for (const ev of TOQUES) window.removeEventListener(ev, alTocar, true);
     };
   }, []);
 
