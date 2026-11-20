@@ -14,6 +14,7 @@ import { clasesDe, objetivoPara } from '../lib/objetivos';
 import { BIEN, MEJORABLE, cuentaRegistro, notaRegistro } from '../lib/registro';
 import { compararAlumnos } from '../lib/alumnado';
 import { isoDate } from '../lib/utils';
+import { useClaseActiva } from '../hooks/useClaseActiva';
 
 interface Props {
   escala: EvalDiana;
@@ -46,8 +47,9 @@ export function ValorarRegistro({ escala, classes, students, evaluations, claseI
     return m;
   }
 
-  const [claseId, setClaseId] = useState(() =>
-    (claseInicial && clasesEval.some(c => c.id === claseInicial) ? claseInicial : clasesEval[0]?.id) ?? '');
+  // La clase pedida por quien abre la ventana (la de la sesión) o, entre las de la escala, la de la regla
+  // común: la de ahora, la última con la que se trabajó o la primera (`useClaseActiva`)
+  const [claseId, setClaseId] = useClaseActiva(clasesEval, claseInicial);
   const [marcas, setMarcas] = useState<Marcas>(() => previas(students.filter(s => s.class_id === claseId)));
   const alumnado = useMemo(() => students.filter(s => s.class_id === claseId).sort(compararAlumnos), [students, claseId]);
 

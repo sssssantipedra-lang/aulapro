@@ -99,7 +99,7 @@ export function SeatingPlan({
 }: Props) {
   const { toast } = useToast();
   const { t, lang } = useI18n();
-  const [classId, setClassId] = useClaseActiva(classes);
+  const [classId, setClassId, llevarClase] = useClaseActiva(classes);
   const [notasDocente, setNotasDocente] = useState('');
   const [generating, setGenerating] = useState(false);
   const [configOpen, setConfigOpen] = useState(false);
@@ -698,7 +698,8 @@ export function SeatingPlan({
           onAdd={onAddMark}
           onDelete={onDeleteMark}
           onClose={() => setMarking(null)}
-          onNav={onNav}
+          // «Ir al cuaderno» abre el cuaderno de la clase que se está viendo aquí
+          onNav={s => { llevarClase(); onNav(s); }}
         />
       )}
     </section>

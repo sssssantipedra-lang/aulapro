@@ -261,7 +261,8 @@ const arriba = () => page.evaluate(() => window.scrollTo(0, 0));
 const foto = async (opts = {}, y = 0) => { await arriba(); if (y) await page.evaluate(v => window.scrollTo(0, v), y); await page.waitForTimeout(350); return page.screenshot(opts); };
 /** Elige en un desplegable la opción cuyo texto empieza así (para enseñar clases de Primaria). */
 async function elegir(select, texto) {
-  const v = await select.locator('option').evaluateAll((os, t) => (os.find(o => o.textContent.trim().startsWith(t)) ?? os.find(o => o.value))?.value, texto);
+  // La clase de ahora lleva un punto delante en el desplegable («● 5º Primaria A»): no cuenta para buscarla
+  const v = await select.locator('option').evaluateAll((os, t) => (os.find(o => o.textContent.replace(/^●\s*/, '').trim().startsWith(t)) ?? os.find(o => o.value))?.value, texto);
   await select.selectOption(v);
   await page.waitForTimeout(400);
 }
@@ -496,7 +497,8 @@ await pestana('Anotar actitud');
 
 await pestana('Distribución de aula');
 {
-  await elegir(page.locator('main .seat-select'), '2º Primaria A');
+  // Desde el 20-11-2026 la Distribución usa el selector de clase común (ClassChips), no `.seat-select`
+  await elegir(page.locator('main .seat-toolbar .class-pick select').first(), '2º Primaria A');
   const sentar = page.getByRole('button', { name: 'Sentar por orden de lista' }).first();
   if (await sentar.isVisible()) { await sentar.click(); await page.waitForTimeout(600); }
   await pantalla('distribucion', 'Distribución de aula', 'enclase');

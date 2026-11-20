@@ -211,11 +211,12 @@ const EF_CATEGORIES_EN: { name: string; weight: number }[] = [
 function GradesTab({
   classes, students, gradeCategories, gradeItems, grades, classMarks, marksConfigs, onSaveMarksConfig,
   onAddCategory, onUpdateCategory, onDeleteCategory,
-  onAddItem, onUpdateItem, onDeleteItem, onSetGrade, onNav, acsAula = [], comunidad,
-}: Omit<Props, 'lawDocument' | 'onLawDocumentChange'>) {
+  onAddItem, onUpdateItem, onDeleteItem, onSetGrade, onNav, acsAula = [], comunidad, clase,
+}: Omit<Props, 'lawDocument' | 'onLawDocumentChange'> & { clase: ReturnType<typeof useClaseActiva> }) {
   const { toast } = useToast();
   const { t, locale, lang } = useI18n();
-  const [classId, setClassId, llevarClase] = useClaseActiva(classes);
+  // La clase la lleva la página: es la misma en «Calificaciones» y en «Por competencias»
+  const [classId, setClassId, llevarClase] = clase;
   const [catModal, setCatModal]   = useState<GradeCategory | 'new' | null>(null);
   const [itemModal, setItemModal] = useState<GradeItem | 'new' | null>(null);
 
@@ -1277,6 +1278,9 @@ function AiTab({ data, chat, onChatChange, lawDocument, onLawDocumentChange, onN
 export function Notebook(props: Props) {
   const [tab, setTab] = useState<'grades' | 'competencias' | 'ai'>('grades');
   const { t } = useI18n();
+  // La clase se elige una vez para todo el cuaderno: al pasar de «Calificaciones» a «Por competencias» y al
+  // volver se sigue viendo la misma, aunque el horario diga que ahora toca otra
+  const clase = useClaseActiva(props.classes);
 
   return (
     <section className="sec active">
@@ -1298,9 +1302,9 @@ export function Notebook(props: Props) {
         </div>
       </div>
 
-      {tab === 'grades' ? <GradesTab {...props} /> : tab === 'competencias' ? (
+      {tab === 'grades' ? <GradesTab {...props} clase={clase} /> : tab === 'competencias' ? (
         <Suspense fallback={<div className="card"><p className="ce-aviso">{t('Cargando…')}</p></div>}>
-          <CompetenciasDeLaClase classes={props.classes} students={props.students} evaluations={props.evaluations} comunidad={props.comunidad} onNav={props.onNav} />
+          <CompetenciasDeLaClase classes={props.classes} students={props.students} evaluations={props.evaluations} comunidad={props.comunidad} onNav={props.onNav} clase={clase[0]} onClase={clase[1]} />
         </Suspense>
       ) : (
         <AiTab

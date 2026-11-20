@@ -30,15 +30,21 @@ function Nota({ valor }: { valor: number | null }) {
   );
 }
 
-export function CompetenciasDeLaClase({ classes, students, evaluations, comunidad, onNav }: {
+export function CompetenciasDeLaClase({ classes, students, evaluations, comunidad, onNav, clase, onClase }: {
   classes: Class[];
   students: Student[];
   evaluations: Evaluation[];
   comunidad: ComunidadId | undefined;
   onNav: (s: string) => void;
+  /** La clase que lleva quien la muestra (el cuaderno, que la comparte entre sus pestañas) y cómo cambiarla. */
+  clase?: string;
+  onClase?: (id: string) => void;
 }) {
   const { t, lang, locale } = useI18n();
-  const [classId, setClassId] = useClaseActiva(classes);
+  // Suelta, elige su clase con la regla común; dentro del cuaderno, sigue la del cuaderno
+  const [propia, setPropia] = useClaseActiva(classes, clase);
+  const classId = clase ?? propia;
+  const setClassId = onClase ?? setPropia;
   const cls = classes.find(c => c.id === classId) ?? classes[0] ?? null;
   const { estado, materias, curriculo } = useMateriasOficiales(cls, comunidad);
   const [elegida, setElegida] = useState('');
