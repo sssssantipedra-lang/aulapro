@@ -47,9 +47,11 @@ interface Props {
   /** Sección abierta ahora mismo, para dar contexto a la respuesta. */
   section: string;
   onNav: (s: string) => void;
+  /** Si esa pantalla está en el menú de este perfil. Sin ella, el botón «Ir a…» sale siempre. */
+  puedeIr?: (s: string) => boolean;
 }
 
-export function HelpChat({ section, onNav }: Props) {
+export function HelpChat({ section, onNav, puedeIr }: Props) {
   const { t, lang } = useI18n();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
@@ -237,7 +239,7 @@ export function HelpChat({ section, onNav }: Props) {
                 {messages.map(m => (
                   <div key={m.id} className={m.role === 'user' ? 'help-msg-user' : 'help-msg-ai'}>
                     {m.role === 'user' ? m.text : <RichText text={m.text} />}
-                    {m.target && (
+                    {m.target && (!puedeIr || puedeIr(m.target)) && (
                       <button
                         className="help-goto"
                         onClick={() => { onNav(m.target as string); setOpen(false); }}

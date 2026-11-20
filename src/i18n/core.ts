@@ -17,6 +17,8 @@ import { EN as TANDA_TIEMPO_EN } from './tanda/tiempo';
 import { EN as TANDA_DARLACLASE_EN } from './tanda/darLaClase';
 import { EN as TANDA_INFORMEREGLAS_EN } from './tanda/informeReglas';
 import { EN as TANDA_RUBRICASMODELO_EN } from './tanda/rubricasModelo';
+import { EN as TANDA_PERIODOCOMPETENCIAS_EN } from './tanda/periodoCompetencias';
+import { EN as TANDA_PEGARNOTAS_EN } from './tanda/pegarNotas';
 import { COMPARTIR_EN } from './compartir';
 import { WEB_EN } from './web';
 import { IMAGENES_EN } from './imagenes';
@@ -2202,6 +2204,8 @@ const EN: Record<string, string> = {
   ...TANDA_DARLACLASE_EN,
   ...TANDA_INFORMEREGLAS_EN,
   ...TANDA_RUBRICASMODELO_EN,
+  ...TANDA_PERIODOCOMPETENCIAS_EN,
+  ...TANDA_PEGARNOTAS_EN,
   ...COMPARTIR_EN,
   ...WEB_EN,
   ...IMAGENES_EN,

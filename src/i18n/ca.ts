@@ -22,6 +22,8 @@ import { CA as TANDA_TIEMPO_CA } from './tanda/tiempo';
 import { CA as TANDA_DARLACLASE_CA } from './tanda/darLaClase';
 import { CA as TANDA_INFORMEREGLAS_CA } from './tanda/informeReglas';
 import { CA as TANDA_RUBRICASMODELO_CA } from './tanda/rubricasModelo';
+import { CA as TANDA_PERIODOCOMPETENCIAS_CA } from './tanda/periodoCompetencias';
+import { CA as TANDA_PEGARNOTAS_CA } from './tanda/pegarNotas';
 import { COMPARTIR_CA } from './compartir';
 import { WEB_CA } from './web';
 import { IMAGENES_CA } from './imagenes';
@@ -2033,6 +2035,8 @@ export const CA: Record<string, string> = {
   ...TANDA_DARLACLASE_CA,
   ...TANDA_INFORMEREGLAS_CA,
   ...TANDA_RUBRICASMODELO_CA,
+  ...TANDA_PERIODOCOMPETENCIAS_CA,
+  ...TANDA_PEGARNOTAS_CA,
   ...COMPARTIR_CA,
   ...WEB_CA,
   ...IMAGENES_CA,

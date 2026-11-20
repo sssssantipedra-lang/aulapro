@@ -43,7 +43,7 @@ import { EnClaseInicio } from './pages/EnClaseInicio';
 import { claseAlAbrirAhora } from './lib/claseActiva';
 import { ClaseActiva } from './components/ClaseActiva';
 import { DocumentosInicio } from './pages/DocumentosInicio';
-import { hubEnMenu, navGroupsFor, rememberTab } from './lib/navigation';
+import { enMenu, hubEnMenu, navGroupsFor, rememberTab } from './lib/navigation';
 import { bloquesDeApoyo } from './lib/apoyo';
 import { alumnadoParaIA, exentosDelDia, LIMITACIONES, pruebasDe, recursosParaIA } from './lib/ef';
 import type { SesionEF } from './types/ef';
@@ -973,7 +973,7 @@ function AppInner() {
       {/* Ayuda sobre la aplicación: botón flotante en todas las pantallas.
           Va aquí dentro y no junto a UpdateBanner porque necesita saber en qué
           sección está el docente y poder llevarle a otra. */}
-      <HelpChat section={section} onNav={s => setSection(s as Section)} />
+      <HelpChat section={section} onNav={s => setSection(s as Section)} puedeIr={s => enMenu(s as Section, tipo)} />
 
       {/* A los perfiles anteriores a la comunidad se les pregunta una sola vez,
           la elijan o la dejen para después (ver `communityPromptAt`). */}
