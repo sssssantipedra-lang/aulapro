@@ -5,7 +5,7 @@ import {
   Users, ArrowRight, Download, CalendarDays,
 } from 'lucide-react';
 import type { Class, Student, AttendanceMap, AttendanceStatus, ScheduleBlock } from '../types';
-import { claseQueToca } from '../lib/claseQueToca';
+import { useClaseActiva } from '../hooks/useClaseActiva';
 import { fromIsoDate, isoDate, prettyDate, shiftDate } from '../lib/utils';
 import { faltasSeguidas } from '../lib/sugerencias';
 import { Sugerencia } from '../components/ui/Sugerencia';
@@ -24,7 +24,10 @@ interface Props {
   onSet: (classId: string, date: string, studentId: string, status: AttendanceStatus | null) => void;
   onSetDay: (classId: string, date: string, map: Record<string, AttendanceStatus>) => void;
   onNav: (s: string) => void;
-  /** El horario: al entrar se abre la clase que toca ahora, o la siguiente de hoy. */
+  /**
+   * Ya no se usa (20-11-2026): la clase que se abre sale de la regla común (`useClaseActiva`), que recibe el
+   * horario y el calendario escolar por contexto. Se conserva para no cambiar a quien la pasa.
+   */
   scheduleBlocks?: ScheduleBlock[];
   /** Para la sugerencia de anotar un aviso en la ficha de quien encadena faltas (18-11-2026). */
   onUpdateStudent?: (s: Student) => void;
@@ -45,7 +48,7 @@ const NEXT: Record<AttendanceStatus, AttendanceStatus> = {
   present: 'absent', absent: 'late', late: 'justified', justified: 'present',
 };
 
-export function Attendance({ classes, students, attendance, onSet, onSetDay, onNav, scheduleBlocks = [], onUpdateStudent }: Props) {
+export function Attendance({ classes, students, attendance, onSet, onSetDay, onNav, onUpdateStudent }: Props) {
   const { toast } = useToast();
   const { t, locale } = useI18n();
   const STATUS = useMemo(() => statusList(t), [t]);
@@ -53,7 +56,7 @@ export function Attendance({ classes, students, attendance, onSet, onSetDay, onN
     () => Object.fromEntries(STATUS.map(s => [s.id, s])) as Record<AttendanceStatus, typeof STATUS[number]>,
     [STATUS],
   );
-  const [classId, setClassId] = useState(() => claseQueToca(classes, scheduleBlocks));
+  const [classId, setClassId] = useClaseActiva(classes);
   const [date, setDate]       = useState(isoDate());
   const [tab, setTab]         = useState<'day' | 'summary'>('day');
 

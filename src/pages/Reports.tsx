@@ -22,6 +22,7 @@ import { separarInforme, aplicarNotas, lineasDeClave, notasPorClave, MARCA_TABLA
 import { DocPreview } from '../components/DocPreview';
 import { mediaDeCategoria } from '../lib/ponderacion';
 import { textoLibreParaIA, soloDatosDeSalud } from '../lib/documentoParaIA';
+import { useClaseActiva } from '../hooks/useClaseActiva';
 
 /** Las 8 competencias clave LOMLOE, en inglés, para los informes en ese idioma. */
 const LOMLOE_COMPETENCES_EN = [
@@ -121,7 +122,7 @@ export function Reports(props: Props) {
 
   const { toast } = useToast();
   const { t, lang, locale } = useI18n();
-  const [classId, setClassId]   = useState(classes[0]?.id ?? '');
+  const [classId, setClassId]   = useClaseActiva(classes);
   const [period, setPeriod]     = useState<string>(PERIODS[0]);
   const [selected, setSelected] = useState<string | null>(null);
   const [generating, setGenerating] = useState<string | null>(null);

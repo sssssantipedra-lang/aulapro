@@ -15,7 +15,7 @@ import type { AttendanceMap, Class, ClassMark, ClassMarkType, MarksBlockConfig, 
 import {
   nombreDelBloque, EF_MARK_TYPES, MARK_TYPES, blockConfig, esAsignaturaEF, markTypeInfo, marksFor, studentBlock, targetLabel,
 } from '../services/classMarks';
-import { claseQueToca } from '../lib/claseQueToca';
+import { useClaseActiva } from '../hooks/useClaseActiva';
 import { useActitudPedido } from '../lib/actitudNav';
 import { markIcon } from '../lib/markIcons';
 import { isoDate, prettyDate, shiftDate } from '../lib/utils';
@@ -32,6 +32,7 @@ interface Props {
   marksConfigs: Record<string, MarksBlockConfig>;
   /** Para marcar a quien tiene falta ese día. */
   attendance: AttendanceMap;
+  /** Ya no se usa (20-11-2026): el horario llega por contexto a la regla común (`useClaseActiva`). */
   scheduleBlocks?: ScheduleBlock[];
   onAdd: (m: ClassMark, label: string) => void;
   onDelete: (id: string, label: string) => void;
@@ -47,10 +48,11 @@ const CORTO: Partial<Record<ClassMarkType, string>> = {
   'behavior-bad': 'Mal comport.',
 };
 
-export function Actitud({ classes, students, classMarks, marksConfigs, attendance, scheduleBlocks = [], onAdd, onDelete, onNav }: Props) {
+export function Actitud({ classes, students, classMarks, marksConfigs, attendance, onAdd, onDelete, onNav }: Props) {
   const { t, locale } = useI18n();
   const pedido = useActitudPedido();
-  const [classId, setClassId] = useState(() => pedido?.classId ?? claseQueToca(classes, scheduleBlocks));
+  // Desde el cuaderno llega pedida la clase que se estaba viendo; si no, la regla común
+  const [classId, setClassId] = useClaseActiva(classes, pedido?.classId);
   const [subjectPick, setSubject] = useState(pedido?.subject ?? '');
   const [date, setDate] = useState(isoDate());
   const [sonido, setSonido] = useState(sonidoActivo);

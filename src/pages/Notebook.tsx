@@ -29,6 +29,7 @@ import { compararAlumnos } from '../lib/alumnado';
 import { CARPETAS } from '../lib/carpetas';
 import { mediaDeCategoria, pesoEnLaNotaFinal, porcentajesEnCategoria, hayPesosElegidos } from '../lib/ponderacion';
 import { PesosDeNotas } from '../components/PesosDeNotas';
+import { useClaseActiva } from '../hooks/useClaseActiva';
 
 // El currículo (unos 650 KB) se abre con la pestaña «Por competencias», no con el cuaderno
 const CompetenciasDeLaClase = lazy(() => import('../components/curriculum/CompetenciasDeLaClase')
@@ -214,7 +215,7 @@ function GradesTab({
 }: Omit<Props, 'lawDocument' | 'onLawDocumentChange'>) {
   const { toast } = useToast();
   const { t, locale, lang } = useI18n();
-  const [classId, setClassId] = useState(classes[0]?.id ?? '');
+  const [classId, setClassId] = useClaseActiva(classes);
   const [catModal, setCatModal]   = useState<GradeCategory | 'new' | null>(null);
   const [itemModal, setItemModal] = useState<GradeItem | 'new' | null>(null);
 

@@ -39,7 +39,8 @@ import { semanaDe } from './lib/semana';
 import { HubTabs } from './components/layout/HubTabs';
 import { EvaluarInicio } from './pages/EvaluarInicio';
 import { EnClaseInicio } from './pages/EnClaseInicio';
-import { claseQueToca } from './lib/claseQueToca';
+import { claseAlAbrirAhora } from './lib/claseActiva';
+import { ClaseActiva } from './components/ClaseActiva';
 import { DocumentosInicio } from './pages/DocumentosInicio';
 import { hubEnMenu, navGroupsFor, rememberTab } from './lib/navigation';
 import { bloquesDeApoyo } from './lib/apoyo';
@@ -312,9 +313,13 @@ function AppInner() {
     }, 60_000);
     return () => window.clearInterval(id);
   }, [enPizarra, pizarraViva]);
-  // La clase que toca se mira cada vez que se entra en la pizarra, no al cargar el perfil
+  // La clase activa (la de ahora o la última con la que se trabajó, `lib/claseActiva.ts`) se mira cada vez
+  // que se entra en la pizarra, no al cargar el perfil
+  const clasePizarra = useMemo(() => claseAlAbrirAhora({
+    perfil: st.profileId ?? '', classes: st.classes, blocks: st.scheduleBlocks,
+    comunidad: st.currentUser?.community, provincia: st.currentUser?.provincia,
   // eslint-disable-next-line react-hooks/exhaustive-deps -- `enPizarra` está para volver a mirar la hora al entrar
-  const clasePizarra = useMemo(() => claseQueToca(st.classes, st.scheduleBlocks), [st.classes, st.scheduleBlocks, enPizarra]);
+  }).id, [st.profileId, st.classes, st.scheduleBlocks, st.currentUser?.community, st.currentUser?.provincia, enPizarra]);
   /**
    * Guardar una evaluación desde las pantallas de evaluar. Si ese alumno ya tiene hoy una con el mismo
    * instrumento, puede ser una corrección o un trabajo distinto: se pregunta, salvo en las escalas de
@@ -480,6 +485,7 @@ function AppInner() {
               nuevo y su animación de aviso (parpadeo) vuelve a sonar. Al
               cambiar de pestaña dentro del mismo apartado no parpadea. */}
           <HubTabs key={hubEnMenu(section, tipo)?.id ?? 'none'} section={section} tipo={tipo} onNav={setSection} />
+          <ClaseActiva perfil={st.profileId ?? ''} classes={st.classes} blocks={st.scheduleBlocks} comunidad={st.currentUser.community} provincia={st.currentUser.provincia}>
           <Suspense fallback={<Loading />}>
             {section === 'dashboard' && especialista && (
               <InicioApoyo
@@ -948,6 +954,7 @@ function AppInner() {
               />
             )}
           </Suspense>
+          </ClaseActiva>
         </main>
       </div>
 

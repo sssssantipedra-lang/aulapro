@@ -15,6 +15,7 @@ import { useMateriasOficiales } from '../hooks/useNotasPorCompetencias';
 import { notasDeMateria } from '../lib/curriculum/evaluacionPorCriterios';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
 import { mediaDeCategoria } from '../lib/ponderacion';
+import { useClaseActiva } from '../hooks/useClaseActiva';
 
 interface Props {
   classes: Class[];
@@ -93,7 +94,7 @@ export function Records({
 }: Props) {
   const { toast } = useToast();
   const { t, lang, locale } = useI18n();
-  const [classId, setClassId] = useState(classes[0]?.id ?? '');
+  const [classId, setClassId] = useClaseActiva(classes);
   const [period, setPeriod]   = useState<string>(PERIODS[0]);
   // Cada evaluación cuenta las notas de sus fechas (lib/periodos.ts); «Final de curso», todas
   const [hoy] = useState(() => isoDate());

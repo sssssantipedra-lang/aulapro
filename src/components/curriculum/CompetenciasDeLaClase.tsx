@@ -17,6 +17,7 @@ import { citarNormas, type ComunidadId } from '../../lib/curriculum/comunidades'
 import { downloadFile } from '../../lib/download';
 import type { Class, Evaluation, Student } from '../../types';
 import { CARPETAS } from '../../lib/carpetas';
+import { useClaseActiva } from '../../hooks/useClaseActiva';
 
 function Nota({ valor }: { valor: number | null }) {
   const { t, locale } = useI18n();
@@ -37,7 +38,7 @@ export function CompetenciasDeLaClase({ classes, students, evaluations, comunida
   onNav: (s: string) => void;
 }) {
   const { t, lang, locale } = useI18n();
-  const [classId, setClassId] = useState(classes[0]?.id ?? '');
+  const [classId, setClassId] = useClaseActiva(classes);
   const cls = classes.find(c => c.id === classId) ?? classes[0] ?? null;
   const { estado, materias, curriculo } = useMateriasOficiales(cls, comunidad);
   const [elegida, setElegida] = useState('');

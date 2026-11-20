@@ -37,6 +37,8 @@ import { markTypeInfo } from '../services/classMarks';
 import { isoDate } from '../lib/utils';
 import { requestSettingsPanel } from '../lib/settingsNav';
 import { compararAlumnos } from '../lib/alumnado';
+import { ClassChips } from '../components/ui/ClassChips';
+import { useClaseActiva } from '../hooks/useClaseActiva';
 
 interface Props {
   classes: Class[];
@@ -97,7 +99,7 @@ export function SeatingPlan({
 }: Props) {
   const { toast } = useToast();
   const { t, lang } = useI18n();
-  const [classId, setClassId] = useState(classes[0]?.id ?? '');
+  const [classId, setClassId] = useClaseActiva(classes);
   const [notasDocente, setNotasDocente] = useState('');
   const [generating, setGenerating] = useState(false);
   const [configOpen, setConfigOpen] = useState(false);
@@ -406,12 +408,8 @@ export function SeatingPlan({
 
       {/* ── Barra de controles: una sola fila compacta ── */}
       <div className="seat-toolbar">
-        <select
-          className="seat-select" value={classId} onChange={e => pickClass(e.target.value)}
-          aria-label={t('Clase')}
-        >
-          {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-        </select>
+        {/* El mismo selector que el cuaderno o la asistencia, con la clase de ahora marcada */}
+        <ClassChips classes={classes} value={clsId} onChange={pickClass} />
 
         <div className="seat-rotation" role="group" aria-label={t('Rotación de roles')}>
           <button type="button" onClick={() => rotar(-1)} title={t('Semana anterior')} aria-label={t('Semana anterior')}>
