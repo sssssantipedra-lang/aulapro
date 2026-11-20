@@ -27,6 +27,7 @@ import type { LicenseState } from './types/electron';
 import { Dashboard } from './pages/Dashboard';
 import { Profile } from './pages/Profile';
 import { useAppState } from './hooks/useAppState';
+import { olvidarRuta, useRuta } from './hooks/useRuta';
 import { useNarrowScreen, usePhoneScreen } from './hooks/useNarrowScreen';
 import { applyTheme, type ThemeKey } from './lib/utils';
 import { setPrivacyRoster } from './services/privacy';
@@ -114,7 +115,12 @@ function AppInner() {
   const { t, lang } = useI18n();
   const st = useAppState();
 
-  const [section, setSection]         = useState<Section>('dashboard');
+  // La pantalla abierta va unida a la dirección («#/cuaderno») y al historial del navegador: atrás y adelante cambian
+  // de pantalla, recargar deja en la misma y `setSection` añade una entrada (hooks/useRuta.ts, lib/ruta.ts)
+  const { section, setSection } = useRuta({
+    profileId: st.profileId,
+    tipo: st.ready && st.currentUser ? st.currentUser.tipo ?? 'aula' : null,
+  });
   /** El alumno cuya ficha hay que abrir al llegar a Mis clases (desde el radar del Inicio o el buscador). */
   const [fichaPedida, setFichaPedida] = useState<{ id: string | null; clase: string | null; n: number }>({ id: null, clase: null, n: 0 });
   const abrirAlumno = (id: string) => { setFichaPedida(p => ({ id, clase: null, n: p.n + 1 })); setSection('classes'); };
@@ -285,7 +291,8 @@ function AppInner() {
   }, []);
 
   // Al cambiar de perfil se vuelve al inicio, no a la sección del docente
-  // anterior. Se ajusta durante el render (patrón recomendado por React para
+  // anterior (lo hace `useRuta`, que lleva la pantalla), y se suelta la pizarra.
+  // Se ajusta durante el render (patrón recomendado por React para
   // «reiniciar estado cuando cambia un valor»), no en un efecto: así no se
   // pinta ni un instante la sección del perfil anterior.
   const [sectionOwner, setSectionOwner] = useState(st.profileId);
@@ -299,7 +306,6 @@ function AppInner() {
   if (section === 'sec-classroom' && !pizarraViva) setPizarraViva(true);
   if (sectionOwner !== st.profileId) {
     setSectionOwner(st.profileId);
-    setSection('dashboard');
     setPizarraViva(false);
   }
   const enPizarra = section === 'sec-classroom';
@@ -369,7 +375,7 @@ function AppInner() {
       else remove = () => { handle.remove(); };
     });
     return () => { cancelled = true; remove?.(); };
-  }, []);
+  }, [setSection]);
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
       if (e.key === 'Escape') { setShowAddTask(false); setMenuOpen(false); }
@@ -395,6 +401,8 @@ function AppInner() {
         onOpenProfile={st.openProfile}
         onCreateProfile={async (input, options) => {
           await st.createAndOpenProfile(input, options);
+          // Un perfil recién creado empieza por el Inicio, aunque se llegara con la dirección de otra pantalla
+          setSection('dashboard', { sustituir: true });
           toast(t('✅ ¡Bienvenido/a, {name}!', { name: input.name.split(' ')[0] }));
         }}
         onExploreDemo={async input => {
@@ -403,6 +411,7 @@ function AppInner() {
             name: t(DEMO_USER.full_name), school: t(DEMO_USER.school),
             subject: t(DEMO_USER.subject), course: '2025-2026', community: DEMO_COMMUNITY,
           }, { demo: true, lang });
+          setSection('dashboard', { sustituir: true });
           toast(t('✅ Datos de ejemplo cargados'));
         }}
       />
@@ -432,7 +441,8 @@ function AppInner() {
         onLogout={async () => {
           await st.logout();
           // En la web, salir es salir de la cuenta: vuelve a la pantalla de entrada
-          if (isWebApp()) { await cerrarSesion(); window.location.reload(); return; }
+          // (y quien entre después empieza por el Inicio, no por la pantalla en la que se salió)
+          if (isWebApp()) { await cerrarSesion(); olvidarRuta(); window.location.reload(); return; }
           toast(t('Sesión cerrada'));
         }}
         onBuscar={() => setBuscando(true)}

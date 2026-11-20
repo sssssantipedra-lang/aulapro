@@ -89,3 +89,30 @@ describe('menú', () => {
     expect(items.filter(e => isCurrent(e, 'apoyo-alumno'))).toHaveLength(1);
   });
 });
+
+describe('lo que necesita la dirección de cada pantalla (lib/ruta.ts)', () => {
+  it('cada perfil tiene las pantallas de su menú y las que cuelgan de ellas', async () => {
+    const { enMenu, madreDe } = await import('./navigation');
+    expect(enMenu('notebook', 'aula')).toBe(true);
+    expect(enMenu('notebook', 'apoyo')).toBe(false);
+    expect(enMenu('ef-pista', 'ef')).toBe(true);
+    expect(enMenu('ef-pista', 'aula')).toBe(false);
+    expect(enMenu('apoyo-alumno', 'apoyo')).toBe(true);
+    expect(enMenu('apoyo-alumno', 'aula')).toBe(false);
+    expect(enMenu('evalfoto', 'aula')).toBe(CORRECCION_CON_IA);
+    for (const tipo of ['aula', 'ef', 'apoyo'] as const) expect(enMenu('dashboard', tipo)).toBe(true);
+    expect(madreDe('apoyo-alumno')).toBe('apoyo-alumnado');
+    expect(madreDe('notebook')).toBeUndefined();
+  });
+
+  it('el nombre de una pantalla es el de su menú; el de una portada, el del apartado', async () => {
+    const { nombreDePantalla } = await import('./navigation');
+    expect(nombreDePantalla('notebook', 'aula')).toBe('Cuaderno de Notas');
+    expect(nombreDePantalla('evaluar', 'aula')).toBe('Evaluar');
+    expect(nombreDePantalla('rubrics', 'aula')).toBe('Rúbricas');
+    expect(nombreDePantalla('ef-inicio', 'ef')).toBe('Educación Física');
+    expect(nombreDePantalla('sec-classroom', 'apoyo')).toBe('Pizarra y herramientas');
+    expect(nombreDePantalla('apoyo-alumno', 'apoyo')).toBe('Mi alumnado');
+    expect(nombreDePantalla('notebook', 'apoyo')).toBeUndefined();
+  });
+});
