@@ -97,18 +97,31 @@ export function claseDePartida(o: {
   scheduleBlocks?: readonly ScheduleBlock[];
   pedida?: string;
   ahora?: Date;
+  /**
+   * La regla de la clase activa de toda la app (`lib/claseActiva.ts`), aplicada a las clases del
+   * instrumento: con ella manda la clase de ahora (con calendario escolar y margen) o la que pidió
+   * quien llevó hasta aquí, y la última con la que se trabajó desempata detrás de la última en la
+   * que se usó el instrumento. Sin ella (una prueba, una pantalla suelta), el horario a secas.
+   */
+  regla?: (posibles: Class[]) => { id: string; motivo: string };
 }): string {
   const suyas = clasesDe(o.instrumento);
   const posibles = suyas.length ? o.classes.filter(c => suyas.includes(c.id)) : [...o.classes];
   const vale = (id: string | undefined): id is string => !!id && posibles.some(c => c.id === id);
   if (vale(o.pedida)) return o.pedida;
   if (posibles.length === 1) return posibles[0].id;
-  const toca = bloqueQueToca(posibles, [...(o.scheduleBlocks ?? [])], o.ahora)?.class_id;
-  if (vale(toca)) return toca;
+  const activa = o.regla?.(posibles);
+  if (activa) {
+    if ((activa.motivo === 'pedida' || activa.motivo === 'ahora') && vale(activa.id)) return activa.id;
+  } else {
+    const toca = bloqueQueToca(posibles, [...(o.scheduleBlocks ?? [])], o.ahora)?.class_id;
+    if (vale(toca)) return toca;
+  }
   const reciente = [...(o.evaluations ?? [])]
     .filter(e => e.rubric_id === o.instrumento.id && vale(e.class_id))
     .reduce<Evaluation | undefined>((m, e) => (!m || e.date > m.date ? e : m), undefined)?.class_id;
   if (vale(reciente)) return reciente;
+  if (activa?.motivo === 'ultima' && vale(activa.id)) return activa.id;
   if (vale(o.instrumento.class_id)) return o.instrumento.class_id;
   return posibles[0]?.id ?? '';
 }

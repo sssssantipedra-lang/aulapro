@@ -96,6 +96,25 @@ describe('claseDePartida', () => {
     expect(claseDePartida({ instrumento: { id: 'r1' }, classes, evaluations, ahora })).toBe('c3');
   });
 
+  it('con la regla de la clase activa, manda la clase de ahora o la pedida y no el horario a secas', () => {
+    const scheduleBlocks = [bloque('c2', 5, '10:00', '11:00')];
+    // Festivo: la regla no da clase de ahora y ofrece la última usada, que va detrás de la del instrumento
+    const evaluations = [ev({ class_id: 'c3', date: '2026-11-18' })];
+    const festivo = () => ({ id: 'c1', motivo: 'ultima' });
+    expect(claseDePartida({ instrumento: { id: 'r1' }, classes, scheduleBlocks, evaluations, ahora, regla: festivo })).toBe('c3');
+    expect(claseDePartida({ instrumento: { id: 'r1' }, classes, scheduleBlocks, ahora, regla: festivo })).toBe('c1');
+    // Con clase en marcha o pedida desde otra pantalla, esa
+    expect(claseDePartida({ instrumento: { id: 'r1' }, classes, evaluations, ahora, regla: () => ({ id: 'c2', motivo: 'ahora' }) })).toBe('c2');
+    expect(claseDePartida({ instrumento: { id: 'r1' }, classes, evaluations, ahora, regla: () => ({ id: 'c1', motivo: 'pedida' }) })).toBe('c1');
+    // Una clase por descarte (la siguiente de hoy, la primera) no manda sobre la del instrumento
+    const inst = { id: 'r1', class_id: 'c2', otras_clases: [{ class_id: 'c3' }] };
+    expect(claseDePartida({ instrumento: inst, classes, ahora, regla: () => ({ id: 'c3', motivo: 'siguiente' }) })).toBe('c2');
+    // La regla recibe solo las clases del instrumento
+    const vistas: string[][] = [];
+    claseDePartida({ instrumento: inst, classes, ahora, regla: p => { vistas.push(p.map(c => c.id)); return { id: '', motivo: '' }; } });
+    expect(vistas).toEqual([['c2', 'c3']]);
+  });
+
   it('y si no, la principal del instrumento o la primera', () => {
     const inst = { id: 'r1', class_id: 'c2', otras_clases: [{ class_id: 'c3' }] };
     expect(claseDePartida({ instrumento: inst, classes, ahora })).toBe('c2');

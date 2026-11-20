@@ -8,7 +8,7 @@
  *
  * Las cuentas están en `lib/evaluarClase.ts`, con pruebas. Aquí no se escribe nada hasta que el docente guarda.
  */
-import { useMemo, useState } from 'react';
+import { useContext, useMemo, useState } from 'react';
 import type { Class, Evaluation, GradeTarget, ScheduleBlock, Student } from '../types';
 import { useI18n } from '../i18n';
 import { useToast } from '../components/ui/Toast';
@@ -16,6 +16,8 @@ import { useResetOnChange } from '../lib/useResetOnChange';
 import { compararAlumnos } from '../lib/alumnado';
 import { clasesDe } from '../lib/objetivos';
 import { isoDate } from '../lib/utils';
+import { claseAlAbrirAhora } from '../lib/claseActiva';
+import { ClaseActivaContexto, useRecordarClase } from './useClaseActiva';
 import {
   claseDePartida, comoCorreccion, esRondaNueva, estadoDe, evaluacionQueCorrige, hechoEnRonda, marcados, marcasATodos,
   marcasValidas, mismasMarcas, porGuardar, siguientePendiente, sinCeros, ultimasPorAlumno,
@@ -78,6 +80,9 @@ export function useEvaluarClase(o: Opciones) {
 
   const [hoy, setHoy] = useState(() => isoDate());
   const [classId, setClassId] = useState('');
+  // La misma regla que el resto de pantallas (la clase de ahora, la última usada) y el mismo recuerdo
+  const activa = useContext(ClaseActivaContexto);
+  const recordarClase = useRecordarClase();
   const [studentId, setStudentId] = useState('');
   const [borradores, setBorradores] = useState<Record<string, Borrador>>({});
   /**
@@ -116,7 +121,10 @@ export function useEvaluarClase(o: Opciones) {
       setStudentId(corrigiendo.student_id);
       return;
     }
-    const clase = claseDePartida({ instrumento, classes, evaluations, scheduleBlocks, pedida: defaultClassId });
+    const clase = claseDePartida({
+      instrumento, classes, evaluations, scheduleBlocks, pedida: defaultClassId,
+      regla: activa ? posibles => claseAlAbrirAhora(activa, posibles) : undefined,
+    });
     setClassId(clase);
     const primero = entrarEnClase(clase, dia);
     if (defaultStudentId) setStudentId(defaultStudentId);
@@ -307,6 +315,7 @@ export function useEvaluarClase(o: Opciones) {
     if (id === classId || !instrumento || !confirmarPerder()) return;
     setBorradores({});
     setClassId(id);
+    recordarClase(id);
     setStudentId(entrarEnClase(id, hoy));
   }
 
