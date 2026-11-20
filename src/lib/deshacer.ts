@@ -22,7 +22,7 @@ export type TipoBorrado =
   | 'tarea' | 'clase' | 'alumno' | 'bloque' | 'horario' | 'evento'
   | 'rubrica' | 'diana' | 'escala' | 'evaluacion' | 'categoria' | 'columna' | 'lista' | 'informe'
   | 'autoevaluacion' | 'sda' | 'ficha' | 'reunion' | 'formacion' | 'anotacion'
-  | 'grupo' | 'programa' | 'registro' | 'documento' | 'coordinacion' | 'adaptacion' | 'agenda' | 'foto'
+  | 'grupo' | 'programa' | 'documento' | 'coordinacion' | 'adaptacion' | 'agenda' | 'foto'
   | 'exento' | 'apoyoEF' | 'prueba' | 'baremo' | 'actividad' | 'sesion' | 'material' | 'instalacion' | 'circuito' | 'pizarra';
 
 /** Una cosa borrada, para decirla en el aviso. */
@@ -64,7 +64,6 @@ export const DICHO: Record<TipoBorrado, { uno?: string; sin: string; varios?: st
   anotacion: { uno: 'una anotación de {nombre}', sin: 'una anotación', varios: '{n} anotaciones' },
   grupo: { uno: 'el grupo «{nombre}» y sus registros', sin: 'un grupo y sus registros', varios: '{n} grupos y sus registros' },
   programa: { uno: 'el programa «{nombre}» y sus objetivos', sin: 'un programa y sus objetivos', varios: '{n} programas y sus objetivos' },
-  registro: { sin: 'una sesión del registro', varios: '{n} sesiones del registro' },
   documento: { uno: 'el documento «{nombre}»', sin: 'un documento', varios: '{n} documentos' },
   coordinacion: { sin: 'una coordinación', varios: '{n} coordinaciones' },
   adaptacion: { uno: 'la adaptación curricular de {nombre}', sin: 'una adaptación curricular', varios: '{n} adaptaciones curriculares' },
@@ -211,13 +210,23 @@ export function loQueVuelve<T extends object>(p: BorradoPendiente<T>, claves: re
  * de este orden que pierde algo: lo demás se fue con ella (los programas y registros de un alumno, las marcas
  * de una prueba) y vuelve con ella. No entran lo que se marca y se desmarca (niveles, parejas, marcas sueltas,
  * cierres de trimestre) ni lo que se quita dentro de un elemento (un objetivo de un programa, un paso de una agenda).
+ *
+ * Tampoco lo que sale de una lista sin que el docente haya borrado nada: la sesión del Registro diario de PT y AL
+ * deja de guardarse sola cuando se queda sin datos (al desmarcar lo único marcado o vaciar el tema), y una prueba
+ * física de serie solo está en la lista mientras está oculta, así que «Mostrar» la saca de ella (`cuenta`).
  */
 type Nombrar<E> = (e: E, nombreDeAlumno: (id: string) => string | undefined) => string | undefined;
 
-interface ListaVigilada<D, K extends keyof D> { clave: K; tipo: TipoBorrado; nombre?: Nombrar<D[K] extends (infer E)[] ? E : never> }
+type Elemento<D, K extends keyof D> = D[K] extends (infer E)[] ? E : never;
+
+interface ListaVigilada<D, K extends keyof D> {
+  clave: K; tipo: TipoBorrado; nombre?: Nombrar<Elemento<D, K>>;
+  /** Si la salida de este elemento es un borrado (por defecto, sí). */
+  cuenta?: (e: Elemento<D, K>) => boolean;
+}
 
 function vigilar<D>() {
-  return <K extends keyof D>(clave: K, tipo: TipoBorrado, nombre?: Nombrar<D[K] extends (infer E)[] ? E : never>): ListaVigilada<D, K> => ({ clave, tipo, nombre });
+  return <K extends keyof D>(clave: K, tipo: TipoBorrado, nombre?: Nombrar<Elemento<D, K>>, cuenta?: (e: Elemento<D, K>) => boolean): ListaVigilada<D, K> => ({ clave, tipo, nombre, cuenta });
 }
 
 const deApoyo = vigilar<ApoyoData>();
@@ -231,12 +240,12 @@ const LISTAS_APOYO = [
   deApoyo('coordinaciones', 'coordinacion'),
   deApoyo('agendas', 'agenda', a => a.titulo),
   deApoyo('fotos', 'foto'),
-  deApoyo('sesiones', 'registro'),
 ];
 
 const deEF = vigilar<EfData>();
 const LISTAS_EF = [
-  deEF('pruebas', 'prueba', p => p.nombre),
+  // Las de serie no se borran: solo están en la lista mientras están ocultas, y «Mostrar» las saca de ella
+  deEF('pruebas', 'prueba', p => p.nombre, p => !!p.propia),
   deEF('sesiones', 'sesion', s => s.titulo),
   deEF('actividades', 'actividad', a => a.titulo),
   deEF('circuitos', 'circuito', c => c.nombre),
@@ -263,7 +272,9 @@ function borradoDe<D>(
 ): Borrado[] {
   if (antes === despues) return [];
   for (const l of listas) {
-    const fuera = idos(antes[l.clave] as { id: string }[] | undefined, despues[l.clave] as { id: string }[] | undefined);
+    const cuenta = l.cuenta as ((e: { id: string }) => boolean) | undefined;
+    const fuera = idos(antes[l.clave] as { id: string }[] | undefined, despues[l.clave] as { id: string }[] | undefined)
+      .filter(e => !cuenta || cuenta(e));
     if (!fuera.length) continue;
     if (fuera.length > 1) return [{ tipo: l.tipo, cuantos: fuera.length }];
     const nombre = l.nombre ? (l.nombre as Nombrar<{ id: string }>)(fuera[0], nombreDeAlumno) : undefined;

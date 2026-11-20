@@ -200,11 +200,18 @@ describe('PT y AL y Educación Física: qué se ha borrado', () => {
 
   it('una prueba se va con sus marcas y sus baremos: se nombra la prueba', () => {
     const antes = ef({
-      pruebas: [item({ id: 'p1', nombre: 'Course Navette' })],
+      pruebas: [item({ id: 'p1', nombre: 'Course Navette', propia: true })],
       marcas: [item({ id: 'm1', pruebaId: 'p1', alumnoId: 'a1' })],
       baremos: [item({ id: 'b1', pruebaId: 'p1' })],
     });
     expect(borradoDeEF(antes, { ...antes, pruebas: [], marcas: [], baremos: [] })).toEqual([{ tipo: 'prueba', nombre: 'Course Navette' }]);
+  });
+
+  it('volver a mostrar una prueba de serie oculta no es un borrado (solo está en la lista mientras está oculta)', () => {
+    const antes = ef({ pruebas: [item({ id: 'navette', nombre: 'Course Navette', oculta: true }), item({ id: 'p1', nombre: 'Salto de comba', propia: true })] });
+    expect(borradoDeEF(antes, { ...antes, pruebas: [antes.pruebas[1]] })).toEqual([]);
+    // La propia sí se borra
+    expect(borradoDeEF(antes, { ...antes, pruebas: [antes.pruebas[0]] })).toEqual([{ tipo: 'prueba', nombre: 'Salto de comba' }]);
   });
 
   it('lo que se marca y se desmarca (una marca suelta, una pareja) no lleva aviso', () => {
@@ -226,6 +233,18 @@ describe('PT y AL y Educación Física: qué se ha borrado', () => {
     });
     const despues = { ...antes, alumnos: [antes.alumnos[1]], programas: [], sesiones: [] };
     expect(borradoDeApoyo(antes, despues)).toEqual([{ tipo: 'alumno', nombre: 'Alumno 1' }]);
+  });
+
+  it('PT y AL: la sesión del Registro diario que se queda sin datos deja de guardarse sola, y eso no es un borrado', () => {
+    const antes = apoyo({
+      alumnos: [item({ id: 'x1', nombre: 'Alumno 1' })],
+      grupos: [item({ id: 'g1', nombre: 'Grupo de lectura' })],
+      sesiones: [item({ id: 'se1', grupoId: 'g1', fecha: '2026-11-10' }), item({ id: 'se2', grupoId: 'g1', fecha: '2026-11-12' })],
+    });
+    // Desmarcar lo único marcado o vaciar el tema quita la sesión de la lista (`guardar` en RegistroApoyo)
+    expect(borradoDeApoyo(antes, { ...antes, sesiones: [antes.sesiones[0]] })).toEqual([]);
+    // Con su grupo sí se van, y se nombra el grupo
+    expect(borradoDeApoyo(antes, { ...antes, grupos: [], sesiones: [] })).toEqual([{ tipo: 'grupo', nombre: 'Grupo de lectura' }]);
   });
 
   it('PT y AL: un programa, un documento, una agenda y una adaptación', () => {
