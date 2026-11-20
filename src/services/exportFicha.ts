@@ -2,7 +2,9 @@
  * Exporta una ficha de trabajo a PDF o a Word — pensada para imprimir y
  * repartir en clase, así que sale en VERTICAL (a diferencia de la SdA o las
  * actas, que van horizontales) y sin las soluciones: el campo `solucion` de
- * cada ejercicio es solo para el profesorado y nunca se incluye aquí.
+ * cada ejercicio es solo para el profesorado y no va en la hoja del alumnado.
+ * Solo si el docente lo pide (`FichaContent.solucionario`, 20-11-2026) salen
+ * todas juntas al final, en una página aparte que empieza siempre en hoja nueva.
  *
  * El aspecto sale del tema de la ficha (`lib/fichaThemes.ts`): con historia,
  * cabecera con personaje, tarjeta de misión, bloques con emoji y cierre con
@@ -490,10 +492,12 @@ export function buildFichaHtml(f: Ficha, lang: Lang, opts: FichaHtmlOptions = {}
     const label = `${t(escape ? 'Sala' : theme.paso)} ${actIdx + 1}`;
     const header = cuaderno
       ? seccionHtml(actIdx + 1, act.titulo, color, label, '', act.dificultad ? nivelHtml(act.dificultad, color, t) : '')
-      : act.titulo
+      // Sin título, la cabecera sale igual si el bloque es un peldaño o una sala (una ficha empezada en blanco); las fichas
+      // de antes de los bloques, sin título ni nivel, siguen sin cabecera
+      : act.titulo || act.dificultad || (escape && act.candado)
       ? `<div class="act-header" style="background:#${color.bg}">` +
         (classic ? svgPencil('#fff', 14) : `<span class="act-emoji">${esc(emoji)}</span>`) +
-        `<span class="act-ttl">${esc(label)}: ${esc(act.titulo)}</span>` +
+        `<span class="act-ttl">${esc(act.titulo ? `${label}: ${act.titulo}` : label)}</span>` +
         (act.dificultad ? `<span class="act-niv" title="${esc(t('Nivel {n} de 3', { n: act.dificultad }))}">${estrellasSvg(act.dificultad, '#fff', 12)}</span>` : '') +
         (classic ? '' : `<span class="act-check" title="${esc(t('Hecho'))}"></span>`) +
         `</div>`
@@ -1936,7 +1940,8 @@ export async function buildFichaDocxBlob(f: Ficha, lang: Lang): Promise<Blob> {
 
   for (const [actIdx, act] of (formato === 'tarjetas' ? [] : actividades).entries()) {
     const color = theme.bloques[actIdx % theme.bloques.length];
-    const label = `${t(escape ? 'Sala' : theme.paso)} ${actIdx + 1}: ${act.titulo}`;
+    const paso = `${t(escape ? 'Sala' : theme.paso)} ${actIdx + 1}`;
+    const label = act.titulo ? `${paso}: ${act.titulo}` : paso;
     if (cuaderno) {
       // Número con fondo de color y título en el color del bloque, subrayado con su línea
       children.push(new Paragraph({
@@ -1949,7 +1954,7 @@ export async function buildFichaDocxBlob(f: Ficha, lang: Lang): Promise<Blob> {
         spacing: { before: 120, after: 160 },
         keepNext: true,
       }));
-    } else if (act.titulo) {
+    } else if (act.titulo || act.dificultad || (escape && act.candado)) {
       children.push(new Table({
         width: { size: 100, type: WidthType.PERCENTAGE },
         borders: CELL_BORDERS,
