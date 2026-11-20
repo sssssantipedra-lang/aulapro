@@ -41,7 +41,8 @@ import { semanaDe } from './lib/semana';
 import { HubTabs } from './components/layout/HubTabs';
 import { EvaluarInicio } from './pages/EvaluarInicio';
 import { EnClaseInicio } from './pages/EnClaseInicio';
-import { claseAlAbrirAhora } from './lib/claseActiva';
+import { claseAlAbrirAhora, pedirClase, recordarClase } from './lib/claseActiva';
+import { encargarClase, planDeOrigen, type FuenteDeSesiones, type OrigenPlan } from './lib/darLaClase';
 import { ClaseActiva } from './components/ClaseActiva';
 import { DocumentosInicio } from './pages/DocumentosInicio';
 import { enMenu, hubEnMenu, navGroupsFor, rememberTab } from './lib/navigation';
@@ -257,6 +258,16 @@ function AppInner() {
     [section, st.ef.sesiones, st.calEvents, st.classes],
   );
 
+  /** Las sesiones con fecha de hoy que aún no se han dado, para «Tu jornada» del Inicio: cada una, con «Dar la clase». */
+  const sesionesDeHoyInicio = useMemo(() => {
+    if (section !== 'dashboard') return undefined;
+    const hoy = isoDate();
+    return st.ef.sesiones.filter(s => s.fecha === hoy && !s.completada && !s.archivada).map(s => {
+      const c = st.classes.find(x => x.id === s.claseId);
+      return { id: s.id, titulo: s.titulo, clase: c?.name ?? '', color: c?.color ?? 'var(--text-3)' };
+    });
+  }, [section, st.ef.sesiones, st.classes]);
+
   /** El radar del alumnado, para el Inicio y Mis clases: solo se calcula en esas dos pantallas. */
   const conRadar = section === 'dashboard' || section === 'classes';
   const radarAlumnado = useMemo(() => (conRadar ? radar({
@@ -346,6 +357,36 @@ function AppInner() {
     addEvaluation(ev, { sustituir });
   }, [evaluacionesHechas, dianasHechas, addEvaluation, t]);
   const alTerminarDeProyectar = useCallback(() => setLiveFicha(null), [setLiveFicha]);
+
+  /**
+   * «Dar la clase» (20-11-2026, `lib/darLaClase.ts`): abre la pizarra con esa clase y la sesión montada en
+   * «Plan del día». La pizarra puede estar ya montada (sigue viva entre pantallas), así que la sesión viaja
+   * como un encargo que ella recoge al enseñarse, sin borrar lo que tuviera. Sin sesión, solo la clase y el plan.
+   */
+  const { sesiones: sesionesPreparadas, pizarras: circuitosDibujados } = st.ef;
+  const { learningSituations: situaciones, saveLearningSituation: guardarSituacion, classes: clasesDelPerfil, profileId: perfilAbierto } = st;
+  const fuenteDeSesiones = useMemo<FuenteDeSesiones | undefined>(() => (especialista ? undefined : {
+    sesiones: sesionesPreparadas, sdas: situaciones, pizarras: circuitosDibujados, ef: tipo === 'ef',
+  }), [especialista, sesionesPreparadas, situaciones, circuitosDibujados, tipo]);
+  const darLaClase = useCallback((origen: OrigenPlan | null, claseId?: string) => {
+    const plan = origen && fuenteDeSesiones ? planDeOrigen(fuenteDeSesiones, origen) : null;
+    const clase = [claseId, plan?.sesion.claseId].find(id => !!id && clasesDelPerfil.some(c => c.id === id));
+    // La pizarra abre la clase de ahora o la última usada: la de la sesión manda, como en el resto de enlaces
+    if (clase) { pedirClase(clase); if (perfilAbierto) recordarClase(perfilAbierto, clase); }
+    encargarClase({ ...(clase ? { claseId: clase } : {}), plan });
+    setSection('sec-classroom');
+  }, [fuenteDeSesiones, clasesDelPerfil, perfilAbierto, setSection]);
+  /** La sesión montada en la pizarra, marcada como dada desde ella (lo propone al marcar su última actividad). */
+  const marcarSesionDada = useCallback((o: OrigenPlan) => {
+    if (o.tipo === 'sesion') {
+      setEf(d => ({ ...d, sesiones: d.sesiones.map(x => (x.id === o.id ? { ...x, completada: true } : x)) }));
+    } else {
+      const sda = situaciones.find(x => x.id === o.id);
+      if (!sda?.content.sesiones[o.indice]) return;
+      guardarSituacion({ ...sda, content: { ...sda.content, sesiones: sda.content.sesiones.map((x, k) => (k === o.indice ? { ...x, completada: true } : x)) } });
+    }
+    toast(t('Sesión completada'));
+  }, [setEf, situaciones, guardarSituacion, toast, t]);
 
   // Los nombres del alumnado nunca viajan a la IA: ver services/privacy.ts.
   // Tampoco los del alumnado de apoyo de PT y AL, que no está en las clases.
@@ -534,6 +575,8 @@ function AppInner() {
                 onOpenStudent={abrirAlumno}
                 semana={semana}
                 onVerSesiones={() => setSection(tipo === 'ef' ? 'ef-sesiones' : 'sesiones')}
+                sesionesHoy={sesionesDeHoyInicio}
+                onDarLaClase={id => darLaClase({ tipo: 'sesion', id })}
                 ef={efInicio}
               />
             )}
@@ -739,6 +782,8 @@ function AppInner() {
                   fichas={st.fichas}
                   projectFicha={liveFicha}
                   onProjectDone={alTerminarDeProyectar}
+                  sesiones={fuenteDeSesiones}
+                  onSesionDada={marcarSesionDada}
                 />
               </div>
             )}
@@ -783,6 +828,8 @@ function AppInner() {
                 comunidad={st.currentUser?.community}
                 provincia={st.currentUser?.provincia}
                 onNav={setSection}
+                sesiones={fuenteDeSesiones}
+                onDarLaClase={darLaClase}
               />
             )}
             {section === 'actitud' && (
@@ -951,6 +998,7 @@ function AppInner() {
                 learningSituations={st.learningSituations} onSaveSda={st.saveLearningSituation}
                 onAbrirSda={() => setSection(tipo === 'ef' ? 'ef-sda' : 'learning-situations')}
                 calEvents={st.calEvents} onApuntarCambio={n => st.apuntarCambio({ tipo: 'fechas', cuantos: n })}
+                onDarLaClase={s => darLaClase({ tipo: 'sesion', id: s.id }, s.claseId)}
               />
             )}
             {section === 'ef-actividades' && (

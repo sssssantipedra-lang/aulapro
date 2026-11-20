@@ -59,6 +59,7 @@ import type { InlineFile } from '../services/gemini';
 import { ValorarRegistro } from '../components/ValorarRegistro';
 import { useClaseActiva, useRecordarClase } from '../hooks/useClaseActiva';
 import { clasePedida } from '../lib/claseActiva';
+import { BotonDarLaClase } from '../components/darLaClase/BotonDarLaClase';
 
 /** La sesión sin sus imágenes: lo que se compara y lo que va al borrador. */
 const sinImagenes = (s: SesionEF): SesionEF => (s.imagenes ? (({ imagenes: _i, ...r }) => { void _i; return r; })(s) : s);
@@ -94,6 +95,8 @@ interface Props {
   calEvents?: CalEvent[];
   /** Se llama justo antes de cambiar las fechas de varias sesiones, para que el cambio se pueda deshacer. */
   onApuntarCambio?: (cuantas: number) => void;
+  /** «Dar la clase»: abre la pizarra con la sesión montada en el plan del día. */
+  onDarLaClase?: (s: SesionEF) => void;
 }
 
 const EvalRubricaModal = lazy(() => import('./Rubrics').then(m => ({ default: m.EvalModal })));
@@ -127,7 +130,7 @@ function minutosDeClase(blocks: ScheduleBlock[], claseId: string, fecha: string)
 export function Sesiones({
   classes, students, scheduleBlocks, ef, onChangeEf, comunidad, rubrics = [], dianas = [], onAddDiana, onNav, evaluations = [], lawDocument = null,
   onAddEvaluation, onUpdateEvaluation, perfil = 'ef', learningSituations = [], onSaveSda, onAbrirSda, acsAula = [],
-  calEvents = [], onApuntarCambio,
+  calEvents = [], onApuntarCambio, onDarLaClase,
 }: Props) {
   const { t, lang, locale } = useI18n();
   const { toast } = useToast();
@@ -463,6 +466,7 @@ export function Sesiones({
             <CalendarX2 size={17} aria-hidden="true" />{s.fecha < hoy && <span>{t('No se dio')}</span>}
           </button>
         )}
+        {onDarLaClase && !s.archivada && !seleccion && <BotonDarLaClase compacto titulo={s.titulo} onClick={() => onDarLaClase(s)} />}
       </li>
     );
   };

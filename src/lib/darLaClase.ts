@@ -150,6 +150,9 @@ export function planDeSesionSda(sda: LearningSituation, indice: number): PlanDeC
   };
 }
 
+/** Una imagen que se enseña a toda la pizarra con un toque: una de la sesión o su circuito dibujado. */
+export interface ImagenDeVisor { src: string; pie?: string }
+
 /** El plan de lo que se pide, o `null` si esa sesión ya no existe. */
 export function planDeOrigen(fuente: FuenteDeSesiones, origen: OrigenPlan): PlanDeClase | null {
   if (origen.tipo === 'sesion') {

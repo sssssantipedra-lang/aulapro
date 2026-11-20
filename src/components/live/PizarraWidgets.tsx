@@ -1,11 +1,21 @@
-import { useEffect, useRef, useState } from 'react';
-import { Play, Pause, RotateCcw, Plus, Minus, X, Flag, Shuffle, Check } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Play, Pause, RotateCcw, Plus, Minus, X, Flag, Shuffle, Check, CheckCircle2, Route } from 'lucide-react';
 import { useI18n } from '../../i18n';
 import { SessionQR } from './SessionQR';
 import {
   SIMBOLOS_TRABAJO, MAX_DADOS, tirarDados, repartirGrupos, formatoCrono, direccionParaQr,
   claveDatos, type ReparticionGrupos,
 } from '../../lib/pizarraAula';
+import {
+  CAMPO_PLAN, CAMPO_SESION, claveSesionDada, esSesionEnPizarra, esTareas, fusionarPlan, planDeSesion,
+  sesionesParaProponer, sesionRecorrida, sesionViva,
+  type FuenteDeSesiones, type ImagenDeVisor, type OrigenPlan, type PropuestaDeSesion, type SesionEnPizarra, type TareaPlan,
+} from '../../lib/darLaClase';
+import { momentosDe } from '../../lib/sesionSda';
+import { pizarraSvg } from '../../lib/pizarraEF';
+import { isoDate } from '../../lib/utils';
+import { useSugerencias } from '../../hooks/useSugerencias';
+import { Sugerencia } from '../ui/Sugerencia';
 
 /**
  * Los widgets de «Pizarra y herramientas» que acompañan a los de siempre (temporizador, ruleta, calculadora,
@@ -516,40 +526,151 @@ export function QrWidget({ uid }: { uid: string }) {
    PLAN DEL DÍA
    ════════════════════════════════════════════════════════════ */
 
-interface Tarea { id: string; texto: string; hecha: boolean }
-const esTareas = (x: unknown): x is Tarea[] =>
-  Array.isArray(x) && x.every(e => e && typeof e === 'object' && typeof (e as Tarea).id === 'string' && typeof (e as Tarea).texto === 'string' && typeof (e as Tarea).hecha === 'boolean');
+interface PlanDelDiaProps {
+  uid: string;
+  /** La clase elegida en la pizarra: de ella son las sesiones que la ventana vacía propone traer. */
+  clase?: { id: string; name: string };
+  /** Las sesiones preparadas (`lib/darLaClase.ts`). Sin ellas (PT y AL), el plan se escribe a mano como siempre. */
+  fuente?: FuenteDeSesiones;
+  /** Marca como dada la sesión montada. */
+  onSesionDada?: (origen: OrigenPlan) => void;
+  /** Enseña a toda la pizarra las imágenes de la sesión, empezando por la número `indice`. */
+  onAmpliar?: (imagenes: ImagenDeVisor[], indice: number) => void;
+}
 
-export function AgendaWidget({ uid }: { uid: string }) {
+/**
+ * El plan del día: lo que se va a hacer, con una casilla por actividad. Se escribe a mano o se trae de una
+ * sesión preparada («Dar la clase», 20-11-2026): entonces lleva los tres momentos de la sesión, sus imágenes
+ * a un toque y, en Educación Física, su circuito. **Lo ve la clase**: de la sesión solo salen su título y el
+ * título y la descripción de cada actividad (`planDeSesion`), nunca las notas del docente ni las medidas de
+ * inclusión. Con reglas y sin IA; propone traer la sesión y darla por dada, no lo decide.
+ */
+export function AgendaWidget({ uid, clase, fuente, onSesionDada, onAmpliar }: PlanDelDiaProps) {
   const { t } = useI18n();
-  const [tareas, setTareas] = usePersistido<Tarea[]>(claveDatos(uid, 'plan'), [], esTareas);
+  const [tareas, setTareas] = usePersistido<TareaPlan[]>(claveDatos(uid, CAMPO_PLAN), [], esTareas);
+  const [sesion, setSesion] = usePersistido<SesionEnPizarra | null>(claveDatos(uid, CAMPO_SESION), null, esSesionEnPizarra);
   const [nueva, setNueva] = useState('');
+  const sugerencias = useSugerencias();
   const añadir = () => {
     const texto = nueva.trim();
     if (!texto) return;
     setTareas(p => [...p, { id: 't' + Date.now(), texto: texto.slice(0, 80), hecha: false }]);
     setNueva('');
   };
+
+  // De la sesión montada se mira en el momento lo que no se guarda en la ventana: sus imágenes, su circuito y si ya está dada
+  const viva = useMemo(() => (sesion && fuente ? sesionViva(fuente, sesion.origen) : null), [sesion, fuente]);
+  const imagenes = useMemo<ImagenDeVisor[]>(() => [
+    ...(viva?.imagenes ?? []).map(i => ({ src: i.src, ...(i.pie ? { pie: i.pie } : {}) })),
+    ...(viva?.circuito ? [{ src: `data:image/svg+xml;utf8,${encodeURIComponent(pizarraSvg(viva.circuito))}`, pie: viva.circuito.nombre }] : []),
+  ], [viva]);
+  const nImagenes = viva?.imagenes.length ?? 0;
+
+  // Vacía, ofrece traer la sesión de hoy de la clase elegida (o la siguiente sin dar), y dice por qué
+  const vacia = tareas.length === 0 && !sesion;
+  const hoy = isoDate();
+  const claseId = clase?.id ?? '';
+  const propuestas = useMemo(
+    () => (vacia && fuente ? sesionesParaProponer(fuente, claseId, hoy) : []),
+    [vacia, fuente, claseId, hoy],
+  );
+  const traer = (p: PropuestaDeSesion) => {
+    if (!fuente) return;
+    const plan = planDeSesion(p.sesion, fuente.ef);
+    setTareas(prev => fusionarPlan(prev, plan.tareas, false));
+    setSesion(plan.sesion);
+  };
+  const porque = (p: PropuestaDeSesion) => (p.motivo === 'hoy'
+    ? (clase ? t('Tiene fecha de hoy y es de {clase}.', { clase: clase.name }) : t('Tiene fecha de hoy.'))
+    : p.sda ? t('Es la siguiente sin dar de «{sda}».', { sda: p.sda })
+      : clase ? t('Es la siguiente sin dar de {clase}.', { clase: clase.name }) : t('Es la siguiente sin dar.'));
+
+  // Con todas las actividades de la sesión marcadas, propone darla por dada. Cerrada, no vuelve a salir.
+  const claveDada = sesion ? claveSesionDada(sesion.origen) : '';
+  const proponerDada = !!sesion && !!viva && !viva.completada && !!onSesionDada && sesionRecorrida(tareas) && !sugerencias.vista(claveDada);
+
+  const momentos = momentosDe(sesion?.ef ?? false);
+  const grupos = ([0, 1, 2] as const)
+    .map(m => ({ m, etiqueta: momentos[m].label, tareas: tareas.filter(x => x.momento === m) }))
+    .filter(g => g.tareas.length > 0);
+  const sueltas = tareas.filter(x => x.momento === undefined);
+
+  const fila = (tarea: TareaPlan) => (
+    <li key={tarea.id} className="dlc-tarea flex items-start gap-2.5 rounded-xl" style={{ padding: '8px 10px', background: GLASS }}>
+      <button
+        type="button"
+        role="checkbox"
+        aria-checked={tarea.hecha}
+        aria-label={tarea.texto}
+        onClick={() => setTareas(p => p.map(x => x.id === tarea.id ? { ...x, hecha: !x.hecha } : x))}
+        className="flex items-center justify-center rounded-lg flex-shrink-0"
+        style={{ width: 26, height: 26, background: tarea.hecha ? '#a3e635' : 'transparent', border: '2px solid #a3e635', color: '#1a2e05' }}
+      >{tarea.hecha && <Check size={16} strokeWidth={3} />}</button>
+      <span className="flex-1 min-w-0 flex flex-col" style={{ paddingTop: 1 }}>
+        <span className="text-[16px] font-semibold" style={{ color: tarea.hecha ? 'rgba(var(--pz-rgb),0.35)' : 'rgb(var(--pz-rgb))', textDecoration: tarea.hecha ? 'line-through' : 'none' }}>{tarea.texto}</span>
+        {tarea.detalle && !tarea.hecha && <span className="dlc-detalle">{tarea.detalle}</span>}
+      </span>
+      <button type="button" onClick={() => setTareas(p => p.filter(x => x.id !== tarea.id))} title={t('Quitar')} aria-label={t('Quitar')} className="text-[rgba(var(--pz-rgb),0.3)] hover:text-[rgba(var(--pz-rgb),0.8)] flex-shrink-0" style={{ paddingTop: 5 }}><X size={15} /></button>
+    </li>
+  );
+
   return (
     <div className="h-full flex flex-col gap-2.5 min-h-0">
-      <ul className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-1.5">
-        {tareas.length === 0 && <li className="text-[rgba(var(--pz-rgb),0.4)] text-[13px] text-center pt-6 px-4">{t('Apunta lo que vais a hacer hoy y ve tachándolo.')}</li>}
-        {tareas.map(tarea => (
-          <li key={tarea.id} className="flex items-center gap-2.5 rounded-xl" style={{ padding: '8px 10px', background: GLASS }}>
-            <button
-              type="button"
-              role="checkbox"
-              aria-checked={tarea.hecha}
-              aria-label={tarea.texto}
-              onClick={() => setTareas(p => p.map(x => x.id === tarea.id ? { ...x, hecha: !x.hecha } : x))}
-              className="flex items-center justify-center rounded-lg flex-shrink-0"
-              style={{ width: 26, height: 26, background: tarea.hecha ? '#a3e635' : 'transparent', border: '2px solid #a3e635', color: '#1a2e05' }}
-            >{tarea.hecha && <Check size={16} strokeWidth={3} />}</button>
-            <span className="flex-1 min-w-0 text-[16px] font-semibold" style={{ color: tarea.hecha ? 'rgba(var(--pz-rgb),0.35)' : 'rgb(var(--pz-rgb))', textDecoration: tarea.hecha ? 'line-through' : 'none' }}>{tarea.texto}</span>
-            <button type="button" onClick={() => setTareas(p => p.filter(x => x.id !== tarea.id))} title={t('Quitar')} aria-label={t('Quitar')} className="text-[rgba(var(--pz-rgb),0.3)] hover:text-[rgba(var(--pz-rgb),0.8)] flex-shrink-0"><X size={15} /></button>
-          </li>
+      {sesion && (
+        <div className="dlc-cab">
+          <strong>{sesion.titulo || t('Sesión')}</strong>
+          {viva?.completada && <span className="dlc-dada"><CheckCircle2 size={13} aria-hidden="true" />{t('Sesión dada')}</span>}
+        </div>
+      )}
+      <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-1.5">
+        {vacia && <p className="text-[rgba(var(--pz-rgb),0.4)] text-[13px] text-center pt-6 px-4">{t('Apunta lo que vais a hacer hoy y ve tachándolo.')}</p>}
+        {propuestas.length > 0 && (
+          <ul className="dlc-props" aria-label={t('Sesiones preparadas que puedes traer')}>
+            {propuestas.map(p => (
+              <li key={p.sesion.id}>
+                <button type="button" className="dlc-prop" onClick={() => traer(p)}>
+                  <span className="dlc-prop-acc">{t(p.motivo === 'hoy' ? 'Traer la sesión de hoy' : 'Traer la siguiente sesión')}</span>
+                  <strong>{p.sesion.titulo || t('Sin título')}</strong>
+                  <span className="dlc-prop-porque">{porque(p)}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        {sesion && tareas.length === 0 && <p className="text-[rgba(var(--pz-rgb),0.4)] text-[13px] text-center pt-4 px-4">{t('Esta sesión no tiene actividades escritas. Añádelas aquí o en Sesiones.')}</p>}
+        {grupos.map(g => (
+          <section key={g.m} aria-label={t(g.etiqueta)} className="flex flex-col gap-1.5">
+            <h4 className="dlc-momento">{t(g.etiqueta)}</h4>
+            <ul className="flex flex-col gap-1.5">{g.tareas.map(fila)}</ul>
+          </section>
         ))}
-      </ul>
+        {sueltas.length > 0 && <ul className="flex flex-col gap-1.5" style={grupos.length ? { marginTop: 6 } : undefined}>{sueltas.map(fila)}</ul>}
+      </div>
+      {imagenes.length > 0 && onAmpliar && (
+        <div className="dlc-tira" role="group" aria-label={t('Imágenes de la sesión')}>
+          {imagenes.map((im, i) => {
+            const esCircuito = i >= nImagenes;
+            const nombre = esCircuito ? t('Ver el circuito «{nombre}»', { nombre: im.pie ?? '' }) : t('Ver la imagen {n}', { n: i + 1 });
+            return (
+              <button key={i} type="button" className={`dlc-mini${esCircuito ? ' circuito' : ''}`} onClick={() => onAmpliar(imagenes, i)} title={nombre} aria-label={nombre}>
+                <img src={im.src} alt="" draggable={false} />
+                {esCircuito && <span><Route size={12} aria-hidden="true" />{t('Circuito')}</span>}
+              </button>
+            );
+          })}
+        </div>
+      )}
+      {proponerDada && sesion && (
+        <div className="dlc-sug">
+          <Sugerencia
+            titulo={t('¿Marcar la sesión como dada?')}
+            porque={t('Has marcado todas las actividades de «{titulo}».', { titulo: sesion.titulo })}
+            accion={t('Marcar como dada')}
+            onAccion={() => onSesionDada?.(sesion.origen)}
+            onCerrar={() => sugerencias.marcar(claveDada)}
+          />
+        </div>
+      )}
       <form className="flex gap-2" onSubmit={e => { e.preventDefault(); añadir(); }}>
         <input
           value={nueva}

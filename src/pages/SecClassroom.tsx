@@ -31,6 +31,11 @@ import {
   type FondoId, type Rect, type Escena,
 } from '../lib/pizarraAula';
 import { useRecordarClase } from '../hooks/useClaseActiva';
+import { VisorDeClase } from '../components/live/VisorDeClase';
+import {
+  escribirPlanDeVentana, fusionarPlan, leerPlanDeVentana, suscribirEncargo, hayEncargo, tomarEncargo, ventanaParaPlan,
+  type FuenteDeSesiones, type ImagenDeVisor, type OrigenPlan,
+} from '../lib/darLaClase';
 
 /* ════════════════════════════════════════════════════════════
    Aula Live — panel de herramientas para proyectar en clase
@@ -1460,6 +1465,19 @@ interface ClassroomProps {
   /** Ficha que se pidió proyectar desde Recursos: se abre al entrar. */
   projectFicha?: Ficha | null;
   onProjectDone?: () => void;
+  /** Las sesiones preparadas, para «Plan del día» («Dar la clase», `lib/darLaClase.ts`). Sin ellas, se escribe a mano. */
+  sesiones?: FuenteDeSesiones;
+  /** Marca como dada la sesión que una ventana «Plan del día» tiene montada. */
+  onSesionDada?: (origen: OrigenPlan) => void;
+}
+
+/** El tamaño de «Plan del día» cuando lleva una sesión entera: tres momentos con sus actividades no caben en el de siempre. */
+const PLAN_CON_SESION = { width: 420, height: 520 };
+
+/** Si la pizarra está oculta (otra pantalla de la app la tapa: sigue montada pero no se ve). */
+function estaOculta(el: HTMLElement | null): boolean {
+  for (let x: HTMLElement | null = el; x; x = x.parentElement) if (getComputedStyle(x).display === 'none') return true;
+  return !el;
 }
 
 /** Ventana para elegir qué ficha proyectar como reto. */
@@ -1553,7 +1571,7 @@ function BotonBarra({ icono, nombre, activo, color, cuenta, onClick, disabled, p
 
 const Separador = () => <span className="flex-shrink-0" style={{ width: 1, height: 22, margin: '0 5px', background: 'rgba(255,255,255,0.12)' }} aria-hidden="true" />;
 
-export default function SecClassroom({ studentNames = [], clases = [], claseInicial, fichas = [], projectFicha = null, onProjectDone }: ClassroomProps) {
+export default function SecClassroom({ studentNames = [], clases = [], claseInicial, fichas = [], projectFicha = null, onProjectDone, sesiones, onSesionDada }: ClassroomProps) {
   const { t } = useI18n();
   const [claseId, setClaseId] = useState(claseInicial ?? '');
   // La clase que se elige aquí queda como la última usada, igual que en el resto de pantallas (`lib/claseActiva.ts`)
@@ -1635,6 +1653,11 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
     return r && r.width > 0 && r.height > 0 ? { width: r.width / e, height: r.height / e } : { width: 1110, height: 700 };
   }, [telefono]);
 
+  /** Las imágenes de la sesión (o su circuito) a toda la pizarra. */
+  const [visor, setVisor] = useState<{ imagenes: ImagenDeVisor[]; indice: number } | null>(null);
+  /** Recoger el encargo de «Dar la clase» (más abajo): se llama también cuando la pizarra vuelve a verse. */
+  const atenderEncargoRef = useRef<() => void>(() => {});
+
   // Lo guardado en otro monitor (o una ventana que se encoge) puede no caber: se mete todo en el área visible
   useEffect(() => {
     const el = rootRef.current;
@@ -1642,12 +1665,15 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
     const ajustar = () => {
       // Oculta (otra pantalla de la app) mide cero: no es un cambio de tamaño y las ventanas no se mueven
       const r = el.getBoundingClientRect();
-      if (r.width === 0 || r.height === 0) return;
+      // (y una imagen ampliada no se queda abierta sin verse: el botón de atrás la buscaría)
+      if (r.width === 0 || r.height === 0) { setVisor(null); return; }
       const area = areaPizarra();
       setVentanas(prev => {
         const next = prev.map(v => ({ ...v, rect: ajustarRect(v.rect, area, minDe(v.tipo)) }));
         return next.every((v, i) => JSON.stringify(v.rect) === JSON.stringify(prev[i].rect)) ? prev : next;
       });
+      // Al volver a verse, la sesión que se pidió con «Dar la clase» desde otra pantalla
+      atenderEncargoRef.current();
     };
     const observer = new ResizeObserver(ajustar);
     observer.observe(el);
@@ -1686,21 +1712,71 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
       lados: base.lados,
     };
   };
-  const anadir = (tipo: WidgetType) => setVentanas(prev => {
-    if (prev.length >= MAX_VENTANAS) return prev;
+  /** Una ventana nueva de la herramienta, colocada entre las que hay (`tam`: con otro tamaño que el de siempre). */
+  const colocar = (prev: Ventana[], tipo: WidgetType, tam?: { width: number; height: number }): Ventana => {
     const area = areaPizarra();
-    const base = ajustarRect(DEFAULTS[tipo], area, minDe(tipo));
+    const base = ajustarRect({ ...DEFAULTS[tipo], ...tam }, area, minDe(tipo));
     const margenes = margenesLibres();
     const libre = huecoLibre(base, prev.map(rectVisible), area, margenes);
     const mismas = prev.filter(v => v.tipo === tipo).length;
     // Sin hueco, en cascada, pero nunca encima de la barra de arriba
     const cascada = enCascada(base, mismas);
-    return [...prev, {
+    return {
       id: siguienteId(tipo, prev.map(v => v.id)),
       tipo,
       rect: libre ?? ajustarRect({ ...cascada, y: Math.max(cascada.y, margenes.arriba) }, area, minDe(tipo)),
-    }];
-  });
+    };
+  };
+  const anadir = (tipo: WidgetType) => setVentanas(prev => (prev.length >= MAX_VENTANAS ? prev : [...prev, colocar(prev, tipo)]));
+
+  /* ── «Dar la clase»: la sesión que se pide desde otra pantalla, montada en «Plan del día» ── */
+  const ampliar = useCallback((imagenes: ImagenDeVisor[], indice: number) => setVisor({ imagenes, indice }), []);
+  const cerrarVisor = useCallback(() => setVisor(null), []);
+  const cambiarVisor = useCallback((indice: number) => setVisor(v => (v ? { ...v, indice } : v)), []);
+  /** Cuántas veces se ha cargado desde fuera cada «Plan del día»: al cambiar, la ventana vuelve a leer lo suyo. */
+  const [cargas, setCargas] = useState<Record<string, number>>({});
+  // Lo último de cada cosa, para atender un encargo que llega fuera del pintado
+  const alDia = useRef({ ventanas, colocar });
+  useEffect(() => { alDia.current = { ventanas, colocar }; });
+  /**
+   * Recoge el encargo de «Dar la clase», si lo hay y la pizarra se ve (oculta no tiene medidas para colocar
+   * la ventana: lo recogerá al enseñarse). **No borra nada**: la sesión va a la ventana que ya la tenía
+   * (conservando lo marcado), a una vacía o a una ventana nueva; las demás se quedan como estaban.
+   */
+  const atenderEncargo = useCallback(() => {
+    if (!hayEncargo() || estaOculta(rootRef.current)) return;
+    const encargo = tomarEncargo();
+    if (!encargo) return;
+    if (encargo.claseId) { setClaseId(encargo.claseId); recordarClase(encargo.claseId); }
+    const { ventanas: actuales, colocar: nuevaVentana } = alDia.current;
+    const planes = actuales.filter(v => v.tipo === 'agenda').map(v => leerPlanDeVentana(v.id));
+    const destino = ventanaParaPlan(planes, encargo.plan?.sesion.origen ?? null);
+    if (!destino && actuales.length >= MAX_VENTANAS) return;
+    const nueva = destino ? null : nuevaVentana(actuales, 'agenda', encargo.plan ? PLAN_CON_SESION : undefined);
+    const id = destino?.id ?? nueva!.id;
+    if (encargo.plan) {
+      const antes = planes.find(p => p.id === id);
+      escribirPlanDeVentana(id, fusionarPlan(antes?.tareas ?? [], encargo.plan.tareas, destino?.modo === 'misma'), encargo.plan.sesion);
+      setCargas(c => ({ ...c, [id]: (c[id] ?? 0) + 1 }));
+    }
+    const area = areaPizarra();
+    setVentanas(prev => {
+      if (nueva) return prev.some(v => v.id === nueva.id) ? prev : [...prev, nueva];
+      // La que ya había pasa delante, a la vista y, si se ha rellenado, con sitio para la sesión
+      const v = prev.find(x => x.id === id);
+      if (!v) return prev;
+      const crecer = encargo.plan && destino?.modo === 'vacia';
+      const rect = crecer
+        ? ajustarRect({ ...v.rect, width: Math.max(v.rect.width, PLAN_CON_SESION.width), height: Math.max(v.rect.height, PLAN_CON_SESION.height) }, area, minDe('agenda'))
+        : v.rect;
+      return [...prev.filter(x => x.id !== id), { ...v, rect, min: undefined }];
+    });
+    setBarrasOcultas(false);
+  }, [areaPizarra, recordarClase]);
+  useEffect(() => {
+    atenderEncargoRef.current = atenderEncargo;
+    return suscribirEncargo(atenderEncargo);
+  }, [atenderEncargo]);
   const cerrar = (id: string) => {
     borrarDatosDeVentana(id);
     setVentanas(prev => prev.filter(v => v.id !== id));
@@ -1775,7 +1851,7 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
       case 'score':     return <ScoreWidget uid={v.id} />;
       case 'groups':    return <GroupsWidget names={wheelNames} />;
       case 'qr':        return <QrWidget uid={v.id} />;
-      case 'agenda':    return <AgendaWidget uid={v.id} />;
+      case 'agenda':    return <AgendaWidget key={cargas[v.id] ?? 0} uid={v.id} clase={clase} fuente={sesiones} onSesionDada={onSesionDada} onAmpliar={ampliar} />;
     }
   };
 
@@ -2035,6 +2111,7 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
       {/* Ventanas */}
       {enOrdenFijo.map(({ v, i }) => renderWidget(v, i))}
 
+      {visor && <VisorDeClase imagenes={visor.imagenes} indice={visor.indice} onCambiar={cambiarVisor} onCerrar={cerrarVisor} />}
       {picking && <ChallengePicker fichas={fichas} onClose={() => setPicking(false)} onPick={f => { setPicking(false); setPresenting(f); }} />}
       {presenting && <ChallengePresenter ficha={presenting} onClose={closePresenter} />}
 

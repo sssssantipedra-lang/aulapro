@@ -35,6 +35,8 @@ import { useCalendarioEscolar } from '../hooks/useCalendarioEscolar';
 import { textoDeDato } from '../lib/resumenAlumno';
 import type { Radar } from '../lib/radarClase';
 import { semanaConAlgo, type Semana } from '../lib/semana';
+import { BotonDarLaClase } from '../components/darLaClase/BotonDarLaClase';
+import { SesionesDeHoy, type SesionDeHoy } from '../components/darLaClase/SesionesDeHoy';
 import { useFijarClase } from '../hooks/useClaseActiva';
 
 interface Props {
@@ -61,6 +63,10 @@ interface Props {
   semana?: Semana;
   /** Lleva a Sesiones (la de EF o la de Documentos). */
   onVerSesiones?: () => void;
+  /** Las sesiones con fecha de hoy que aún no se han dado, para «Tu jornada». */
+  sesionesHoy?: SesionDeHoy[];
+  /** «Dar la clase»: abre la pizarra con esa sesión montada en el plan del día. */
+  onDarLaClase?: (sesionId: string) => void;
   /**
    * Educación Física sin tutoría: el mismo Inicio, con lo de EF (decisión del
    * dueño, 5-10-2026). Con tutoría no se pasa y queda el de tutoría tal cual.
@@ -81,7 +87,7 @@ function gradeColor(n: number | null): string {
 }
 
 export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, classes,
-  gradeCategories, gradeItems, grades, attendance, onNav, onAddTask, onToggleTask, onLoadDemo, radar, onOpenStudent, semana, onVerSesiones, ef }: Props) {
+  gradeCategories, gradeItems, grades, attendance, onNav, onAddTask, onToggleTask, onLoadDemo, radar, onOpenStudent, semana, onVerSesiones, sesionesHoy, onDarLaClase, ef }: Props) {
   const { t, locale, lang } = useI18n();
 
   // La hora manda en «ahora / siguiente»: se refresca cada medio minuto
@@ -258,6 +264,9 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
           </ol>
         )}
 
+        {/* Las sesiones preparadas para hoy, cada una con «Dar la clase» */}
+        {onDarLaClase && sesionesHoy && <SesionesDeHoy sesiones={sesionesHoy} onDar={onDarLaClase} />}
+
         {/* Los atajos de lo que más se hace (elegidos por el dueño) */}
         <div className="home-quick">
           <button type="button" className="home-q" style={{ '--q-c': '#0ea5e9' } as React.CSSProperties} onClick={() => nav('attendance')}>
@@ -311,6 +320,7 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
                         <span className="home-event-name">{s.titulo}</span>
                         <span className="home-tl-room">{[fromIsoDate(s.fecha).toLocaleDateString(locale, { weekday: 'long', day: 'numeric' }), s.clase, s.completada ? t('completada') : ''].filter(Boolean).join(' · ')}</span>
                       </span>
+                      {onDarLaClase && !s.completada && s.fecha === isoDate(now) && <BotonDarLaClase compacto titulo={s.titulo} onClick={() => onDarLaClase(s.id)} />}
                     </li>
                   ))}
                   {semana.sesiones.length > 6 && <li className="home-muted">{t('y {n} más', { n: semana.sesiones.length - 6 })}</li>}
@@ -493,6 +503,7 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
                       <span className="home-event-name">{s.titulo}</span>
                       <span className="home-tl-room">{[s.clase, fromIsoDate(s.fecha).toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' })].filter(Boolean).join(' · ')}</span>
                     </span>
+                    {onDarLaClase && s.fecha === isoDate(now) && <BotonDarLaClase compacto titulo={s.titulo} onClick={() => onDarLaClase(s.id)} />}
                   </li>
                 ))}
               </ul>
