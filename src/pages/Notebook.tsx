@@ -35,6 +35,7 @@ import { categoriasDe, cuadernoDe, notasDeCurso, reglaFinal, type ReglaFinal } f
 import { useEvaluacionElegida, type EvaluacionElegida } from '../hooks/useEvaluacionElegida';
 import { SelectorEvaluacion } from '../components/SelectorEvaluacion';
 import { NotasDeCurso } from '../components/cuaderno/NotasDeCurso';
+import { explicacionDePropuestas, propuestasDeCategorias, tiposDeAsignatura } from '../lib/categoriasCuaderno';
 
 // El currículo (unos 650 KB) se abre con la pestaña «Por competencias», no con el cuaderno
 const CompetenciasDeLaClase = lazy(() => import('../components/curriculum/CompetenciasDeLaClase')
@@ -160,43 +161,6 @@ function GradeCell({ value, onCommit }: { value: number | null; onCommit: (v: nu
 }
 
 /* ══════════════════ Pestaña de calificaciones ══════════════════ */
-
-const DEFAULT_CATEGORIES_ES: { name: string; weight: number }[] = [
-  { name: 'Exámenes', weight: 60 },
-  { name: 'Tareas', weight: 30 },
-  { name: 'Participación', weight: 10 },
-];
-const DEFAULT_CATEGORIES_CA: { name: string; weight: number }[] = [
-  { name: 'Exàmens', weight: 60 },
-  { name: 'Tasques', weight: 30 },
-  { name: 'Participació', weight: 10 },
-];
-const DEFAULT_CATEGORIES_EN: { name: string; weight: number }[] = [
-  { name: 'Tests', weight: 60 },
-  { name: 'Homework', weight: 30 },
-  { name: 'Participation', weight: 10 },
-];
-
-/**
- * La estructura de Educación Física (petición del dueño, 20-10-2026): tres
- * componentes. Es solo el punto de partida: nombre y peso se editan después,
- * para ajustarlos a la ponderación del centro o a los criterios LOMLOE.
- */
-const EF_CATEGORIES_ES: { name: string; weight: number }[] = [
-  { name: 'Componente motriz', weight: 40 },
-  { name: 'Componente cognitivo', weight: 30 },
-  { name: 'Componente social y relacional', weight: 30 },
-];
-const EF_CATEGORIES_CA: { name: string; weight: number }[] = [
-  { name: 'Component motriu', weight: 40 },
-  { name: 'Component cognitiu', weight: 30 },
-  { name: 'Component social i relacional', weight: 30 },
-];
-const EF_CATEGORIES_EN: { name: string; weight: number }[] = [
-  { name: 'Motor component', weight: 40 },
-  { name: 'Cognitive component', weight: 30 },
-  { name: 'Social and relational component', weight: 30 },
-];
 
 function GradesTab({
   classes, students, gradeCategories: todasLasCategorias, gradeItems: todasLasActividades, grades: notasGuardadas,
@@ -568,31 +532,23 @@ function GradesTab({
             {t('¿Cómo evalúas en {name}?', { name: cls?.name ?? '' })}
           </h3>
           <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6, maxWidth: 440, margin: '0 auto 22px' }}>
-            {t(esAsignaturaEF(activeSubject) ? 'Define las categorías de nota y cuánto pesa cada una en la media. En Educación Física puedes empezar con sus tres componentes, motriz, cognitivo y social y relacional, y renombrarlos o cambiar su peso después.' : 'Define las categorías de nota y cuánto pesa cada una en la media. Puedes empezar con la configuración más habitual y ajustarla después.')}
+            {t(explicacionDePropuestas(tiposDeAsignatura(activeSubject, cls?.materiasOficiales?.[activeSubject])), { asignatura: activeSubject })}
           </p>
           <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-            {(() => {
-              const esEF = esAsignaturaEF(activeSubject);
-              const crear = (defaults: { name: string; weight: number }[]) => {
-                defaults.forEach((c, i) =>
-                  onAddCategory({ id: 'gc' + Date.now() + '_' + i, class_id: clsId, name: c.name, weight: c.weight, subject: activeSubject }));
-                toast(`✅ ${lang === 'en' ? 'Categories created' : lang === 'ca' ? 'Categories creades' : 'Categorías creadas'}: ${defaults.map(c => `${c.name} ${c.weight}%`).join(' · ')}`);
-              };
-              const tipica = lang === 'en' ? DEFAULT_CATEGORIES_EN : lang === 'ca' ? DEFAULT_CATEGORIES_CA : DEFAULT_CATEGORIES_ES;
-              const deEF = lang === 'en' ? EF_CATEGORIES_EN : lang === 'ca' ? EF_CATEGORIES_CA : EF_CATEGORIES_ES;
-              return (
-                <>
-                  {esEF && (
-                    <button className="btn-accent" onClick={() => crear(deEF)}>
-                      {t('Usar los 3 componentes de Educación Física (40/30/30)')}
-                    </button>
-                  )}
-                  <button className={esEF ? 'btn-ghost' : 'btn-accent'} onClick={() => crear(tipica)}>
-                    {t('Usar configuración típica (60/30/10)')}
-                  </button>
-                </>
-              );
-            })()}
+            {/* Una propuesta por lo que la asignatura es (lib/categoriasCuaderno.ts) y, al final, la típica: se ofrecen, no se imponen */}
+            {propuestasDeCategorias(activeSubject, lang, cls?.materiasOficiales?.[activeSubject]).map((p, k) => (
+              <button
+                key={p.id} className={k === 0 ? 'btn-accent' : 'btn-ghost'}
+                title={p.categorias.map(c => `${c.name} ${c.weight}%`).join(' · ')}
+                onClick={() => {
+                  p.categorias.forEach((c, i) =>
+                    onAddCategory({ id: 'gc' + Date.now() + '_' + i, class_id: clsId, name: c.name, weight: c.weight, subject: activeSubject }));
+                  toast(`✅ ${lang === 'en' ? 'Categories created' : lang === 'ca' ? 'Categories creades' : 'Categorías creadas'}: ${p.categorias.map(c => `${c.name} ${c.weight}%`).join(' · ')}`);
+                }}
+              >
+                {t(p.boton)}
+              </button>
+            ))}
             <button className="btn-ghost" onClick={() => openCatModal('new')}>
               <Plus size={14} />{t('Crear a mi manera')}
             </button>
