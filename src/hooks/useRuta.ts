@@ -99,6 +99,11 @@ export function useRuta({ profileId, tipo }: {
   /** Lo que «atrás» intentó cerrar la última vez, mientras no se toque nada (ver `cerrarLoAbierto`). */
   const intentado = useRef<Element | null>(null);
   const cerrando = useRef(false);
+  /**
+   * La entrada del último aviso atendido. Un salto del navegador avisa dos veces (`popstate` y `hashchange`), y según
+   * el navegador el segundo llega pegado al primero, antes de que se haya deshecho el salto: no se atiende dos veces.
+   */
+  const atendida = useRef<string | null>(null);
 
   // Primero el orden de la entrada en la que se abre; después (los efectos van en orden) la dirección
   useEffect(() => {
@@ -108,6 +113,9 @@ export function useRuta({ profileId, tipo }: {
     else { ap.current = 0; escribir('replaceState', { ap: 0 }, window.location.href); }
 
     const alCambiar = () => {
+      const esta = `${JSON.stringify(window.history.state)}|${window.location.hash}`;
+      if (esta === atendida.current) return;
+      atendida.current = esta;
       const r = alVolver({ hash: window.location.hash, estado: window.history.state, ap: ap.current, actual: actual.current, tipo: tipoActual.current });
       if (r.hacer === 'nada') return;
       if (r.pasos !== 0) {
@@ -168,6 +176,7 @@ export function useRuta({ profileId, tipo }: {
     const sustituir = op?.sustituir === true || sinTocar.current;
     const entrada: Entrada = { ap: sustituir ? ap.current : ap.current + 1, ...(alumno ? { alumno } : {}) };
     if (escribir(sustituir ? 'replaceState' : 'pushState', entrada, hashDe(s))) ap.current = entrada.ap;
+    atendida.current = null;
     actual.current = s;
     setSectionState(s);
   }, []);

@@ -205,6 +205,30 @@ describe('una ventana abierta', () => {
     expect(result.current.section).toBe('notebook');
   });
 
+  it('si el navegador avisa dos veces seguidas del mismo salto, la pantalla no cambia ni un momento', async () => {
+    empezarEn('');
+    const vistas: string[] = [];
+    const { result } = renderHook((p: Props) => { const r = useRuta(p); vistas.push(r.section); return r; }, { initialProps: AULA });
+    tocar();
+    act(() => result.current.setSection('notebook'));
+    act(() => result.current.setSection('attendance'));
+    abrirVentana();
+    // Como los navegadores que mandan «hashchange» pegado a «popstate», antes de que el salto se haya deshecho
+    const repetir = () => window.dispatchEvent(new Event('hashchange'));
+    window.addEventListener('popstate', repetir);
+    vistas.length = 0;
+    await atras();
+    window.removeEventListener('popstate', repetir);
+    expect(result.current.section).toBe('attendance');
+    expect(vistas).not.toContain('notebook');
+    // Y después de cambiar de pantalla se puede volver a la misma entrada de antes
+    act(() => result.current.setSection('agenda'));
+    await atras();
+    expect(result.current.section).toBe('attendance');
+    await atras();
+    expect(result.current.section).toBe('notebook');
+  });
+
   it('las ventanas cerradas, que siguen montadas, no cuentan', async () => {
     empezarEn('');
     const { result } = montar(AULA);
