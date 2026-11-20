@@ -117,7 +117,7 @@ function AppInner() {
 
   // La pantalla abierta va unida a la dirección («#/cuaderno») y al historial del navegador: atrás y adelante cambian
   // de pantalla, recargar deja en la misma y `setSection` añade una entrada (hooks/useRuta.ts, lib/ruta.ts)
-  const { section, setSection } = useRuta({
+  const { section, setSection, llegada } = useRuta({
     profileId: st.profileId,
     tipo: st.ready && st.currentUser ? st.currentUser.tipo ?? 'aula' : null,
   });
@@ -893,6 +893,8 @@ function AppInner() {
             )}
             {section === 'apoyo-alumno' && (
               <AlumnoApoyo
+                // Atrás o adelante entre las páginas de dos alumnos: se monta de nuevo con el de esa entrada
+                key={llegada}
                 data={st.apoyo}
                 onChange={st.setApoyo}
                 especialidades={st.currentUser.especialidades ?? []}

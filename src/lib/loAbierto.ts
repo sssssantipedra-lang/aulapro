@@ -8,8 +8,11 @@
  *   - `.modal-overlay.open`: las ventanas de siempre; se cierran tocando fuera (todas lo admiten).
  *   - `.bq-fondo`: el buscador general; igual.
  *   - `.sb-backdrop`: el menú abierto por encima en el móvil y la tableta; igual.
- *   - Un diálogo a pantalla completa (`role="dialog"` con `aria-modal`): la vista previa de un documento, las
- *     tarjetas interactivas, un reto proyectado, el cronómetro de circuitos… Se cierran con Escape.
+ *   - Un diálogo a pantalla completa (`role="dialog"` con `aria-modal`): las tarjetas interactivas y el Memory, un
+ *     reto proyectado y su selector, el cronómetro de circuitos, la agenda visual que se enseña al alumno… Todos
+ *     llevan su botón de «Cerrar» o de «Salir», y se pulsa ese: no todos atienden a Escape (el Memory, la agenda
+ *     visual y el selector de reto no lo hacen, y los que se ponen a pantalla completa lo ignoran mientras lo
+ *     están). Si un diálogo no tuviera ese botón, Escape.
  *
  * Se cierra solo lo de más arriba (lo último del documento): una vista previa abierta desde una ventana deja la
  * ventana abierta, y el siguiente «atrás» la cierra.
@@ -32,16 +35,31 @@ export function loAbierto(doc: Document): Element | null {
   return ultimo;
 }
 
+/** El botón con el que se cierra un diálogo: el primero que se llama como alguno de `nombres`. */
+function botonDeCerrar(dialogo: Element, nombres: readonly string[]): HTMLButtonElement | null {
+  if (nombres.length === 0) return null;
+  for (const b of dialogo.querySelectorAll('button')) {
+    const nombre = (b.getAttribute('aria-label') ?? b.textContent ?? '').trim();
+    if (!b.disabled && nombres.includes(nombre)) return b;
+  }
+  return null;
+}
+
 /**
  * Cierra lo de más arriba y lo devuelve, o `null` si no hay nada abierto. `yaIntentado` es lo que se intentó cerrar
  * la vez anterior sin que el docente haya tocado nada desde entonces: si sigue ahí es que no se deja cerrar así
- * (una ventana a medio guardar, un diálogo que no atiende a Escape), y no se insiste, para que «atrás» no se quede
- * sin hacer nada para siempre.
+ * (una ventana a medio guardar), y no se insiste, para que «atrás» no se quede sin hacer nada para siempre.
+ * `nombresDeCerrar` es cómo se llama el botón de cerrar de un diálogo a pantalla completa en el idioma de la app
+ * («Cerrar», «Salir»).
  */
-export function cerrarLoAbierto(doc: Document, yaIntentado: Element | null = null): Element | null {
+export function cerrarLoAbierto(doc: Document, yaIntentado: Element | null = null, nombresDeCerrar: readonly string[] = []): Element | null {
   const el = loAbierto(doc);
   if (!el || el === yaIntentado) return null;
   if (el.matches('.modal-overlay, .bq-fondo, .sb-backdrop')) (el as HTMLElement).click();
-  else el.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+  else {
+    const boton = botonDeCerrar(el, nombresDeCerrar);
+    if (boton) boton.click();
+    else el.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+  }
   return el;
 }

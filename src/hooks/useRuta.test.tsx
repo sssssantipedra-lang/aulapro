@@ -229,6 +229,24 @@ describe('una ventana abierta', () => {
     expect(result.current.section).toBe('notebook');
   });
 
+  it('un diálogo a pantalla completa que no atiende a Escape se cierra con su botón de «Cerrar»', async () => {
+    empezarEn('');
+    const { result } = montar(AULA);
+    tocar();
+    act(() => result.current.setSection('notebook'));
+    act(() => result.current.setSection('resources'));
+    document.body.innerHTML = '<div class="mem-overlay" role="dialog" aria-modal="true"><button aria-label="Barajar de nuevo"></button><button id="salir" aria-label="Salir"></button></div>';
+    const dialogo = document.querySelector('.mem-overlay')!;
+    document.getElementById('salir')!.addEventListener('click', () => dialogo.remove());
+
+    await atras();
+    expect(document.querySelector('.mem-overlay')).toBeNull();
+    expect(result.current.section).toBe('resources');
+    expect(window.location.hash).toBe('#/documentos/recursos');
+    await atras();
+    expect(result.current.section).toBe('notebook');
+  });
+
   it('las ventanas cerradas, que siguen montadas, no cuentan', async () => {
     empezarEn('');
     const { result } = montar(AULA);
@@ -293,6 +311,34 @@ describe('la página de un alumno de apoyo', () => {
     await atras();
     expect(result.current.section).toBe('apoyo-alumno');
     expect(takeAlumno()).toEqual({ alumnoId: 'alu-7', pestana: 'programa' });
+  });
+
+  it('saltar de la página de un alumno a la de otro (dos entradas de una vez) avisa para montarla de nuevo', async () => {
+    empezarEn('');
+    const { result } = montar(APOYO);
+    tocar();
+    act(() => { requestAlumno('alu-1'); result.current.setSection('apoyo-alumno'); });
+    takeAlumno();
+    act(() => result.current.setSection('apoyo-registro'));
+    act(() => { requestAlumno('alu-2', 'sesiones'); result.current.setSection('apoyo-alumno'); });
+    takeAlumno();
+    const antes = result.current.llegada;
+
+    window.history.go(-2);
+    await esperar();
+    expect(result.current.section).toBe('apoyo-alumno');
+    expect(window.history.state).toEqual({ ap: 1, alumno: { alumnoId: 'alu-1', pestana: 'resumen' } });
+    // La pantalla es la misma: sin esto la página seguiría con el segundo alumno
+    expect(result.current.llegada).not.toBe(antes);
+    expect(takeAlumno()).toEqual({ alumnoId: 'alu-1', pestana: 'resumen' });
+
+    // Volver de otra pantalla no lo necesita: la página se monta sola
+    const despues = result.current.llegada;
+    await adelante();
+    expect(result.current.section).toBe('apoyo-registro');
+    await atras();
+    expect(result.current.section).toBe('apoyo-alumno');
+    expect(result.current.llegada).toBe(despues);
   });
 
   it('recargar con ella abierta la vuelve a pedir; sin saber qué alumno, se abre la lista', () => {

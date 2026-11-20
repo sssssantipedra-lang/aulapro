@@ -16,7 +16,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Section } from '../types';
 import type { TipoDocente } from '../lib/tipoDocente';
 import { enMenu, nombreDePantalla } from '../lib/navigation';
-import { alVolver, entradaDeLaPagina, guardarSalida, hashDe, leerEntrada, pantallaDeHash, resolver, type Entrada } from '../lib/ruta';
+import { alVolver, almacenSeguro, entradaDeLaPagina, guardarSalida, hashDe, leerEntrada, pantallaDeHash, resolver, type Entrada } from '../lib/ruta';
 import { cerrarLoAbierto } from '../lib/loAbierto';
 import { requestAlumno, takeAlumno, type AlumnoPedido } from '../lib/apoyoNav';
 import { useI18n } from '../i18n';
@@ -25,9 +25,10 @@ import { useI18n } from '../i18n';
  * La parte «#» con la que se abre la app. Se mira al cargar la página, antes de que la vuelta de Google o de
  * Microsoft limpie la dirección, y al irse se apunta la pantalla por si se vuelve de una de las dos.
  */
-const ENTRADA = typeof window === 'undefined' ? '' : entradaDeLaPagina(window.location, window.sessionStorage);
+const deLaPestana = () => almacenSeguro(() => window.sessionStorage);
+const ENTRADA = typeof window === 'undefined' ? '' : entradaDeLaPagina(window.location, deLaPestana());
 if (typeof window !== 'undefined') {
-  window.addEventListener('pagehide', () => guardarSalida(window.location.hash, window.sessionStorage));
+  window.addEventListener('pagehide', () => guardarSalida(window.location.hash, deLaPestana()));
 }
 
 /** La dirección con la que se abre la app ya se ha usado: un perfil que se monte después empieza por la suya. */
@@ -61,8 +62,18 @@ export function useRuta({ profileId, tipo }: {
   profileId: string | null;
   /** El tipo de docente del perfil ya cargado, o `null` mientras no lo esté. */
   tipo: TipoDocente | null;
-}): { section: Section; setSection: (s: Section, op?: OpcionesDeIr) => void } {
+}): {
+  section: Section;
+  setSection: (s: Section, op?: OpcionesDeIr) => void;
+  /**
+   * Cambia cuando el historial lleva de la página de un alumno de apoyo a la de otro sin pasar por otra pantalla
+   * (saltando varias entradas de una vez): la pantalla es la misma, y quien la pinta la monta de nuevo con esto
+   * de `key` para que abra al alumno de esa entrada y no se quede con el que tenía.
+   */
+  llegada: number;
+} {
   const { t } = useI18n();
+  const [llegada, setLlegada] = useState(0);
   const [section, setSectionState] = useState<Section>(() => {
     const hash = entradaUsada ? window.location.hash : ENTRADA;
     const d = resolver(hash, leerEntrada(window.history.state), null);
@@ -90,6 +101,8 @@ export function useRuta({ profileId, tipo }: {
   /** La pantalla y el tipo, para leerlos desde los avisos del navegador. */
   const actual = useRef(section);
   const tipoActual = useRef(tipo);
+  /** Cómo se llama, en el idioma de la app, el botón que cierra un diálogo a pantalla completa (`lib/loAbierto.ts`). */
+  const nombresDeCerrar = useRef<string[]>([]);
   /**
    * El docente no ha tocado nada desde que se llegó a esta entrada (al abrir la app o por el historial). Si en ese
    * rato una pantalla manda a otra (la página de un alumno que ya no existe manda a la lista), es un rebote suyo y
@@ -120,13 +133,17 @@ export function useRuta({ profileId, tipo }: {
       if (r.hacer === 'nada') return;
       if (r.pasos !== 0) {
         cerrando.current = true;
-        const cerrado = cerrarLoAbierto(document, intentado.current);
+        const cerrado = cerrarLoAbierto(document, intentado.current, nombresDeCerrar.current);
         cerrando.current = false;
         // Había una ventana abierta: se cierra y se vuelve a la entrada en la que se estaba
         if (cerrado) { intentado.current = cerrado; window.history.go(r.pasos); return; }
       }
       const { section: s, alumno } = r.destino;
-      if (alumno) requestAlumno(alumno.alumnoId, alumno.pestana);
+      if (alumno) {
+        requestAlumno(alumno.alumnoId, alumno.pestana);
+        // De la página de un alumno a la de otro: la pantalla no cambia, así que se monta de nuevo (ver `llegada`)
+        if (s === actual.current) setLlegada(n => n + 1);
+      }
       // Una dirección escrita a mano es una entrada nueva, detrás de la que había: se le pone su orden. Y si lleva
       // a otra pantalla que la que dice (no existe, no es de este perfil), se corrige.
       if (r.ap === null) ap.current += 1; else ap.current = r.ap;
@@ -162,6 +179,7 @@ export function useRuta({ profileId, tipo }: {
     if (pantallaDeHash(window.location.hash) !== section) escribir('replaceState', { ap: ap.current }, hashDe(section));
   }, [section]);
   useEffect(() => { tipoActual.current = tipo; }, [tipo]);
+  useEffect(() => { nombresDeCerrar.current = [t('Cerrar'), t('Salir')]; }, [t]);
 
   // El título de la pestaña dice la pantalla: así se leen los marcadores y la lista de «atrás» del navegador
   useEffect(() => {
@@ -181,5 +199,5 @@ export function useRuta({ profileId, tipo }: {
     setSectionState(s);
   }, []);
 
-  return { section, setSection };
+  return { section, setSection, llegada };
 }

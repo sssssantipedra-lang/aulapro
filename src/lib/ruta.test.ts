@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import type { Section } from '../types';
 import { reachableSections } from './navigation';
-import { RUTAS, alVolver, entradaDeLaPagina, esRuta, guardarSalida, hashDe, leerEntrada, pantallaDeHash, pantallaPermitida, resolver } from './ruta';
+import { RUTAS, alVolver, almacenSeguro, entradaDeLaPagina, esRuta, guardarSalida, hashDe, leerEntrada, pantallaDeHash, pantallaPermitida, resolver } from './ruta';
 
 const TODAS = Object.keys(RUTAS) as Section[];
 
@@ -216,5 +216,15 @@ describe('ir a la página de Google o de Microsoft y volver', () => {
     expect(() => guardarSalida('#/cuaderno', roto)).not.toThrow();
     expect(entradaDeLaPagina({ hash: '#/cuaderno', search: '' }, roto)).toBe('#/cuaderno');
     expect(entradaDeLaPagina({ hash: '', search: '?state=1' }, roto)).toBe('');
+  });
+
+  it('si el navegador no deja ni pedir el almacén (cookies bloqueadas), la página se abre igual', () => {
+    const vetado = almacenSeguro(() => { throw new DOMException('The operation is insecure.', 'SecurityError'); });
+    expect(() => guardarSalida('#/cuaderno', vetado)).not.toThrow();
+    expect(entradaDeLaPagina({ hash: '#/cuaderno', search: '' }, vetado)).toBe('#/cuaderno');
+    expect(entradaDeLaPagina({ hash: '', search: '?state=1' }, vetado)).toBe('');
+    // Y si lo deja, es el suyo
+    const a = almacen();
+    expect(almacenSeguro(() => a)).toBe(a);
   });
 });

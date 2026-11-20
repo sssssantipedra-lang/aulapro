@@ -188,7 +188,17 @@ export function alVolver(o: { hash: string; estado: unknown; ap: number; actual:
  */
 const SALIDA = 'aulapro_ruta_salida';
 
-type Almacen = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
+export type Almacen = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
+
+const SIN_ALMACEN: Almacen = { getItem: () => null, setItem: () => {}, removeItem: () => {} };
+
+/**
+ * El almacén de la pestaña, o uno vacío si el navegador no lo deja ni pedir: con las cookies bloqueadas del todo,
+ * leer `window.sessionStorage` ya es un error, y esto se mira al cargar la página, donde un error la deja en blanco.
+ */
+export function almacenSeguro(pedir: () => Almacen): Almacen {
+  try { return pedir() ?? SIN_ALMACEN; } catch { return SIN_ALMACEN; }
+}
 
 /** Al irse de la página: apunta la pantalla en la que se estaba. */
 export function guardarSalida(hash: string, almacen: Almacen): void {
