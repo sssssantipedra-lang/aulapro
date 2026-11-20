@@ -74,6 +74,18 @@ describe('leerListado', () => {
     expect(leerListado('Apellidos, Nombre\nPrimero Segundo, Alumno 90\n2\tAlumno 91\talumno91@ejemplo.com\nAlumno 92'))
       .toEqual([{ name: 'Alumno 90 Primero Segundo', email: '' }, { name: 'Alumno 91', email: 'alumno91@ejemplo.com' }, { name: 'Alumno 92', email: '' }]);
   });
+  it('con cabecera, solo cuentan sus columnas de nombre, apellidos y correo', () => {
+    expect(leerListado('Nombre;Email;Grupo\nAlumno 1;alumno1@ejemplo.com;5ºA')).toEqual([{ name: 'Alumno 1', email: 'alumno1@ejemplo.com' }]);
+    expect(leerListado('Nombre,Apellidos\nAlumno,Primero Segundo')).toEqual([{ name: 'Alumno Primero Segundo', email: '' }]);
+    // Un alumno sin correo deja la última columna vacía: la cabecera sigue mandando
+    expect(leerListado('Apellidos\tNombre\tCorreo\nPrimero Segundo\tAlumno\t\nTercero Cuarto\tAlumna\talumna@ejemplo.com'))
+      .toEqual([{ name: 'Alumno Primero Segundo', email: '' }, { name: 'Alumna Tercero Cuarto', email: 'alumna@ejemplo.com' }]);
+  });
+  it('sin cabecera, lo que no es un nombre (lista, fecha, DNI, grupo) no entra en él', () => {
+    expect(leerListado('Alumno 1,5ºA')).toEqual([{ name: 'Alumno 1', email: '' }]);
+    expect(leerListado('1\tPrimero Segundo, Alumno\t12/03/2015\t12345678Z\t3.º B')).toEqual([{ name: 'Alumno Primero Segundo', email: '' }]);
+    expect(leerListado(';;\n\t\nAlumno 2;')).toEqual([{ name: 'Alumno 2', email: '' }]);
+  });
   it('con cabecera de nombre y apellidos en columnas, los une en ese orden', () => {
     expect(leerListado('Apellidos\tNombre\nPrimero Segundo\tAlumno')).toEqual([{ name: 'Alumno Primero Segundo', email: '' }]);
     expect(leerListado('Nombre;Apellidos\nAlumno;Primero Segundo')).toEqual([{ name: 'Alumno Primero Segundo', email: '' }]);

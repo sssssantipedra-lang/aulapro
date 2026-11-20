@@ -30,6 +30,8 @@ import { useAppState } from './hooks/useAppState';
 import { useNarrowScreen, usePhoneScreen } from './hooks/useNarrowScreen';
 import { applyTheme, type ThemeKey } from './lib/utils';
 import { setPrivacyRoster } from './services/privacy';
+import { ocupado } from './lib/ocupado';
+import { mismaEvaluacionDelDia } from './lib/evaluacionDelDia';
 import { applyClassMarks } from './services/classMarks';
 import { radar } from './lib/radarClase';
 import type { Resultado } from './lib/buscador';
@@ -45,7 +47,7 @@ import { alumnadoParaIA, exentosDelDia, LIMITACIONES, pruebasDe, recursosParaIA 
 import type { SesionEF } from './types/ef';
 import { isoDate, nombresCortos } from './lib/utils';
 import { buildDemoApoyo } from './lib/demoApoyo';
-import type { Section, Ficha } from './types';
+import type { Section, Ficha, Evaluation } from './types';
 import { X, Menu, Search } from 'lucide-react';
 import { DEMO_USER, DEMO_COMMUNITY } from './lib/demoData';
 import { useI18n, priorityLabel } from './i18n';
@@ -299,12 +301,32 @@ function AppInner() {
     setSection('dashboard');
     setPizarraViva(false);
   }
+  const enPizarra = section === 'sec-classroom';
   useEffect(() => {
-    if (section === 'sec-classroom' || !pizarraViva) return;
-    const id = window.setTimeout(() => setPizarraViva(false), PIZARRA_EN_ESPERA);
-    return () => window.clearTimeout(id);
-  }, [section, pizarraViva]);
-  const clasePizarra = useMemo(() => claseQueToca(st.classes, st.scheduleBlocks), [st.classes, st.scheduleBlocks]);
+    if (enPizarra || !pizarraViva) return;
+    // El plazo cuenta desde que se salió de la pizarra, no desde el último cambio de pantalla. Con un
+    // temporizador en marcha no se suelta: el docente se fía de su aviso; se vuelve a mirar cada minuto.
+    const salida = Date.now();
+    const id = window.setInterval(() => {
+      if (Date.now() - salida >= PIZARRA_EN_ESPERA && !ocupado('temporizador')) setPizarraViva(false);
+    }, 60_000);
+    return () => window.clearInterval(id);
+  }, [enPizarra, pizarraViva]);
+  // La clase que toca se mira cada vez que se entra en la pizarra, no al cargar el perfil
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- `enPizarra` está para volver a mirar la hora al entrar
+  const clasePizarra = useMemo(() => claseQueToca(st.classes, st.scheduleBlocks), [st.classes, st.scheduleBlocks, enPizarra]);
+  /**
+   * Guardar una evaluación desde las pantallas de evaluar. Si ese alumno ya tiene hoy una con el mismo
+   * instrumento, puede ser una corrección o un trabajo distinto: se pregunta, salvo en las escalas de
+   * registro, que se abren con lo ya valorado y siempre corrigen.
+   */
+  const { evaluations: evaluacionesHechas, dianas: dianasHechas, addEvaluation } = st;
+  const guardarEvaluacion = useCallback((ev: Evaluation) => {
+    const repetida = evaluacionesHechas.some(e => mismaEvaluacionDelDia(ev, e));
+    const esEscala = dianasHechas.some(d => d.id === ev.rubric_id && d.tipo === 'registro');
+    const sustituir = repetida && (esEscala || window.confirm(t('Hoy ya has evaluado a {name} con «{instrumento}». Si estás corrigiendo esa evaluación, pulsa Aceptar y esta la sustituirá. Si es otro trabajo, pulsa Cancelar y se guardarán las dos.', { name: ev.student_name, instrumento: ev.rubric_name })));
+    addEvaluation(ev, { sustituir });
+  }, [evaluacionesHechas, dianasHechas, addEvaluation, t]);
   const alTerminarDeProyectar = useCallback(() => setLiveFicha(null), [setLiveFicha]);
 
   // Los nombres del alumnado nunca viajan a la IA: ver services/privacy.ts.
@@ -586,7 +608,7 @@ function AppInner() {
                 onAddDiana={st.addDiana}
                 onUpdateDiana={st.updateDiana}
                 onDeleteDiana={st.deleteDiana}
-                onAddEvaluation={st.addEvaluation}
+                onAddEvaluation={guardarEvaluacion}
                 gradeCategories={st.gradeCategories}
                 comunidad={st.currentUser?.community}
               />
@@ -596,7 +618,7 @@ function AppInner() {
                 dianas={st.dianas} evaluations={st.evaluations} classes={st.classes} students={st.students}
                 gradeCategories={st.gradeCategories}
                 onAddDiana={st.addDiana} onUpdateDiana={st.updateDiana} onDeleteDiana={st.deleteDiana}
-                onAddEvaluation={st.addEvaluation}
+                onAddEvaluation={guardarEvaluacion}
               />
             )}
             {section === 'diana' && (
@@ -627,9 +649,11 @@ function AppInner() {
               <Records
                 classes={st.classes}
                 students={st.students}
-                gradeCategories={gradeView.gradeCategories}
-                gradeItems={gradeView.gradeItems}
-                grades={gradeView.grades}
+                gradeCategories={st.gradeCategories}
+                gradeItems={st.gradeItems}
+                grades={st.grades}
+                classMarks={st.classMarks}
+                marksConfigs={st.marksConfigs}
                 evaluations={st.evaluations}
                 comunidad={st.currentUser?.community}
                 teacherName={st.profile?.name ?? ''}
@@ -891,7 +915,7 @@ function AppInner() {
                 perfil={tipo === 'ef' ? 'ef' : 'aula'}
                 classes={st.classes} students={st.students} acsAula={st.apoyo.acsAula} scheduleBlocks={st.scheduleBlocks} ef={st.ef} onChangeEf={st.setEf}
                 comunidad={st.currentUser?.community} rubrics={st.rubrics} dianas={st.dianas} onAddDiana={st.addDiana}
-                onNav={s => setSection(s)} evaluations={st.evaluations} lawDocument={st.lawDocument} onAddEvaluation={st.addEvaluation}
+                onNav={s => setSection(s)} evaluations={st.evaluations} lawDocument={st.lawDocument} onAddEvaluation={guardarEvaluacion}
                 learningSituations={st.learningSituations} onSaveSda={st.saveLearningSituation}
                 onAbrirSda={() => setSection(tipo === 'ef' ? 'ef-sda' : 'learning-situations')}
               />

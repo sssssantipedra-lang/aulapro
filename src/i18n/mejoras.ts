@@ -336,10 +336,10 @@ export const MEJORAS_EN: Record<string, string> = {
   '¿Eliminar esta evaluación de {name}? Deja de contar en las medias y en las competencias. En el cuaderno, su nota pasa a ser la de la evaluación anterior con este instrumento o, si no hay otra, la casilla se queda vacía.': 'Delete this assessment of {name}? It stops counting in averages and competencies. In the gradebook, the grade becomes that of the previous assessment with this instrument or, if there is none, the cell is left empty.',
   'Eliminar esta evaluación': 'Delete this assessment',
   'No has cambiado ninguna valoración': 'You haven’t changed any rating',
-  'Queda {n} criterio sin marcar y contará como 0 en la nota. ¿Guardar así?': '{n} criterion is unmarked and will count as 0 in the grade. Save anyway?',
-  'Quedan {n} criterios sin marcar y contarán como 0 en la nota. ¿Guardar así?': '{n} criteria are unmarked and will count as 0 in the grade. Save anyway?',
-  'Queda {n} ítem sin marcar y contará como 0 en la nota. ¿Guardar así?': '{n} item is unmarked and will count as 0 in the grade. Save anyway?',
-  'Quedan {n} ítems sin marcar y contarán como 0 en la nota. ¿Guardar así?': '{n} items are unmarked and will count as 0 in the grade. Save anyway?',
+  'Queda {n} criterio sin marcar: la nota se calculará solo con lo marcado. ¿Guardar así?': '{n} criterion is unmarked: the grade will be calculated only from what is marked. Save anyway?',
+  'Quedan {n} criterios sin marcar: la nota se calculará solo con lo marcado. ¿Guardar así?': '{n} criteria are unmarked: the grade will be calculated only from what is marked. Save anyway?',
+  'Queda {n} ítem sin marcar: la nota se calculará solo con lo marcado. ¿Guardar así?': '{n} item is unmarked: the grade will be calculated only from what is marked. Save anyway?',
+  'Quedan {n} ítems sin marcar: la nota se calculará solo con lo marcado. ¿Guardar así?': '{n} items are unmarked: the grade will be calculated only from what is marked. Save anyway?',
   '¿Quitar el objetivo «{name}»? Lo que se haya registrado de él en las sesiones dejará de verse, y no se puede deshacer.': 'Remove the goal “{name}”? What has been recorded for it in the sessions will no longer be shown, and this cannot be undone.',
   'Pega la lista, una fila por alumno. Vale una columna de nombres, las columnas copiadas de una hoja de cálculo o «Apellidos, Nombre», como en los listados oficiales. El correo es opcional y la primera fila puede ser una cabecera.': 'Paste the list, one row per student. A column of names, columns copied from a spreadsheet, or “Surnames, Name” as in official lists all work. The email is optional and the first row can be a header.',
   '«{texto}» no es una nota entre 0 y 10: no se ha guardado.': '“{texto}” is not a grade between 0 and 10: it hasn’t been saved.',
@@ -350,6 +350,10 @@ export const MEJORAS_EN: Record<string, string> = {
   'Primer día de la evaluación': 'First day of the term',
   'Último día de la evaluación': 'Last day of the term',
   'De PT y AL se conserva tu alumnado de apoyo con sus grupos, sus programas, sus adaptaciones y sus agendas visuales; se borran los registros de las sesiones, las coordinaciones, los cierres de trimestre y los documentos.': 'For SEN and speech and language support, your support students are kept with their groups, programmes, adaptations and visual schedules; session records, coordination notes, term reviews and documents are deleted.',
+  // Arreglos del 19-11-2026, tras su revisión
+  '¿Eliminar a {name}? Se borran también sus notas, sus evaluaciones, su asistencia y sus informes, y no se puede deshacer.': 'Delete {name}? Their grades, assessments, attendance and reports are deleted too, and this cannot be undone.',
+  'Hoy ya has evaluado a {name} con «{instrumento}». Si estás corrigiendo esa evaluación, pulsa Aceptar y esta la sustituirá. Si es otro trabajo, pulsa Cancelar y se guardarán las dos.': 'You have already assessed {name} with “{instrumento}” today. If you are correcting that assessment, press OK and this one will replace it. If it is a different piece of work, press Cancel and both will be kept.',
+  'No hay notas entre estas fechas. Cambia las fechas o elige «Final de curso».': 'There are no grades between these dates. Change the dates or choose “End of year”.',
 };
 
 export const MEJORAS_CA: Record<string, string> = {
@@ -683,10 +687,10 @@ export const MEJORAS_CA: Record<string, string> = {
   '¿Eliminar esta evaluación de {name}? Deja de contar en las medias y en las competencias. En el cuaderno, su nota pasa a ser la de la evaluación anterior con este instrumento o, si no hay otra, la casilla se queda vacía.': 'Vols eliminar aquesta avaluació de {name}? Deixa de comptar en les mitjanes i en les competències. Al quadern, la nota passa a ser la de l’avaluació anterior amb aquest instrument o, si no n’hi ha cap altra, la casella queda buida.',
   'Eliminar esta evaluación': 'Elimina aquesta avaluació',
   'No has cambiado ninguna valoración': 'No has canviat cap valoració',
-  'Queda {n} criterio sin marcar y contará como 0 en la nota. ¿Guardar así?': 'Queda {n} criteri sense marcar i comptarà com a 0 a la nota. Vols desar-ho així?',
-  'Quedan {n} criterios sin marcar y contarán como 0 en la nota. ¿Guardar así?': 'Queden {n} criteris sense marcar i comptaran com a 0 a la nota. Vols desar-ho així?',
-  'Queda {n} ítem sin marcar y contará como 0 en la nota. ¿Guardar así?': 'Queda {n} ítem sense marcar i comptarà com a 0 a la nota. Vols desar-ho així?',
-  'Quedan {n} ítems sin marcar y contarán como 0 en la nota. ¿Guardar así?': 'Queden {n} ítems sense marcar i comptaran com a 0 a la nota. Vols desar-ho així?',
+  'Queda {n} criterio sin marcar: la nota se calculará solo con lo marcado. ¿Guardar así?': 'Queda {n} criteri sense marcar: la nota es calcularà només amb el que has marcat. Vols desar-ho així?',
+  'Quedan {n} criterios sin marcar: la nota se calculará solo con lo marcado. ¿Guardar así?': 'Queden {n} criteris sense marcar: la nota es calcularà només amb el que has marcat. Vols desar-ho així?',
+  'Queda {n} ítem sin marcar: la nota se calculará solo con lo marcado. ¿Guardar así?': 'Queda {n} ítem sense marcar: la nota es calcularà només amb el que has marcat. Vols desar-ho així?',
+  'Quedan {n} ítems sin marcar: la nota se calculará solo con lo marcado. ¿Guardar así?': 'Queden {n} ítems sense marcar: la nota es calcularà només amb el que has marcat. Vols desar-ho així?',
   '¿Quitar el objetivo «{name}»? Lo que se haya registrado de él en las sesiones dejará de verse, y no se puede deshacer.': 'Vols treure l’objectiu «{name}»? El que se n’hagi registrat a les sessions deixarà de veure’s, i no es pot desfer.',
   'Pega la lista, una fila por alumno. Vale una columna de nombres, las columnas copiadas de una hoja de cálculo o «Apellidos, Nombre», como en los listados oficiales. El correo es opcional y la primera fila puede ser una cabecera.': 'Enganxa la llista, una fila per alumne. Val una columna de noms, les columnes copiades d’un full de càlcul o «Cognoms, Nom», com als llistats oficials. El correu és opcional i la primera fila pot ser una capçalera.',
   '«{texto}» no es una nota entre 0 y 10: no se ha guardado.': '«{texto}» no és una nota entre 0 i 10: no s’ha desat.',
@@ -697,4 +701,8 @@ export const MEJORAS_CA: Record<string, string> = {
   'Primer día de la evaluación': 'Primer dia de l’avaluació',
   'Último día de la evaluación': 'Últim dia de l’avaluació',
   'De PT y AL se conserva tu alumnado de apoyo con sus grupos, sus programas, sus adaptaciones y sus agendas visuales; se borran los registros de las sesiones, las coordinaciones, los cierres de trimestre y los documentos.': 'De PT i AL es conserva el teu alumnat de suport amb els seus grups, els seus programes, les seves adaptacions i les seves agendes visuals; s’esborren els registres de les sessions, les coordinacions, els tancaments de trimestre i els documents.',
+  // Arreglos del 19-11-2026, tras su revisión
+  '¿Eliminar a {name}? Se borran también sus notas, sus evaluaciones, su asistencia y sus informes, y no se puede deshacer.': 'Vols eliminar {name}? S’esborren també les seves notes, les seves avaluacions, la seva assistència i els seus informes, i no es pot desfer.',
+  'Hoy ya has evaluado a {name} con «{instrumento}». Si estás corrigiendo esa evaluación, pulsa Aceptar y esta la sustituirá. Si es otro trabajo, pulsa Cancelar y se guardarán las dos.': 'Avui ja has avaluat {name} amb «{instrumento}». Si estàs corregint aquesta avaluació, prem D’acord i aquesta la substituirà. Si és un altre treball, prem Cancel·la i es desaran totes dues.',
+  'No hay notas entre estas fechas. Cambia las fechas o elige «Final de curso».': 'No hi ha notes entre aquestes dates. Canvia les dates o tria «Final de curs».',
 };

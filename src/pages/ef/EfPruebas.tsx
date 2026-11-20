@@ -6,6 +6,7 @@
  * baremo publicado hasta comprobar que su licencia lo permite (ver
  * `docs/EF.md`).
  */
+import { evaluacionDe } from '../../lib/periodos';
 import { useMemo, useState } from 'react';
 import { Plus, Pencil, Trash2, Settings2, Ruler, ArrowUp, ArrowDown, Minus, BookOpen, Eye, EyeOff } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
@@ -204,8 +205,9 @@ export function EfPruebas({ classes, students, ef, onChangeEf, gradeCategories, 
         open={alCuaderno} onClose={() => setAlCuaderno(false)} clase={clase} prueba={prueba}
         categorias={gradeCategories.filter(c => c.class_id === clase.id && (c.subject ?? clase.subjects[0]) === asignaturaEF(clase))}
         onConfirmar={categoriaId => {
-          // Un id fijo por prueba y clase: pasar las notas otra vez actualiza la columna en vez de crear otra (19-11-2026)
-          const itemId = `gi-ef-${prueba.id}-${clase.id}`;
+          // Un id fijo por prueba, clase y evaluación (19-11-2026): pasar las notas otra vez en el mismo trimestre
+          // actualiza su columna en vez de crear otra, y en el trimestre siguiente la prueba tiene columna nueva
+          const itemId = `gi-ef-${prueba.id}-${clase.id}-${evaluacionDe(hoy)}`;
           onAddGradeItem({ id: itemId, class_id: clase.id, category_id: categoriaId, name: t(prueba.nombre), date: hoy });
           let n = 0;
           alumnos.forEach(s => {

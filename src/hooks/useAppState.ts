@@ -7,6 +7,7 @@ import type {
 } from '../types';
 import { normalizeClass } from '../types';
 import { destinosDe, notaDeDestino, objetivoPara, objetivosDe } from '../lib/objetivos';
+import { mismaEvaluacionDelDia } from '../lib/evaluacionDelDia';
 import { isoDate } from '../lib/utils';
 import { buildDemoData } from '../lib/demoData';
 import { buildDemoApoyo } from '../lib/demoApoyo';
@@ -474,7 +475,8 @@ export function useAppState() {
     setAttendance(prev => Object.fromEntries(Object.entries(prev).map(([clase, dias]) => [clase, sinAlumno(dias, id)])));
     setDianaProfiles(prev => { if (!(id in prev)) return prev; const n = { ...prev }; delete n[id]; return n; });
     setSeatingPlans(prev => Object.fromEntries(Object.entries(prev).map(([clase, plan]) => [clase, plan.groups.some(g => g.studentIds.includes(id))
-      ? { ...plan, groups: plan.groups.map(g => ({ ...g, studentIds: g.studentIds.filter(x => x !== id) })) }
+      // El asiento se queda libre (cadena vacía): quitarlo de la lista movería de sitio a sus compañeros de mesa
+      ? { ...plan, groups: plan.groups.map(g => ({ ...g, studentIds: g.studentIds.map(x => (x === id ? '' : x)) })) }
       : plan])));
     log('delete', 'student', id, `Alumno ${goneName}`, 'con sus notas, evaluaciones, asistencia e informes');
   }, [log, studentName]);
@@ -576,25 +578,24 @@ export function useAppState() {
   }, [log]);
 
   /**
-   * Volver a evaluar a un alumno con el mismo instrumento el mismo día es corregir: la evaluación nueva
-   * sustituye a la de ese día (19-11-2026). Antes se quedaban las dos y las medias por competencias
-   * contaban también la equivocada. En otro día es otra evaluación, y cuentan las dos.
+   * Guarda una evaluación. Con `sustituir`, quita antes la de ese mismo alumno, instrumento, clase y día
+   * (19-11-2026): es una corrección, y antes se quedaban las dos y las medias por competencias contaban
+   * también la equivocada. Si es una corrección o es otro trabajo evaluado con el mismo instrumento lo
+   * decide quien llama (`guardarEvaluacion` en `App.tsx`, que pregunta al docente).
    */
-  const addEvaluation = useCallback((ev: Evaluation) => {
-    const esLaMisma = (e: Evaluation) => ev.rubric_id !== 'autoeval' && !!ev.student_id
-      && e.rubric_id === ev.rubric_id && e.student_id === ev.student_id && e.class_id === ev.class_id
-      && e.date === ev.date && (e.instrument ?? 'rubric') === (ev.instrument ?? 'rubric');
-    const corrige = mirrorRef.current.evaluations.some(esLaMisma);
-    setEvaluations(prev => [ev, ...prev.filter(e => !esLaMisma(e))]);
+  const addEvaluation = useCallback((ev: Evaluation, opciones: { sustituir?: boolean } = {}) => {
+    const corrige = !!opciones.sustituir && mirrorRef.current.evaluations.some(e => mismaEvaluacionDelDia(ev, e));
+    setEvaluations(prev => [ev, ...(opciones.sustituir ? prev.filter(e => !mismaEvaluacionDelDia(ev, e)) : prev)]);
     log(corrige ? 'update' : 'create', 'evaluation', ev.id, `Evaluación de ${ev.student_name} con «${ev.rubric_name}»`,
       (typeof ev.grade === 'number' ? `nota ${formatGrade(ev.grade)}` : '') + (corrige ? ' · sustituye a la de ese mismo día' : '') || undefined);
     routeToNotebook(ev);
   }, [log, routeToNotebook]);
 
   /**
-   * Quita una evaluación (19-11-2026: antes no había forma de borrar una equivocada). La nota que llevó al
-   * cuaderno pasa a ser la de la evaluación anterior de ese alumno con ese instrumento, si la hay; si no,
-   * la casilla se queda vacía.
+   * Quita una evaluación (19-11-2026: antes no había forma de borrar una equivocada). El cuaderno solo se
+   * toca si la borrada era la vigente, es decir, la más reciente con nota de ese alumno con ese instrumento
+   * en esa clase: entonces su casilla pasa a la nota de la anterior o, si no hay otra, se queda vacía. Si
+   * se borra una más antigua, el cuaderno se deja como está (puede llevar una nota retocada a mano).
    */
   const deleteEvaluation = useCallback((id: string) => {
     const m = mirrorRef.current;
@@ -603,11 +604,16 @@ export function useAppState() {
     setEvaluations(prev => prev.filter(e => e.id !== id));
     log('delete', 'evaluation', id, `Evaluación de ${ev.student_name} con «${ev.rubric_name}»`,
       typeof ev.grade === 'number' ? `nota ${formatGrade(ev.grade)}` : undefined);
-    if (!ev.student_id) return;
-    // La lista va de la más nueva a la más antigua: la primera que quede es la vigente
-    const vigente = m.evaluations.find(e => e.id !== id && e.rubric_id === ev.rubric_id
-      && e.student_id === ev.student_id && e.class_id === ev.class_id && typeof e.grade === 'number');
-    if (vigente) { routeToNotebook(vigente); return; }
+    if (!ev.student_id || typeof ev.grade !== 'number') return;
+    // De la más reciente a la más antigua por fecha; a igual fecha, la lista ya va de nueva a antigua
+    const conNota = m.evaluations
+      .filter(e => e.rubric_id === ev.rubric_id && e.student_id === ev.student_id && e.class_id === ev.class_id && typeof e.grade === 'number')
+      .map((e, i) => ({ e, i }))
+      .sort((a, b) => b.e.date.localeCompare(a.e.date) || a.i - b.i)
+      .map(x => x.e);
+    if (conNota[0]?.id !== id) return;
+    const anterior = conNota[1];
+    if (anterior) { routeToNotebook(anterior); return; }
     const inst = m.rubrics.find(r => r.id === ev.rubric_id) ?? m.dianas.find(d => d.id === ev.rubric_id);
     if (!inst) return;
     const destinos = objetivoPara(inst, ev.class_id)
@@ -650,7 +656,8 @@ export function useAppState() {
 
   const addGradeItem = useCallback((i: GradeItem) => {
     // Con un id que ya existe (las pruebas físicas de EF usan uno fijo por prueba y clase), la columna se actualiza y no se repite
-    setGradeItems(prev => (prev.some(x => x.id === i.id) ? prev.map(x => (x.id === i.id ? { ...x, ...i } : x)) : [...prev, i]));
+    // (el nombre y la fecha que ya tenía se respetan: el docente pudo cambiarlos, y la fecha decide en qué evaluación cuenta)
+    setGradeItems(prev => (prev.some(x => x.id === i.id) ? prev.map(x => (x.id === i.id ? { ...x, ...i, name: x.name, date: x.date } : x)) : [...prev, i]));
     log('create', 'gradeItem', i.id, `Prueba «${i.name}» en ${className(i.class_id)}`);
   }, [log, className]);
   const updateGradeItem = useCallback((i: GradeItem) => {

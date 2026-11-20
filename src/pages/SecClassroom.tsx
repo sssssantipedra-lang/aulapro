@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ocupar } from '../lib/ocupado';
 import { Rnd } from 'react-rnd';
 import {
   Clock3, Mic, MicOff, Play, Pause, RotateCcw, TimerReset, Volume2,
@@ -273,6 +274,8 @@ function TimerWidget() {
   useEffect(() => { quedan.current = seconds; }, [seconds]);
   useEffect(() => {
     if (!running) return;
+    // En marcha, la pizarra oculta no se suelta y la app no se recarga para poner una versión nueva
+    const soltar = ocupar('temporizador');
     const fin = Date.now() + quedan.current * 1000;
     const id = setInterval(() => {
       const resto = Math.max(0, Math.ceil((fin - Date.now()) / 1000));
@@ -284,7 +287,7 @@ function TimerWidget() {
       beep();
       confetti({ particleCount: 90, spread: 75, origin: { y: 0.6 } });
     }, 250);
-    return () => clearInterval(id);
+    return () => { clearInterval(id); soltar(); };
   }, [running]);
 
   const setDuration = useCallback((secs: number) => {
@@ -1552,6 +1555,14 @@ const Separador = () => <span className="flex-shrink-0" style={{ width: 1, heigh
 export default function SecClassroom({ studentNames = [], clases = [], claseInicial, fichas = [], projectFicha = null, onProjectDone }: ClassroomProps) {
   const { t } = useI18n();
   const [claseId, setClaseId] = useState(claseInicial ?? '');
+  // La pizarra sigue montada entre clases: al volver a ella a otra hora, la clase que toca llega como cambio
+  // de la propiedad y se sigue (como antes, que cada entrada abría la clase del momento). Lo que el docente
+  // eligió a mano no se pisa mientras la clase que toca sea la misma.
+  const [claseQueTocaba, setClaseQueTocaba] = useState(claseInicial);
+  if (claseInicial !== claseQueTocaba) {
+    setClaseQueTocaba(claseInicial);
+    if (claseInicial) setClaseId(claseInicial);
+  }
   const clase = clases.find(c => c.id === claseId) ?? clases[0];
   const [picking, setPicking] = useState(false);
   const [presenting, setPresenting] = useState<Ficha | null>(projectFicha);

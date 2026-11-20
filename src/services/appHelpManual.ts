@@ -513,8 +513,11 @@ la media, lista para imprimir o firmar. Sale en PDF horizontal. Se genera con
 las notas que ya están en el cuaderno. Cada evaluación (1ª, 2ª, 3ª) cuenta solo
 las notas y las evaluaciones de sus fechas, que se ven junto al selector y se
 pueden cambiar si el centro cierra la evaluación otro día (de partida, de
-septiembre a diciembre, de enero a marzo y de abril en adelante); «Final de
-curso» cuenta todo el curso.
+septiembre a diciembre, de enero a marzo y de abril en adelante; al cambiar
+las de una, las vecinas se ajustan para no dejar días en medio); «Final de
+curso» cuenta todo el curso. El bloque de trabajo diario y actitud también va
+por esas fechas. La columna de una rúbrica o una diana cuenta en la evaluación
+en que se usó por primera vez.
 
 [selfassess] AUTOEVALUACIONES
 Lo que han respondido los alumnos desde el móvil en Actividades con móviles (en la versión web, próximamente). El
@@ -527,10 +530,12 @@ Todas las evaluaciones hechas con rúbricas y dianas, con filtros por clase,
 alumno e instrumento, y buscador. Al abrir una fila, «Eliminar esta evaluación»
 quita una equivocada: deja de contar en las medias y en las competencias, y en
 el cuaderno su nota pasa a ser la de la evaluación anterior con ese instrumento
-o se queda vacía. Volver a evaluar a un alumno con el mismo instrumento el
-mismo día sustituye a la evaluación de ese día (es una corrección); en otro
-día es otra evaluación. Si al guardar quedan criterios o ítems sin marcar, la
-app avisa de que contarán como 0.
+o se queda vacía (el cuaderno solo cambia si la eliminada era la más reciente).
+Al volver a evaluar a un alumno con el mismo instrumento el mismo día, la app
+pregunta si es una corrección (sustituye a la de ese día) o es otro trabajo
+(se guardan las dos); en otro día es siempre otra evaluación. Si al guardar
+quedan criterios o ítems sin marcar, la app avisa: no cuentan como 0, la nota
+se calcula solo con lo marcado.
 
 === DOCUMENTOS: SITUACIONES DE APRENDIZAJE Y RECURSOS ===
 
@@ -741,7 +746,8 @@ clase aunque se cierre la pizarra, y «Volver a meter en el sorteo» devuelve a
 quien acaba de salir) y medidor de ruido con el micrófono, con aviso al pasar
 de un nivel. La pizarra sigue viva al pasar a otra pantalla (pasar lista, anotar
 actitud): al volver están el temporizador en marcha, los grupos y lo dibujado;
-se cierra sola si pasan veinte minutos sin volver a ella.
+se cierra sola a los veinte minutos de salir de ella, salvo que haya un
+temporizador en marcha.
 Tiene una pizarra para dibujar encima: el botón «Dibujar» la activa y sale la
 barra con cuatro herramientas, «Lápiz» (fino, responde a la presión si el
 dispositivo la da), «Rotulador», «Subrayador» (translúcido, con sus propios

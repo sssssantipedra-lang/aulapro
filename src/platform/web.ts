@@ -22,6 +22,7 @@
  * compilación para la web (`vite build --mode web`): la app de escritorio, la
  * de Android y `npm run dev` siguen como antes.
  */
+import { ocupado } from '../lib/ocupado';
 import { createProfileStore } from './profileStore';
 import { idbFs, idbKv } from './webFs';
 import { createEspejo } from './espejo';
@@ -166,7 +167,11 @@ const RATO_FUERA = 60_000;
 /** Escribiendo en un campo o con una ventana abierta: no es momento de recargar. */
 function docenteOcupado(): boolean {
   const a = document.activeElement as HTMLElement | null;
-  return (!!a && (a.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(a.tagName))) || !!document.querySelector('.modal-overlay.open');
+  if (a && (a.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(a.tagName))) return true;
+  if (document.querySelector('.modal-overlay.open') || document.fullscreenElement) return true;
+  // Una generación de IA a medias (se perdería la respuesta y el cupo ya gastado) o la pizarra viva, con su
+  // temporizador, sus grupos y su dibujo: recargar se los llevaría. La versión nueva espera a otra vuelta.
+  return ocupado() || !!document.querySelector('.pz-raiz');
 }
 
 function createUpdate(): UpdateBridge {

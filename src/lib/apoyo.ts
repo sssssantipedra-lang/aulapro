@@ -720,7 +720,9 @@ export function normalizarApoyo(raw: unknown): ApoyoData {
  * (que se borra con sus clases). Antes se borraba todo menos las agendas sin alumno.
  */
 export function apoyoParaOtroCurso(d: ApoyoData): ApoyoData {
-  return { ...APOYO_VACIO, alumnos: d.alumnos, grupos: d.grupos, programas: d.programas, acs: d.acs, agendas: d.agendas, fotos: d.fotos };
+  // De cada adaptación se quita lo que es del curso que acaba: las notas de los trimestres y la promoción
+  const acs = d.acs.map(a => { const copia = { ...a }; delete copia.notas; delete copia.promocion; return copia; });
+  return { ...APOYO_VACIO, alumnos: d.alumnos, grupos: d.grupos, programas: d.programas, acs, agendas: d.agendas, fotos: d.fotos };
 }
 
 /** Quita un alumno de todo el módulo: grupos, programas y registros. */

@@ -67,3 +67,43 @@ export function enRango(fecha: string | undefined | null, rango: RangoDeFechas |
   const dia = fecha.slice(0, 10);
   return dia >= rango.desde && dia <= rango.hasta;
 }
+
+/** En qué evaluación del curso cae un día («2026-1», «2026-2», «2026-3»), con las fechas de cada una. */
+export function evaluacionDe(dia: string, guardados: Record<string, RangoDeFechas> = rangosGuardados(dia)): string {
+  const n = PERIODS.slice(0, 3).findIndex(p => enRango(dia, rangoDe(p, dia, guardados)));
+  // Un día que no cae en ninguna (hueco entre dos, verano): la primera que empiece después, o la última
+  const siguiente = n >= 0 ? n : PERIODS.slice(0, 3).findIndex(p => (rangoDe(p, dia, guardados)?.desde ?? '') > dia);
+  return `${inicioDeCurso(dia)}-${(siguiente >= 0 ? siguiente : 2) + 1}`;
+}
+
+const otroDia = (iso: string, dias: number) => {
+  const d = new Date(Number(iso.slice(0, 4)), Number(iso.slice(5, 7)) - 1, Number(iso.slice(8, 10)) + dias);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+
+/**
+ * Las fechas de las tres evaluaciones tras cambiar las de una, sin dejar días en medio: si se adelanta el
+ * último día de una, la siguiente empieza al día siguiente, y si se retrasa el primero de una, la anterior
+ * acaba la víspera. Así una nota del 10 de diciembre no se queda fuera de la 1.ª y de la 2.ª a la vez. El
+ * vecino solo se mueve si con ello sigue teniendo al menos un día.
+ */
+export function conVecinos(periodo: string, rango: RangoDeFechas, hoy: string, guardados: Record<string, RangoDeFechas>): Record<string, RangoDeFechas> {
+  const i = PERIODS.slice(0, 3).findIndex(p => p === periodo);
+  const out = { ...guardados, [periodo]: rango };
+  if (i < 0) return out;
+  const de = (k: number) => rangoDe(PERIODS[k], hoy, out) as RangoDeFechas;
+  if (i < 2) {
+    const sig = de(i + 1), desde = otroDia(rango.hasta, 1);
+    if (desde !== sig.desde && desde <= sig.hasta) out[PERIODS[i + 1]] = { desde, hasta: sig.hasta };
+  }
+  if (i > 0) {
+    const ant = de(i - 1), hasta = otroDia(rango.desde, -1);
+    if (hasta !== ant.hasta && hasta >= ant.desde) out[PERIODS[i - 1]] = { desde: ant.desde, hasta };
+  }
+  return out;
+}
+
+/** Guarda de una vez las fechas de varias evaluaciones del curso de `hoy`. */
+export function guardarRangos(rangos: Record<string, RangoDeFechas>, hoy: string): void {
+  try { localStorage.setItem(CLAVE, JSON.stringify({ [String(inicioDeCurso(hoy))]: rangos })); } catch { /* sin almacenamiento */ }
+}

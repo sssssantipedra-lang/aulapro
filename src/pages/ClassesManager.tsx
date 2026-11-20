@@ -233,7 +233,7 @@ export function ClassesManager({
 
   function deleteStudentConfirm() {
     if (!editStudent) return;
-    if (!window.confirm(t('¿Eliminar a {name}?', { name: editStudent.name }))) return;
+    if (!window.confirm(t('¿Eliminar a {name}? Se borran también sus notas, sus evaluaciones, su asistencia y sus informes, y no se puede deshacer.', { name: editStudent.name }))) return;
     onDeleteStudent(editStudent.id);
     notify(t('Alumno eliminado'));
     closeStudentModal();

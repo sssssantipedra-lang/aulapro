@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it } from 'vitest';
-import { enRango, guardarRango, inicioDeCurso, rangoDe, rangoDePartida, rangosGuardados } from './periodos';
+import { conVecinos, enRango, evaluacionDe, guardarRango, inicioDeCurso, rangoDe, rangoDePartida, rangosGuardados } from './periodos';
 
 describe('fechas de cada evaluación', () => {
   beforeEach(() => localStorage.clear());
@@ -34,6 +34,22 @@ describe('fechas de cada evaluación', () => {
     expect(rangoDe('Final de curso', '2026-11-19')).toBeNull();
     // Al curso siguiente vuelven las de partida
     expect(rangosGuardados('2027-10-01')).toEqual({});
+  });
+
+  it('al cambiar las fechas de una evaluación, las vecinas se ajustan para no dejar días en medio', () => {
+    const r = conVecinos('1ª evaluación', { desde: '2026-09-08', hasta: '2026-12-04' }, '2026-11-19', {});
+    expect(r['1ª evaluación']).toEqual({ desde: '2026-09-08', hasta: '2026-12-04' });
+    expect(r['2ª evaluación']).toEqual({ desde: '2026-12-05', hasta: '2027-03-31' });
+    const r2 = conVecinos('3ª evaluación', { desde: '2027-03-20', hasta: '2027-06-18' }, '2026-11-19', r);
+    expect(r2['2ª evaluación']).toEqual({ desde: '2026-12-05', hasta: '2027-03-19' });
+    expect(r2['1ª evaluación']).toEqual({ desde: '2026-09-08', hasta: '2026-12-04' });
+  });
+
+  it('dice en qué evaluación del curso cae un día', () => {
+    expect(evaluacionDe('2026-11-19', {})).toBe('2026-1');
+    expect(evaluacionDe('2027-02-02', {})).toBe('2026-2');
+    expect(evaluacionDe('2027-06-10', {})).toBe('2026-3');
+    expect(evaluacionDe('2026-12-10', { '1ª evaluación': { desde: '2026-09-08', hasta: '2026-12-04' }, '2ª evaluación': { desde: '2026-12-05', hasta: '2027-03-31' } })).toBe('2026-2');
   });
 
   it('un rango guardado que no vale se ignora', () => {
