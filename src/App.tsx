@@ -1024,6 +1024,8 @@ function AppInner() {
                 onExportData={st.exportData}
                 onImportData={st.importData}
                 onClearSchoolYear={st.clearSchoolYear}
+                datosDelCurso={st.datosDelCurso}
+                onStartSchoolYear={st.startNewSchoolYear}
               />
             )}
           </Suspense>

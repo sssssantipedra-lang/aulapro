@@ -38,6 +38,7 @@ import {
   type Borrado, type BorradoPendiente,
 } from '../lib/deshacer';
 import { translate } from '../i18n/core';
+import { cursoNuevoDe, type PlanDeCurso } from '../lib/cursoNuevo';
 
 /** Cómo se lee cada estado de asistencia en el registro de cambios. */
 const ATT_LABEL: Record<AttendanceStatus, string> = {
@@ -1188,6 +1189,28 @@ export function useAppState() {
       'Vaciado de fin de curso', 'se conservan rúbricas y dianas')]);
   }, [profileId]);
 
+  /**
+   * «Empezar curso nuevo» (20-11-2026): a diferencia del vaciado, conserva lo que casi no cambia de un curso a
+   * otro. Cada clase sube de curso con su alumnado, se queda vacía o se va; el horario y las categorías y pesos
+   * del cuaderno se conservan si se pide; rúbricas, dianas, situaciones, fichas y sesiones siguen, y las notas, las
+   * evaluaciones, la asistencia y lo demás del curso que acaba empiezan limpios. La cuenta es de
+   * `lib/cursoNuevo.ts` (`cursoNuevoDe`) y lo que se elige, del asistente (`components/CursoNuevo.tsx`), que
+   * antes hace descargar la copia del curso. Aquí se guarda además la copia «antes-de-curso-nuevo» y se pone el
+   * curso escolar nuevo en el perfil.
+   */
+  const startNewSchoolYear = useCallback(async (plan: PlanDeCurso, cursoNuevo: string) => {
+    if (profileId) await store.backup(profileId, 'antes-de-curso-nuevo').catch(() => null);
+    const nuevo = cursoNuevoDe(snapshot, plan);
+    // Como al vaciar: no se deshace con el aviso (tiene su copia), y el registro del curso viejo se va con él
+    hydrate({
+      ...nuevo,
+      auditLog: [newEntry(whoRef.current, 'update', 'system', 'year',
+        `Empezó el curso ${cursoNuevo}`.trim(),
+        `${nuevo.classes.length} clases y ${nuevo.students.length} alumnos siguen del curso anterior`)],
+    });
+    if (cursoNuevo.trim()) await updateUser({ course: cursoNuevo.trim().slice(0, 20) });
+  }, [profileId, snapshot, hydrate, updateUser]);
+
   // Todas las pantallas reciben el alumnado en orden de lista (ver `lib/alumnado.ts`);
   // lo guardado sigue en el orden en que se dio de alta.
   const alumnadoEnOrden = useMemo(() => ordenarAlumnado(students), [students]);
@@ -1232,6 +1255,6 @@ export function useAppState() {
     apuntarCambio: apuntarBorrado,
     syncSource, importarPaquete,
     auditLog, clearAuditLog,
-    loadDemoData, exportData, importData, clearSchoolYear,
+    loadDemoData, exportData, importData, clearSchoolYear, startNewSchoolYear, datosDelCurso: snapshot,
   };
 }

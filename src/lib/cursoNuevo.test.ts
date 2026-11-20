@@ -536,3 +536,39 @@ describe('el curso escolar', () => {
     expect(archivoDelCurso('  ', '2027-06-25')).toBe('aulapro-curso-2027-06-25.json');
   });
 });
+
+describe('el resumen en líneas', () => {
+  it('solo enseña lo que hay, y los avisos solo si se conservan', async () => {
+    const { lineasDelResumen } = await import('./cursoNuevo');
+    const d: DatosDelCurso = {
+      ...vacio(), classes: [clase('a', '5º A', 'primaria', 5), clase('b', '5º B', 'primaria', 5)],
+      students: [alumno('1', 'a', { notes: 'x' }), alumno('2', 'b')],
+    };
+    const p = plan(d, { a: 'sube', b: 'se-va' });
+    const l = lineasDelResumen(resumenDeCursoNuevo(d, p), p);
+    expect(l.conserva).toEqual([
+      { texto: 'Clases que suben de curso', n: 1 },
+      { texto: 'Alumnado que sigue contigo', n: 1 },
+      { texto: 'Alumnado que sigue con avisos o notas en su ficha', n: 1 },
+    ]);
+    expect(l.borra).toEqual([{ texto: 'Clases que se van', n: 1 }, { texto: 'Alumnado que sale de tu perfil', n: 1 }]);
+    const sin = { ...p, conservarAvisos: false };
+    expect(lineasDelResumen(resumenDeCursoNuevo(d, sin), sin).conserva.map(x => x.texto)).not.toContain('Alumnado que sigue con avisos o notas en su ficha');
+  });
+  it('cada línea posible está en inglés y en catalán', async () => {
+    const { lineasDelResumen } = await import('./cursoNuevo');
+    const { EN_DICT } = await import('../i18n');
+    const { CA } = await import('../i18n/ca');
+    // Un resumen con un 1 en todo, para que salgan todas las líneas
+    const unos = <T extends object>(o: T): T => Object.fromEntries(Object.keys(o).map(k => [k, 1])) as T;
+    const r = resumenDeCursoNuevo(vacio(), planDePartida([]));
+    const todo = { clases: unos(r.clases), alumnado: unos(r.alumnado), conserva: unos(r.conserva), borra: unos(r.borra), sinClase: unos(r.sinClase) };
+    const l = lineasDelResumen(todo, { conservarAvisos: true });
+    expect(l.conserva.length).toBeGreaterThan(15);
+    expect(l.borra.length).toBeGreaterThan(15);
+    for (const { texto } of [...l.conserva, ...l.borra]) {
+      expect(EN_DICT[texto], texto).toBeTruthy();
+      expect(CA[texto], texto).toBeTruthy();
+    }
+  });
+});

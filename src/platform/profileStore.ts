@@ -20,7 +20,7 @@ import { copiasQueSobran, MAX_COPIAS } from '../lib/copiasEscalonadas';
  * desde un archivo o de restaurar una copia anterior. Las tres van también al Drive u OneDrive de la versión web
  * (`vaADrive` en `driveFs.ts`), para poder deshacer el paso aunque se pierda el navegador.
  */
-export type MotivoCopia = 'antes-de-vaciar' | 'antes-de-cargar' | 'antes-de-restaurar';
+export type MotivoCopia = 'antes-de-vaciar' | 'antes-de-cargar' | 'antes-de-restaurar' | 'antes-de-curso-nuevo';
 
 /**
  * `datos.json` existe pero no se ha podido leer (el navegador falló al leerlo o el archivo está dañado). Nunca se

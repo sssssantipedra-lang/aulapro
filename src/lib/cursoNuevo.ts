@@ -386,3 +386,66 @@ export function archivoDelCurso(curso: string, hoy: string): string {
   const limpioNombre = curso.trim().replace(/[^0-9A-Za-z]+/g, '-').replace(/^-+|-+$/g, '');
   return `aulapro-curso-${limpioNombre || hoy}.json`;
 }
+
+/* ── El resumen, en líneas para la pantalla ── */
+
+/** Una línea del resumen: su texto en castellano (la clave de su traducción) y cuántos son. */
+export interface LineaDeResumen { texto: string; n: number }
+
+/**
+ * El resumen en dos listas, «se conserva» y «se borra», solo con lo que hay (lo que vale 0 no se enseña). Son
+ * etiquetas con su número («Rúbricas: 4»), que se leen igual con uno que con varios.
+ */
+export function lineasDelResumen(r: ResumenDeCurso, plan: Pick<PlanDeCurso, 'conservarAvisos'>): { conserva: LineaDeResumen[]; borra: LineaDeResumen[] } {
+  const lista = (filas: [string, number][]) => filas.filter(([, n]) => n > 0).map(([texto, n]) => ({ texto, n }));
+  return {
+    conserva: lista([
+      ['Clases que suben de curso', r.clases.suben],
+      ['Clases que se quedan vacías', r.clases.vacias],
+      ['Alumnado que sigue contigo', r.alumnado.sigue],
+      ['Alumnado que sigue con avisos o notas en su ficha', plan.conservarAvisos ? r.alumnado.conAvisos : 0],
+      ['Bloques del horario', r.conserva.bloquesDeHorario],
+      ['Categorías del cuaderno, con sus pesos', r.conserva.categorias],
+      ['Rúbricas', r.conserva.rubricas],
+      ['Dianas', r.conserva.dianas],
+      ['Escalas de registro', r.conserva.escalas],
+      ['Situaciones de aprendizaje', r.conserva.situaciones],
+      ['Fichas', r.conserva.fichas],
+      ['Sesiones, sin fecha', r.conserva.sesiones],
+      ['Reuniones y formaciones', r.conserva.reuniones],
+      ['Tareas pendientes', r.conserva.tareasPendientes],
+      ['Alumnado de apoyo', r.conserva.alumnadoDeApoyo],
+      ['Programas de apoyo', r.conserva.programas],
+      ['Adaptaciones curriculares', r.conserva.adaptaciones],
+      ['Agendas visuales', r.conserva.agendas],
+      ['Pruebas físicas', r.conserva.pruebas],
+      ['Actividades de Educación Física', r.conserva.actividades],
+      ['Material del inventario', r.conserva.material],
+      ['Pizarras de circuitos', r.conserva.pizarras + r.conserva.circuitos],
+    ]),
+    borra: lista([
+      ['Clases que se van', r.clases.seVan],
+      ['Alumnado que sale de tu perfil', r.alumnado.sale],
+      ['Notas del cuaderno', r.borra.notas],
+      ['Actividades del cuaderno (columnas)', r.borra.columnas],
+      ['Evaluaciones con rúbricas, dianas y escalas', r.borra.evaluaciones],
+      ['Días de asistencia', r.borra.diasDeAsistencia],
+      ['Anotaciones de actitud', r.borra.anotaciones],
+      ['Informes', r.borra.informes],
+      ['Distribuciones de aula', r.borra.mesas],
+      ['Dianas competenciales del alumnado', r.borra.dianasCompetenciales],
+      ['Autoevaluaciones', r.borra.autoevaluaciones],
+      ['Eventos de la agenda', r.borra.eventos],
+      ['Tareas ya hechas', r.borra.tareasHechas],
+      ['Bloques del horario', r.borra.bloquesDeHorario],
+      ['Categorías del cuaderno', r.borra.categorias],
+      ['Registros de sesiones de apoyo', r.borra.registrosDeApoyo],
+      ['Coordinaciones', r.borra.coordinaciones],
+      ['Valoraciones de cierre de trimestre', r.borra.cierres],
+      ['Documentos de apoyo', r.borra.documentosDeApoyo],
+      ['Marcas de pruebas físicas', r.borra.marcas],
+      ['Exentos y lesiones', r.borra.exentos],
+      ['Equipos', r.borra.equipos],
+    ]),
+  };
+}
