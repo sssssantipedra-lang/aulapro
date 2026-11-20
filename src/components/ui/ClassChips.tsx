@@ -66,7 +66,8 @@ export function ClassChips({ classes, value, onChange, counts }: Props) {
         <button type="button" className="ico-btn" onClick={() => ir(1)} aria-label={t('Clase siguiente')}><ChevronRight size={16} /></button>
         {ahora && (ahora.id === value ? (
           <span className="clase-ahora" title={porque ?? undefined}>
-            <span className="clase-ahora-punto" aria-hidden="true" />{t(ahora.enMarcha ? 'Ahora' : 'A las {h}', { h: ahora.desde })}
+            <span className="clase-ahora-punto" aria-hidden="true" />
+            <span aria-hidden="true">{t(ahora.enMarcha ? 'Ahora' : 'A las {h}', { h: ahora.desde })}</span>
             <span className="sr-only">{porque}</span>
           </span>
         ) : (
