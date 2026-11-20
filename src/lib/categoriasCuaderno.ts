@@ -87,7 +87,7 @@ const DATOS: Record<TipoDePropuesta, { boton: string; categorias: EnTresIdiomas 
 };
 
 /** Sin tildes ni mayúsculas, para comparar nombres escritos de cualquier manera. */
-const llano = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+const llano = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 
 const IDIOMAS = /\b(ingles|english|angles|frances|french|francais|aleman|german|alemany|italiano|italia|portugues|lengua extranjera|llengua estrangera|foreign language|idioma extranjero)\b/;
 const DE_MUSICA = /\b(musica|music)\b/;
