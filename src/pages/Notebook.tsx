@@ -30,7 +30,7 @@ import { CARPETAS } from '../lib/carpetas';
 import { mediaPonderada, pesoEnLaNotaFinal, porcentajesEnCategoria, hayPesosElegidos } from '../lib/ponderacion';
 import { PesosDeNotas } from '../components/PesosDeNotas';
 import { useClaseActiva } from '../hooks/useClaseActiva';
-import { CURSO_ENTERO, diaParaNueva, periodoDeFecha } from '../lib/periodos';
+import { CURSO_ENTERO, diaParaNueva, EN_FRASE, periodoDeFecha } from '../lib/periodos';
 import { categoriasDe, cuadernoDe, notasDeCurso, reglaFinal, type ReglaFinal } from '../lib/cuadernoEvaluacion';
 import { useEvaluacionElegida, type EvaluacionElegida } from '../hooks/useEvaluacionElegida';
 import { SelectorEvaluacion } from '../components/SelectorEvaluacion';
@@ -91,11 +91,6 @@ function notaColor(n: number | null): string {
 
 /** Dónde se recuerda, en el dispositivo, si en «Curso» se ve la tabla de todas las actividades. */
 const CLAVE_VER_TODAS = 'aulapro_cuaderno_curso_actividades';
-
-/** Cómo se nombra cada evaluación dentro de una frase. */
-const LA_EVALUACION: Record<string, string> = {
-  [PERIODS[0]]: 'la 1.ª evaluación', [PERIODS[1]]: 'la 2.ª evaluación', [PERIODS[2]]: 'la 3.ª evaluación', [PERIODS[3]]: 'todo el curso',
-};
 
 /* ══════════════════ Celda de nota editable ══════════════════ */
 
@@ -287,7 +282,7 @@ function GradesTab({
   /** En «Curso» la tabla de todas las actividades va plegada: lo primero son las notas de cada evaluación y la final. */
   const [verTodas, setVerTodas] = useState(() => { try { return localStorage.getItem(CLAVE_VER_TODAS) === '1'; } catch { return false; } });
   const cambiarVerTodas = (v: boolean) => { setVerTodas(v); try { localStorage.setItem(CLAVE_VER_TODAS, v ? '1' : '0'); } catch { /* sin almacenamiento */ } };
-  const nombreCorto = (p: string) => t(LA_EVALUACION[p] ?? p);
+  const nombreCorto = (p: string) => t(EN_FRASE[p] ?? p);
   const diaCorto = (f: string) => fromIsoDate(f).toLocaleDateString(locale, { day: 'numeric', month: 'long' });
   /** Las actividades que cuentan juntas con una de esa fecha: las de su evaluación o, con evaluación continua y viendo el curso, todas. */
   const cuentanCon = (fecha: string) => {

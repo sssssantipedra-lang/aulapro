@@ -44,6 +44,11 @@ export const EN: Record<string, string> = {
   'La categoría y su peso valen para todo el curso: las tres evaluaciones usan los mismos.': 'The category and its weight apply to the whole year: the three terms use the same ones.',
   'Tiene 1 actividad en otra evaluación, que ahora no ves: también se eliminará, con sus notas.': 'It has 1 activity in another term, which you are not seeing now: it will be deleted too, with its grades.',
   'Tiene {n} actividades en otras evaluaciones, que ahora no ves: también se eliminarán, con sus notas.': 'It has {n} activities in other terms, which you are not seeing now: they will be deleted too, with their grades.',
+  // La escala de registro en otra evaluación
+  'Lo marcado viene de {anterior}. Lo que guardes ahora cuenta en {actual}, con su propia nota: se guardará también a quien no cambies.':
+    'What is marked comes from {anterior}. What you save now counts in {actual}, with its own grade: it will also be saved for those you do not change.',
+  'Lo marcado viene de otro curso. Lo que guardes ahora cuenta en {actual}, con su propia nota: se guardará también a quien no cambies.':
+    'What is marked comes from another school year. What you save now counts in {actual}, with its own grade: it will also be saved for those you do not change.',
   // La nota final de curso
   'Cómo sale la nota final de curso': 'How the final grade of the year is worked out',
   'Nota final de curso': 'Final grade of the year',
@@ -106,6 +111,10 @@ export const CA: Record<string, string> = {
   'La categoría y su peso valen para todo el curso: las tres evaluaciones usan los mismos.': 'La categoria i el seu pes valen per a tot el curs: les tres avaluacions fan servir els mateixos.',
   'Tiene 1 actividad en otra evaluación, que ahora no ves: también se eliminará, con sus notas.': 'Té 1 activitat en una altra avaluació, que ara no veus: també s’eliminarà, amb les seves notes.',
   'Tiene {n} actividades en otras evaluaciones, que ahora no ves: también se eliminarán, con sus notas.': 'Té {n} activitats en altres avaluacions, que ara no veus: també s’eliminaran, amb les seves notes.',
+  'Lo marcado viene de {anterior}. Lo que guardes ahora cuenta en {actual}, con su propia nota: se guardará también a quien no cambies.':
+    'El que hi ha marcat ve de {anterior}. El que desis ara compta en {actual}, amb la seva pròpia nota: es desarà també a qui no canviïs.',
+  'Lo marcado viene de otro curso. Lo que guardes ahora cuenta en {actual}, con su propia nota: se guardará también a quien no cambies.':
+    'El que hi ha marcat ve d’un altre curs. El que desis ara compta en {actual}, amb la seva pròpia nota: es desarà també a qui no canviïs.',
   'Cómo sale la nota final de curso': 'Com surt la nota final de curs',
   'Nota final de curso': 'Nota final de curs',
   'Evaluación continua': 'Avaluació contínua',

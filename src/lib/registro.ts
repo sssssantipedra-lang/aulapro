@@ -9,7 +9,8 @@
  * (mejorable). La nota sobre 10 es la proporción de pulgares arriba entre los
  * conceptos valorados: todos bien hecho, un 10; la mitad, un 5; ninguno, un 0.
  */
-import type { AchievementLevel, EvalDiana } from '../types';
+import type { AchievementLevel, EvalDiana, Evaluation } from '../types';
+import { mismaEvaluacion } from './periodos';
 
 export const BIEN = 2;
 export const MEJORABLE = 1;
@@ -47,4 +48,26 @@ export function cuentaRegistro(marcas: Readonly<Record<string, number | undefine
     else if (marcas[id] === MEJORABLE) mejorable++;
   }
   return { bien, mejorable };
+}
+
+/** La última valoración de un alumno con una escala (la más reciente por fecha; a igual fecha, la que va antes en la lista). */
+export function ultimaValoracion(evaluations: readonly Evaluation[], escalaId: string, studentId: string): Evaluation | undefined {
+  let ultima: Evaluation | undefined;
+  for (const e of evaluations) {
+    if (e.rubric_id !== escalaId || e.student_id !== studentId) continue;
+    if (!ultima || e.date > ultima.date) ultima = e;
+  }
+  return ultima;
+}
+
+/**
+ * Si lo marcado a un alumno ya está guardado tal cual y no hay que guardarlo otra vez. Solo vale la última
+ * valoración si es de la misma evaluación del curso que `hoy` (20-11-2026): la columna del cuaderno de una
+ * escala es por evaluación, así que lo que se valoró en el primer trimestre y se ve igual al guardar en el
+ * segundo tiene que guardarse también en el segundo, o su columna se quedaría sin la nota de quien no cambia.
+ */
+export function yaGuardado(previa: Evaluation | undefined, marcas: Readonly<Record<string, number>>, hoy: string): boolean {
+  if (!previa || !mismaEvaluacion(previa.date, hoy)) return false;
+  const ids = Object.keys(marcas);
+  return Object.keys(previa.scores).length === ids.length && ids.every(id => previa.scores[id] === marcas[id]);
 }

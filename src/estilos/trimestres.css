@@ -38,6 +38,9 @@ td.nc-final { font-size:13.5px; }
 .nc-ver:hover { background:var(--surface); color:var(--text); }
 .nc-donde { margin-top:-6px; margin-bottom:12px; }
 
+/* La escala de registro abierta con lo valorado en otra evaluación */
+.reg-ayuda.reg-otra { display:block; padding:8px 10px; border-radius:8px; background:var(--surface); color:var(--text-2); line-height:1.5; }
+
 .nc-corto { display:none; }
 
 /* Con el dedo, las fichas del selector son más altas */
@@ -45,6 +48,9 @@ td.nc-final { font-size:13.5px; }
   .ev-sel-chips .chip { height:36px; min-width:44px; justify-content:center; }
   .ev-sel-fechas { height:38px; }
 }
+
+/* Con las fechas abiertas el selector ocupa su propia línea: la raya que lo separa de la clase se quedaría suelta */
+.toolbar:has(.ev-sel-editar) .ev-sel-sep { display:none; }
 
 /* Con poco ancho el selector baja de línea y la raya que lo separa de la clase se quedaría suelta */
 @media (max-width: 1180px) {

@@ -118,6 +118,11 @@ export const EVALUACIONES: readonly string[] = PERIODS.slice(0, 3);
 /** «Final de curso»: todo el curso, sin filtro de fechas. */
 export const CURSO_ENTERO: string = PERIODS[3];
 
+/** Cómo se nombra cada evaluación dentro de una frase («cuenta en la 2.ª evaluación»); se traduce al enseñarlo. */
+export const EN_FRASE: Record<string, string> = {
+  [PERIODS[0]]: 'la 1.ª evaluación', [PERIODS[1]]: 'la 2.ª evaluación', [PERIODS[2]]: 'la 3.ª evaluación', [PERIODS[3]]: 'todo el curso',
+};
+
 /** La clave de una evaluación del curso de `hoy` («2026-2»), la misma forma que da `evaluacionDe`; `null` en «Final de curso». */
 export function claveDe(periodo: string, hoy: string): string | null {
   const n = EVALUACIONES.indexOf(periodo);
