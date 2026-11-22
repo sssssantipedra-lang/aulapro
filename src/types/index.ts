@@ -555,6 +555,55 @@ export interface CompetencyReport {
   text: string;
   /** Tabla de competencias clave con su valoración y un comentario; ausente en informes anteriores. `mal` solo lo traen los de la 2.18.17 (se lee como `mejorable`). */
   tabla?: { clave: string; valoracion: 'excelente' | 'bien' | 'mejorable' | 'mal'; comentario: string }[];
+  /**
+   * Quién redactó el texto (`text`): la IA (también cuando falta, los informes de antes), el docente a mano
+   * o nadie todavía (`reglas`: un informe de seguimiento sin párrafo). De ello depende el pie del documento.
+   */
+  origen?: 'ia' | 'mano' | 'reglas';
+  /** El docente lo ha corregido a mano: antes de volver a generarlo o de recalcularlo se le pregunta. */
+  editado?: boolean;
+  /** La hoja del informe de seguimiento para las familias, hecha con reglas y sin IA (`lib/informeSeguimiento.ts`). */
+  seguimiento?: InformeSeguimiento;
+}
+
+/** Una frase del informe de seguimiento, ya escrita para la familia. */
+export interface FraseSeguimiento {
+  texto: string;
+  /** De qué dato sale («Notas: Media de 8,2 en Matemáticas»). Lo ve el docente al editar; nunca sale en el documento. */
+  origen?: string;
+}
+
+/** Las notas de una asignatura en el periodo del informe. */
+export interface NotasSeguimiento {
+  asignatura: string;
+  /** La nota del periodo; en «Final de curso», la nota final con la regla que el docente eligió en el cuaderno. */
+  media: number | null;
+  /** Cada categoría del cuaderno con su peso (%) y la media del alumno; `bloque` es «Trabajo diario y actitud». */
+  categorias: { nombre: string; peso: number; media: number | null; bloque?: boolean }[];
+  /** Solo en «Final de curso»: la nota de la 1.ª, la 2.ª y la 3.ª evaluación. */
+  evaluaciones?: (number | null)[];
+}
+
+export type SeccionSeguimiento = 'notas' | 'asistencia' | 'competencias';
+
+/**
+ * La hoja del informe de seguimiento (20-11-2026): lo que el código saca del cuaderno, la asistencia, las
+ * anotaciones y las evaluaciones del periodo, fijado al guardar (el informe no cambia solo si después
+ * cambian las notas: se recalcula a propósito) y con las frases ya corregidas por el docente.
+ */
+export interface InformeSeguimiento {
+  /** Las fechas que cuenta, si el periodo es una evaluación; sin ellas, todo el curso. */
+  desde?: string;
+  hasta?: string;
+  notas: NotasSeguimiento[];
+  /** Los días con asistencia anotada en el periodo; `null` si no hay ninguno. */
+  asistencia: { dias: number; faltas: number; justificadas: number; retrasos: number } | null;
+  positivos: FraseSeguimiento[];
+  mejorar: FraseSeguimiento[];
+  /** El hueco del docente: lo que quiera decir a la familia con sus palabras. */
+  observacion: string;
+  /** Las partes que el docente ha decidido no entregar. */
+  ocultar?: SeccionSeguimiento[];
 }
 
 /* ── Situaciones de aprendizaje ── */

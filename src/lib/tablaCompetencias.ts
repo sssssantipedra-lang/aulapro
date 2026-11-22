@@ -54,9 +54,11 @@ export function tablaCompetenciasHtml(
   tabla: FilaCompetencia[] | undefined, t: (k: string) => string, etiqueta: (clave: string) => string,
 ): string {
   if (!tabla?.length) return '';
+  // Sin ningún comentario (la tabla por reglas de un informe de seguimiento, antes de que el docente escriba) no hay tercera columna
+  const conComentario = tabla.some(f => f.comentario.trim());
   const filas = tabla.map(f => `<tr><th scope="row">${ESC(f.clave)}<span>${ESC(etiqueta(f.clave))}</span></th>`
-    + `<td class="val" style="color:${COLOR[normalizarValoracion(f.valoracion)]}">${ESC(t(NOMBRE[normalizarValoracion(f.valoracion)]))}</td><td>${ESC(f.comentario)}</td></tr>`).join('');
-  return `<table class="comp"><thead><tr><th>${ESC(t('Competencia clave'))}</th><th>${ESC(t('Valoración'))}</th><th>${ESC(t('Comentario'))}</th></tr></thead><tbody>${filas}</tbody></table>`;
+    + `<td class="val" style="color:${COLOR[normalizarValoracion(f.valoracion)]}">${ESC(t(NOMBRE[normalizarValoracion(f.valoracion)]))}</td>${conComentario ? `<td>${ESC(f.comentario)}</td>` : ''}</tr>`).join('');
+  return `<table class="comp"><thead><tr><th>${ESC(t('Competencia clave'))}</th><th>${ESC(t('Valoración'))}</th>${conComentario ? `<th>${ESC(t('Comentario'))}</th>` : ''}</tr></thead><tbody>${filas}</tbody></table>`;
 }
 
 /** Textos de las valoraciones, que `t` traduce. */
@@ -70,14 +72,19 @@ export function valoracionDeNota(nota: number): Valoracion {
   return nota >= 3.5 ? 'excelente' : nota >= 2.5 ? 'bien' : 'mejorable';
 }
 
-/** Media (1 a 4) de cada competencia clave en las evaluaciones del alumno; solo las que tienen nota. */
-export function notasPorClave(evaluaciones: { competencyScores?: Record<string, number> }[]): Record<string, number> {
+/**
+ * Media (1 a 4) de cada competencia clave en las evaluaciones del alumno; solo las que tienen nota. Una
+ * rúbrica con otros niveles (tres, cinco) se pasa a la escala de 4 con su `max_level`, como en el acta y en
+ * «Lo más relevante»: sin ello, con una rúbrica de tres niveles nadie llegaba a «Excelente».
+ */
+export function notasPorClave(evaluaciones: readonly { competencyScores?: Record<string, number>; max_level?: number }[]): Record<string, number> {
   const suma: Record<string, { s: number; n: number }> = {};
   for (const ev of evaluaciones) {
+    const max = ev.max_level && ev.max_level > 0 ? ev.max_level : 4;
     for (const [k, v] of Object.entries(ev.competencyScores ?? {})) {
       if (typeof v !== 'number' || !(v > 0)) continue;
       const a = (suma[k.toUpperCase()] ??= { s: 0, n: 0 });
-      a.s += v; a.n++;
+      a.s += Math.min(4, (v / max) * 4); a.n++;
     }
   }
   return Object.fromEntries(Object.entries(suma).map(([k, a]) => [k, Math.round((a.s / a.n) * 10) / 10]));
