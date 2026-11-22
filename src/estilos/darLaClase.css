@@ -43,10 +43,10 @@ section:first-of-type > .dlc-momento { margin-top:2px; }
 
 /* Las imágenes de la sesión y su circuito, a un toque */
 .dlc-tira { flex-shrink:0; display:flex; gap:6px; overflow-x:auto; padding:2px; scrollbar-width:thin; }
-.dlc-mini { position:relative; flex-shrink:0; width:60px; height:46px; padding:0; border-radius:9px; overflow:hidden; border:1.5px solid rgba(var(--pz-rgb),0.25); background:#f8fafc; cursor:pointer; }
+.dlc-mini { position:relative; flex-shrink:0; width:66px; height:52px; padding:0; border-radius:9px; overflow:hidden; border:1.5px solid rgba(var(--pz-rgb),0.25); background:#f8fafc; cursor:pointer; }
 .dlc-mini:hover, .dlc-mini:focus-visible { border-color:rgb(var(--pz-rgb)); }
 .dlc-mini img { width:100%; height:100%; object-fit:cover; display:block; }
-.dlc-mini.circuito { width:96px; }
+.dlc-mini.circuito { width:104px; }
 .dlc-mini.circuito img { object-fit:contain; }
 .dlc-mini.circuito span { position:absolute; left:0; right:0; bottom:0; display:flex; align-items:center; justify-content:center; gap:3px; padding:2px 4px; font-size:10.5px; font-weight:700; color:#fff; background:rgba(15,23,42,0.78); }
 

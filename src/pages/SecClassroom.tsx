@@ -33,7 +33,7 @@ import {
 import { useRecordarClase } from '../hooks/useClaseActiva';
 import { VisorDeClase } from '../components/live/VisorDeClase';
 import {
-  escribirPlanDeVentana, fusionarPlan, leerPlanDeVentana, suscribirEncargo, hayEncargo, tomarEncargo, ventanaParaPlan,
+  escribirPlanDeVentana, fusionarPlan, huecoParaPlan, leerPlanDeVentana, suscribirEncargo, hayEncargo, tomarEncargo, ventanaParaPlan,
   type FuenteDeSesiones, type ImagenDeVisor, type OrigenPlan,
 } from '../lib/darLaClase';
 
@@ -1712,22 +1712,21 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
       lados: base.lados,
     };
   };
-  /** Una ventana nueva de la herramienta, colocada entre las que hay (`tam`: con otro tamaño que el de siempre). */
-  const colocar = (prev: Ventana[], tipo: WidgetType, tam?: { width: number; height: number }): Ventana => {
+  const anadir = (tipo: WidgetType) => setVentanas(prev => {
+    if (prev.length >= MAX_VENTANAS) return prev;
     const area = areaPizarra();
-    const base = ajustarRect({ ...DEFAULTS[tipo], ...tam }, area, minDe(tipo));
+    const base = ajustarRect(DEFAULTS[tipo], area, minDe(tipo));
     const margenes = margenesLibres();
     const libre = huecoLibre(base, prev.map(rectVisible), area, margenes);
     const mismas = prev.filter(v => v.tipo === tipo).length;
     // Sin hueco, en cascada, pero nunca encima de la barra de arriba
     const cascada = enCascada(base, mismas);
-    return {
+    return [...prev, {
       id: siguienteId(tipo, prev.map(v => v.id)),
       tipo,
       rect: libre ?? ajustarRect({ ...cascada, y: Math.max(cascada.y, margenes.arriba) }, area, minDe(tipo)),
-    };
-  };
-  const anadir = (tipo: WidgetType) => setVentanas(prev => (prev.length >= MAX_VENTANAS ? prev : [...prev, colocar(prev, tipo)]));
+    }];
+  });
 
   /* ── «Dar la clase»: la sesión que se pide desde otra pantalla, montada en «Plan del día» ── */
   const ampliar = useCallback((imagenes: ImagenDeVisor[], indice: number) => setVisor({ imagenes, indice }), []);
@@ -1736,49 +1735,54 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
   /** Cuántas veces se ha cargado desde fuera cada «Plan del día»: al cambiar, la ventana vuelve a leer lo suyo. */
   const [cargas, setCargas] = useState<Record<string, number>>({});
   // Lo último de cada cosa, para atender un encargo que llega fuera del pintado
-  const alDia = useRef({ ventanas, colocar });
-  useEffect(() => { alDia.current = { ventanas, colocar }; });
+  const alDia = useRef({ ventanas, margenesLibres });
+  useEffect(() => { alDia.current = { ventanas, margenesLibres }; });
   /**
    * Recoge el encargo de «Dar la clase», si lo hay y la pizarra se ve (oculta no tiene medidas para colocar
    * la ventana: lo recogerá al enseñarse). **No borra nada**: la sesión va a la ventana que ya la tenía
-   * (conservando lo marcado), a una vacía o a una ventana nueva; los planes que hubiera conservan lo suyo.
+   * (conservando lo marcado), a una vacía o a una ventana nueva. El plan tiene que poder leerse y las ventanas
+   * no tienen fondo, así que no se pone encima de otras: los demás planes del día pasan a su icono y, si aun
+   * así no hay hueco (un móvil, una pizarra llena), también el resto de ventanas. Minimizadas siguen con lo
+   * suyo (un temporizador sigue contando) y vuelven con un toque.
    */
   const atenderEncargo = useCallback(() => {
     if (!hayEncargo() || estaOculta(rootRef.current)) return;
     const encargo = tomarEncargo();
     if (!encargo) return;
     if (encargo.claseId) { setClaseId(encargo.claseId); recordarClase(encargo.claseId); }
-    const { ventanas: actuales, colocar: nuevaVentana } = alDia.current;
+    setBarrasOcultas(false);
+    const actuales: Ventana[] = alDia.current.ventanas;
     const planes = actuales.filter(v => v.tipo === 'agenda').map(v => leerPlanDeVentana(v.id));
     const destino = ventanaParaPlan(planes, encargo.plan?.sesion.origen ?? null);
     if (!destino && actuales.length >= MAX_VENTANAS) return;
-    // Una sesión que necesita ventana nueva: los otros planes del día se minimizan a su icono (siguen ahí, con lo
-    // suyo, a un toque). Las ventanas no tienen fondo y dos planes, uno encima del otro, no se podrían leer.
-    const apartar = !destino && !!encargo.plan;
-    const conSitio = apartar ? actuales.map(v => (v.tipo === 'agenda' ? { ...v, min: true } : v)) : actuales;
-    const nueva = destino ? null : nuevaVentana(conSitio, 'agenda', encargo.plan ? PLAN_CON_SESION : undefined);
-    const id = destino?.id ?? nueva!.id;
+    const id = destino?.id ?? siguienteId('agenda', actuales.map(v => v.id));
     if (encargo.plan) {
       const antes = planes.find(p => p.id === id);
       escribirPlanDeVentana(id, fusionarPlan(antes?.tareas ?? [], encargo.plan.tareas, destino?.modo === 'misma'), encargo.plan.sesion);
       setCargas(c => ({ ...c, [id]: (c[id] ?? 0) + 1 }));
     }
+    const resto = actuales.filter(v => v.id !== id);
+    const esta = actuales.find(v => v.id === id);
+    if (esta && (destino?.modo === 'misma' || !encargo.plan)) {
+      // Ya estaba donde el docente la puso: delante y a la vista
+      setVentanas([...resto, { ...esta, min: undefined }]);
+      return;
+    }
+    // Una ventana nueva, o una vacía que crece para la sesión: se le busca sitio
     const area = areaPizarra();
-    setVentanas(prev => {
-      if (nueva) {
-        if (prev.some(v => v.id === nueva.id)) return prev;
-        return [...(apartar ? prev.map(v => (v.tipo === 'agenda' ? { ...v, min: true } : v)) : prev), nueva];
-      }
-      // La que ya había pasa delante, a la vista y, si se ha rellenado, con sitio para la sesión
-      const v = prev.find(x => x.id === id);
-      if (!v) return prev;
-      const crecer = encargo.plan && destino?.modo === 'vacia';
-      const rect = crecer
-        ? ajustarRect({ ...v.rect, width: Math.max(v.rect.width, PLAN_CON_SESION.width), height: Math.max(v.rect.height, PLAN_CON_SESION.height) }, area, minDe('agenda'))
-        : v.rect;
-      return [...prev.filter(x => x.id !== id), { ...v, rect, min: undefined }];
-    });
-    setBarrasOcultas(false);
+    const margenes = alDia.current.margenesLibres();
+    const minimo = minDe('agenda');
+    const tam = ajustarRect({ ...DEFAULTS.agenda, ...(encargo.plan ? PLAN_CON_SESION : {}) }, area, minimo);
+    const minimizar = (v: Ventana): Ventana => ({ ...v, min: true });
+    let otras = encargo.plan ? resto.map(v => (v.tipo === 'agenda' ? minimizar(v) : v)) : resto;
+    // Entero entre las que hay o, si no cabe, con las demás minimizadas y el alto que quede entre las barras y sus iconos
+    let rect = huecoParaPlan(tam, tam.height, otras.map(rectVisible), area, margenes);
+    if (!rect) {
+      otras = otras.map(minimizar);
+      rect = huecoParaPlan(tam, minimo.height + 40, otras.map(rectVisible), area, margenes)
+        ?? ajustarRect({ ...tam, x: margenes.lados, y: margenes.arriba }, area, minimo);
+    }
+    setVentanas([...otras, { id, tipo: 'agenda', rect }]);
   }, [areaPizarra, recordarClase]);
   useEffect(() => {
     atenderEncargoRef.current = atenderEncargo;

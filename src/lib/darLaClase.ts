@@ -19,7 +19,7 @@
 import type { LearningSituation } from '../types';
 import type { ImagenSesion, PizarraEF, SesionEF } from '../types/ef';
 import { imagenesDeSesionSda } from './imagenesSesion';
-import { claveDatos } from './pizarraAula';
+import { claveDatos, huecoLibre, type Rect } from './pizarraAula';
 import { activas, agruparPorSda } from './sesiones';
 
 /* ── El plan ── */
@@ -259,6 +259,24 @@ export function ventanaParaPlan(ventanas: readonly VentanaDePlan[], origen: Orig
   const vacia = ventanas.find(v => v.tareas.length === 0 && !v.sesion);
   if (vacia) return { id: vacia.id, modo: 'vacia' };
   return !origen && ventanas[0] ? { id: ventanas[0].id, modo: 'misma' } : null;
+}
+
+/**
+ * Sitio para el plan del día sin tapar a nadie: el primer hueco libre con su tamaño y, si no lo hay, con menos
+ * alto (de `paso` en `paso`, hasta `minAlto`): en un móvil, entre las barras y los iconos de las ventanas
+ * minimizadas no cabe entero. Antes se recorta a lo que dejan libre las barras. `null` si no cabe ni así.
+ */
+export function huecoParaPlan(
+  tam: { width: number; height: number }, minAlto: number, ocupados: readonly Rect[], area: { width: number; height: number },
+  margen: { arriba: number; abajo: number; lados: number }, paso = 40,
+): Rect | null {
+  const width = Math.min(tam.width, area.width - 2 * margen.lados);
+  const alto = Math.min(tam.height, area.height - margen.arriba - margen.abajo);
+  for (let height = alto; height >= minAlto; height -= paso) {
+    const r = huecoLibre({ width, height }, ocupados, area, margen);
+    if (r) return r;
+  }
+  return null;
 }
 
 /* ── Lo guardado en cada ventana (en el dispositivo, como el resto de la pizarra) ── */

@@ -2,7 +2,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
   claveSesionDada, encargarClase, ENCARGO_VALE_MS, escribirPlanDeVentana, esDeSesion, esSesionEnPizarra, esTareas,
-  fusionarPlan, hayEncargo, leerPlanDeVentana, mismoOrigen, partirActividad, planDeOrigen, planDeSesion, planDeSesionSda,
+  fusionarPlan, hayEncargo, huecoParaPlan, leerPlanDeVentana, mismoOrigen, partirActividad, planDeOrigen, planDeSesion, planDeSesionSda,
   sesionesDeHoy, sesionesParaProponer, sesionRecorrida, sesionViva, suscribirEncargo, tomarEncargo, ventanaParaPlan,
   MAX_ACTIVIDADES_POR_MOMENTO, type TareaPlan,
 } from './darLaClase';
@@ -273,6 +273,35 @@ describe('ventanaParaPlan', () => {
     expect(mismoOrigen({ tipo: 'sda', id: 'a', indice: 1 }, { tipo: 'sda', id: 'a', indice: 1 })).toBe(true);
     expect(mismoOrigen({ tipo: 'sesion', id: 'a' }, { tipo: 'sda', id: 'a', indice: 0 })).toBe(false);
     expect(mismoOrigen(null, o1)).toBe(false);
+  });
+});
+
+describe('huecoParaPlan', () => {
+  const margen = { arriba: 70, abajo: 84, lados: 16 };
+  const TAM = { width: 420, height: 520 };
+
+  it('en una pizarra de ordenador cabe entero al lado de lo que hay', () => {
+    const area = { width: 1184, height: 800 };
+    const r = huecoParaPlan(TAM, 200, [{ x: 24, y: 70, width: 290, height: 350 }, { x: 330, y: 70, width: 290, height: 340 }], area, margen)!;
+    expect(r).toMatchObject({ width: 420, height: 520 });
+    expect(r.x).toBeGreaterThanOrEqual(632);
+  });
+
+  it('en un móvil se recorta a lo que dejan las barras y baja para no tapar los iconos minimizados', () => {
+    const area = { width: 560, height: 760 };
+    const barras = { arriba: 90, abajo: 250, lados: 16 };
+    const iconos = [{ x: 24, y: 90, width: 44, height: 44 }, { x: 330, y: 90, width: 44, height: 44 }];
+    const r = huecoParaPlan(TAM, 200, iconos, area, barras)!;
+    expect(r.width).toBe(420);
+    expect(r.y).toBeGreaterThanOrEqual(90 + 44);
+    expect(r.y + r.height).toBeLessThanOrEqual(760 - 250);
+    expect(r.height).toBeGreaterThanOrEqual(200);
+    // Sin iconos, todo el alto libre
+    expect(huecoParaPlan(TAM, 200, [], area, barras)).toMatchObject({ y: 90, height: 420 });
+  });
+
+  it('si no cabe ni con el alto mínimo, lo dice', () => {
+    expect(huecoParaPlan(TAM, 200, [{ x: 0, y: 0, width: 1000, height: 1000 }], { width: 600, height: 700 }, margen)).toBeNull();
   });
 });
 
