@@ -23,7 +23,9 @@
  *   que sube desde 4.º); si no hay ninguna, se queda en la biblioteca sin clase. Las sesiones pierden la fecha y
  *   la marca de «hecha».
  * - **Lo que empieza limpio**: notas y columnas del cuaderno, evaluaciones, asistencia, anotaciones, informes,
- *   mesas, dianas competenciales, autoevaluaciones y eventos de la agenda.
+ *   mesas, dianas competenciales y autoevaluaciones.
+ * - **Agenda**: los eventos que ya han pasado se van; los de hoy en adelante se quedan (en septiembre el docente
+ *   ya ha apuntado el claustro y las reuniones del curso que empieza). Lo mismo las tareas: siguen las pendientes.
  * - **PT y AL**: `apoyoParaOtroCurso` (alumnado de apoyo, grupos, programas, adaptaciones y agendas).
  * - **Educación Física**: el material del docente (`efParaOtroCurso`) y, del alumnado que sigue, su nivel, con
  *   quién no conviene juntarlo y, si se conservan los avisos, sus medidas de apoyo. Marcas, exentos y equipos, no.
@@ -41,7 +43,8 @@ import { apoyoParaOtroCurso } from './apoyo';
 import { efParaOtroCurso } from './ef';
 import { objetivosDe } from './objetivos';
 import { esRegistro } from './registro';
-import { claveDeGrupo } from './nombreDeGrupo';
+import { isoDate } from './utils';
+import { claveDeGrupo, conOrdinalAgudo, sufijoDeOrdinal, SUFIJO_DE_ORDINAL } from './nombreDeGrupo';
 
 /** Todo lo que se guarda de un perfil, menos el registro de cambios (la forma de `ProfileSnapshot`). */
 export interface DatosDelCurso {
@@ -112,33 +115,43 @@ function nivelSiguiente(c: Pick<Class, 'etapa' | 'curso'>): Pick<Class, 'etapa' 
 
 /**
  * El nombre de una clase al subir de curso: «5º A» pasa a «6º A» y «6º Primaria B», a «1º ESO B». Solo se cambia
- * el número del curso (el primero que aparezca suelto); si el nombre no lo lleva («Los delfines»), se queda igual.
+ * el número del curso (el primero que aparezca suelto) y, si lo lleva, su ordinal escrito de otra forma («4t A»
+ * pasa a «5è A», y «1st A», a «2nd A»); si el nombre no lleva el curso («Los delfines»), se queda igual.
+ * `otros`: los nombres de las demás clases, para escribir el ordinal catalán como ya lo escriba el docente.
  */
-export function nombreAlSubir(c: Pick<Class, 'name' | 'etapa' | 'curso'>): string {
+export function nombreAlSubir(c: Pick<Class, 'name' | 'etapa' | 'curso'>, otros: readonly string[] = []): string {
   if (!c.curso) return c.name;
+  const antes = c.curso;
   const sig = nivelSiguiente(c);
-  let nombre = c.name.replace(new RegExp(`(^|[^0-9])${c.curso}(?![0-9])`), `$1${sig.curso}`);
+  const nuevo = sig.curso ?? antes;
+  let nombre = c.name.normalize('NFC').replace(new RegExp(`(^|[^0-9])${antes}(?![0-9])(?:${SUFIJO_DE_ORDINAL})?`), (_todo: string, delante: string, sufijo?: string) => {
+    void _todo;
+    const ordinal = sufijo ? sufijoDeOrdinal(antes, sufijo, nuevo, conOrdinalAgudo([c.name, ...otros])) : null;
+    // Lo que seguía al número y no era un ordinal (la letra del grupo) se deja como estaba
+    return `${delante}${nuevo}${ordinal ?? sufijo ?? ''}`;
+  });
   if (sig.etapa !== c.etapa) nombre = nombre.replace(/\b(de\s+)?(educaci[oó]n?\s+)?prim[aà]ria\b|\bprimary\b/i, 'ESO');
   return nombre;
 }
 
 /** La clase, ya en el curso siguiente. Con cambio de etapa, las materias oficiales se vuelven a elegir. */
-export function claseAlSubir(c: Class, nombre?: string): Class {
+export function claseAlSubir(c: Class, nombre?: string, otros: readonly string[] = []): Class {
   const sig = nivelSiguiente(c);
   const { opcionMatematicas: _o, ...resto } = c;
   void _o;
   return {
     ...resto, ...sig,
-    name: nombre?.trim() || nombreAlSubir(c),
+    name: nombre?.trim() || nombreAlSubir(c, otros),
     ...(sig.etapa !== c.etapa ? { materiasOficiales: {} } : {}),
   };
 }
 
 /** Las clases del curso nuevo, en el orden de siempre. */
 function clasesNuevas(classes: readonly Class[], plan: PlanDeCurso): Class[] {
+  const otros = classes.map(c => c.name);
   return classes.flatMap(c => {
     const d = destinoDe(plan, c);
-    return d === 'se-va' ? [] : [d === 'sube' ? claseAlSubir(c, plan.nombres[c.id]) : c];
+    return d === 'se-va' ? [] : [d === 'sube' ? claseAlSubir(c, plan.nombres[c.id], otros) : c];
   });
 }
 
@@ -181,8 +194,8 @@ function instrumentoDelCursoNuevo<T extends GradeTarget>(inst: T, siguen: Readon
   } as T;
 }
 
-/** El perfil con el que empieza el curso nuevo. No toca `d`. */
-export function cursoNuevoDe(d: DatosDelCurso, plan: PlanDeCurso): DatosDelCurso {
+/** El perfil con el que empieza el curso nuevo. No toca `d`. `hoy` (AAAA-MM-DD): los eventos de ese día en adelante se quedan. */
+export function cursoNuevoDe(d: DatosDelCurso, plan: PlanDeCurso, hoy: string = isoDate()): DatosDelCurso {
   const classes = clasesNuevas(d.classes, plan);
   const siguen = new Set(classes.map(c => c.id));
   const suben = new Set(d.classes.filter(c => destinoDe(plan, c) === 'sube').map(c => c.id));
@@ -263,7 +276,8 @@ export function cursoNuevoDe(d: DatosDelCurso, plan: PlanDeCurso): DatosDelCurso
     classes,
     students,
     blocks,
-    events: [],
+    // Lo que ya pasó se va con el curso; lo apuntado de hoy en adelante es del que empieza
+    events: d.events.filter(e => e.date >= hoy),
     rubrics: d.rubrics.map(r => instrumentoDelCursoNuevo(r, siguen, plan.conservarCuaderno)),
     dianas: d.dianas.map(x => instrumentoDelCursoNuevo(x, siguen, plan.conservarCuaderno)),
     evaluations: [],
@@ -297,7 +311,7 @@ export interface ResumenDeCurso {
   conserva: {
     bloquesDeHorario: number; categorias: number;
     rubricas: number; dianas: number; escalas: number; situaciones: number; fichas: number;
-    sesiones: number; reuniones: number; tareasPendientes: number;
+    sesiones: number; reuniones: number; tareasPendientes: number; eventos: number;
     /** PT y AL. */
     alumnadoDeApoyo: number; programas: number; adaptaciones: number; agendas: number;
     /** Educación Física. */
@@ -317,12 +331,19 @@ export interface ResumenDeCurso {
   sinClase: { situaciones: number; fichas: number; sesiones: number; instrumentos: number };
 }
 
+/**
+ * Si la ficha de un alumno lleva avisos o notas. Un alumno llegado de un perfil antiguo o de un archivo compartido
+ * puede no traer alguno de los dos campos.
+ */
+export const conAvisosONotas = (s: Pick<Student, 'alerts' | 'notes'>): boolean =>
+  (s.alerts ?? []).length > 0 || (s.notes ?? '').trim() !== '';
+
 const notasPuestas = (g: GradeMap) => Object.values(g).reduce((n, fila) => n + Object.values(fila).filter(v => v !== null && v !== undefined).length, 0);
 const diasDeAsistencia = (a: AttendanceMap) => Object.values(a).reduce((n, dias) => n + Object.keys(dias).length, 0);
 
 /** Lo que cambia entre el perfil de ahora y el del curso nuevo, en números. */
-export function resumenDeCursoNuevo(d: DatosDelCurso, plan: PlanDeCurso): ResumenDeCurso {
-  const n = cursoNuevoDe(d, plan);
+export function resumenDeCursoNuevo(d: DatosDelCurso, plan: PlanDeCurso, hoy: string = isoDate()): ResumenDeCurso {
+  const n = cursoNuevoDe(d, plan, hoy);
   const destinos = d.classes.map(c => destinoDe(plan, c));
   const cuenta = (x: Destino) => destinos.filter(y => y === x).length;
   const escalas = (l: EvalDiana[]) => l.filter(esRegistro).length;
@@ -330,13 +351,14 @@ export function resumenDeCursoNuevo(d: DatosDelCurso, plan: PlanDeCurso): Resume
     clases: { suben: cuenta('sube'), vacias: cuenta('vacia'), seVan: cuenta('se-va') },
     alumnado: {
       sigue: n.students.length, sale: d.students.length - n.students.length,
-      conAvisos: n.students.filter(s => s.alerts.length > 0 || s.notes.trim() !== '').length,
+      conAvisos: n.students.filter(conAvisosONotas).length,
     },
     conserva: {
       bloquesDeHorario: n.blocks.length, categorias: n.gradeCategories.length,
       rubricas: n.rubrics.length, dianas: n.dianas.length - escalas(n.dianas), escalas: escalas(n.dianas),
       situaciones: n.learningSituations.length, fichas: n.fichas.length,
       sesiones: n.ef.sesiones.length, reuniones: n.workSessions.length, tareasPendientes: n.tasks.length,
+      eventos: n.events.length,
       alumnadoDeApoyo: n.apoyo.alumnos.length, programas: n.apoyo.programas.length,
       adaptaciones: n.apoyo.acs.length + n.apoyo.acsAula.length, agendas: n.apoyo.agendas.length,
       pruebas: n.ef.pruebas.length, actividades: n.ef.actividades.length, material: n.ef.material.length,
@@ -347,7 +369,7 @@ export function resumenDeCursoNuevo(d: DatosDelCurso, plan: PlanDeCurso): Resume
       diasDeAsistencia: diasDeAsistencia(d.attendance), anotaciones: d.classMarks.length,
       informes: d.reports.length, mesas: Object.keys(d.seatingPlans).length,
       dianasCompetenciales: Object.keys(d.dianaProfiles).length, autoevaluaciones: d.selfAssessments.length,
-      eventos: d.events.length, tareasHechas: d.tasks.length - n.tasks.length,
+      eventos: d.events.length - n.events.length, tareasHechas: d.tasks.length - n.tasks.length,
       bloquesDeHorario: d.blocks.length - n.blocks.length, categorias: d.gradeCategories.length - n.gradeCategories.length,
       registrosDeApoyo: d.apoyo.sesiones.length, coordinaciones: d.apoyo.coordinaciones.length,
       cierres: d.apoyo.evaluaciones.length, documentosDeApoyo: d.apoyo.documentos.length,
@@ -428,6 +450,7 @@ export function lineasDelResumen(r: ResumenDeCurso, plan: Pick<PlanDeCurso, 'con
       ['Sesiones, sin fecha', r.conserva.sesiones],
       ['Reuniones y formaciones', r.conserva.reuniones],
       ['Tareas pendientes', r.conserva.tareasPendientes],
+      ['Eventos de la agenda que aún no han pasado', r.conserva.eventos],
       ['Alumnado de apoyo', r.conserva.alumnadoDeApoyo],
       ['Programas de apoyo', r.conserva.programas],
       ['Adaptaciones curriculares', r.conserva.adaptaciones],
@@ -449,7 +472,7 @@ export function lineasDelResumen(r: ResumenDeCurso, plan: Pick<PlanDeCurso, 'con
       ['Distribuciones de aula', r.borra.mesas],
       ['Dianas competenciales del alumnado', r.borra.dianasCompetenciales],
       ['Autoevaluaciones', r.borra.autoevaluaciones],
-      ['Eventos de la agenda', r.borra.eventos],
+      ['Eventos de la agenda ya pasados', r.borra.eventos],
       ['Tareas ya hechas', r.borra.tareasHechas],
       ['Bloques del horario', r.borra.bloquesDeHorario],
       ['Categorías del cuaderno', r.borra.categorias],

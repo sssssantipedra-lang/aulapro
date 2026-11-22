@@ -27,11 +27,49 @@ export function ordinalDe(existentes: readonly Pick<Class, 'name'>[]): Ordinal {
 }
 
 /**
- * Lo que queda de un nombre para saber si dos son el mismo grupo: «3º ESO A», «3.º A», «3ºA» y «3 a» son «3a».
- * La etapa no cuenta aquí (se compara aparte, con la de la clase).
+ * Un ordinal que no se escribe con «º»: en catalán y valenciano («1r», «2n», «3r», «4t», «5è» o «5é»), en inglés
+ * («1st», «2nd») y las formas largas del castellano («1er», «1ro», «2do», «4to»). Solo en minúscula y pegado al
+ * número: «4T» o «4 t» es el grupo T de 4.º.
+ */
+type FamiliaDeOrdinal = 'ca' | 'en' | 'es';
+const SIN_LETRA_DETRAS = '(?![A-Za-zÀ-ÿ0-9])';
+const ORDINAL_ESCRITO = new RegExp(`(1r|2n|3r|4t|[56][èé]|\\d(?:st|nd|rd|th|er|ro|do|to))${SIN_LETRA_DETRAS}`, 'g');
+/** El sufijo que puede seguir al número de un curso (para leerlo en un nombre). */
+export const SUFIJO_DE_ORDINAL = `(st|nd|rd|th|er|ro|do|to|r|n|t|è|é)${SIN_LETRA_DETRAS}`;
+
+function familiaDe(curso: number, sufijo: string): FamiliaDeOrdinal | null {
+  if (/^(st|nd|rd|th)$/.test(sufijo)) return 'en';
+  if (/^(er|ro|do|to)$/.test(sufijo)) return 'es';
+  const ca = curso === 1 || curso === 3 ? 'r' : curso === 2 ? 'n' : curso === 4 ? 't' : 'èé';
+  return ca.includes(sufijo) ? 'ca' : null;
+}
+
+/**
+ * El sufijo del ordinal de otro curso, escrito como el del nombre: de «4t» sale «5è», de «1st», «2nd», y de
+ * «3ro», «4to». `null` si lo que seguía al número no era un ordinal (la letra de un grupo). En catalán, de 5.º en
+ * adelante se escribe con el acento que ya use el docente (`agudo`: «5é», como en valenciano).
+ */
+export function sufijoDeOrdinal(cursoDeAntes: number, sufijo: string, cursoNuevo: number, agudo = false): string | null {
+  const familia = familiaDe(cursoDeAntes, sufijo);
+  if (!familia) return null;
+  if (familia === 'en') return ['th', 'st', 'nd', 'rd'][cursoNuevo] ?? 'th';
+  // «1er» y «3er» no tienen pareja en 2.º y 4.º: se escriben «2º» y «4º»
+  if (familia === 'es') return sufijo === 'er' ? 'º' : ['', 'ro', 'do', 'ro'][cursoNuevo] ?? 'to';
+  return ['', 'r', 'n', 'r', 't'][cursoNuevo] ?? (sufijo === 'é' || (sufijo !== 'è' && agudo) ? 'é' : 'è');
+}
+
+/** Si alguno de esos nombres escribe los ordinales como en valenciano («5é», «6é»). */
+export function conOrdinalAgudo(nombres: readonly string[]): boolean {
+  return nombres.some(n => new RegExp(`\\dé${SIN_LETRA_DETRAS}`).test(n.normalize('NFC')));
+}
+
+/**
+ * Lo que queda de un nombre para saber si dos son el mismo grupo: «3º ESO A», «3.º A», «3ºA», «3r A», «3rd A» y
+ * «3 a» son «3a». La etapa no cuenta aquí (se compara aparte, con la de la clase).
  */
 export function claveDeGrupo(nombre: string): string {
-  return nombre.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+  return nombre.normalize('NFC').replace(ORDINAL_ESCRITO, m => `${m[0]} `)
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
     .replace(/\b(de|d'|educacion|educacio|primaria|primary|eso|secundaria|secondary|year|grade|curso|curs)\b/g, ' ')
     .replace(/[^a-z0-9]+/g, '');
 }

@@ -47,6 +47,37 @@ describe('subir de curso', () => {
     expect(nombreAlSubir({ name: '1º ESO B', etapa: 'eso', curso: 1 })).toBe('2º ESO B');
     expect(nombreAlSubir({ name: 'Música 3ºB', etapa: 'primaria', curso: 3 })).toBe('Música 4ºB');
   });
+  it('el ordinal escrito en catalán, en valenciano, en inglés o en largo sigue bien escrito', () => {
+    const sube = (name: string, curso: number, etapa: Class['etapa'] = 'primaria', otros?: string[]) => nombreAlSubir({ name, etapa, curso }, otros);
+    expect(sube('1r A', 1)).toBe('2n A');
+    expect(sube('2n B', 2)).toBe('3r B');
+    expect(sube('3r A', 3)).toBe('4t A');
+    expect(sube('4t A', 4)).toBe('5è A');
+    expect(sube('5è A', 5)).toBe('6è A');
+    expect(sube('5é A', 5)).toBe('6é A');
+    // Como ya los escriba el docente en sus otras clases
+    expect(sube('4t A', 4, 'primaria', ['4t A', '6é B'])).toBe('5é A');
+    expect(sube('6è Primària A', 6)).toBe('1r ESO A');
+    expect(sube('6é de Primària B', 6)).toBe('1r ESO B');
+    expect(sube('1r ESO C', 1, 'eso')).toBe('2n ESO C');
+    expect(sube('3r ESO A', 3, 'eso')).toBe('4t ESO A');
+    expect(sube('1st A', 1)).toBe('2nd A');
+    expect(sube('2nd A', 2)).toBe('3rd A');
+    expect(sube('3rd A', 3)).toBe('4th A');
+    expect(sube('5th A', 5)).toBe('6th A');
+    expect(sube('6th Primary A', 6)).toBe('1st ESO A');
+    expect(sube('1er A', 1)).toBe('2º A');
+    expect(sube('3ro B', 3)).toBe('4to B');
+    // El nombre escrito con las tildes descompuestas (pegado desde otro sitio)
+    expect(sube('5e\u0300 A', 5)).toBe('6è A');
+  });
+  it('una letra pegada al número es el grupo, no un ordinal', () => {
+    expect(nombreAlSubir({ name: '4T', etapa: 'primaria', curso: 4 })).toBe('5T');
+    expect(nombreAlSubir({ name: '2A', etapa: 'primaria', curso: 2 })).toBe('3A');
+    expect(nombreAlSubir({ name: '5t', etapa: 'primaria', curso: 5 })).toBe('6t');
+    expect(nombreAlSubir({ name: '3 r', etapa: 'primaria', curso: 3 })).toBe('4 r');
+    expect(nombreAlSubir({ name: '1resto', etapa: 'primaria', curso: 1 })).toBe('2resto');
+  });
   it('no toca otros números ni un nombre que no lleva el curso', () => {
     expect(nombreAlSubir({ name: 'Los delfines', etapa: 'primaria', curso: 2 })).toBe('Los delfines');
     expect(nombreAlSubir({ name: 'Aula 12 · 2º A', etapa: 'primaria', curso: 2 })).toBe('Aula 12 · 3º A');
@@ -168,7 +199,7 @@ describe('horario y cuaderno', () => {
     expect(n.gradeCategories).toEqual([]);
     expect(n.marksConfigs).toEqual({});
   });
-  it('notas, columnas, evaluaciones, asistencia, anotaciones, informes, mesas, dianas competenciales y eventos empiezan limpios', () => {
+  it('notas, columnas, evaluaciones, asistencia, anotaciones, informes, mesas y dianas competenciales empiezan limpios', () => {
     const lleno: DatosDelCurso = {
       ...base,
       attendance: { c1: { '2026-10-01': { s01: 'absent' } } },
@@ -189,7 +220,18 @@ describe('horario y cuaderno', () => {
     expect(n.seatingPlans).toEqual({});
     expect(n.dianaProfiles).toEqual({});
     expect(n.selfAssessments).toEqual([]);
-    expect(n.events).toEqual([]);
+  });
+  it('los eventos de la agenda que ya han pasado se van, y los de hoy en adelante se quedan', () => {
+    const ev = (id: string, date: string) => ({ id, name: id, date, time: '09:00', type: 'meeting' as const, urgency: 'media' as const, color: '#000', desc: '' });
+    const d = { ...base, events: [ev('junio', '2027-06-20'), ev('hoy', '2027-09-02'), ev('claustro', '2027-09-03'), ev('sin-fecha', '')] };
+    const n = cursoNuevoDe(d, plan(d, {}), '2027-09-02');
+    expect(n.events.map(e => e.id)).toEqual(['hoy', 'claustro']);
+    const r = resumenDeCursoNuevo(d, plan(d, {}), '2027-09-02');
+    expect(r.conserva.eventos).toBe(2);
+    expect(r.borra.eventos).toBe(2);
+    // Sin decir el día, cuenta el de hoy: lo de dentro de un siglo se queda y lo del siglo pasado se va
+    const s = { ...base, events: [ev('lejos', '2126-01-01'), ev('antiguo', '1999-01-01')] };
+    expect(cursoNuevoDe(s, plan(s, {})).events.map(e => e.id)).toEqual(['lejos']);
   });
   it('las tareas pendientes siguen y las hechas se van', () => {
     const d = { ...base, tasks: [{ id: 't1', text: 'Pendiente', priority: 'high' as const, done: false }, { id: 't2', text: 'Hecha', priority: 'low' as const, done: true }] };
@@ -497,7 +539,7 @@ describe('resumen antes de aplicar', () => {
   it('cuenta las clases, el alumnado, lo que se conserva y lo que se borra', () => {
     const d = aula();
     const p = plan(d, { c1: 'sube', c2: 'sube', c3: 'se-va', p6: 'se-va' });
-    const r = resumenDeCursoNuevo(d, p);
+    const r = resumenDeCursoNuevo(d, p, '2999-01-01');
     expect(r.clases).toEqual({ suben: 2, vacias: d.classes.length - 4, seVan: 2 });
     expect(r.alumnado.sigue).toBe(12);
     expect(r.alumnado.sale).toBe(d.students.length - 12);
@@ -529,6 +571,11 @@ describe('resumen antes de aplicar', () => {
     };
     expect(resumenDeCursoNuevo(d, plan(d, { a: 'sube' })).alumnado.conAvisos).toBe(2);
     expect(resumenDeCursoNuevo(d, plan(d, { a: 'sube' }, { conservarAvisos: false })).alumnado.conAvisos).toBe(0);
+  });
+  it('un alumno de un perfil antiguo, sin avisos ni notas en su ficha, no rompe la cuenta', () => {
+    const antiguo = { id: '9', class_id: 'a', name: 'Alumno 9', email: '', photo: null } as unknown as Student;
+    const d: DatosDelCurso = { ...vacio(), classes: [clase('a', '5º A', 'primaria', 5)], students: [antiguo, alumno('2', 'a', { notes: 'Algo' })] };
+    expect(resumenDeCursoNuevo(d, plan(d, { a: 'sube' })).alumnado).toMatchObject({ sigue: 2, conAvisos: 1 });
   });
 });
 

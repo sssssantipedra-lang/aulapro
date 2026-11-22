@@ -35,6 +35,17 @@ describe('nombre y clave de un grupo', () => {
     for (const n of ['3.º A', '3º A', '3ºA', '3 a', '3º ESO A', '3º de Primaria A', '3.º Primària A']) {
       expect(claveDeGrupo(n), n).toBe('3a');
     }
+    // Con el ordinal en catalán, en inglés o en largo
+    for (const n of ['3r A', '3r ESO A', '3r de Primària A', '3rd A', '3ro A', '3er A', 'Year 3 A']) {
+      expect(claveDeGrupo(n), n).toBe('3a');
+    }
+    expect(claveDeGrupo('5è B')).toBe('5b');
+    expect(claveDeGrupo('5é B')).toBe('5b');
+    expect(claveDeGrupo('5e\u0301 B')).toBe('5b');
+    expect(claveDeGrupo('4t')).toBe('4');
+    // Una letra pegada al número es el grupo: «3ºE» y «5e» son el grupo E, y «4T», el T
+    expect(claveDeGrupo('5e')).toBe('5e');
+    expect(claveDeGrupo('4T')).toBe('4t');
     expect(claveDeGrupo('3.º B')).not.toBe(claveDeGrupo('3.º A'));
     expect(claveDeGrupo('13.º A')).not.toBe(claveDeGrupo('3.º A'));
   });
@@ -52,6 +63,15 @@ describe('el ordinal sigue a las clases que ya hay', () => {
 });
 
 describe('grupos previstos', () => {
+  it('no duplica un grupo que ya existe con el ordinal escrito en catalán o en inglés', () => {
+    const hay = [
+      { name: '3r A', etapa: 'primaria' as const, curso: 3 }, { name: '5è B', etapa: 'primaria' as const, curso: 5 },
+      { name: '4th A', etapa: 'primaria' as const, curso: 4 },
+    ];
+    const g = gruposPrevistos('primaria', [3, 4, 5], ['A', 'B'], hay);
+    expect(g.filter(x => x.existe).map(x => `${x.curso}${x.letra}`)).toEqual(['3A', '4A', '5B']);
+    expect(gruposACrear(g).map(x => `${x.curso}${x.letra}`)).toEqual(['3B', '4B', '5A']);
+  });
   it('un grupo por curso y letra, en orden', () => {
     const g = gruposPrevistos('primaria', [4, 3], ['A', 'B'], []);
     expect(g.map(x => x.nombre)).toEqual(['3.º A', '3.º B', '4.º A', '4.º B']);

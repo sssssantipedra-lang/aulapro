@@ -39,7 +39,9 @@ describe('empezar curso nuevo', () => {
     expect(st.evaluations).toEqual([]);
     expect(st.classMarks).toEqual([]);
     expect(st.attendance).toEqual({});
-    expect(st.calEvents).toEqual([]);
+    // Los eventos de ejemplo son de los próximos días: no han pasado, así que siguen
+    expect(st.calEvents).toEqual(esperado.events);
+    expect(st.calEvents.length).toBe(antes.events.length);
     expect(st.dianaProfiles).toEqual({});
   });
 

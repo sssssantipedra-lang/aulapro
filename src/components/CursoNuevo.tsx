@@ -8,7 +8,7 @@ import { CARPETAS } from '../lib/carpetas';
 import { registrarCopia } from '../lib/avisoCopia';
 import { isoDate } from '../lib/utils';
 import {
-  archivoDelCurso, cursoSiguiente, lineasDelResumen, nombreAlSubir, nombresRepetidos, planDePartida, puedeSubir,
+  archivoDelCurso, conAvisosONotas, cursoSiguiente, lineasDelResumen, nombreAlSubir, nombresRepetidos, planDePartida, puedeSubir,
   resumenDeCursoNuevo, type DatosDelCurso, type Destino, type LineaDeResumen, type PlanDeCurso,
 } from '../lib/cursoNuevo';
 
@@ -53,10 +53,13 @@ export function CursoNuevo({ open, onClose, curso, datos, onExportar, onEmpezar 
   const [paso, setPaso] = useState(0);
   const [copiaHecha, setCopiaHecha] = useState(false);
   const [plan, setPlan] = useState<PlanDeCurso>(() => planDePartida(datos.classes));
-  const [cursoNuevo, setCursoNuevo] = useState(() => cursoSiguiente(curso));
+  // El curso nuevo sale del que dice el perfil ahora (que se puede haber corregido con esta pantalla abierta),
+  // mientras el docente no escriba otro
+  const [cursoEscrito, setCursoEscrito] = useState<string | null>(null);
+  const cursoNuevo = cursoEscrito ?? cursoSiguiente(curso);
   const [ocupado, setOcupado] = useState(false);
   /** Ya aplicado: la ventana solo dice qué hacer ahora, según lo que se eligió. */
-  const [fin, setFin] = useState<{ vacias: number; suben: number; clases: number; apoyo: number } | null>(null);
+  const [fin, setFin] = useState<{ curso: string; vacias: number; suben: number; clases: number; apoyo: number } | null>(null);
   const hecho = fin !== null;
 
   const cerrar = () => onClose(hecho);
@@ -68,8 +71,9 @@ export function CursoNuevo({ open, onClose, curso, datos, onExportar, onEmpezar 
   }, [datos.students]);
   const resumen = useMemo(() => resumenDeCursoNuevo(datos, plan), [datos, plan]);
   const repetidos = useMemo(() => nombresRepetidos(datos.classes, plan), [datos.classes, plan]);
+  const nombresDeAhora = useMemo(() => datos.classes.map(c => c.name), [datos.classes]);
   const destino = (id: string): Destino => plan.destinos[id] ?? 'vacia';
-  const alguienConAvisos = datos.students.some(s => destino(s.class_id) === 'sube' && (s.alerts.length > 0 || s.notes.trim() !== ''));
+  const alguienConAvisos = datos.students.some(s => destino(s.class_id) === 'sube' && conAvisosONotas(s));
 
   function descargarCopia() {
     void downloadFile(new Blob([JSON.stringify(onExportar(), null, 2)], { type: 'application/json' }), archivo, CARPETAS.copias);
@@ -85,8 +89,10 @@ export function CursoNuevo({ open, onClose, curso, datos, onExportar, onEmpezar 
   async function aplicar() {
     setOcupado(true);
     try {
-      await onEmpezar(plan, cursoNuevo.trim());
+      const elegido = cursoNuevo.trim();
+      await onEmpezar(plan, elegido);
       setFin({
+        curso: elegido,
         vacias: resumen.clases.vacias, suben: resumen.clases.suben,
         clases: resumen.clases.vacias + resumen.clases.suben, apoyo: resumen.conserva.alumnadoDeApoyo,
       });
@@ -103,7 +109,7 @@ export function CursoNuevo({ open, onClose, curso, datos, onExportar, onEmpezar 
     <Modal open={open} onClose={cerrar} wide stickyHeader title={<span className="cn-titulo"><CalendarPlus size={17} />{t('Empezar curso nuevo')}</span>}>
       {hecho ? (
         <div className="cn-hecho">
-          <p className="cn-hecho-ttl"><Check size={18} />{cursoNuevo.trim() ? t('Ya estás en el curso {curso}.', { curso: cursoNuevo.trim() }) : t('Ya estás en el curso nuevo.')}</p>
+          <p className="cn-hecho-ttl"><Check size={18} />{fin.curso ? t('Ya estás en el curso {curso}.', { curso: fin.curso }) : t('Ya estás en el curso nuevo.')}</p>
           {fin.clases + fin.apoyo > 0 && (
             <>
               <p className="cn-texto">{t(fin.clases > 0 ? 'Lo que te queda por hacer, cuando tengas las listas:' : 'Lo que te queda por hacer:')}</p>
@@ -196,7 +202,7 @@ export function CursoNuevo({ open, onClose, curso, datos, onExportar, onEmpezar 
                             <div className="cn-clase-queda">
                               <label htmlFor={`cn-nombre-${c.id}`}>{t('Se llamará')}</label>
                               <input
-                                id={`cn-nombre-${c.id}`} className="finput" value={plan.nombres[c.id] ?? nombreAlSubir(c)}
+                                id={`cn-nombre-${c.id}`} className="finput" value={plan.nombres[c.id] ?? nombreAlSubir(c, nombresDeAhora)}
                                 onChange={e => setPlan(p => ({ ...p, nombres: { ...p.nombres, [c.id]: e.target.value } }))}
                               />
                               {cambiaDeEtapa && <span className="cn-clase-aviso">{t('Pasa de Primaria a ESO: después tendrás que marcar sus asignaturas en «Editar clase».')}</span>}
@@ -253,7 +259,7 @@ export function CursoNuevo({ open, onClose, curso, datos, onExportar, onEmpezar 
               </p>
               <div className="fgroup" style={{ maxWidth: 260, marginTop: 16 }}>
                 <label className="flabel" htmlFor="cn-curso">{t('Curso escolar nuevo')}</label>
-                <input id="cn-curso" className="finput" value={cursoNuevo} maxLength={20} placeholder="2027-2028" onChange={e => setCursoNuevo(e.target.value)} />
+                <input id="cn-curso" className="finput" value={cursoNuevo} maxLength={20} placeholder="2027-2028" onChange={e => setCursoEscrito(e.target.value)} />
               </div>
             </div>
           )}
