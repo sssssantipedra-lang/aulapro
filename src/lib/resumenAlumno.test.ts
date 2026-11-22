@@ -35,6 +35,14 @@ describe('las fechas de cada periodo', () => {
     expect(rangoDe('trimestre', '2027-05-03').actual).toEqual({ desde: '2027-04-01', hasta: '2027-08-31' });
   });
 
+  it('el trimestre sigue las fechas de las evaluaciones que haya cambiado el docente, las del cuaderno y las actas', () => {
+    const guardados = { '1ª evaluación': { desde: '2026-09-01', hasta: '2026-11-30' }, '2ª evaluación': { desde: '2026-12-01', hasta: '2027-03-12' } };
+    expect(rangoDe('trimestre', '2026-12-10', guardados)).toEqual({
+      actual: { desde: '2026-12-01', hasta: '2027-03-12' }, anterior: { desde: '2026-09-01', hasta: '2026-11-30' },
+    });
+    expect(rangoDe('trimestre', HOY, guardados)).toEqual({ actual: { desde: '2026-09-01', hasta: '2026-11-30' }, anterior: null });
+  });
+
   it('el curso empieza el 1 de septiembre, también visto desde enero', () => {
     expect(rangoDe('curso', HOY).actual).toEqual({ desde: '2026-09-01', hasta: '2027-08-31' });
     expect(rangoDe('curso', '2027-01-15').actual).toEqual({ desde: '2026-09-01', hasta: '2027-08-31' });

@@ -17,6 +17,7 @@ import { mediaDeCategoria } from './ponderacion';
 import { EF_MARK_TYPES, esAsignaturaEF, isMarksCategory, MARK_TYPES, markTypeInfo } from '../services/classMarks';
 import { racha } from './racha';
 import { LOMLOE_COMPETENCES } from './utils';
+import { EVALUACIONES, inicioDeCurso, periodoDeHoy, rangoDe as rangoDeEvaluacion, rangosGuardados, type RangoDeFechas } from './periodos';
 
 export type PeriodoResumen = 'semanas' | 'trimestre' | 'curso';
 export const PERIODOS: readonly { id: PeriodoResumen; label: string }[] = [
@@ -78,25 +79,24 @@ export interface Rango { desde: string; hasta: string }
 
 /**
  * Las fechas del periodo y las del anterior, para ver si sube o baja. El
- * trimestre va sin calendario escolar, como en PT y AL: de septiembre a
- * diciembre, de enero a marzo y de abril en adelante. El curso empieza el 1 de
- * septiembre y no tiene periodo anterior.
+ * trimestre es la evaluación en la que cae hoy, con las mismas fechas que el
+ * cuaderno y las actas (`lib/periodos.ts`, 20-11-2026): de partida, de
+ * septiembre a diciembre, de enero a marzo y de abril en adelante, o las que
+ * el docente haya puesto si su centro cierra la evaluación otro día. El curso
+ * empieza el 1 de septiembre y no tiene periodo anterior.
  */
-export function rangoDe(periodo: PeriodoResumen, hoy: string): { actual: Rango; anterior: Rango | null } {
-  const anio = Number(hoy.slice(0, 4));
-  const mes = Number(hoy.slice(5, 7));
-  const inicio = mes >= 9 ? anio : anio - 1;   // el año en que empezó el curso
+export function rangoDe(
+  periodo: PeriodoResumen, hoy: string, guardados: Record<string, RangoDeFechas> = rangosGuardados(hoy),
+): { actual: Rango; anterior: Rango | null } {
+  const inicio = inicioDeCurso(hoy);   // el año en que empezó el curso
   if (periodo === 'semanas') {
     const desde = sumarDias(hoy, -27);
     return { actual: { desde, hasta: hoy }, anterior: { desde: sumarDias(desde, -28), hasta: sumarDias(desde, -1) } };
   }
   if (periodo === 'curso') return { actual: { desde: `${inicio}-09-01`, hasta: `${inicio + 1}-08-31` }, anterior: null };
-  const t1 = { desde: `${inicio}-09-01`, hasta: `${inicio}-12-31` };
-  const t2 = { desde: `${inicio + 1}-01-01`, hasta: `${inicio + 1}-03-31` };
-  const t3 = { desde: `${inicio + 1}-04-01`, hasta: `${inicio + 1}-08-31` };
-  if (mes >= 9) return { actual: t1, anterior: null };
-  if (mes <= 3) return { actual: t2, anterior: t1 };
-  return { actual: t3, anterior: t2 };
+  const n = EVALUACIONES.indexOf(periodoDeHoy(hoy, guardados));
+  const de = (k: number) => rangoDeEvaluacion(EVALUACIONES[k], hoy, guardados) as Rango;
+  return { actual: de(n), anterior: n > 0 ? de(n - 1) : null };
 }
 
 const dentro = (fecha: string, r: Rango) => fecha >= r.desde && fecha <= r.hasta;

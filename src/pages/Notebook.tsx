@@ -983,6 +983,18 @@ function GradesTab({
           if (!pesosEditables) return suyas.length > 1 ? <p className="sda-note">{t('Lo que cuenta cada nota dentro de la categoría se cambia en su evaluación (1.ª, 2.ª o 3.ª): con la media de las evaluaciones, las notas se reparten el peso dentro de cada una.')}</p> : null;
           return suyas.length > 1 ? <PesosDeNotas items={suyas} valores={catItemWeights} onChange={setCatItemWeights} /> : null;
         })()}
+        {/* La categoría y su peso son de todo el curso: se dice cuando se mira una sola evaluación, y antes de eliminarla */}
+        {!esCurso && <p className="sda-note">{t('La categoría y su peso valen para todo el curso: las tres evaluaciones usan los mismos.')}</p>}
+        {confirmDel && catModal !== 'new' && catModal !== null && (() => {
+          const fuera = deTodoElCurso.filter(i => i.category_id === catModal.id).length - myItems.filter(i => i.category_id === catModal.id).length;
+          return fuera > 0 ? (
+            <p className="sda-note nc-aviso" role="alert">
+              {fuera === 1
+                ? t('Tiene 1 actividad en otra evaluación, que ahora no ves: también se eliminará, con sus notas.')
+                : t('Tiene {n} actividades en otras evaluaciones, que ahora no ves: también se eliminarán, con sus notas.', { n: fuera })}
+            </p>
+          ) : null;
+        })()}
         <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
           <button className="btn-accent" style={{ flex: 1, justifyContent: 'center' }} onClick={saveCategory}>{t('Guardar')}</button>
           {catModal !== 'new' && catModal !== null && (

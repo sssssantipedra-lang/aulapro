@@ -41,6 +41,9 @@ export const EN: Record<string, string> = {
     'It counts {pct}% of “{cat}” in its term, {final}% of the grade for that term.',
   'Lo que cuenta cada nota dentro de la categoría se cambia en su evaluación (1.ª, 2.ª o 3.ª): con la media de las evaluaciones, las notas se reparten el peso dentro de cada una.':
     'How much each grade counts within the category is changed in its term (T1, T2 or T3): with the average of the terms, grades share the weight within each one.',
+  'La categoría y su peso valen para todo el curso: las tres evaluaciones usan los mismos.': 'The category and its weight apply to the whole year: the three terms use the same ones.',
+  'Tiene 1 actividad en otra evaluación, que ahora no ves: también se eliminará, con sus notas.': 'It has 1 activity in another term, which you are not seeing now: it will be deleted too, with its grades.',
+  'Tiene {n} actividades en otras evaluaciones, que ahora no ves: también se eliminarán, con sus notas.': 'It has {n} activities in other terms, which you are not seeing now: they will be deleted too, with their grades.',
   // La nota final de curso
   'Cómo sale la nota final de curso': 'How the final grade of the year is worked out',
   'Nota final de curso': 'Final grade of the year',
@@ -100,6 +103,9 @@ export const CA: Record<string, string> = {
     'Compta un {pct}% de «{cat}» en la seva avaluació, un {final}% de la nota d’aquella avaluació.',
   'Lo que cuenta cada nota dentro de la categoría se cambia en su evaluación (1.ª, 2.ª o 3.ª): con la media de las evaluaciones, las notas se reparten el peso dentro de cada una.':
     'El que compta cada nota dins de la categoria es canvia en la seva avaluació (1a, 2a o 3a): amb la mitjana de les avaluacions, les notes es reparteixen el pes dins de cadascuna.',
+  'La categoría y su peso valen para todo el curso: las tres evaluaciones usan los mismos.': 'La categoria i el seu pes valen per a tot el curs: les tres avaluacions fan servir els mateixos.',
+  'Tiene 1 actividad en otra evaluación, que ahora no ves: también se eliminará, con sus notas.': 'Té 1 activitat en una altra avaluació, que ara no veus: també s’eliminarà, amb les seves notes.',
+  'Tiene {n} actividades en otras evaluaciones, que ahora no ves: también se eliminarán, con sus notas.': 'Té {n} activitats en altres avaluacions, que ara no veus: també s’eliminaran, amb les seves notes.',
   'Cómo sale la nota final de curso': 'Com surt la nota final de curs',
   'Nota final de curso': 'Nota final de curs',
   'Evaluación continua': 'Avaluació contínua',
