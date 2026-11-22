@@ -114,6 +114,44 @@ describe('Cuaderno por evaluaciones', () => {
     expect(p.onAddItem).toHaveBeenCalledWith(expect.objectContaining({ name: 'Recuperación', date: '2026-12-31', category_id: 'k1' }));
   });
 
+  it('en una clase con dos asignaturas, cada una tiene sus actividades, sus anotaciones y su regla', () => {
+    const dos = { ...clase, subjects: ['Lengua', 'Matemáticas'] } as Class;
+    const cats: GradeCategory[] = [
+      { id: 'k1', class_id: 'c1', name: 'Pruebas', weight: 80 },                       // de antes de haber dos: es de Lengua
+      { id: 'k2', class_id: 'c1', name: 'Problemas', weight: 80, subject: 'Matemáticas' },
+    ];
+    const acts: GradeItem[] = [
+      { id: 'l1', class_id: 'c1', category_id: 'k1', name: 'Dictado', date: '2026-10-20' },
+      { id: 'l2', class_id: 'c1', category_id: 'k1', name: 'Redacción', date: '2027-02-03' },
+      { id: 'm1', class_id: 'c1', category_id: 'k2', name: 'Sumas', date: '2026-11-03' },
+    ];
+    const marcas = [
+      // Dos «sin tarea» de Matemáticas en otoño y una de Lengua (sin asignatura) en invierno
+      { id: 'a1', class_id: 'c1', student_id: 's1', type: 'homework', date: '2026-10-05', subject: 'Matemáticas' },
+      { id: 'a2', class_id: 'c1', student_id: 's1', type: 'homework', date: '2026-10-06', subject: 'Matemáticas' },
+      { id: 'a3', class_id: 'c1', student_id: 's1', type: 'homework', date: '2027-01-20' },
+    ];
+    const configs = {
+      'c1|Lengua': { ...DEFAULT_BLOCK, points: 2 },
+      'c1|Matemáticas': { ...DEFAULT_BLOCK, points: 2, final: { modo: 'media' as const, pesos: [1, 1, 1] } },
+    };
+    pinta({ classes: [dos], gradeCategories: cats, gradeItems: acts, grades: { l1: { s1: 4 }, l2: { s1: 8 }, m1: { s1: 6 } }, classMarks: marcas, marksConfigs: configs });
+    // Lengua, 2.ª (la de hoy): la redacción (8) al 80 % y el bloque con una «sin tarea» (9,5 · 10 · 5 → 8,17) al 20 %
+    expect(screen.getByText('Redacción')).toBeTruthy();
+    expect(screen.queryByText('Sumas')).toBeNull();
+    expect(within(fila('Alumno 1', tablaDeNotas())).getAllByText('8,0').length).toBeGreaterThan(0);
+    // Matemáticas: en la 2.ª no tiene nada, y lo dice; en «Curso», media de las evaluaciones con solo la 1.ª
+    fireEvent.click(screen.getByRole('button', { name: 'Matemáticas' }));
+    expect(screen.getByText('No hay actividades en la 2.ª evaluación.')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Final de curso' }));
+    expect(screen.getByRole('button', { name: 'Media de las evaluaciones' }).getAttribute('aria-pressed')).toBe('true');
+    // 1.ª de Matemáticas: 6 al 80 % y el bloque con dos «sin tarea» (9 · 10 · 5 → 8,0) al 20 % → 6,4
+    expect(within(fila('Alumno 1', screen.getAllByRole('table')[0])).getAllByRole('cell').map(c => c.textContent)).toEqual(['Alumno 1', '6,4', '—', '—', '6,4']);
+    // Y Lengua sigue con evaluación continua
+    fireEvent.click(screen.getByRole('button', { name: 'Lengua' }));
+    expect(screen.getByRole('button', { name: 'Evaluación continua' }).getAttribute('aria-pressed')).toBe('true');
+  });
+
   it('guardar una categoría no borra el peso de las notas de otras evaluaciones', () => {
     const p = pinta();
     // Se está viendo la 2.ª: las notas del primer trimestre (70 y 30) no salen en la ficha y no se tocan

@@ -49,6 +49,8 @@ export const EN: Record<string, string> = {
     'What is marked comes from {anterior}. What you save now counts in {actual}, with its own grade: it will also be saved for those you do not change.',
   'Lo marcado viene de otro curso. Lo que guardes ahora cuenta en {actual}, con su propia nota: se guardará también a quien no cambies.':
     'What is marked comes from another school year. What you save now counts in {actual}, with its own grade: it will also be saved for those you do not change.',
+  // Anotar actitud
+  'Nota del bloque en {evaluacion}, sobre 10': 'Grade for this block in {evaluacion}, out of 10',
   // La nota final de curso
   'Cómo sale la nota final de curso': 'How the final grade of the year is worked out',
   'Nota final de curso': 'Final grade of the year',
@@ -115,6 +117,7 @@ export const CA: Record<string, string> = {
     'El que hi ha marcat ve de {anterior}. El que desis ara compta en {actual}, amb la seva pròpia nota: es desarà també a qui no canviïs.',
   'Lo marcado viene de otro curso. Lo que guardes ahora cuenta en {actual}, con su propia nota: se guardará también a quien no cambies.':
     'El que hi ha marcat ve d’un altre curs. El que desis ara compta en {actual}, amb la seva pròpia nota: es desarà també a qui no canviïs.',
+  'Nota del bloque en {evaluacion}, sobre 10': 'Nota del bloc en {evaluacion}, sobre 10',
   'Cómo sale la nota final de curso': 'Com surt la nota final de curs',
   'Nota final de curso': 'Nota final de curs',
   'Evaluación continua': 'Avaluació contínua',

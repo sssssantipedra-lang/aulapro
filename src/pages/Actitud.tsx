@@ -23,6 +23,7 @@ import { ClassChips } from '../components/ui/ClassChips';
 import { useI18n } from '../i18n';
 import { compararAlumnos } from '../lib/alumnado';
 import { racha } from '../lib/racha';
+import { cuentaEn, EN_FRASE, periodoDeHoy } from '../lib/periodos';
 import { guardarSonido, sonar, sonidoActivo } from '../lib/sonidos';
 
 interface Props {
@@ -73,6 +74,13 @@ export function Actitud({ classes, students, classMarks, marksConfigs, attendanc
     [students, clsId],
   );
   const mine = useMemo(() => (cls ? marksFor(classMarks, cls, subject) : []), [classMarks, cls, subject]);
+  /**
+   * La nota de cada fila es la del bloque en la evaluación del día que se anota, la misma que cuenta el
+   * cuaderno en esa evaluación (20-11-2026, `lib/periodos.ts`): con todas las del curso, en febrero no
+   * coincidía con la del cuaderno de la 2.ª. La racha sigue contando todos los días.
+   */
+  const evaluacion = periodoDeHoy(date);
+  const deLaEvaluacion = useMemo(() => mine.filter(m => cuentaEn(m.date, evaluacion, date)), [mine, evaluacion, date]);
   const faltas = attendance[clsId]?.[date] ?? {};
 
   function pickClass(id: string) {
@@ -188,7 +196,7 @@ export function Actitud({ classes, students, classMarks, marksConfigs, attendanc
           {roster.map((s, i) => {
             const suyas = mine.filter(m => m.student_id === s.id);
             const deHoy = suyas.filter(m => m.date === date);
-            const nota = studentBlock(suyas, cfg).total;
+            const nota = studentBlock(deLaEvaluacion.filter(m => m.student_id === s.id), cfg).total;
             const falta = faltas[s.id] === 'absent';
             const ultima = deHoy[deHoy.length - 1];
             const dias = racha(mine, s.id, date, suma);
@@ -240,7 +248,7 @@ export function Actitud({ classes, students, classMarks, marksConfigs, attendanc
                 >
                   <Undo2 size={14} />
                 </button>
-                <span key={fx?.sid === s.id ? fx.k : 0} className={`act-nota${nota >= 5 ? '' : ' baja'}${fx?.sid === s.id ? ' bump' : ''}`} title={t('Nota del bloque, sobre 10')}>
+                <span key={fx?.sid === s.id ? fx.k : 0} className={`act-nota${nota >= 5 ? '' : ' baja'}${fx?.sid === s.id ? ' bump' : ''}`} title={t('Nota del bloque en {evaluacion}, sobre 10', { evaluacion: t(EN_FRASE[evaluacion]) })}>
                   {nota.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
                 </span>
               </div>
