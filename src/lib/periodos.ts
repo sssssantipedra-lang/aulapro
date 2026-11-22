@@ -198,3 +198,18 @@ export function diaParaNueva(periodo: string, hoy: string, guardados: Record<str
   if (!rango || cuentaEn(hoy, periodo, hoy, guardados)) return hoy;
   return hoy > rango.hasta ? rango.hasta : rango.desde;
 }
+
+/**
+ * El día de un dato de ejemplo del cuaderno (una actividad, una anotación, una evaluación con rúbrica): el
+ * que le toca, pero nunca antes del primer día de la evaluación en la que cae hoy. Los datos de ejemplo se
+ * fechan unos días atrás; sin esto, quien explora la app en las primeras semanas de un trimestre (o en
+ * septiembre, cuando esos días son del curso anterior) abriría un cuaderno casi vacío, con las actividades
+ * en la evaluación de antes. Lo de hoy en adelante no se toca.
+ */
+export function diaDeEjemplo(dia: string, hoy: string, guardados: Record<string, RangoDeFechas> = rangosGuardados(hoy)): string {
+  if (dia >= hoy) return dia;
+  const desde = rangoDe(periodoDeHoy(hoy, guardados), hoy, guardados)?.desde ?? dia;
+  // Si hoy cae antes del primer día de su evaluación (unas fechas cambiadas que dejan un hueco), el tope es hoy
+  const tope = desde <= hoy ? desde : hoy;
+  return dia < tope ? tope : dia;
+}

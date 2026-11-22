@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
-  claveDe, conVecinos, cuentaEn, diaParaNueva, enRango, evaluacionDe, guardarPeriodoElegido, guardarRango, guardarRangos, inicioDeCurso,
+  claveDe, conVecinos, cuentaEn, diaDeEjemplo, diaParaNueva, enRango, evaluacionDe, guardarPeriodoElegido, guardarRango, guardarRangos, inicioDeCurso,
   mismaEvaluacion, periodoDeFecha, periodoDeHoy, periodoElegido, rangoDe, rangoDePartida, rangosGuardados,
 } from './periodos';
 
@@ -136,5 +136,38 @@ describe('una sola noción de evaluación (cuaderno, actas y lo que venga)', () 
     expect(diaParaNueva('2ª evaluación', HOY)).toBe('2027-01-01');
     expect(diaParaNueva('1ª evaluación', '2027-02-03')).toBe('2026-12-31');
     expect(cuentaEn(diaParaNueva('3ª evaluación', HOY), '3ª evaluación', HOY)).toBe(true);
+  });
+});
+
+describe('las fechas de los datos de ejemplo del cuaderno', () => {
+  beforeEach(() => localStorage.clear());
+
+  it('a mitad de trimestre se quedan como están', () => {
+    expect(diaDeEjemplo('2026-10-27', '2026-11-20')).toBe('2026-10-27');
+    expect(diaDeEjemplo('2026-11-20', '2026-11-20')).toBe('2026-11-20');
+  });
+
+  it('al empezar un trimestre no se van a la evaluación anterior: caen en la de hoy', () => {
+    expect(diaDeEjemplo('2026-12-11', '2027-01-04')).toBe('2027-01-01');
+    expect(diaDeEjemplo('2027-01-02', '2027-01-04')).toBe('2027-01-02');
+    expect(diaDeEjemplo('2027-03-09', '2027-04-02')).toBe('2027-04-01');
+    for (const dia of ['2026-12-11', '2027-01-02']) expect(cuentaEn(diaDeEjemplo(dia, '2027-01-04'), '2ª evaluación', '2027-01-04')).toBe(true);
+  });
+
+  it('en septiembre no se quedan en el curso anterior', () => {
+    expect(diaDeEjemplo('2027-08-13', '2027-09-06')).toBe('2027-09-01');
+    expect(cuentaEn(diaDeEjemplo('2027-08-13', '2027-09-06'), '1ª evaluación', '2027-09-06')).toBe(true);
+  });
+
+  it('sigue las fechas que cambió el docente, y lo de hoy en adelante no se toca', () => {
+    guardarRango('2ª evaluación', { desde: '2026-12-05', hasta: '2027-03-31' }, '2027-01-04');
+    expect(diaDeEjemplo('2026-12-11', '2027-01-04')).toBe('2026-12-11');
+    expect(diaDeEjemplo('2026-11-30', '2027-01-04')).toBe('2026-12-05');
+    expect(diaDeEjemplo('2027-01-12', '2027-01-04')).toBe('2027-01-12');
+  });
+
+  it('si hoy cae antes del primer día de su evaluación, no se fechan en el futuro', () => {
+    guardarRango('1ª evaluación', { desde: '2026-09-10', hasta: '2026-12-31' }, '2026-09-05');
+    expect(diaDeEjemplo('2026-08-20', '2026-09-05')).toBe('2026-09-05');
   });
 });

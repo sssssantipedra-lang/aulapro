@@ -4,6 +4,7 @@
  * textos van en el idioma de la aplicación (ver `i18n/demo.ts`).
  */
 import { isoDate } from './utils';
+import { diaDeEjemplo } from './periodos';
 import { translate, type Lang } from '../i18n/core';
 import { nombreDeAlumnoDeEjemplo } from '../i18n/demo';
 import type { CalEvent, Class, GradeCategory, GradeItem, GradeMap, ScheduleBlock, Student, Task } from '../types';
@@ -32,6 +33,8 @@ export function buildDemoEF(hoy: Date = new Date(), lang: Lang = 'es') {
     materiasOficiales: { [EF]: EF_OFICIAL },
   });
   const dias = (n: number) => isoDate(new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + n));
+  // Las actividades del cuaderno, sin salirse de la evaluación en curso (el cuaderno enseña una cada vez)
+  const diaDelCuaderno = (n: number) => diaDeEjemplo(dias(n), isoDate(hoy));
   const classes: Class[] = [
     clase('ef-c1', '1º ESO A', 1, '#0ea5e9'),
     clase('ef-c2', '1º ESO B', 1, '#10b981'),
@@ -62,8 +65,8 @@ export function buildDemoEF(hoy: Date = new Date(), lang: Lang = 'es') {
     { id: `${c.id}-g3`, class_id: c.id, name: tr('Componente social y relacional'), weight: 30, subject: EF },
   ]);
   const gradeItems: GradeItem[] = classes.flatMap(c => [
-    { id: `${c.id}-i1`, class_id: c.id, category_id: `${c.id}-g3`, name: tr('Juegos cooperativos'), date: dias(-14) },
-    { id: `${c.id}-i2`, class_id: c.id, category_id: `${c.id}-g2`, name: tr('Plan personal de condición física'), date: dias(-7) },
+    { id: `${c.id}-i1`, class_id: c.id, category_id: `${c.id}-g3`, name: tr('Juegos cooperativos'), date: diaDelCuaderno(-14) },
+    { id: `${c.id}-i2`, class_id: c.id, category_id: `${c.id}-g2`, name: tr('Plan personal de condición física'), date: diaDelCuaderno(-7) },
   ]);
   const grades: GradeMap = {};
   classes.forEach((c, i) => {

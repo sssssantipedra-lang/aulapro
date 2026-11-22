@@ -1,6 +1,7 @@
 import type { User, Class, Student, ScheduleBlock, CalEvent, Task, Rubric, Evaluation, EvalDiana, DianaProfile, GradeCategory, GradeItem, GradeMap, ClassMark, MarksBlockConfig, OfficialCriterionRef } from '../types';
 import { gradeFromLevels, levelsOf, competencyScoresFor } from '../types';
 import { isoDate, LOMLOE_TO_DIANA } from './utils';
+import { diaDeEjemplo } from './periodos';
 import type { ComunidadId } from './curriculum/comunidades';
 import { translate, type Lang } from '../i18n/core';
 import { nombreDeAlumnoDeEjemplo } from '../i18n/demo';
@@ -136,6 +137,15 @@ function daysFromNow(n: number): string {
   return isoDate(d);
 }
 
+/**
+ * Fecha de lo que cuenta en el cuaderno y en el acta (actividades, anotaciones, evaluaciones): N días atrás,
+ * sin salirse de la evaluación en curso. El cuaderno enseña una evaluación cada vez (20-11-2026): con las
+ * fechas tal cual, quien explorase la app al empezar un trimestre vería el cuaderno de ejemplo casi vacío.
+ */
+function diaDelCuaderno(n: number): string {
+  return diaDeEjemplo(daysFromNow(n), isoDate());
+}
+
 function buildDemoEvents(tr: Tr): CalEvent[] {
   return [
     { id: 'ev1', name: tr('Entrega notas 1ª Eval.'), date: daysFromNow(3), time: '09:00', type: 'deadline', urgency: 'alta', color: '#ef4444', desc: tr('Plazo máximo de entrega a jefatura') },
@@ -248,7 +258,7 @@ function demoEvaluations(alumno: (n: number) => string, rubrics: Rubric[], diana
     out.push({
       id: `dev${out.length + 1}`, rubric_id: inst.id, rubric_name: inst.name, instrument,
       student_id: sid(n), student_name: alumno(n), class_id: classId,
-      date: daysFromNow(-2 - (out.length % 12)), scores, notes: '', max_level: max,
+      date: diaDelCuaderno(-2 - (out.length % 12)), scores, notes: '', max_level: max,
       grade: gradeFromLevels(scores, items.map(it => it.id), levels, instrument === 'diana' ? weights : undefined) ?? undefined,
       competencyScores: competencyScoresFor(items, scores),
       officialCriteriaScores: notasDeCriterios(items, scores, max),
@@ -325,7 +335,7 @@ const COLUMNAS: { sufijo: string; cat: 'pruebas' | 'tareas'; nombre: string; dia
 
 function buildDemoGradeItems(tr: Tr): GradeItem[] {
   return CLASES.flatMap(c => COLUMNAS.map(col => ({
-    id: `${c.id}-${col.sufijo}`, class_id: c.id, category_id: `${c.id}-${col.cat}`, name: tr(col.nombre), date: daysFromNow(col.dias),
+    id: `${c.id}-${col.sufijo}`, class_id: c.id, category_id: `${c.id}-${col.cat}`, name: tr(col.nombre), date: diaDelCuaderno(col.dias),
   })));
 }
 
@@ -350,7 +360,7 @@ function buildDemoGrades(): GradeMap {
 function buildDemoMarks(): ClassMark[] {
   const out: ClassMark[] = [];
   const m = (class_id: string, n: number, type: ClassMark['type'], days: number) =>
-    out.push({ id: `mk${out.length + 1}`, class_id, student_id: sid(n), type, date: daysFromNow(days) });
+    out.push({ id: `mk${out.length + 1}`, class_id, student_id: sid(n), type, date: diaDelCuaderno(days) });
   CLASES.forEach((c, i) => {
     for (const n of alumnosDe(i)) {
       if (nivel(n) < 5.5) { m(c.id, n, 'homework', -6); m(c.id, n, 'homework', -2); }
