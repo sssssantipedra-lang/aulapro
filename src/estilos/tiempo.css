@@ -45,6 +45,9 @@
   .pf-quitar { grid-column:3; grid-row:1 / span 2; }
   .pf-titulo strong { white-space:normal; }
   .ses-nodio.atrasada span { display:none; }
+  /* Con «Poner fechas» y «Ver la SdA» al lado, el nombre de la situación se quedaba en cuatro líneas y el
+     «2 de 8 sesiones completadas» cortado: en el móvil el nombre ocupa su línea y los botones bajan a la siguiente */
+  .ses-grupo-hd .sda-group-hd { flex:1 1 calc(100% - 40px); min-width:calc(100% - 40px); }
 }
 
 /* ── Agenda: las capas de solo lectura, el filtro por clase y los apuntes de un día ── */
