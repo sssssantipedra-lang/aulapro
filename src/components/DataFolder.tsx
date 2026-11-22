@@ -7,6 +7,7 @@ import { isAndroidApp, isWebApp } from '../lib/platform';
 import { bloquearGuardado } from '../lib/guardadoBloqueado';
 import { CarpetaWebPanel, CuentaWebPanel, SinConexionPanel } from './CarpetaWeb';
 import { FinalDeCurso, type DatosParaCursoNuevo } from './FinalDeCurso';
+import { cursoAlRestaurar } from '../lib/cursoAnterior';
 
 interface Props {
   profileId: string | null;
@@ -57,6 +58,9 @@ export function DataFolder({ profileId, courseLabel, onClearSchoolYear, apoyo = 
     // Desde aquí, lo que hay en memoria no se vuelve a guardar: escribiría encima de la copia restaurada antes de recargar
     bloquearGuardado();
     const ok = await store.restoreBackup(profileId, file);
+    // Una copia de antes de «Empezar curso nuevo» devuelve también el perfil a su curso escolar (`lib/cursoAnterior.ts`)
+    const curso = ok ? cursoAlRestaurar(profileId, file) : null;
+    if (curso !== null) await store.updateProfile(profileId, { course: curso }).catch(() => null);
     setBusy(false);
     toast(t(ok ? '✅ Copia restaurada. Se recarga la aplicación…' : 'No se pudo restaurar esa copia'));
     // Se recarga también si falla: con el guardado parado, seguir aquí perdería lo que se hiciera después

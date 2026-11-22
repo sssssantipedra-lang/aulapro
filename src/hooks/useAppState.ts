@@ -39,6 +39,7 @@ import {
 } from '../lib/deshacer';
 import { translate } from '../i18n/core';
 import { cursoNuevoDe, type PlanDeCurso } from '../lib/cursoNuevo';
+import { apuntarCambioDeCurso } from '../lib/cursoAnterior';
 
 /** Cómo se lee cada estado de asistencia en el registro de cambios. */
 const ATT_LABEL: Record<AttendanceStatus, string> = {
@@ -1213,8 +1214,13 @@ export function useAppState() {
         `${nuevo.classes.length} clases y ${nuevo.students.length} alumnos siguen del curso anterior`)],
     });
     // El cambio ya está hecho: si el curso escolar no se pudiera apuntar en el perfil, se corrige en Configuración
-    if (cursoNuevo.trim()) await updateUser({ course: cursoNuevo.trim().slice(0, 20) }).catch(() => null);
-  }, [profileId, snapshot, hydrate, updateUser]);
+    const curso = cursoNuevo.trim().slice(0, 20);
+    if (curso && curso !== profile?.course) {
+      // Por si se vuelve atrás restaurando una copia de «Mis datos», que no lleva el curso escolar (`lib/cursoAnterior.ts`)
+      if (profileId) apuntarCambioDeCurso(profileId, profile?.course ?? '');
+      await updateUser({ course: curso }).catch(() => null);
+    }
+  }, [profileId, profile, snapshot, hydrate, updateUser]);
 
   // Todas las pantallas reciben el alumnado en orden de lista (ver `lib/alumnado.ts`);
   // lo guardado sigue en el orden en que se dio de alta.

@@ -3,6 +3,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useAppState } from './useAppState';
 import { cursoNuevoDe, planDePartida, type PlanDeCurso } from '../lib/cursoNuevo';
+import { cursoAlRestaurar } from '../lib/cursoAnterior';
 
 /** El estado con los datos de ejemplo del docente de aula. */
 function conEjemplo() {
@@ -77,10 +78,22 @@ describe('empezar curso nuevo', () => {
       return h;
     }
 
-    it('pone el curso escolar nuevo en el perfil', async () => {
+    it('pone el curso escolar nuevo en el perfil, y apunta el de antes por si se restaura una copia anterior', async () => {
       const { result } = await conPerfil('2025-2026');
+      const perfil = result.current.profileId!;
+      expect(cursoAlRestaurar(perfil, 'copia-2020-06-20T08-15-00.json')).toBeNull();
       await act(async () => { await result.current.startNewSchoolYear(planDePartida(result.current.classes), ' 2026-2027 '); });
       expect(result.current.profile?.course).toBe('2026-2027');
+      expect(cursoAlRestaurar(perfil, 'copia-2020-06-20T08-15-00-antes-de-curso-nuevo.json')).toBe('2025-2026');
+      expect(cursoAlRestaurar(perfil, 'copia-2999-01-01T00-00-00.json')).toBeNull();
+    });
+
+    it('si el curso escolar no cambia, no apunta nada', async () => {
+      const { result } = await conPerfil('2025-2026');
+      await act(async () => { await result.current.startNewSchoolYear(planDePartida(result.current.classes), ''); });
+      await act(async () => { await result.current.startNewSchoolYear(planDePartida(result.current.classes), '2025-2026'); });
+      expect(result.current.profile?.course).toBe('2025-2026');
+      expect(cursoAlRestaurar(result.current.profileId!, 'copia-2020-06-20T08-15-00.json')).toBeNull();
     });
 
     it('volver atrás cargando la copia del curso anterior devuelve también su curso escolar al perfil', async () => {
