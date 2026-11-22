@@ -1205,10 +1205,11 @@ export function useAppState() {
     hydrate({
       ...nuevo,
       auditLog: [newEntry(whoRef.current, 'update', 'system', 'year',
-        `Empezó el curso ${cursoNuevo}`.trim(),
+        cursoNuevo.trim() ? `Empezó el curso ${cursoNuevo.trim()}` : 'Empezó un curso nuevo',
         `${nuevo.classes.length} clases y ${nuevo.students.length} alumnos siguen del curso anterior`)],
     });
-    if (cursoNuevo.trim()) await updateUser({ course: cursoNuevo.trim().slice(0, 20) });
+    // El cambio ya está hecho: si el curso escolar no se pudiera apuntar en el perfil, se corrige en Configuración
+    if (cursoNuevo.trim()) await updateUser({ course: cursoNuevo.trim().slice(0, 20) }).catch(() => null);
   }, [profileId, snapshot, hydrate, updateUser]);
 
   // Todas las pantallas reciben el alumnado en orden de lista (ver `lib/alumnado.ts`);

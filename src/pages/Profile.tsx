@@ -58,6 +58,10 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
   const [centro, setCentro] = useState(user?.school ?? '');
   const [espec,  setEspec]  = useState(user?.subject ?? '');
   const [curso,  setCurso]  = useState(course ?? '');
+  // «Empezar curso nuevo» cambia el curso del perfil con esta pantalla abierta: el campo lo sigue (ajuste durante el
+  // pintado), o guardar después el perfil devolvería el curso anterior
+  const [cursoVisto, setCursoVisto] = useState(course);
+  if (course !== cursoVisto) { setCursoVisto(course); setCurso(course ?? ''); }
   const [comunidad, setComunidad] = useState<ComunidadId | ''>(user?.community ?? '');
   const [provincia, setProvincia] = useState<ProvinciaId | ''>(user?.provincia ?? '');
   const [especialidades, setEspecialidades] = useState<Especialidad[]>(user?.especialidades ?? []);

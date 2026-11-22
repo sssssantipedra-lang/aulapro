@@ -14,7 +14,8 @@
  * - **Clases.** Cada una «sube de curso» (5.º A pasa a ser 6.º A, con su alumnado y sus asignaturas), «se queda
  *   vacía» (la misma clase, sin alumnado: para quien da el mismo curso a un grupo nuevo) o «se va».
  * - **Alumnado.** Sigue el de las clases que suben, con sus avisos y sus notas de la ficha si el docente lo pide.
- * - **Horario** y **categorías y pesos del cuaderno**: se conservan, si se pide, los de las clases que siguen.
+ * - **Horario** y **categorías y pesos del cuaderno**: se conservan, si se pide, los de las clases que siguen. Un
+ *   bloque que lleva escrito el nombre de su clase («5º A - Música») pasa a llevar el nuevo.
  * - **Rúbricas, dianas y escalas**: se conservan todas, unidas a las clases que siguen (son del grupo y de su
  *   cuaderno) y sin las que se van.
  * - **Situaciones de aprendizaje, fichas y sesiones**: se conservan todas. Son de un curso, no de un grupo: lo
@@ -243,12 +244,25 @@ export function cursoNuevoDe(d: DatosDelCurso, plan: PlanDeCurso): DatosDelCurso
       .map(a => { const copia = { ...a }; delete copia.notas; delete copia.promocion; return copia; }),
   };
 
+  // El horario de las clases que siguen. El bloque de una clase que sube suele llevar su nombre escrito («5º A -
+  // Música», como los deja el lector de horarios): se cambia por el nuevo, o el Inicio diría el curso anterior
+  const nombreViejo = new Map(d.classes.map(c => [c.id, c.name.trim()]));
+  const blocks = !plan.conservarHorario ? [] : d.blocks
+    .filter(b => !b.class_id || siguen.has(b.class_id))
+    .map(b => {
+      const antes = nombreViejo.get(b.class_id);
+      const ahora = nombreDe.get(b.class_id);
+      return suben.has(b.class_id) && antes && ahora && antes !== ahora && b.subject.includes(antes)
+        ? { ...b, subject: b.subject.split(antes).join(ahora) }
+        : b;
+    });
+
   return {
     // Lo pendiente sigue pendiente; lo hecho se va con el curso
     tasks: d.tasks.filter(t => !t.done),
     classes,
     students,
-    blocks: plan.conservarHorario ? d.blocks.filter(b => !b.class_id || siguen.has(b.class_id)) : [],
+    blocks,
     events: [],
     rubrics: d.rubrics.map(r => instrumentoDelCursoNuevo(r, siguen, plan.conservarCuaderno)),
     dianas: d.dianas.map(x => instrumentoDelCursoNuevo(x, siguen, plan.conservarCuaderno)),

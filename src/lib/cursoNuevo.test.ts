@@ -133,10 +133,24 @@ describe('horario y cuaderno', () => {
     const n = cursoNuevoDe(base, plan(base, destinos));
     expect(n.blocks.length).toBeGreaterThan(0);
     expect(n.blocks.some(b => b.class_id === 'c3')).toBe(false);
-    expect(n.blocks).toEqual(base.blocks.filter(b => !b.class_id || b.class_id !== 'c3'));
+    expect(n.blocks.map(b => b.id)).toEqual(base.blocks.filter(b => !b.class_id || b.class_id !== 'c3').map(b => b.id));
+    // Los de la clase que se queda vacía, tal cual
+    expect(n.blocks.filter(b => b.class_id === 'c2')).toEqual(base.blocks.filter(b => b.class_id === 'c2'));
     // Un bloque sin clase (un recreo, una guardia) también se queda
     const conRecreo = { ...base, blocks: [...base.blocks, { ...base.blocks[0], id: 'recreo', class_id: '' }] };
     expect(cursoNuevoDe(conRecreo, plan(conRecreo, destinos)).blocks.some(b => b.id === 'recreo')).toBe(true);
+  });
+  it('el bloque de una clase que sube lleva su nombre nuevo si llevaba escrito el de antes, y solo eso cambia', () => {
+    const n = cursoNuevoDe(base, plan(base, destinos));
+    const antes = base.blocks.filter(b => b.class_id === 'c1');
+    const ahora = n.blocks.filter(b => b.class_id === 'c1');
+    expect(antes[0].subject).toBe('1º ESO A - Matemáticas');
+    expect(ahora.map(b => b.subject)).toEqual(antes.map(() => '2º ESO A - Matemáticas'));
+    expect(ahora.map(b => ({ ...b, subject: '' }))).toEqual(antes.map(b => ({ ...b, subject: '' })));
+    // Con el nombre que corrige el docente, ese; y un bloque que solo dice la asignatura no se toca
+    const suelto = { ...base, blocks: [{ ...antes[0], subject: 'Matemáticas' }, antes[0]] };
+    const m = cursoNuevoDe(suelto, plan(suelto, destinos, { nombres: { c1: '2º ESO C' } }));
+    expect(m.blocks.map(b => b.subject)).toEqual(['Matemáticas', '2º ESO C - Matemáticas']);
   });
   it('sin conservar el horario, empieza vacío', () => {
     expect(cursoNuevoDe(base, plan(base, destinos, { conservarHorario: false })).blocks).toEqual([]);
