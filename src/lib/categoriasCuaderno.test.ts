@@ -24,7 +24,7 @@ describe('propuestas de categorías para empezar el cuaderno', () => {
   });
 
   it('una lengua extranjera se ofrece por destrezas, se llame como se llame', () => {
-    for (const n of ['Inglés', 'INGLES', 'English', 'Anglès', 'Francés', 'Segunda Lengua Extranjera: Francés', 'Llengua Estrangera', 'Alemán']) {
+    for (const n of ['Inglés', 'INGLES', 'English', 'Anglès', 'Francés', 'Segunda Lengua Extranjera: Francés', 'Llengua Estrangera', 'Alemán', 'Lengua Inglesa', 'Llengua anglesa', 'Lengua francesa']) {
       expect(ids(n), n).toEqual(['lengua-extranjera', 'tipica']);
     }
     expect(propuestasDeCategorias('Inglés', 'es')[0].categorias.map(c => c.name))

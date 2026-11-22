@@ -60,7 +60,7 @@ export function FinalDeCurso({ courseLabel, apoyo, conCopias, cursoNuevo, onClea
           <CursoNuevo
             key={vez} open={asistente}
             onClose={hecho => { setAsistente(false); if (hecho) { setVez(v => v + 1); onHecho(); } }}
-            curso={courseLabel} datos={cursoNuevo.datos} onExportar={cursoNuevo.onExportar} onEmpezar={cursoNuevo.onEmpezar}
+            curso={courseLabel} datos={cursoNuevo.datos} onExportar={cursoNuevo.onExportar} onEmpezar={cursoNuevo.onEmpezar} conCopias={conCopias}
           />
         </div>
       )}

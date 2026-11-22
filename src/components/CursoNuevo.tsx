@@ -23,6 +23,8 @@ interface Props {
   /** La copia descargable de siempre (la de «Descargar mis datos»). */
   onExportar: () => Record<string, unknown>;
   onEmpezar: (plan: PlanDeCurso, cursoNuevo: string) => Promise<void>;
+  /** Si este dispositivo guarda copias de seguridad automáticas (solo entonces se dice que se hace una antes). */
+  conCopias: boolean;
 }
 
 const PASOS = ['Copia', 'Clases', 'Qué conservar', 'Resumen'] as const;
@@ -47,7 +49,7 @@ function Lista({ filas }: { filas: LineaDeResumen[] }) {
  * clase, qué se conserva y, antes de aplicar, el resumen de lo que se queda y lo que se borra. No decide nada:
  * toda la cuenta es de `lib/cursoNuevo.ts` y quien aplica es `startNewSchoolYear` (`hooks/useAppState.ts`).
  */
-export function CursoNuevo({ open, onClose, curso, datos, onExportar, onEmpezar }: Props) {
+export function CursoNuevo({ open, onClose, curso, datos, onExportar, onEmpezar, conCopias }: Props) {
   const { t } = useI18n();
   const { toast } = useToast();
   const [paso, setPaso] = useState(0);
@@ -121,7 +123,7 @@ export function CursoNuevo({ open, onClose, curso, datos, onExportar, onEmpezar 
               </ul>
             </>
           )}
-          <p className="cn-texto">{t('El curso anterior está en el archivo que has descargado y en las copias de seguridad de «Mis datos».')}</p>
+          <p className="cn-texto">{t(conCopias ? 'El curso anterior está en el archivo que has descargado y en las copias de seguridad de «Mis datos».' : 'El curso anterior está en el archivo que has descargado.')}</p>
           <div className="cn-pie"><span /><button type="button" className="btn-accent" onClick={cerrar}>{t('Cerrar')}</button></div>
         </div>
       ) : (
@@ -147,7 +149,7 @@ export function CursoNuevo({ open, onClose, curso, datos, onExportar, onEmpezar 
               {copiaHecha && (
                 <p className="cn-ok"><Check size={14} />{t('Copia descargada: {archivo}. Guárdala donde no se pierda.', { archivo })}</p>
               )}
-              <p className="cn-nota">{t('Además, justo antes de aplicar el cambio AulaPro guarda otra copia automática en este dispositivo, entre las de «Mis datos».')}</p>
+              {conCopias && <p className="cn-nota">{t('Además, justo antes de aplicar el cambio AulaPro guarda otra copia automática en este dispositivo, entre las de «Mis datos».')}</p>}
             </div>
           )}
 

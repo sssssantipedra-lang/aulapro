@@ -89,7 +89,7 @@ const DATOS: Record<TipoDePropuesta, { boton: string; categorias: EnTresIdiomas 
 /** Sin tildes ni mayúsculas, para comparar nombres escritos de cualquier manera. */
 const llano = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 
-const IDIOMAS = /\b(ingles|english|angles|frances|french|francais|aleman|german|alemany|italiano|italia|portugues|lengua extranjera|llengua estrangera|foreign language|idioma extranjero)\b/;
+const IDIOMAS = /\b(ingles|english|angles|frances|french|francais|aleman|german|alemany|italiano|italia|portugues|lengua extranjera|llengua estrangera|foreign language|idioma extranjero|(?:lengua|llengua) (?:inglesa|anglesa|francesa|alemana|alemanya|italiana|portuguesa))\b/;
 const DE_MUSICA = /\b(musica|music)\b/;
 const DE_PLASTICA = /\b(plastica|dibujo|dibuix|art|arts and crafts)\b/;
 const ARTISTICA = /\b(educacion artistica|educacio artistica|artistic education|art education)\b/;
