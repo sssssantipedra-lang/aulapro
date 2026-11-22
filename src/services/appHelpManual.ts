@@ -286,6 +286,19 @@ provincia, con su Día de la Comunidad Educativa, sus días no lectivos
 provinciales y, en Málaga, la Semana Blanca; sin provincia, la Agenda la pide.
 El de Jaén todavía no está. Para el resto de comunidades todavía no hay
 calendario.
+TODO LO QUE TIENE FECHA: en «Mensual» y «Semanal», la fila «También se ve:»
+enciende o apaga las capas Sesiones, Cuaderno (las columnas con fecha),
+Reuniones y formaciones y, en Educación Física, Pruebas físicas. En el mes,
+cada día lleva una marca cuadrada por capa (los eventos son redondos) y, al
+tocar el día, la lista de sus apuntes con su clase; en la semana salen en la
+cabecera de cada día. Son de solo lectura: cada apunte abre su pantalla, ya en
+su clase, y lo apagado se recuerda en el dispositivo. El desplegable «Clase»
+deja ver solo lo de una clase (lo que no es de ninguna clase, como un
+claustro, tampoco se ve entonces; el calendario escolar sí). Al crear o editar
+un evento se puede elegir «Clase (opcional)»: el evento toma el color de la
+clase. Al crear un evento de tipo «Entrega» con clase se puede marcar «Crear
+también la columna en el cuaderno» y elegir la categoría: la columna nace con
+el nombre y la fecha del evento. Nada de esto usa IA ni sale del dispositivo.
 
 [notebook] CUADERNO DE NOTAS
 Tiene TRES PESTAÑAS arriba:
@@ -1107,6 +1120,20 @@ asociada a ella. Al contrario que en EF, la IA no las prepara una a una: la IA
 trabaja en la situación de aprendizaje.
 Las sesiones también pueden llevar imágenes (se pegan con Ctrl+V, se arrastran o se
 eligen de un archivo); ver Sesiones de EF.
+PONER FECHAS (también en las sesiones de Educación Física): dentro de una clase,
+cada situación de aprendizaje y el grupo «Sin situación de aprendizaje» tienen
+el botón «Poner fechas». Se elige el primer día y AulaPro reparte las sesiones
+pendientes, en su orden, en las horas de esa clase en el horario semanal,
+saltando los festivos y las vacaciones del calendario escolar. Antes de cambiar
+nada se ve el día de cada sesión y por qué se salta cada día; con la X se quita
+un día sin clase que el calendario no conoce (un festivo local, una excursión).
+Si la clase tiene varias asignaturas en el horario, se marcan en cuáles se dan
+esas sesiones. Sin horario para esa clase, se elige cada cuántos días lectivos
+hay sesión. Las sesiones completadas no se mueven. En cada sesión con fecha,
+«No se dio: correr esta y las siguientes» la pasa a la clase siguiente y corre
+las de detrás solo si se pisan. Tras aplicar hay diez segundos para «Deshacer»
+(o Ctrl+Z). Solo se miran las sesiones de ese grupo: si otra situación de
+aprendizaje de la misma clase tiene sesión ese día, no se avisa.
 
 [ef-actividades] ACTIVIDADES
 Se abre en SEIS TARJETAS, una por tipo (juegos motrices, deportes, para días de

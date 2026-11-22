@@ -342,7 +342,7 @@ export function Agenda({
       const col = ofrecerColumna && columna.crear ? columnaDeEvento(eventForm, categoriaDeColumna, 'gi' + uid()) : null;
       if (col && onAddGradeItem) {
         onAddGradeItem(col);
-        toast(t('Evento añadido, y su columna «{nombre}» en el cuaderno de {clase}.', { nombre: col.name, clase: claseDelEvento?.name ?? '' }));
+        toast(t('También se ha creado la columna «{nombre}» en el cuaderno de {clase}.', { nombre: col.name, clase: claseDelEvento?.name ?? '' }));
       }
     }
     setEventModalOpen(false);

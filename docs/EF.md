@@ -119,6 +119,14 @@ Para el profesorado de Educación Física, con o sin tutoría. Decisiones del du
 - Qué recibe la IA de quien está exento o lesionado: solo qué no puede hacer, una línea por alumno, sin nombre ni motivo (`limitacionesParaIA`). Contado en la política de privacidad y en las condiciones de la web.
 - El marco pide texto sin formato pero con la ortografía completa. Con «texto llano», a secas, 3.5 Flash-Lite escribía sin tildes ni eñes (prueba con la IA real del 6-10-2026).
 
+### Poner fechas y «No se dio» (20-11-2026)
+
+- En una clase de Sesiones (EF y docente de aula), cada grupo lleva «Poner fechas»: se elige el primer día y la app reparte las sesiones pendientes, en su orden, en las horas de esa clase en el horario semanal, saltando festivos y vacaciones del calendario escolar y los días que el docente quite con la X. Antes de aplicar se ve el día de cada sesión, la fecha que tenía y el porqué de cada salto. En el perfil de EF, con varias asignaturas en el horario, sale marcada «Educación Física».
+- «No se dio: correr esta y las siguientes», en cada sesión con fecha sin completar: pasa a la clase siguiente y las de detrás se corren solo mientras se pisan.
+- La cuenta está en `src/lib/repartoSesiones.ts` (con pruebas) y la ventana en `src/components/sesiones/PonerFechas.tsx`. Se deshace con el «Deshacer» común (`apuntarCambio`, tipo `fechas`).
+- En la Agenda, las sesiones con fecha y las pruebas físicas con marcas salen como capas de solo lectura (`src/lib/capasAgenda.ts`).
+- Pendiente: solo se miran las sesiones del grupo (no avisa si otra situación de aprendizaje de la clase tiene sesión ese día); el texto del salto cuenta días y dice «clases»; en julio y agosto hay que elegir un primer día de septiembre.
+
 ## Pizarra de circuitos
 
 Petición del dueño (17-10-2026): «una pizarra digital en la que se dibuje un circuito y, según las formas, la app o la IA diferencien qué material es», y «al menos un banco de material en imágenes que el profesor pueda añadir a la pizarra». Pestaña «Pizarra de circuitos» (`ef-pizarra`, `src/pages/ef/EfPizarra.tsx`, lógica en `src/lib/pizarraEF.ts`).
