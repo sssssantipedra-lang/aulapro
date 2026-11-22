@@ -33,7 +33,7 @@ import {
 import { useRecordarClase } from '../hooks/useClaseActiva';
 import { VisorDeClase } from '../components/live/VisorDeClase';
 import {
-  escribirPlanDeVentana, fusionarPlan, huecoParaPlan, leerPlanDeVentana, suscribirEncargo, hayEncargo, tomarEncargo, ventanaParaPlan,
+  escribirPlanDeVentana, fusionarPlan, leerPlanDeVentana, sitioParaPlan, suscribirEncargo, hayEncargo, tomarEncargo, ventanaParaPlan,
   type FuenteDeSesiones, type ImagenDeVisor, type OrigenPlan,
 } from '../lib/darLaClase';
 
@@ -1742,8 +1742,8 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
    * la ventana: lo recogerá al enseñarse). **No borra nada**: la sesión va a la ventana que ya la tenía
    * (conservando lo marcado), a una vacía o a una ventana nueva. El plan tiene que poder leerse y las ventanas
    * no tienen fondo, así que no se pone encima de otras: los demás planes del día pasan a su icono y, si aun
-   * así no hay hueco (un móvil, una pizarra llena), también el resto de ventanas. Minimizadas siguen con lo
-   * suyo (un temporizador sigue contando) y vuelven con un toque.
+   * así no hay hueco, las ventanas que haga falta y no más (`sitioParaPlan`; en un móvil, todas). Minimizadas
+   * siguen con lo suyo (un temporizador sigue contando) y vuelven con un toque.
    */
   const atenderEncargo = useCallback(() => {
     if (!hayEncargo() || estaOculta(rootRef.current)) return;
@@ -1773,15 +1773,11 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
     const margenes = alDia.current.margenesLibres();
     const minimo = minDe('agenda');
     const tam = ajustarRect({ ...DEFAULTS.agenda, ...(encargo.plan ? PLAN_CON_SESION : {}) }, area, minimo);
-    const minimizar = (v: Ventana): Ventana => ({ ...v, min: true });
-    let otras = encargo.plan ? resto.map(v => (v.tipo === 'agenda' ? minimizar(v) : v)) : resto;
-    // Entero entre las que hay o, si no cabe, con las demás minimizadas y el alto que quede entre las barras y sus iconos
-    let rect = huecoParaPlan(tam, tam.height, otras.map(rectVisible), area, margenes);
-    if (!rect) {
-      otras = otras.map(minimizar);
-      rect = huecoParaPlan(tam, minimo.height + 40, otras.map(rectVisible), area, margenes)
-        ?? ajustarRect({ ...tam, x: margenes.lados, y: margenes.arriba }, area, minimo);
-    }
+    // Los otros planes del día pasan a su icono; del resto, solo las que haga falta para que este quepa sin tapar a nadie
+    const sinPlanes = encargo.plan ? resto.map(v => (v.tipo === 'agenda' ? { ...v, min: true } : v)) : resto;
+    const sitio = sitioParaPlan(tam, minimo.height + 40, sinPlanes, area, margenes);
+    const otras = sinPlanes.map(v => (sitio.minimizar.includes(v.id) ? { ...v, min: true } : v));
+    const rect = sitio.rect ?? ajustarRect({ ...tam, x: margenes.lados, y: margenes.arriba }, area, minimo);
     setVentanas([...otras, { id, tipo: 'agenda', rect }]);
   }, [areaPizarra, recordarClase]);
   useEffect(() => {

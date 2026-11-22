@@ -19,7 +19,7 @@
 import type { LearningSituation } from '../types';
 import type { ImagenSesion, PizarraEF, SesionEF } from '../types/ef';
 import { imagenesDeSesionSda } from './imagenesSesion';
-import { claveDatos, huecoLibre, type Rect } from './pizarraAula';
+import { claveDatos, huecoLibre, rectVisible, type Rect } from './pizarraAula';
 import { activas, agruparPorSda } from './sesiones';
 
 /* ── El plan ── */
@@ -286,6 +286,42 @@ export function huecoParaPlan(
     if (r) return r;
   }
   return null;
+}
+
+/** Con este alto el plan ya se lee bien: antes de quitar de la vista otra ventana, se prueba a darle menos alto, hasta este. */
+export const ALTO_COMODO_DEL_PLAN = 380;
+
+const esReloj = (tipo: string) => tipo === 'timer' || tipo === 'stopwatch';
+
+/**
+ * Dónde va el plan del día de una sesión entre las ventanas que hay, y cuáles hay que minimizar para que quepa.
+ * Las ventanas de la pizarra no tienen fondo, así que el plan no se pone encima de otra (no se leería ninguna
+ * de las dos); a cambio, se quita de la vista lo menos posible:
+ *  1. si cabe entre las que hay (con su alto o con algo menos, hasta `ALTO_COMODO_DEL_PLAN`), no se toca nada;
+ *  2. si no, se minimizan de una en una, empezando por la de más a la derecha y dejando para el final el
+ *     temporizador y el cronómetro, que son lo que la clase mira mientras trabaja, hasta que quepa;
+ *  3. con todas minimizadas (un móvil), el alto que quede entre las barras y los iconos, hasta `minAlto`.
+ * Minimizada, una ventana sigue con lo suyo (el temporizador cuenta) y vuelve con un toque. `rect` es `null`
+ * si no cabe ni así.
+ */
+export function sitioParaPlan(
+  tam: { width: number; height: number }, minAlto: number,
+  otras: readonly { id: string; tipo: string; rect: Rect; min?: boolean }[],
+  area: { width: number; height: number }, margen: { arriba: number; abajo: number; lados: number },
+): { rect: Rect | null; minimizar: string[] } {
+  const libre = area.height - margen.arriba - margen.abajo;
+  const comodo = Math.max(minAlto, Math.min(tam.height, ALTO_COMODO_DEL_PLAN, libre));
+  const fuera = new Set<string>();
+  const ocupados = () => otras.map(v => rectVisible(fuera.has(v.id) ? { ...v, min: true } : v));
+  let rect = huecoParaPlan(tam, comodo, ocupados(), area, margen);
+  if (rect) return { rect, minimizar: [] };
+  const orden = otras.filter(v => !v.min).sort((a, b) => Number(esReloj(a.tipo)) - Number(esReloj(b.tipo)) || b.rect.x - a.rect.x);
+  for (const v of orden) {
+    fuera.add(v.id);
+    rect = huecoParaPlan(tam, comodo, ocupados(), area, margen);
+    if (rect) return { rect, minimizar: [...fuera] };
+  }
+  return { rect: huecoParaPlan(tam, minAlto, ocupados(), area, margen), minimizar: [...fuera] };
 }
 
 /* ── Lo guardado en cada ventana (en el dispositivo, como el resto de la pizarra) ── */

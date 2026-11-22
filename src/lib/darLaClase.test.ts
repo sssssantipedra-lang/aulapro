@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import {
   claseParaSda, claveSesionDada, encargarClase, ENCARGO_VALE_MS, escribirPlanDeVentana, esDeSesion, esSesionEnPizarra, esTareas,
   fusionarPlan, hayEncargo, huecoParaPlan, leerPlanDeVentana, mismoOrigen, partirActividad, planDeOrigen, planDeSesion, planDeSesionSda,
-  sesionesDeHoy, sesionesParaProponer, sesionRecorrida, sesionViva, suscribirEncargo, tomarEncargo, ventanaParaPlan,
+  sesionesDeHoy, sesionesParaProponer, sesionRecorrida, sesionViva, sitioParaPlan, suscribirEncargo, tomarEncargo, ventanaParaPlan,
   MAX_ACTIVIDADES_POR_MOMENTO, type TareaPlan,
 } from './darLaClase';
 import { borrarDatosDeVentana, claveDatos } from './pizarraAula';
@@ -313,6 +313,64 @@ describe('huecoParaPlan', () => {
 
   it('si no cabe ni con el alto mínimo, lo dice', () => {
     expect(huecoParaPlan(TAM, 200, [{ x: 0, y: 0, width: 1000, height: 1000 }], { width: 600, height: 700 }, margen)).toBeNull();
+  });
+});
+
+describe('sitioParaPlan', () => {
+  const TAM = { width: 420, height: 520 };
+  const timer = { id: 'timer', tipo: 'timer', rect: { x: 24, y: 70, width: 290, height: 350 } };
+  const wheel = { id: 'wheel', tipo: 'wheel', rect: { x: 330, y: 70, width: 290, height: 340 } };
+  const sinCruces = (r: { x: number; y: number; width: number; height: number }, o: { x: number; y: number; width: number; height: number }) =>
+    r.x + r.width <= o.x || o.x + o.width <= r.x || r.y + r.height <= o.y || o.y + o.height <= r.y;
+
+  it('en un ordenador cabe al lado de lo que hay y no se minimiza nada', () => {
+    const r = sitioParaPlan(TAM, 240, [timer, wheel], { width: 1184, height: 800 }, { arriba: 70, abajo: 84, lados: 16 });
+    expect(r.minimizar).toEqual([]);
+    expect(r.rect).toMatchObject({ width: 420, height: 520 });
+  });
+
+  it('en un portátil bajo cabe con algo menos de alto, sin minimizar nada', () => {
+    const r = sitioParaPlan(TAM, 240, [timer, wheel], { width: 1184, height: 620 }, { arriba: 70, abajo: 84, lados: 16 });
+    expect(r.minimizar).toEqual([]);
+    expect(r.rect!.height).toBe(620 - 70 - 84);
+  });
+
+  it('en una tableta se minimiza la ruleta y el temporizador se queda a la vista', () => {
+    const r = sitioParaPlan(TAM, 240, [timer, wheel], { width: 824, height: 758 }, { arriba: 70, abajo: 84, lados: 16 });
+    expect(r.minimizar).toEqual(['wheel']);
+    expect(r.rect).toMatchObject({ width: 420, height: 520 });
+    expect(sinCruces(r.rect!, timer.rect)).toBe(true);
+    expect(sinCruces(r.rect!, { x: 330, y: 70, width: 44, height: 44 })).toBe(true);
+  });
+
+  it('el temporizador es lo último que se quita, esté donde esté', () => {
+    const calc = { id: 'calc', tipo: 'calc', rect: { x: 24, y: 70, width: 270, height: 380 } };
+    const relojALaDerecha = { ...timer, rect: { ...timer.rect, x: 640 } };
+    const r = sitioParaPlan(TAM, 240, [calc, wheel, relojALaDerecha], { width: 1184, height: 800 }, { arriba: 70, abajo: 84, lados: 16 });
+    expect(r.minimizar).toEqual(['wheel', 'calc']);
+    expect(sinCruces(r.rect!, relojALaDerecha.rect)).toBe(true);
+  });
+
+  it('en un móvil se minimizan todas y el plan ocupa lo que queda bajo sus iconos', () => {
+    const area = { width: 561, height: 791 };
+    const barras = { arriba: 93, abajo: 307, lados: 16 };
+    const r = sitioParaPlan(TAM, 240, [timer, { ...wheel, rect: { ...wheel.rect, x: 271 } }], area, barras);
+    expect(r.minimizar.sort()).toEqual(['timer', 'wheel']);
+    expect(r.rect!.y).toBeGreaterThanOrEqual(70 + 44);
+    expect(r.rect!.y + r.rect!.height).toBeLessThanOrEqual(area.height - barras.abajo);
+    expect(r.rect!.height).toBeGreaterThanOrEqual(240);
+  });
+
+  it('lo que ya estaba minimizado no se cuenta entre lo que se minimiza', () => {
+    const r = sitioParaPlan(TAM, 240, [{ ...timer, min: true }, { ...wheel, min: true }], { width: 824, height: 758 }, { arriba: 70, abajo: 84, lados: 16 });
+    expect(r.minimizar).toEqual([]);
+    expect(r.rect).toMatchObject({ width: 420, height: 520 });
+  });
+
+  it('si no cabe ni con todo minimizado, lo dice', () => {
+    const r = sitioParaPlan(TAM, 240, [timer], { width: 600, height: 380 }, { arriba: 70, abajo: 84, lados: 16 });
+    expect(r.rect).toBeNull();
+    expect(r.minimizar).toEqual(['timer']);
   });
 });
 
