@@ -46,8 +46,12 @@ td.nc-final { font-size:13.5px; }
   .ev-sel-fechas { height:38px; }
 }
 
-@media (max-width: 760px) {
+/* Con poco ancho el selector baja de línea y la raya que lo separa de la clase se quedaría suelta */
+@media (max-width: 1180px) {
   .ev-sel-sep { display:none; }
+}
+
+@media (max-width: 760px) {
   .nc-largo { display:none; }
   .nc-corto { display:inline; }
   .nc-tabla .gb-table th { padding:6px 4px; }

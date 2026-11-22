@@ -29,7 +29,8 @@ const conHorario = (hijos: React.ReactNode) => render(
     <ClaseActiva perfil={`pantallas${perfil}`} classes={clases} blocks={horario}>{hijos}</ClaseActiva>
   </ToastProvider></I18nProvider>,
 );
-const elegida = () => screen.getAllByRole('button', { pressed: true }).map(b => b.textContent);
+// La clase elegida: las fichas marcadas, sin contar la del selector de evaluación («1.ª · 2.ª · 3.ª · Curso»)
+const elegida = () => screen.getAllByRole('button', { pressed: true }).filter(b => !b.closest('.ev-sel')).map(b => b.textContent);
 
 beforeEach(() => {
   perfil += 1;
