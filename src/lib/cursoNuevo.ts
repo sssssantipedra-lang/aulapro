@@ -443,7 +443,8 @@ export function lineasDelResumen(r: ResumenDeCurso, plan: Pick<PlanDeCurso, 'con
       ['Bloques del horario', r.conserva.bloquesDeHorario],
       ['Categorías del cuaderno, con sus pesos', r.conserva.categorias],
       ['Rúbricas', r.conserva.rubricas],
-      ['Dianas', r.conserva.dianas],
+      // Con contexto: suelta, «Dianas» es el nombre del apartado y en inglés no se lee como un recuento
+      ['Dianas@@resumen', r.conserva.dianas],
       ['Escalas de registro', r.conserva.escalas],
       ['Situaciones de aprendizaje', r.conserva.situaciones],
       ['Fichas', r.conserva.fichas],
