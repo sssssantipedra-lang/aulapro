@@ -106,7 +106,7 @@ export function CursoNuevo({ open, onClose, curso, datos, onExportar, onEmpezar 
           <p className="cn-hecho-ttl"><Check size={18} />{cursoNuevo.trim() ? t('Ya estás en el curso {curso}.', { curso: cursoNuevo.trim() }) : t('Ya estás en el curso nuevo.')}</p>
           {fin.clases + fin.apoyo > 0 && (
             <>
-              <p className="cn-texto">{t('Lo que te queda por hacer, cuando tengas las listas:')}</p>
+              <p className="cn-texto">{t(fin.clases > 0 ? 'Lo que te queda por hacer, cuando tengas las listas:' : 'Lo que te queda por hacer:')}</p>
               <ul className="cn-pendiente">
                 {fin.vacias > 0 && <li>{t('En «Mis clases», entra en cada clase vacía y pega su listado con «Importar CSV».')}</li>}
                 {fin.clases > 0 && <li>{t('Si te falta algún grupo, créalo en «Nueva clase»; con «Crear varios grupos» salen todos de una vez.')}</li>}
