@@ -985,8 +985,15 @@ export function useAppState() {
     if (gone) log('delete', 'classMark', id, `${label}: ${studentName(gone.student_id)}`);
   }, [log, studentName, apuntarBorrado]);
 
-  const setMarksConfig = useCallback((classId: string, subject: string, cfg: MarksBlockConfig) => {
+  const setMarksConfig = useCallback((classId: string, subject: string, cfg: MarksBlockConfig, motivo?: 'regla') => {
     setMarksConfigs(prev => ({ ...prev, [`${classId}|${subject}`]: cfg }));
+    // La regla de la nota final de curso se guarda con el bloque (`MarksBlockConfig.final`): cuando lo que
+    // cambia es ella, el registro lo dice así, y no que se ha tocado el bloque
+    if (motivo === 'regla') {
+      log('update', 'gradeCategory', `${classId}|${subject}`, `Nota final de curso de ${className(classId)}`,
+        cfg.final ? `media de las evaluaciones (${cfg.final.pesos.map(p => String(p).replace('.', ',')).join(' · ')})` : 'evaluación continua');
+      return;
+    }
     log('update', 'gradeCategory', `${classId}|${subject}`,
       `Bloque «Trabajo diario y actitud» de ${className(classId)}`,
       cfg.enabled === false ? 'no cuenta en la nota' : `${String(Math.round(cfg.points * 100) / 10).replace('.', ',')}% de la nota`);

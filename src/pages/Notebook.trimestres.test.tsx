@@ -91,7 +91,7 @@ describe('Cuaderno por evaluaciones', () => {
     const p = pinta();
     fireEvent.click(screen.getByRole('button', { name: 'Final de curso' }));
     fireEvent.click(screen.getByRole('button', { name: 'Media de las evaluaciones' }));
-    expect(p.onSaveMarksConfig).toHaveBeenCalledWith('c1', 'Lengua', expect.objectContaining({ enabled: false, points: 1, final: { modo: 'media', pesos: [1, 1, 1] } }));
+    expect(p.onSaveMarksConfig).toHaveBeenCalledWith('c1', 'Lengua', expect.objectContaining({ enabled: false, points: 1, final: { modo: 'media', pesos: [1, 1, 1] } }), 'regla');
   });
 
   it('«Usar esta regla en todas mis clases» la lleva a las demás', () => {
@@ -100,7 +100,15 @@ describe('Cuaderno por evaluaciones', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Final de curso' }));
     fireEvent.click(screen.getByRole('button', { name: 'Usar esta regla en todas mis clases' }));
     expect(p.onSaveMarksConfig).toHaveBeenCalledTimes(1);
-    expect(p.onSaveMarksConfig).toHaveBeenCalledWith('c2', 'Lengua', expect.objectContaining({ final: { modo: 'media', pesos: [20, 30, 50] } }));
+    expect(p.onSaveMarksConfig).toHaveBeenCalledWith('c2', 'Lengua', expect.objectContaining({ final: { modo: 'media', pesos: [20, 30, 50] } }), 'regla');
+  });
+
+  it('«Usar esta regla en todas mis clases» no vuelve a guardar la clase que ya la tiene', () => {
+    const media = { ...DEFAULT_BLOCK, enabled: false, final: { modo: 'media' as const, pesos: [20, 30, 50] } };
+    const p = pinta({ marksConfigs: { 'c1|Lengua': media, 'c2|Lengua': media } });
+    fireEvent.click(screen.getByRole('button', { name: 'Final de curso' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Usar esta regla en todas mis clases' }));
+    expect(p.onSaveMarksConfig).not.toHaveBeenCalled();
   });
 
   it('una actividad nueva lleva un día de la evaluación que se está viendo', () => {

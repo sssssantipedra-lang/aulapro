@@ -3,6 +3,7 @@ import { beforeEach, describe, it, expect } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useAppState } from './useAppState';
 import type { Evaluation, Rubric } from '../types';
+import { DEFAULT_BLOCK } from '../services/classMarks';
 
 /**
  * La columna del cuaderno de una rúbrica, una diana o una escala es por evaluación (20-11-2026): usar el
@@ -100,5 +101,22 @@ describe('la nota de un instrumento va a la columna de su evaluación', () => {
     expect(columnas().map(c => c.id)).toEqual(['gi-rub-tri', 'gi-rub-tri@2026-1']);
     expect(nota('gi-rub-tri')).toBe(5);
     expect(nota('gi-rub-tri@2026-1')).toBe(3);
+  });
+});
+
+describe('la regla de la nota final de curso', () => {
+  beforeEach(() => localStorage.clear());
+
+  it('se guarda con la configuración del bloque y el registro dice que cambió la regla, no el bloque', () => {
+    const { result } = renderHook(() => useAppState());
+    act(() => result.current.loadDemoData('es'));
+    const clase = result.current.classes[0];
+    act(() => result.current.setMarksConfig(clase.id, clase.subject, { ...DEFAULT_BLOCK, points: 2, final: { modo: 'media', pesos: [20, 30, 50] } }, 'regla'));
+    expect(result.current.marksConfigs[`${clase.id}|${clase.subject}`].final).toEqual({ modo: 'media', pesos: [20, 30, 50] });
+    const ultima = result.current.auditLog[0];
+    expect(ultima.what).toBe(`Nota final de curso de ${clase.name}`);
+    expect(ultima.detail).toBe('media de las evaluaciones (20 · 30 · 50)');
+    act(() => result.current.setMarksConfig(clase.id, clase.subject, { ...DEFAULT_BLOCK, points: 2 }, 'regla'));
+    expect(result.current.auditLog[0].detail).toBe('evaluación continua');
   });
 });

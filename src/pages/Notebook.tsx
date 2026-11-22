@@ -55,7 +55,8 @@ interface Props {
   /** Anotaciones del aula, para el desglose del bloque por alumno. */
   classMarks: ClassMark[];
   marksConfigs: Record<string, MarksBlockConfig>;
-  onSaveMarksConfig: (classId: string, subject: string, cfg: MarksBlockConfig) => void;
+  /** `motivo` «regla»: lo que cambia es la regla de la nota final de curso, no el bloque (para el registro de cambios). */
+  onSaveMarksConfig: (classId: string, subject: string, cfg: MarksBlockConfig, motivo?: 'regla') => void;
   onAddCategory: (c: GradeCategory) => void;
   onUpdateCategory: (c: GradeCategory) => void;
   onDeleteCategory: (id: string) => void;
@@ -390,12 +391,14 @@ function GradesTab({
   /** Guarda la regla de la nota final en una clase y asignatura (con el resto de su configuración como estaba). */
   function guardarRegla(nueva: ReglaFinal, classId: string, subject: string) {
     const { final: _f, ...cfg } = blockConfig(marksConfigs, classId, subject); void _f;
-    onSaveMarksConfig(classId, subject, nueva.modo === 'media' ? { ...cfg, final: { modo: 'media', pesos: [...nueva.pesos] } } : cfg);
+    onSaveMarksConfig(classId, subject, nueva.modo === 'media' ? { ...cfg, final: { modo: 'media', pesos: [...nueva.pesos] } } : cfg, 'regla');
   }
   const otrasAsignaturas = classes.flatMap(c => (c.subjects?.length ? c.subjects : [c.subject]).map(s2 => ({ c, s: s2 })))
     .filter(x => !(x.c.id === clsId && x.s === activeSubject));
   function reglaParaTodas() {
-    otrasAsignaturas.forEach(x => guardarRegla(regla, x.c.id, x.s));
+    // Solo donde cambia: la que ya la tiene no se vuelve a guardar ni se anota en el registro
+    const igual = (r: ReglaFinal) => r.modo === regla.modo && (r.modo === 'continua' || r.pesos.every((p, k) => p === regla.pesos[k]));
+    otrasAsignaturas.filter(x => !igual(reglaFinal(marksConfigs[blockKey(x.c.id, x.s)]))).forEach(x => guardarRegla(regla, x.c.id, x.s));
     toast(t(regla.modo === 'media' ? '✅ Todas tus clases calculan la nota final con la media de las evaluaciones' : '✅ Todas tus clases calculan la nota final con evaluación continua'));
   }
 
