@@ -20,8 +20,8 @@ export const CURSOS_DE_ETAPA: Record<Etapa, number> = { primaria: 6, eso: 4 };
 export const MAX_GRUPOS = 40;
 
 /**
- * Las letras escritas por el docente: «A, B, C», «a b c», «A;B» o «A-C» (de la A a la C). Una sola letra sale en
- * mayúscula; lo demás («Bilingüe», «1») se respeta. Sin repetidas.
+ * Las letras escritas por el docente: «A, B, C», «a b c», «A;B», «A y B» o «A-C» (de la A a la C, también
+ * «A - C»). Una sola letra sale en mayúscula; lo demás («Bilingüe», «1») se respeta. Sin repetidas.
  */
 export function leerLetras(texto: string): string[] {
   const out: string[] = [];
@@ -33,7 +33,10 @@ export function leerLetras(texto: string): string[] {
     vistas.add(clave);
     out.push(letra);
   };
-  for (const trozo of texto.split(/[,;\s]+/).map(s => s.trim()).filter(Boolean)) {
+  // «A - C» es el rango «A-C», y la «y» de «A y B» (o «i», «and») une, no es un grupo
+  const trozos = texto.replace(/\s*[-–]\s*/g, '-').split(/[,;\s]+/).map(s => s.trim()).filter(Boolean);
+  const une = (t: string, i: number) => i > 0 && i < trozos.length - 1 && /^(y|i|and)$/.test(t);
+  for (const trozo of trozos.filter((t, i) => !une(t, i))) {
     const rango = /^([a-zA-Z])\s*-\s*([a-zA-Z])$/.exec(trozo);
     if (rango) {
       const [a, b] = [rango[1].toUpperCase().charCodeAt(0), rango[2].toUpperCase().charCodeAt(0)];

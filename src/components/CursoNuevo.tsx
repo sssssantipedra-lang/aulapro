@@ -71,7 +71,9 @@ export function CursoNuevo({ open, onClose, curso, datos, onExportar, onEmpezar,
     for (const s of datos.students) m.set(s.class_id, (m.get(s.class_id) ?? 0) + 1);
     return m;
   }, [datos.students]);
-  const resumen = useMemo(() => resumenDeCursoNuevo(datos, plan), [datos, plan]);
+  // Solo con el asistente abierto: cerrado sigue montado (conserva lo elegido), y recorrer todo el perfil sin que
+  // nadie lo pida no debe poder estropear Configuración, donde están las copias
+  const resumen = useMemo(() => (open ? resumenDeCursoNuevo(datos, plan) : null), [open, datos, plan]);
   const repetidos = useMemo(() => nombresRepetidos(datos.classes, plan), [datos.classes, plan]);
   const nombresDeAhora = useMemo(() => datos.classes.map(c => c.name), [datos.classes]);
   const destino = (id: string): Destino => plan.destinos[id] ?? 'vacia';
@@ -89,6 +91,7 @@ export function CursoNuevo({ open, onClose, curso, datos, onExportar, onEmpezar,
   }));
 
   async function aplicar() {
+    if (!resumen) return;
     setOcupado(true);
     try {
       const elegido = cursoNuevo.trim();
@@ -105,7 +108,7 @@ export function CursoNuevo({ open, onClose, curso, datos, onExportar, onEmpezar,
     setOcupado(false);
   }
 
-  const lineas = lineasDelResumen(resumen, plan);
+  const lineas = resumen && lineasDelResumen(resumen, plan);
 
   return (
     <Modal open={open} onClose={cerrar} wide stickyHeader title={<span className="cn-titulo"><CalendarPlus size={17} />{t('Empezar curso nuevo')}</span>}>
@@ -267,7 +270,7 @@ export function CursoNuevo({ open, onClose, curso, datos, onExportar, onEmpezar,
           )}
 
           {/* 4. El resumen, antes de aplicar */}
-          {paso === 3 && (
+          {paso === 3 && resumen && lineas && (
             <div>
               <h3 className="cn-ttl">{t('Esto es lo que va a pasar')}</h3>
               <div className="cn-resumen">

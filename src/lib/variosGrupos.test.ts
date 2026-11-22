@@ -13,6 +13,16 @@ describe('letras de los grupos', () => {
   it('un rango «A-D» son sus letras', () => {
     expect(leerLetras('A-D')).toEqual(['A', 'B', 'C', 'D']);
     expect(leerLetras('a-c, E')).toEqual(['A', 'B', 'C', 'E']);
+    expect(leerLetras('A - D')).toEqual(['A', 'B', 'C', 'D']);
+  });
+  it('«A y B» son dos grupos, no tres', () => {
+    expect(leerLetras('A y B')).toEqual(['A', 'B']);
+    expect(leerLetras('A, B i C')).toEqual(['A', 'B', 'C']);
+    expect(leerLetras('A and B')).toEqual(['A', 'B']);
+    // Sola o en mayúscula, es la letra del grupo
+    expect(leerLetras('X, Y')).toEqual(['X', 'Y']);
+    expect(leerLetras('y')).toEqual(['Y']);
+    expect(leerLetras('g, h, i')).toEqual(['G', 'H', 'I']);
   });
   it('no repite y respeta lo que no es una letra sola', () => {
     expect(leerLetras('A, a, B, B')).toEqual(['A', 'B']);
