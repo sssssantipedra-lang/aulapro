@@ -784,20 +784,6 @@ function AppInner() {
                 onChatChange={st.setChat}
               />
             )}
-            {(section === 'sec-classroom' || pizarraViva) && (
-              <div style={{ display: section === 'sec-classroom' ? 'contents' : 'none' }}>
-                <PizarraViva
-                  studentNames={studentFirstNames}
-                  clases={ruletaClases}
-                  claseInicial={clasePizarra}
-                  fichas={st.fichas}
-                  projectFicha={liveFicha}
-                  onProjectDone={alTerminarDeProyectar}
-                  sesiones={fuenteDeSesiones}
-                  onSesionDada={marcarSesionDada}
-                />
-              </div>
-            )}
             {section === 'classroom-live' && (
               <ClassroomLive
                 classes={st.classes}
@@ -1039,6 +1025,26 @@ function AppInner() {
                 onImportData={st.importData}
                 onClearSchoolYear={st.clearSchoolYear}
               />
+            )}
+          </Suspense>
+          {/* La pizarra, viva entre pantallas, va fuera de la espera de las demás páginas (20-11-2026): la primera
+              vez que se abre otra pantalla, esa espera oculta todo lo que tiene dentro y, al volver a enseñarlo,
+              React monta de nuevo sus efectos; la pizarra estaba oculta y sin medidas, y sus ventanas quedaban
+              desplazadas al doble de su sitio (algunas, fuera de la pantalla). */}
+          <Suspense fallback={<Loading />}>
+            {(section === 'sec-classroom' || pizarraViva) && (
+              <div style={{ display: section === 'sec-classroom' ? 'contents' : 'none' }}>
+                <PizarraViva
+                  studentNames={studentFirstNames}
+                  clases={ruletaClases}
+                  claseInicial={clasePizarra}
+                  fichas={st.fichas}
+                  projectFicha={liveFicha}
+                  onProjectDone={alTerminarDeProyectar}
+                  sesiones={fuenteDeSesiones}
+                  onSesionDada={marcarSesionDada}
+                />
+              </div>
             )}
           </Suspense>
           </ClaseActiva>
