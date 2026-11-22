@@ -69,4 +69,4 @@
   .cn-pie .btn-accent, .cn-pie .btn-ghost { flex:1 1 auto; justify-content:center; }
 }
 /* Con el dedo, las tres opciones de cada clase tienen alto de dedo */
-@media (pointer: coarse) { .cn-clase .chip.sm, .vg .chip, .vg-modo .chip.sm { min-height:38px; } }
+@media (pointer: coarse) { .cn-clase .chip.sm, .cn-todas .btn-ghost.sm, .vg .chip, .vg .btn-ghost.sm, .vg-modo .chip.sm { min-height:38px; } }

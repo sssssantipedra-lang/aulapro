@@ -125,6 +125,7 @@ export const EN: Record<string, string> = {
   'Valoraciones de cierre de trimestre': 'End-of-term reviews',
   'Documentos de apoyo': 'Support documents',
   'Marcas de pruebas físicas': 'Fitness test results',
+  'En «Mi alumnado», repasa el curso y la clase de cada alumno o alumna de apoyo en su ficha: siguen como estaban.': 'In "My students", check the year and the class of each support student on their record: they are still as they were.',
 };
 
 export const CA: Record<string, string> = {
@@ -249,4 +250,5 @@ export const CA: Record<string, string> = {
   'Valoraciones de cierre de trimestre': 'Valoracions de tancament de trimestre',
   'Documentos de apoyo': 'Documents de suport',
   'Marcas de pruebas físicas': 'Marques de proves físiques',
+  'En «Mi alumnado», repasa el curso y la clase de cada alumno o alumna de apoyo en su ficha: siguen como estaban.': 'A «El meu alumnat», repassa el curs i la classe de cada alumne o alumna de suport a la seva fitxa: continuen com estaven.',
 };

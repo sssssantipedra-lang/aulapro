@@ -55,8 +55,9 @@ export function CursoNuevo({ open, onClose, curso, datos, onExportar, onEmpezar 
   const [plan, setPlan] = useState<PlanDeCurso>(() => planDePartida(datos.classes));
   const [cursoNuevo, setCursoNuevo] = useState(() => cursoSiguiente(curso));
   const [ocupado, setOcupado] = useState(false);
-  /** Ya aplicado: la ventana solo dice qué hacer ahora. */
-  const [hecho, setHecho] = useState(false);
+  /** Ya aplicado: la ventana solo dice qué hacer ahora, según lo que se eligió. */
+  const [fin, setFin] = useState<{ vacias: number; suben: number; clases: number; apoyo: number } | null>(null);
+  const hecho = fin !== null;
 
   const cerrar = () => onClose(hecho);
   const archivo = archivoDelCurso(curso, isoDate());
@@ -85,7 +86,10 @@ export function CursoNuevo({ open, onClose, curso, datos, onExportar, onEmpezar 
     setOcupado(true);
     try {
       await onEmpezar(plan, cursoNuevo.trim());
-      setHecho(true);
+      setFin({
+        vacias: resumen.clases.vacias, suben: resumen.clases.suben,
+        clases: resumen.clases.vacias + resumen.clases.suben, apoyo: resumen.conserva.alumnadoDeApoyo,
+      });
       toast(t('✅ Curso nuevo empezado'));
     } catch {
       toast(t('No se ha podido empezar el curso nuevo. No se ha cambiado nada.'));
@@ -100,12 +104,17 @@ export function CursoNuevo({ open, onClose, curso, datos, onExportar, onEmpezar 
       {hecho ? (
         <div className="cn-hecho">
           <p className="cn-hecho-ttl"><Check size={18} />{cursoNuevo.trim() ? t('Ya estás en el curso {curso}.', { curso: cursoNuevo.trim() }) : t('Ya estás en el curso nuevo.')}</p>
-          <p className="cn-texto">{t('Lo que te queda por hacer, cuando tengas las listas:')}</p>
-          <ul className="cn-pendiente">
-            <li>{t('En «Mis clases», entra en cada clase vacía y pega su listado con «Importar CSV».')}</li>
-            <li>{t('Si te falta algún grupo, créalo en «Nueva clase»; con «Crear varios grupos» salen todos de una vez.')}</li>
-            <li>{t('Repasa en «Mis clases» las asignaturas de las clases que han subido de curso, por si alguna cambia.')}</li>
-          </ul>
+          {fin.clases + fin.apoyo > 0 && (
+            <>
+              <p className="cn-texto">{t('Lo que te queda por hacer, cuando tengas las listas:')}</p>
+              <ul className="cn-pendiente">
+                {fin.vacias > 0 && <li>{t('En «Mis clases», entra en cada clase vacía y pega su listado con «Importar CSV».')}</li>}
+                {fin.clases > 0 && <li>{t('Si te falta algún grupo, créalo en «Nueva clase»; con «Crear varios grupos» salen todos de una vez.')}</li>}
+                {fin.suben > 0 && <li>{t('Repasa en «Mis clases» las asignaturas de las clases que han subido de curso, por si alguna cambia.')}</li>}
+                {fin.apoyo > 0 && <li>{t('En «Mi alumnado», repasa el curso y la clase de cada alumno o alumna de apoyo en su ficha: siguen como estaban.')}</li>}
+              </ul>
+            </>
+          )}
           <p className="cn-texto">{t('El curso anterior está en el archivo que has descargado y en las copias de seguridad de «Mis datos».')}</p>
           <div className="cn-pie"><span /><button type="button" className="btn-accent" onClick={cerrar}>{t('Cerrar')}</button></div>
         </div>
@@ -220,20 +229,25 @@ export function CursoNuevo({ open, onClose, curso, datos, onExportar, onEmpezar 
           {paso === 2 && (
             <div>
               <h3 className="cn-ttl">{t('¿Qué conservas para el curso nuevo?')}</h3>
-              <label className="cn-casilla">
-                <input type="checkbox" checked={plan.conservarHorario} onChange={e => setPlan(p => ({ ...p, conservarHorario: e.target.checked }))} />
-                <span>
-                  <strong>{t('El horario')}</strong>
-                  <small>{t('Los bloques de las clases que siguen, para retocarlos en vez de escribirlos de nuevo. Desmárcala si tu horario cambia entero.')}</small>
-                </span>
-              </label>
-              <label className="cn-casilla">
-                <input type="checkbox" checked={plan.conservarCuaderno} onChange={e => setPlan(p => ({ ...p, conservarCuaderno: e.target.checked }))} />
-                <span>
-                  <strong>{t('Las categorías y los pesos del cuaderno')}</strong>
-                  <small>{t('Cada clase que sigue empieza con sus categorías, sus porcentajes y su bloque de trabajo diario y actitud, sin ninguna nota.')}</small>
-                </span>
-              </label>
+              {/* Solo se pregunta por lo que hay */}
+              {datos.blocks.length > 0 && (
+                <label className="cn-casilla">
+                  <input type="checkbox" checked={plan.conservarHorario} onChange={e => setPlan(p => ({ ...p, conservarHorario: e.target.checked }))} />
+                  <span>
+                    <strong>{t('El horario')}</strong>
+                    <small>{t('Los bloques de las clases que siguen, para retocarlos en vez de escribirlos de nuevo. Desmárcala si tu horario cambia entero.')}</small>
+                  </span>
+                </label>
+              )}
+              {datos.gradeCategories.length > 0 && (
+                <label className="cn-casilla">
+                  <input type="checkbox" checked={plan.conservarCuaderno} onChange={e => setPlan(p => ({ ...p, conservarCuaderno: e.target.checked }))} />
+                  <span>
+                    <strong>{t('Las categorías y los pesos del cuaderno')}</strong>
+                    <small>{t('Cada clase que sigue empieza con sus categorías, sus porcentajes y su bloque de trabajo diario y actitud, sin ninguna nota.')}</small>
+                  </span>
+                </label>
+              )}
               <p className="cn-nota">
                 {t('Siempre se conservan tus rúbricas, dianas y escalas, con las clases que siguen; y tus situaciones de aprendizaje, fichas y sesiones, que se quedan en la clase que el curso nuevo tenga en su mismo curso o, si no hay ninguna, sin clase. Las reuniones y formaciones no se tocan.')}
               </p>
