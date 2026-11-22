@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { isoDate } from '../lib/utils';
 import {
   conVecinos, cuentaEn, guardarPeriodoElegido, guardarRangos, periodoDeHoy, periodoElegido, rangoDe, rangosGuardados,
@@ -28,14 +28,33 @@ export interface EvaluacionElegida {
   cuenta: (fecha: string | undefined | null) => boolean;
 }
 
+/**
+ * Dos pantallas a la vez con la evaluación elegida (el cuaderno y su pestaña «Por competencias», que lleva su
+ * propio selector): lo que se elige en una tiene que verse en la otra sin esperar a que se vuelva a montar.
+ * Cada una avisa a las demás de lo que cambia.
+ */
+interface Cambio { periodo?: string; rangos?: Record<string, RangoDeFechas> }
+const oyentes = new Set<(c: Cambio) => void>();
+const avisar = (c: Cambio) => { for (const o of [...oyentes]) o(c); };
+
 export function useEvaluacionElegida(): EvaluacionElegida {
   const [hoy] = useState(() => isoDate());
   const [rangos, setRangos] = useState(() => rangosGuardados(hoy));
   const [periodo, setPeriodo] = useState(() => periodoElegido(hoy));
 
+  useEffect(() => {
+    const oir = (c: Cambio) => {
+      if (c.periodo !== undefined) setPeriodo(c.periodo);
+      if (c.rangos) setRangos(c.rangos);
+    };
+    oyentes.add(oir);
+    return () => { oyentes.delete(oir); };
+  }, []);
+
   const elegir = useCallback((p: string) => {
     guardarPeriodoElegido(p, hoy);
     setPeriodo(p);
+    avisar({ periodo: p });
   }, [hoy]);
 
   const cambiarRango = useCallback((r: RangoDeFechas) => {
@@ -43,6 +62,7 @@ export function useEvaluacionElegida(): EvaluacionElegida {
     const nuevos = conVecinos(periodo, r, hoy, rangos);
     guardarRangos(nuevos, hoy);
     setRangos(nuevos);
+    avisar({ rangos: nuevos });
   }, [periodo, hoy, rangos]);
 
   return useMemo(() => ({

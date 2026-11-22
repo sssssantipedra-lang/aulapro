@@ -29,6 +29,20 @@ describe('la evaluación elegida, común al cuaderno y a las actas', () => {
     expect(actas.result.current.periodo).toBe('Final de curso');
   });
 
+  it('dos pantallas montadas a la vez (el cuaderno y su pestaña de competencias) van siempre a la par', () => {
+    const cuaderno = renderHook(() => useEvaluacionElegida());
+    const competencias = renderHook(() => useEvaluacionElegida());
+    act(() => competencias.result.current.elegir('2ª evaluación'));
+    expect(cuaderno.result.current.periodo).toBe('2ª evaluación');
+    act(() => cuaderno.result.current.cambiarRango({ desde: '2027-01-08', hasta: '2027-03-20' }));
+    expect(competencias.result.current.rango).toEqual({ desde: '2027-01-08', hasta: '2027-03-20' });
+    expect(competencias.result.current.cuenta('2027-01-05')).toBe(false);
+    // La que se desmonta deja de escuchar
+    competencias.unmount();
+    act(() => cuaderno.result.current.elegir('Final de curso'));
+    expect(cuaderno.result.current.periodo).toBe('Final de curso');
+  });
+
   it('las fechas que se cambian en una valen en la otra, con las vecinas ajustadas', () => {
     const actas = renderHook(() => useEvaluacionElegida());
     act(() => actas.result.current.cambiarRango({ desde: '2026-09-08', hasta: '2026-12-04' }));

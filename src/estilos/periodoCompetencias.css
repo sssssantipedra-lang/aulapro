@@ -1,1 +1,4 @@
 /* Estilos de la mejora «periodoCompetencias» (tanda del 20-11-2026). Los comunes siguen en index.css. */
+
+/* «Por competencias»: de qué evaluación son las notas de la tabla */
+.pc-periodo { margin:0 0 10px; font-size:12.5px; color:var(--text-3); }
