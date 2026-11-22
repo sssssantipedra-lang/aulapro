@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-import { describe, it, expect } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { useAppState } from './useAppState';
 import { cursoNuevoDe, planDePartida, type PlanDeCurso } from '../lib/cursoNuevo';
 
@@ -63,5 +63,49 @@ describe('empezar curso nuevo', () => {
     expect(result.current.students).toEqual([]);
     expect(result.current.scheduleBlocks).toEqual(antes.blocks);
     expect(result.current.gradeCategories).toEqual(antes.gradeCategories);
+  });
+
+  describe('con un perfil guardado', () => {
+    beforeEach(() => localStorage.clear());
+
+    /** Un perfil de aula con los datos de ejemplo, abierto y cargado. */
+    async function conPerfil(course: string) {
+      const h = renderHook(() => useAppState());
+      await act(async () => { await h.result.current.createAndOpenProfile({ name: 'Profesor', school: '', subject: '', course }, { demo: true }); });
+      await waitFor(() => expect(h.result.current.ready).toBe(true));
+      await waitFor(() => expect(h.result.current.classes.length).toBeGreaterThan(0));
+      return h;
+    }
+
+    it('pone el curso escolar nuevo en el perfil', async () => {
+      const { result } = await conPerfil('2025-2026');
+      await act(async () => { await result.current.startNewSchoolYear(planDePartida(result.current.classes), ' 2026-2027 '); });
+      expect(result.current.profile?.course).toBe('2026-2027');
+    });
+
+    it('volver atrás cargando la copia del curso anterior devuelve también su curso escolar al perfil', async () => {
+      const { result } = await conPerfil('2025-2026');
+      const copia = JSON.stringify(result.current.exportData());
+      const alumnado = result.current.students.length;
+      const plan = planDePartida(result.current.classes);
+      await act(async () => { await result.current.startNewSchoolYear({ ...plan, destinos: Object.fromEntries(Object.keys(plan.destinos).map(id => [id, 'se-va' as const])) }, '2026-2027'); });
+      expect(result.current.profile?.course).toBe('2026-2027');
+      expect(result.current.classes).toEqual([]);
+
+      let error: string | null = 'sin cargar';
+      await act(async () => { error = await result.current.importData(copia); });
+      expect(error).toBeNull();
+      expect(result.current.students.length).toBe(alumnado);
+      expect(result.current.profile?.course).toBe('2025-2026');
+      // Y la copia siguiente vuelve a llevar el curso de ese trabajo
+      expect((result.current.exportData()._profile as { course: string }).course).toBe('2025-2026');
+    });
+
+    it('una copia que no dice su curso no cambia el del perfil', async () => {
+      const { result } = await conPerfil('2026-2027');
+      const copia = JSON.stringify({ _app: 'AulaPro', _version: 2, data: result.current.datosDelCurso });
+      await act(async () => { expect(await result.current.importData(copia)).toBeNull(); });
+      expect(result.current.profile?.course).toBe('2026-2027');
+    });
   });
 });

@@ -1135,15 +1135,19 @@ export function useAppState() {
    * Carga una copia descargada (sustituye todo el trabajo del perfil). La lee y valida `leerCopiaDeDatos` (una copia
    * dañada o vacía no se carga) y, antes de cargarla, lo de ahora se guarda en una copia «antes-de-cargar», que va
    * también al Drive u OneDrive (auditoría del 1-11-2026: antes no quedaba nada de lo anterior). La confirmación la pide
-   * la pantalla (`pages/Profile.tsx`).
+   * la pantalla (`pages/Profile.tsx`). Si la copia dice de qué curso escolar es, el perfil pasa a ese curso (22-11-2026).
    */
   const importData = useCallback(async (raw: string): Promise<string | null> => {
     const copia = leerCopiaDeDatos(raw);
     if (!copia.ok) return copia.error;
     if (profileId) await store.backup(profileId, 'antes-de-cargar').catch(() => null);
     hydrate(copia.datos as Partial<ProfileSnapshot>);
+    // El curso escolar es del trabajo que se carga. Sin esto, quien volvía atrás tras «Empezar curso nuevo» cargando
+    // la copia del curso anterior se quedaba con el trabajo de ese curso y el nombre del nuevo en el perfil: en los
+    // documentos, en el nombre de la siguiente copia y en el curso que el asistente propone después
+    if (copia.curso && copia.curso !== profile?.course) await updateUser({ course: copia.curso }).catch(() => null);
     return null;
-  }, [hydrate, profileId]);
+  }, [hydrate, profileId, profile, updateUser]);
 
   /**
    * Vaciado de fin de curso: se borra el trabajo del año (clases, alumnos,
