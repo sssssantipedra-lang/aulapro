@@ -1751,7 +1751,10 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
     if (!encargo) return;
     if (encargo.claseId) { setClaseId(encargo.claseId); recordarClase(encargo.claseId); }
     setBarrasOcultas(false);
-    const actuales: Ventana[] = alDia.current.ventanas;
+    // Las ventanas, ya dentro del área de ahora: si la pantalla cambió de tamaño con la pizarra oculta (una
+    // tableta que se gira en otra pantalla), lo de aquí sustituye al ajuste que se acaba de pedir al enseñarse
+    const area = areaPizarra();
+    const actuales: Ventana[] = alDia.current.ventanas.map(v => ({ ...v, rect: ajustarRect(v.rect, area, minDe(v.tipo)) }));
     const planes = actuales.filter(v => v.tipo === 'agenda').map(v => leerPlanDeVentana(v.id));
     const destino = ventanaParaPlan(planes, encargo.plan?.sesion.origen ?? null);
     if (!destino && actuales.length >= MAX_VENTANAS) return;
@@ -1769,7 +1772,6 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
       return;
     }
     // Una ventana nueva, o una vacía que crece para la sesión: se le busca sitio
-    const area = areaPizarra();
     const margenes = alDia.current.margenesLibres();
     const minimo = minDe('agenda');
     const tam = ajustarRect({ ...DEFAULTS.agenda, ...(encargo.plan ? PLAN_CON_SESION : {}) }, area, minimo);
