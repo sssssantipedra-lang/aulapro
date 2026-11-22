@@ -151,6 +151,18 @@ describe('planDeSesion de una sesión pasada desde una situación de aprendizaje
     expect(p.tareas.filter(t => t.momento === 2).map(t => t.texto)).toEqual(['Qué nos ha costado (5 min)']);
   });
 
+  it('un momento sin actividades solo tiene su texto: se queda, igual que al dar la sesión desde la situación', () => {
+    const soloTexto = sda({}, [{ fase: 'Cierre', titulo: 'Qué hemos aprendido', descripcion: 'RESUMEN', momentos: {
+      preimpacto: { texto: NOTA_1, actividades: [act('Lluvia de precios', 5)] },
+      impacto: { texto: '', actividades: [act('Mural')] },
+      postimpacto: { texto: 'Recogemos y comentamos.', actividades: [] },
+    } }]);
+    const [s] = sesionesDeSda(soloTexto, { claseId: 'c1', nuevoId: i => `ses${i}`, t: k => k });
+    const deSesiones = planDeSesion(s, false, [soloTexto]).tareas.map(t => [t.momento, t.texto]);
+    expect(deSesiones).toEqual([[0, 'Lluvia de precios (5 min)'], [1, 'Mural (10 min)'], [2, 'Recogemos y comentamos']]);
+    expect(planDeSesionSda(soloTexto, 0)!.tareas.map(t => [t.momento, t.texto])).toEqual(deSesiones);
+  });
+
   it('lo que el docente escribió en la sesión se queda: solo se quita la nota tal cual', () => {
     const [s] = pasadas();
     const editada = { ...s, calentamiento: `Repaso de ayer\n${s.calentamiento}`, calma: 'Recogemos\nNos despedimos' };

@@ -110,13 +110,16 @@ const CON_MINUTOS = /\(\s*\d{1,3}\s*(?:min|['′’])/i;
  * Lo que una situación de aprendizaje dice de cada momento de sus sesiones (`MomentoSesionEF.texto`: cómo se
  * presenta la tarea, qué apoyos se dan para que participe todo el grupo, qué feedback da el docente). Es para
  * el docente, no una actividad, y «Pasar a sesiones» lo deja en la primera línea de cada parte de la sesión.
+ * Solo cuenta el de los momentos que tienen actividades.
  */
 function notasDeMomentos(sda: LearningSituation | undefined): Set<string> {
   const notas = new Set<string>();
   for (const ses of sda?.content.sesiones ?? []) {
     if (!ses.momentos) continue;
     for (const m of [ses.momentos.preimpacto, ses.momentos.impacto, ses.momentos.postimpacto]) {
-      for (const l of todasLasLineas(m?.texto)) notas.add(enLimpio(l));
+      // Un momento sin actividades solo tiene ese texto: es lo que se hace, y se queda (como en `planDeSesionSda`)
+      if (!m?.actividades?.some(a => a.nombre.trim())) continue;
+      for (const l of todasLasLineas(m.texto)) notas.add(enLimpio(l));
     }
   }
   return notas;
