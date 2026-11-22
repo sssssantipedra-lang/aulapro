@@ -5,6 +5,10 @@
 .dlc-btn.compacto { align-self:center; min-height:36px; font-size:12.5px; padding:6px 10px; gap:5px; }
 .ef-sesion-fila .dlc-btn.compacto { align-self:flex-start; margin-top:7px; }
 
+/* En cada sesión de una situación de aprendizaje guardada */
+.dlc-sda-fila { margin-top:8px; }
+@media print { .dlc-sda-fila, .dlc-btn { display:none !important; } }
+
 /* En clase: la sesión de hoy de la clase de la franja */
 .dlc-ahora-sesion { font-size:12.5px; color:var(--text-2); overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
 

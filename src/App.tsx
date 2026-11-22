@@ -42,7 +42,7 @@ import { HubTabs } from './components/layout/HubTabs';
 import { EvaluarInicio } from './pages/EvaluarInicio';
 import { EnClaseInicio } from './pages/EnClaseInicio';
 import { claseAlAbrirAhora, pedirClase, recordarClase } from './lib/claseActiva';
-import { encargarClase, planDeOrigen, type FuenteDeSesiones, type OrigenPlan } from './lib/darLaClase';
+import { claseParaSda, encargarClase, planDeOrigen, type FuenteDeSesiones, type OrigenPlan } from './lib/darLaClase';
 import { ClaseActiva } from './components/ClaseActiva';
 import { DocumentosInicio } from './pages/DocumentosInicio';
 import { enMenu, hubEnMenu, navGroupsFor, rememberTab } from './lib/navigation';
@@ -376,6 +376,17 @@ function AppInner() {
     encargarClase({ ...(clase ? { claseId: clase } : {}), plan });
     setSection('sec-classroom');
   }, [fuenteDeSesiones, clasesDelPerfil, perfilAbierto, setSection]);
+  /** Lo mismo con una sesión de una situación de aprendizaje que aún no se ha pasado a Sesiones. */
+  const { scheduleBlocks: bloquesDelHorario, currentUser: docente } = st;
+  const darLaClaseDeSda = useCallback((sdaId: string, indice: number) => {
+    const sda = situaciones.find(x => x.id === sdaId);
+    if (!sda) return;
+    // Una situación puede ser de varias clases: si la de ahora es una de ellas, esa; si no, la principal
+    const deAhora = claseAlAbrirAhora({
+      perfil: perfilAbierto ?? '', classes: clasesDelPerfil, blocks: bloquesDelHorario, comunidad: docente?.community, provincia: docente?.provincia,
+    }).id;
+    darLaClase({ tipo: 'sda', id: sdaId, indice }, claseParaSda(sda, deAhora));
+  }, [situaciones, perfilAbierto, clasesDelPerfil, bloquesDelHorario, docente, darLaClase]);
   /** La sesión montada en la pizarra, marcada como dada desde ella (lo propone al marcar su última actividad). */
   const marcarSesionDada = useCallback((o: OrigenPlan) => {
     if (o.tipo === 'sesion') {
@@ -913,6 +924,7 @@ function AppInner() {
                 onAddDiana={d => { st.addDiana(d); }}
                 onAddFicha={f => { st.saveFicha(f); }}
                 onNav={s => setSection(s as Section)}
+                onDarLaClase={especialista ? undefined : darLaClaseDeSda}
               />
             )}
             {section === 'resources' && (

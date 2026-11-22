@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
-  claveSesionDada, encargarClase, ENCARGO_VALE_MS, escribirPlanDeVentana, esDeSesion, esSesionEnPizarra, esTareas,
+  claseParaSda, claveSesionDada, encargarClase, ENCARGO_VALE_MS, escribirPlanDeVentana, esDeSesion, esSesionEnPizarra, esTareas,
   fusionarPlan, hayEncargo, huecoParaPlan, leerPlanDeVentana, mismoOrigen, partirActividad, planDeOrigen, planDeSesion, planDeSesionSda,
   sesionesDeHoy, sesionesParaProponer, sesionRecorrida, sesionViva, suscribirEncargo, tomarEncargo, ventanaParaPlan,
   MAX_ACTIVIDADES_POR_MOMENTO, type TareaPlan,
@@ -273,6 +273,17 @@ describe('ventanaParaPlan', () => {
     expect(mismoOrigen({ tipo: 'sda', id: 'a', indice: 1 }, { tipo: 'sda', id: 'a', indice: 1 })).toBe(true);
     expect(mismoOrigen({ tipo: 'sesion', id: 'a' }, { tipo: 'sda', id: 'a', indice: 0 })).toBe(false);
     expect(mismoOrigen(null, o1)).toBe(false);
+  });
+});
+
+describe('claseParaSda', () => {
+  it('si la clase de ahora es una de las de la situación, esa; si no, la principal', () => {
+    const sda = { class_id: 'c1', otras_clases: ['c2', 'c3'] };
+    expect(claseParaSda(sda, 'c3')).toBe('c3');
+    expect(claseParaSda(sda, 'c9')).toBe('c1');
+    expect(claseParaSda(sda, null)).toBe('c1');
+    expect(claseParaSda({ otras_clases: ['c2'] }, 'c9')).toBe('c2');
+    expect(claseParaSda({}, 'c9')).toBeUndefined();
   });
 });
 

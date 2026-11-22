@@ -150,6 +150,15 @@ export function planDeSesionSda(sda: LearningSituation, indice: number): PlanDeC
   };
 }
 
+/**
+ * La clase con la que se abre la pizarra para dar una sesión de una situación de aprendizaje, que puede servir
+ * para varias clases: si la de ahora (o la última usada) es una de las suyas, esa; si no, su clase principal.
+ */
+export function claseParaSda(sda: Pick<LearningSituation, 'class_id' | 'otras_clases'>, deAhora?: string | null): string | undefined {
+  const suyas = [sda.class_id, ...(sda.otras_clases ?? [])].filter((x): x is string => !!x);
+  return deAhora && suyas.includes(deAhora) ? deAhora : suyas[0];
+}
+
 /** Una imagen que se enseña a toda la pizarra con un toque: una de la sesión o su circuito dibujado. */
 export interface ImagenDeVisor { src: string; pie?: string }
 
