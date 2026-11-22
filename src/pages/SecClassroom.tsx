@@ -33,7 +33,7 @@ import {
 import { useRecordarClase } from '../hooks/useClaseActiva';
 import { VisorDeClase } from '../components/live/VisorDeClase';
 import {
-  escribirPlanDeVentana, fusionarPlan, leerPlanDeVentana, sitioParaPlan, suscribirEncargo, hayEncargo, tomarEncargo, ventanaParaPlan,
+  crecerEnSuSitio, escribirPlanDeVentana, fusionarPlan, leerPlanDeVentana, sitioParaPlan, suscribirEncargo, hayEncargo, tomarEncargo, ventanaParaPlan,
   type FuenteDeSesiones, type ImagenDeVisor, type OrigenPlan,
 } from '../lib/darLaClase';
 
@@ -1780,6 +1780,14 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
     const rect = sitio.rect ?? ajustarRect({ ...tam, x: margenes.lados, y: margenes.arriba }, area, minimo);
     setVentanas([...otras, { id, tipo: 'agenda', rect }]);
   }, [areaPizarra, recordarClase]);
+  /** El docente ha traído una sesión a un «Plan del día» que tenía abierto: la ventana crece, sin moverse ni tapar a otra. */
+  const hacerSitioAlPlan = useCallback((id: string) => {
+    const area = areaPizarra();
+    const margenes = alDia.current.margenesLibres();
+    setVentanas(prev => prev.map(v => (v.id === id && !v.min
+      ? { ...v, rect: crecerEnSuSitio(v.rect, PLAN_CON_SESION, prev.filter(x => x.id !== id).map(rectVisible), area, margenes) }
+      : v)));
+  }, [areaPizarra]);
   useEffect(() => {
     atenderEncargoRef.current = atenderEncargo;
     return suscribirEncargo(atenderEncargo);
@@ -1858,7 +1866,7 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
       case 'score':     return <ScoreWidget uid={v.id} />;
       case 'groups':    return <GroupsWidget names={wheelNames} />;
       case 'qr':        return <QrWidget uid={v.id} />;
-      case 'agenda':    return <AgendaWidget key={cargas[v.id] ?? 0} uid={v.id} clase={clase} fuente={sesiones} onSesionDada={onSesionDada} onAmpliar={ampliar} />;
+      case 'agenda':    return <AgendaWidget key={cargas[v.id] ?? 0} uid={v.id} clase={clase} fuente={sesiones} onSesionDada={onSesionDada} onAmpliar={ampliar} onTraida={() => hacerSitioAlPlan(v.id)} />;
     }
   };
 

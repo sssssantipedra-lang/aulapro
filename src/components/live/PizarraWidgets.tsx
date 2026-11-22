@@ -536,6 +536,8 @@ interface PlanDelDiaProps {
   onSesionDada?: (origen: OrigenPlan) => void;
   /** Enseña a toda la pizarra las imágenes de la sesión, empezando por la número `indice`. */
   onAmpliar?: (imagenes: ImagenDeVisor[], indice: number) => void;
+  /** El docente acaba de traer una sesión a esta ventana: necesita más sitio que una lista escrita a mano. */
+  onTraida?: () => void;
 }
 
 /**
@@ -545,7 +547,7 @@ interface PlanDelDiaProps {
  * título y la descripción de cada actividad (`planDeSesion`), nunca las notas del docente ni las medidas de
  * inclusión. Con reglas y sin IA; propone traer la sesión y darla por dada, no lo decide.
  */
-export function AgendaWidget({ uid, clase, fuente, onSesionDada, onAmpliar }: PlanDelDiaProps) {
+export function AgendaWidget({ uid, clase, fuente, onSesionDada, onAmpliar, onTraida }: PlanDelDiaProps) {
   const { t } = useI18n();
   const [tareas, setTareas] = usePersistido<TareaPlan[]>(claveDatos(uid, CAMPO_PLAN), [], esTareas);
   const [sesion, setSesion] = usePersistido<SesionEnPizarra | null>(claveDatos(uid, CAMPO_SESION), null, esSesionEnPizarra);
@@ -579,6 +581,7 @@ export function AgendaWidget({ uid, clase, fuente, onSesionDada, onAmpliar }: Pl
     const plan = planDeSesion(p.sesion, fuente.ef);
     setTareas(prev => fusionarPlan(prev, plan.tareas, false));
     setSesion(plan.sesion);
+    onTraida?.();
   };
   const porque = (p: PropuestaDeSesion) => (p.motivo === 'hoy'
     ? (clase ? t('Tiene fecha de hoy y es de {clase}.', { clase: clase.name }) : t('Tiene fecha de hoy.'))

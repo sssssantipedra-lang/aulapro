@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
-  claseParaSda, claveSesionDada, encargarClase, ENCARGO_VALE_MS, escribirPlanDeVentana, esDeSesion, esSesionEnPizarra, esTareas,
+  claseParaSda, claveSesionDada, crecerEnSuSitio, encargarClase, ENCARGO_VALE_MS, escribirPlanDeVentana, esDeSesion, esSesionEnPizarra, esTareas,
   fusionarPlan, hayEncargo, huecoParaPlan, leerPlanDeVentana, mismoOrigen, partirActividad, planDeOrigen, planDeSesion, planDeSesionSda,
   sesionesDeHoy, sesionesParaProponer, sesionRecorrida, sesionViva, sitioParaPlan, suscribirEncargo, tomarEncargo, ventanaParaPlan,
   MAX_ACTIVIDADES_POR_MOMENTO, type TareaPlan,
@@ -371,6 +371,33 @@ describe('sitioParaPlan', () => {
     const r = sitioParaPlan(TAM, 240, [timer], { width: 600, height: 380 }, { arriba: 70, abajo: 84, lados: 16 });
     expect(r.rect).toBeNull();
     expect(r.minimizar).toEqual(['timer']);
+  });
+});
+
+describe('crecerEnSuSitio', () => {
+  const margen = { arriba: 70, abajo: 84, lados: 16 };
+  const TAM = { width: 420, height: 520 };
+  const plan = { x: 640, y: 110, width: 340, height: 340 };
+
+  it('con sitio, crece al tamaño de una sesión sin moverse', () => {
+    expect(crecerEnSuSitio(plan, TAM, [{ x: 24, y: 70, width: 290, height: 350 }], { width: 1184, height: 800 }, margen))
+      .toEqual({ x: 640, y: 110, width: 420, height: 520 });
+  });
+
+  it('se para antes de la ventana de al lado, de la de abajo y de la barra', () => {
+    const r = crecerEnSuSitio(plan, TAM, [{ x: 1020, y: 70, width: 150, height: 200 }, { x: 640, y: 560, width: 300, height: 200 }], { width: 1184, height: 800 }, margen);
+    expect(r.x).toBe(640);
+    expect(r.x + r.width).toBeLessThanOrEqual(1020);
+    expect(r.y + r.height).toBeLessThanOrEqual(560);
+    expect(r.height).toBeGreaterThan(340);
+    // La barra de abajo
+    expect(crecerEnSuSitio(plan, TAM, [], { width: 1184, height: 600 }, margen).height).toBe(600 - 84 - 110);
+  });
+
+  it('nunca encoge, y si ya pisaba a otra se queda como estaba', () => {
+    const grande = { x: 100, y: 100, width: 500, height: 600 };
+    expect(crecerEnSuSitio(grande, TAM, [], { width: 1184, height: 800 }, margen)).toEqual(grande);
+    expect(crecerEnSuSitio(plan, TAM, [{ x: 700, y: 200, width: 100, height: 100 }], { width: 1184, height: 800 }, margen)).toEqual(plan);
   });
 });
 

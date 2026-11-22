@@ -324,6 +324,25 @@ export function sitioParaPlan(
   return { rect: huecoParaPlan(tam, minAlto, ocupados(), area, margen), minimizar: [...fuera] };
 }
 
+/**
+ * La ventana del plan cuando el docente trae a ella una sesión («Traer la sesión de hoy»): crece hasta `tam`
+ * sin moverse de su sitio, y solo lo que pueda sin ponerse encima de otra ventana ni de las barras. Nunca
+ * encoge, y si ya pisaba a otra (el docente la puso así) se queda como estaba.
+ */
+export function crecerEnSuSitio(
+  rect: Rect, tam: { width: number; height: number }, ocupados: readonly Rect[], area: { width: number; height: number },
+  margen: { arriba: number; abajo: number; lados: number }, paso = 20,
+): Rect {
+  const pisa = (r: Rect) => ocupados.some(o => r.x < o.x + o.width && o.x < r.x + r.width && r.y < o.y + o.height && o.y < r.y + r.height);
+  const hasta = (desde: number, tope: number, cabe: (n: number) => boolean) => {
+    for (let n = tope; n > desde; n -= paso) if (cabe(n)) return n;
+    return desde;
+  };
+  const width = hasta(rect.width, Math.min(tam.width, area.width - margen.lados - rect.x), n => !pisa({ ...rect, width: n }));
+  const height = hasta(rect.height, Math.min(tam.height, area.height - margen.abajo - rect.y), n => !pisa({ ...rect, width, height: n }));
+  return { ...rect, width, height };
+}
+
 /* ── Lo guardado en cada ventana (en el dispositivo, como el resto de la pizarra) ── */
 
 export const esTareas = (x: unknown): x is TareaPlan[] =>
