@@ -140,7 +140,7 @@ function buildDemoEvents(tr: Tr): CalEvent[] {
   return [
     { id: 'ev1', name: tr('Entrega notas 1ª Eval.'), date: daysFromNow(3), time: '09:00', type: 'deadline', urgency: 'alta', color: '#ef4444', desc: tr('Plazo máximo de entrega a jefatura') },
     { id: 'ev2', name: tr('Reunión Orientación'), date: daysFromNow(5), time: '11:30', type: 'meeting', urgency: 'media', color: '#f59e0b', desc: tr('Con el departamento de orientación') },
-    { id: 'ev3', name: tr('Excursión 3º ESO A'), date: daysFromNow(8), time: '08:30', type: 'event', urgency: 'baja', color: '#10b981', desc: tr('Visita al museo de ciencias') },
+    { id: 'ev3', name: tr('Excursión 3º ESO A'), date: daysFromNow(8), time: '08:30', type: 'event', urgency: 'baja', color: '#10b981', desc: tr('Visita al museo de ciencias'), classId: 'c3' },
     { id: 'ev4', name: tr('Claustro trimestral'), date: daysFromNow(12), time: '17:00', type: 'meeting', urgency: 'media', color: '#8b5cf6', desc: '' },
   ];
 }
