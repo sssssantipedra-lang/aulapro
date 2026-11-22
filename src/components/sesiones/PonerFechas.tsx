@@ -62,7 +62,7 @@ export function PonerFechas({ peticion, onClose, ...resto }: Props) {
 }
 
 function Contenido({ peticion, classes, bloques, eventos = [], comunidad: comunidadDada, onAplicar, onClose }: Props & { peticion: PeticionDeFechas }) {
-  const { t, locale } = useI18n();
+  const { t, locale, lang } = useI18n();
   const ctx = useContext(ClaseActivaContexto);
   const comunidad = comunidadDada ?? ctx?.comunidad;
   const provincia = ctx?.provincia;
@@ -105,7 +105,8 @@ function Contenido({ peticion, classes, bloques, eventos = [], comunidad: comuni
   const eventosDe = (iso: string) => eventos.filter(e => e.date === iso && (!e.classId || e.classId === claseId)).map(e => e.name);
 
   const semana = franjasDeLaSemana(bloquesDe(bloques, claseId, elegidas))
-    .map(d => `${weekdayLabel(d.dia - 1, locale).toLowerCase()} ${d.franjas.map(f => f.hora).join(' y ')}`);
+    // En inglés los días de la semana van con mayúscula
+    .map(d => `${lang === 'en' ? weekdayLabel(d.dia - 1, locale) : weekdayLabel(d.dia - 1, locale).toLowerCase()} ${d.franjas.map(f => f.hora).join(' · ')}`);
 
   const quitar = (iso: string) => setQuitados(prev => new Set(prev).add(iso));
   const reponer = (iso: string) => setQuitados(prev => { const n = new Set(prev); n.delete(iso); return n; });
