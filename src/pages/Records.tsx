@@ -3,7 +3,7 @@ import { Printer, FileSpreadsheet, FileDown, ArrowRight, Users, Eye } from 'luci
 import type { Class, Student, GradeCategory, GradeItem, GradeMap, Evaluation, ClassMark, MarksBlockConfig } from '../types';
 import { PERIODS, LOMLOE_COMPETENCES, fromIsoDate } from '../lib/utils';
 import { CURSO_ENTERO } from '../lib/periodos';
-import { blockKey, isMarksCategory, sumaDePesos } from '../services/classMarks';
+import { blockActive, blockConfig, blockKey, isMarksCategory, sumaDePesos } from '../services/classMarks';
 import { aUnDecimal, categoriasDe, cuadernoDe, notasDeCurso, porcentajesDeEvaluaciones, reglaFinal } from '../lib/cuadernoEvaluacion';
 import { useEvaluacionElegida } from '../hooks/useEvaluacionElegida';
 import { SelectorEvaluacion } from '../components/SelectorEvaluacion';
@@ -243,8 +243,13 @@ export function Records({
   const totalWeight = cats.reduce((a, c) => a + c.weight, 0);
   const ownWeight = cats.filter(c => !isMarksCategory(c.id)).reduce((a, c) => a + c.weight, 0);
   const bloque = cats.find(c => isMarksCategory(c.id));
-  // La misma comprobación que el cuaderno, con el bloque en % de la nota final
-  const pesos = sumaDePesos(ownWeight, bloque && totalWeight ? (bloque.weight / totalWeight) * 100 : 0);
+  // La misma comprobación que el cuaderno, con el bloque en % de la nota final. En una evaluación que aún no
+  // tiene nada el bloque no sale en el acta (`cuadernoDe`), pero sigue siendo parte de los pesos del cuaderno:
+  // sin contarlo, el acta de una evaluación vacía avisaba de que «los pesos suman 80%»
+  const cfgBloque = blockConfig(marksConfigs, clsId, activeSubject);
+  const pctBloque = bloque && totalWeight ? (bloque.weight / totalWeight) * 100
+    : !bloque && blockActive(cfgBloque, 0) ? Math.round(cfgBloque.points * 100) / 10 : 0;
+  const pesos = sumaDePesos(ownWeight, pctBloque);
   /** Cómo sale la nota de «Final de curso», para decirlo en el documento. */
   const textoRegla = period !== CURSO_ENTERO ? '' : porMedia
     ? t('Nota final: media de las evaluaciones ({pesos}).', { pesos: columnas.map(c => `${c.nombre} ${c.peso}`).join(' · ') })

@@ -67,6 +67,21 @@ describe('Acta por evaluaciones', () => {
     expect(within(acta).getByText('Nota final: media de las evaluaciones (1ª evaluación 25% · 2ª evaluación 75% · 3ª evaluación 0%).')).toBeTruthy();
   });
 
+  it('una evaluación que aún no tiene nada no avisa de que los pesos no suman 100', () => {
+    // 80 % de categorías y 20 % de bloque: en la 3.ª, sin actividades ni anotaciones, el bloque no sale en el
+    // acta, pero los pesos del cuaderno siguen sumando 100
+    const al80: GradeCategory[] = [{ id: 'k1', class_id: 'c1', name: 'Pruebas', weight: 80 }];
+    render(
+      <I18nProvider><ToastProvider>
+        <Records classes={[clase]} students={[alumno]} gradeCategories={al80} gradeItems={actividades} grades={notas}
+          classMarks={[]} marksConfigs={{ 'c1|Matemáticas': { ...DEFAULT_BLOCK, points: 2 } }} evaluations={[]} teacherName="Profesor" course="2026-2027" onNav={() => {}} />
+      </ToastProvider></I18nProvider>,
+    );
+    expect(screen.queryByText(/los pesos de las categorías suman/)).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: '3ª evaluación' }));
+    expect(screen.queryByText(/los pesos de las categorías suman/)).toBeNull();
+  });
+
   it('el bloque de trabajo diario y actitud se calcula con las anotaciones de la evaluación', () => {
     const marcas: ClassMark[] = [
       { id: 'm1', class_id: 'c1', student_id: 's1', type: 'homework', date: '2026-10-05' },
