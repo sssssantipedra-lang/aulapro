@@ -26,6 +26,8 @@
   .dlc-hoy-txt strong { white-space:normal; }
   .dlc-hoy .dlc-btn { margin-left:auto; }
   .ef-sesion-fila { flex-wrap:wrap; }
+  /* La sesión pide más de media fila: así el botón no cabe a su lado y baja a su propia línea, sin estrechar el texto */
+  li.ef-sesion-fila .ef-sesion { flex:1 1 60%; }
   .ef-sesion-fila .dlc-btn.compacto { margin:-4px 0 8px auto; }
 }
 
