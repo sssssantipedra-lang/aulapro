@@ -227,9 +227,9 @@ export function Actitud({ classes, students, classMarks, marksConfigs, attendanc
                         {markIcon(tp.id, 15)}
                         <span className="act-opt-lbl">{label}</span>
                         <span className="act-opt-corto" aria-hidden="true">{CORTO[tp.id] ? t(CORTO[tp.id]!) : label}</span>
-                        {n > 0 && <b key={n} className="act-count" aria-hidden="true">{n}</b>}
+                        {n > 0 && <b key={`n${n}`} className="act-count" aria-hidden="true">{n}</b>}
                         {fx?.sid === s.id && fx.type === tp.id && (
-                          <span key={fx.k} className="act-fx" aria-hidden="true">{tp.positive ? '+1' : '−1'}</span>
+                          <span key={`fx${fx.k}`} className="act-fx" aria-hidden="true">{tp.positive ? '+1' : '−1'}</span>
                         )}
                       </button>
                     );
