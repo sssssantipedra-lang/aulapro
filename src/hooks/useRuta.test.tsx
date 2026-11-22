@@ -17,7 +17,25 @@ const APOYO: Props = { profileId: 'p1', tipo: 'apoyo' };
 const montar = (props: Props) => renderHook((p: Props) => useRuta(p), { initialProps: props });
 /** El docente toca la pantalla: lo que venga después es una visita suya, no un rebote. */
 const tocar = () => act(() => { window.dispatchEvent(new Event('pointerdown')); });
-const esperar = () => act(() => new Promise<void>(r => setTimeout(r, 30)));
+/**
+ * Espera a que el navegador termine de saltar: los avisos de un salto llegan un poco después (y, si se cierra una
+ * ventana, hay un segundo salto de vuelta). Con la máquina cargada pueden tardar más que un plazo fijo, así que se
+ * espera a que pasen 40 ms sin ningún aviso (2 s como mucho).
+ */
+const esperar = () => act(() => new Promise<void>(listo => {
+  let quieto: ReturnType<typeof setTimeout>;
+  const fin = () => {
+    clearTimeout(tope);
+    window.removeEventListener('popstate', otro);
+    window.removeEventListener('hashchange', otro);
+    listo();
+  };
+  const otro = () => { clearTimeout(quieto); quieto = setTimeout(fin, 40); };
+  const tope = setTimeout(fin, 2000);
+  window.addEventListener('popstate', otro);
+  window.addEventListener('hashchange', otro);
+  quieto = setTimeout(fin, 150);
+}));
 const atras = async () => { window.history.back(); await esperar(); };
 const adelante = async () => { window.history.forward(); await esperar(); };
 const empezarEn = (hash: string) => { window.history.replaceState(null, '', `/${hash}`); };
