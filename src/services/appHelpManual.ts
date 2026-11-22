@@ -210,7 +210,10 @@ El punto de partida de todo. Con varias clases, se entra por una PORTADA de
 tarjetas agrupadas en Primaria, ESO y otras clases: cada tarjeta lleva el
 color, la asignatura, cuántos alumnos tiene, cuántos tienen avisos y la media
 de la clase. Al pulsar una se ve su alumnado; «Todas las clases» vuelve a la
-portada. Con una sola clase se entra directamente en ella. Se crea una clase con nombre, aula y color; se
+portada. Con una sola clase se entra directamente en ella. En «Nueva clase» hay también «Crear varios
+grupos», para quien da la misma asignatura a muchos grupos: se eligen la etapa, los cursos, las letras
+(«A, B, C» o «A-D») y una asignatura, se ve la lista antes de crear y los grupos que ya existen no se
+duplican; después se entra en cada clase para pegar su listado. Se crea una clase con nombre, aula y color; se
 puede marcar como tutoría. Se eligen ETAPA Y CURSO (Primaria 1º-6º o ESO 1º-4º,
 obligatorios) y aparecen las asignaturas de ese curso tal y como las llama el
 currículo de la comunidad del perfil: se marcan las que se dan (una o varias).
@@ -307,7 +310,34 @@ Tiene TRES PESTAÑAS arriba:
    10%; deben sumar 100% por asignatura), y dentro de cada categoría se añaden
    pruebas («Examen T1», «Cuaderno»). Se escriben notas de 0 a 10 en la rejilla
    y la media ponderada se calcula sola, con la media del grupo abajo. Se
-   exporta a Excel.
+   exporta a Excel. Al empezar el cuaderno de una asignatura se ofrecen
+   categorías según la materia (las cuatro destrezas en una lengua
+   extranjera, interpretación, escucha y creación en Música, creaciones,
+   proceso y análisis en Plástica, los tres componentes en Educación Física),
+   además de la configuración típica y «Crear a mi manera»: son un punto de
+   partida y se cambian después.
+   POR EVALUACIONES: junto a la clase está el selector «1.ª · 2.ª · 3.ª ·
+   Curso», con las fechas al lado. De partida van de septiembre a diciembre,
+   de enero a marzo y de abril en adelante; se cambian pulsando las fechas,
+   las evaluaciones vecinas se ajustan solas y se recuerdan en el dispositivo.
+   Es el mismo selector de Actas: lo elegido en una pantalla vale en la otra,
+   y la evaluación de hoy lleva un punto. En una evaluación se ven y cuentan
+   solo las actividades de sus fechas, y «Trabajo diario y actitud» se calcula
+   con las anotaciones de esas fechas. Cada actividad cuenta en la evaluación
+   de su fecha: al añadirla se propone un día de la evaluación que se está
+   viendo y bajo la fecha se lee dónde cuenta; cambiar la fecha la cambia de
+   evaluación, y sin fecha sale en todas. «Curso» enseña la nota de cada
+   evaluación y la final de cada alumno. La final sale con una de dos reglas,
+   por clase y asignatura: «Evaluación continua» (todas las notas del curso
+   juntas; es lo que sale si no se elige nada) o «Media de las evaluaciones»,
+   con el peso de cada una (iguales de partida); «Usar esta regla en todas
+   mis clases» la copia a las demás. Una evaluación sin notas todavía no resta
+   y la final se marca como provisional. El peso de cada categoría vale para
+   todo el curso; lo que cuenta cada nota dentro de su categoría se reparte
+   entre las de su evaluación. Una rúbrica, una diana o una escala de registro
+   tiene una columna por evaluación: usarla en el segundo trimestre no cambia
+   la nota del primero. «Exportar a Excel» saca la evaluación que se ve o, en
+   «Curso», todo con la nota de cada evaluación y la final.
 2. «Por competencias»: la clase entera con el currículo de la comunidad del
    perfil. Se eligen la clase y la asignatura (solo las que tienen materia
    oficial) y sale una tabla con un alumno por fila, una columna por
@@ -404,8 +434,9 @@ botones de arriba a la derecha.
 
 [enclase] EN CLASE (RESUMEN)
 La portada del apartado En clase. Arriba, si el horario lo dice, la clase que
-toca ahora (o la siguiente de hoy) con dos botones: «Pasar lista» y «Anotar
-actitud». Debajo, cuatro tarjetas grandes: Anotar actitud, Distribución de
+toca ahora (o la siguiente de hoy) con sus botones: «Pasar lista», «Anotar
+actitud» y, si esa clase tiene una sesión preparada para hoy, «Dar la clase»
+(ver Pizarra y herramientas). Debajo, cuatro tarjetas grandes: Anotar actitud, Distribución de
 aula, Pizarra y herramientas (Aula Live) y Actividades con móviles.
 
 [actitud] ANOTAR ACTITUD
@@ -591,8 +622,12 @@ pueden cambiar si el centro cierra la evaluación otro día (de partida, de
 septiembre a diciembre, de enero a marzo y de abril en adelante; al cambiar
 las de una, las vecinas se ajustan para no dejar días en medio); «Final de
 curso» cuenta todo el curso. El bloque de trabajo diario y actitud también va
-por esas fechas. La columna de una rúbrica o una diana cuenta en la evaluación
-en que se usó por primera vez.
+por esas fechas. El selector de evaluación es el mismo del Cuaderno: lo
+elegido en una pantalla vale en la otra. El acta de «Final de curso» usa la
+regla de la nota final elegida en «Curso» del cuaderno (evaluación continua o
+media de las evaluaciones) y lo dice en el documento; con la media de las
+evaluaciones enseña una columna por evaluación con su peso. Una rúbrica, una
+diana o una escala usada en dos trimestres tiene una columna en cada uno.
 
 [selfassess] AUTOEVALUACIONES
 Lo que han respondido los alumnos desde el móvil en Actividades con móviles (en la versión web, próximamente). El
@@ -857,6 +892,25 @@ de un nivel. La pizarra sigue viva al pasar a otra pantalla (pasar lista, anotar
 actitud): al volver están el temporizador en marcha, los grupos y lo dibujado;
 se cierra sola a los veinte minutos de salir de ella, salvo que haya un
 temporizador en marcha.
+DAR LA CLASE: con la sesión preparada en Sesiones no hace falta volver a
+escribir el plan del día. «Dar la clase» está en la franja de la clase de
+ahora de En clase, en la sesión de hoy de «Tu jornada» o «Tu semana» del
+Inicio, en la fila de la sesión en Sesiones y en cada sesión sin dar de una
+situación de aprendizaje guardada. Abre la pizarra con esa clase y la ventana
+«Plan del día» con los tres momentos de la sesión y cada actividad como
+casilla para ir tachando. Las imágenes de la sesión y, en Educación Física,
+su circuito salen como miniaturas: un toque las enseña a toda la pizarra. Lo
+que se proyecta lo ve la clase: solo el título de la sesión y el título y la
+descripción de cada actividad; el objetivo, el material, las medidas de
+inclusión y el plan B no salen. Si se abre «Plan del día» vacío, ofrece
+«Traer la sesión de hoy» de la clase elegida (o la siguiente sin dar) y dice
+por qué la propone. Al tachar la última actividad sugiere marcar la sesión
+como dada: se marca solo si se pulsa, y queda completada en Sesiones. Si la
+pizarra ya estaba abierta no se pierde nada: el temporizador sigue, lo
+dibujado se queda y lo escrito a mano en el plan se conserva; para que el plan
+se lea, alguna ventana puede pasar a su icono y vuelve con un toque. Funciona
+sin IA y nada sale del dispositivo. En PT y AL el plan del día se escribe a
+mano, como siempre.
 Tiene una pizarra para dibujar encima: el botón «Dibujar» la activa y sale la
 barra con cuatro herramientas, «Lápiz» (fino, responde a la presión si el
 dispositivo la da), «Rotulador», «Subrayador» (translúcido, con sus propios
@@ -1533,6 +1587,15 @@ tarjeta «Clave de la IA».
   servidor de AulaPro.
 - «¿Cómo hago copia de seguridad?»: Configuración → Datos y copias → «Descargar mis datos». Da un archivo que se
   guarda donde se quiera y se puede volver a importar.
+- «¿Cómo paso al curso siguiente?»: Configuración → Datos y copias → «Final de curso» → «Empezar curso nuevo».
+  Guía paso a paso sin rehacerlo todo: primero se descarga la copia del curso que acaba (obligatoria);
+  después se dice qué clases suben de curso con su alumnado, cuáles se quedan vacías para un grupo nuevo y
+  cuáles se van, y si se conservan el horario y las categorías y los pesos del cuaderno. Se conservan las
+  rúbricas, las dianas, las escalas, las situaciones de aprendizaje, las fichas y las sesiones (sin fecha), y
+  empiezan limpias las notas, las evaluaciones, la asistencia, las anotaciones, los informes y las mesas;
+  antes de aplicar se ve el resumen. Para consultar o recuperar el curso anterior se carga su copia con
+  «Cargar desde archivo», que devuelve también el curso escolar al perfil. «Vaciar el curso» sigue en la
+  misma tarjeta para empezar de cero.
 - «No me funciona la IA»: casi siempre es la clave API. Revisar en Configuración →
   Clave de la IA que esté pegada (con «Pegar mi clave» se comprueba sola), y probar de nuevo con cualquier función de IA:
   el error que salga (clave inválida, sin permiso, límite alcanzado…) dice

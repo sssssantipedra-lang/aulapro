@@ -142,6 +142,15 @@ Pendiente:
 - `docs/COMPARTIR.md` dice que faltan las capturas nuevas de «Trabajo compartido», pero `CLAUDE.md` dice que se rehicieron el 26-10-2026. Hay que comprobarlo y dejar uno de los dos bien.
 - Textos de la pantalla antigua de «Trabajo compartido» que siguen en el diccionario (`src/i18n/core.ts` y `ca.ts`).
 - ~~«Asistencia» y «Anotar actitud» buscan la clase que toca sin mirar el calendario escolar; «En clase» ya lo mira.~~ Hecho el 20-11-2026: todas las pantallas usan la regla de la clase activa, con calendario (`src/lib/claseActiva.ts`).
+- Decisiones del dueño que dejaron las mejoras del 20-11-2026 (detalle en `CLAUDE.md`, «Mejoras del 20-11-2026»):
+  - En un hueco, Asistencia y Anotar actitud abren la última clase usada hasta 10 minutos antes de la siguiente (antes, la siguiente de hoy).
+  - Las fechas de las evaluaciones viven en el dispositivo y deciden en qué columna del cuaderno escribe un instrumento: ¿pasarlas al perfil para que valgan en todos los dispositivos?
+  - Con evaluación continua, un instrumento usado en dos trimestres cuenta ahora como dos notas.
+  - Las medias de Mis clases, el Inicio, el radar, los informes y el asistente son de todo el curso aunque se elija la media de las evaluaciones.
+  - «No se dio» y «Poner fechas» solo miran las sesiones de su situación de aprendizaje: ¿avisar o correr también las de otras situaciones de la clase?
+  - Al empezar curso nuevo, una rúbrica con criterios oficiales de un curso sigue a su grupo cuando sube al siguiente, sin avisar de los criterios.
+  - Que las medias por competencias cuenten solo la última evaluación de cada instrumento, y si en una sesión de EF se puede evaluar a su clase con un instrumento que no es de ella.
+  - Con las 24 ventanas de la pizarra ocupadas, «Dar la clase» la abre sin plan y sin avisar: falta decidir qué decir.
 - Al eliminar una clase no se van sus bloques del horario ni su distribución de aula (visto el 20-11-2026 al repasar «Deshacer»; ya era así).
 - PT y AL:
   - Faltan el formato oficial de Cataluña y el de Madrid.

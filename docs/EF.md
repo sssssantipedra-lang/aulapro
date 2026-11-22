@@ -125,6 +125,8 @@ Para el profesorado de Educación Física, con o sin tutoría. Decisiones del du
 - «No se dio: correr esta y las siguientes», en cada sesión con fecha sin completar: pasa a la clase siguiente y las de detrás se corren solo mientras se pisan.
 - La cuenta está en `src/lib/repartoSesiones.ts` (con pruebas) y la ventana en `src/components/sesiones/PonerFechas.tsx`. Se deshace con el «Deshacer» común (`apuntarCambio`, tipo `fechas`).
 - En la Agenda, las sesiones con fecha y las pruebas físicas con marcas salen como capas de solo lectura (`src/lib/capasAgenda.ts`).
+- «Dar la clase», en cada fila de Sesiones, abre la pizarra con la sesión montada en «Plan del día»; el circuito y las imágenes se ven ahí a un toque (`docs/PIZARRA.md`).
+- «Empezar curso nuevo» (Configuración › Datos y copias) conserva las sesiones sin fecha ni «hecha» y siguiendo a su curso, y en EF usa `efParaOtroCurso` más el nivel y las separaciones del alumnado que sigue (`src/lib/cursoNuevo.ts`).
 - Pendiente: solo se miran las sesiones del grupo (no avisa si otra situación de aprendizaje de la clase tiene sesión ese día); el texto del salto cuenta días y dice «clases»; en julio y agosto hay que elegir un primer día de septiembre.
 
 ## Pizarra de circuitos
