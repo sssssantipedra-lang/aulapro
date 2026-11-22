@@ -79,3 +79,13 @@
   .ag-filtro .finput { flex:1; max-width:none; }
   .ag-apunte-hora:empty { display:none; }
 }
+
+/* Al crear una entrega con clase: crear también su columna en el cuaderno */
+.ag-columna { display:flex; flex-direction:column; gap:10px; margin:0 0 16px; padding:12px 14px; border:1px solid var(--border); border-radius:12px; background:var(--surface); }
+.ag-columna-casilla { display:flex; align-items:flex-start; gap:10px; cursor:pointer; min-height:40px; }
+.ag-columna-casilla input { width:20px; height:20px; margin-top:2px; flex-shrink:0; accent-color:var(--accent); }
+.ag-columna-casilla > span { display:flex; flex-direction:column; gap:2px; font-size:13.5px; line-height:1.45; }
+.ag-columna-casilla > span > span { font-size:12.5px; color:var(--text-2); }
+.ag-columna-cat { display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding-left:30px; }
+.ag-columna-cat label { font-size:12.5px; font-weight:700; color:var(--text-2); }
+.ag-columna-cat .finput { flex:1; min-width:160px; width:auto; min-height:40px; }

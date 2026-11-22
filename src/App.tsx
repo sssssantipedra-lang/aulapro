@@ -598,7 +598,7 @@ function AppInner() {
                 provincia={st.currentUser.provincia}
                 sesiones={st.ef.sesiones} gradeItems={st.gradeItems} gradeCategories={st.gradeCategories} workSessions={st.workSessions}
                 marcas={st.ef.marcas} pruebas={pruebasEF} students={st.students}
-                esEF={tipo === 'ef'} tienePantalla={pantallaDelPerfil}
+                esEF={tipo === 'ef'} tienePantalla={pantallaDelPerfil} onAddGradeItem={st.addGradeItem}
               />
             )}
             {section === 'evaluar' && (

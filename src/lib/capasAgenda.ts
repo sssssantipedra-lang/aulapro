@@ -138,6 +138,30 @@ export function pantallaDe(a: Pick<ApunteDeAgenda, 'capa' | 'tipo'>, esEF: boole
   return a.tipo === 'formacion' ? 'trainings' : 'meetings';
 }
 
+/* ══════════════ Una entrega con clase puede crear su columna en el cuaderno ══════════════ */
+
+/**
+ * Las categorías del cuaderno de esa clase en las que puede ir la columna de un examen o una entrega. Con varias
+ * asignaturas en la clase, cada una lleva la suya delante para distinguirlas («Lengua · Pruebas»).
+ */
+export function categoriasParaColumna(
+  categorias: readonly Pick<GradeCategory, 'id' | 'class_id' | 'name' | 'subject'>[], clase: Pick<Class, 'id' | 'subject' | 'subjects'> | undefined,
+): { id: string; label: string }[] {
+  if (!clase) return [];
+  const suyas = categorias.filter(c => c.class_id === clase.id);
+  const principal = clase.subjects?.[0] ?? clase.subject ?? '';
+  const asignatura = (c: { subject?: string }) => c.subject?.trim() || principal;
+  const varias = new Set(suyas.map(asignatura)).size > 1;
+  return suyas.map(c => ({ id: c.id, label: varias && asignatura(c) ? `${asignatura(c)} · ${c.name}` : c.name }));
+}
+
+/** La columna del cuaderno de un evento con clase: su nombre y su día. Sin clase, sin nombre o sin categoría, ninguna. */
+export function columnaDeEvento(ev: Pick<CalEvent, 'name' | 'date' | 'classId'>, categoryId: string, id: string): GradeItem | null {
+  const name = ev.name.trim();
+  if (!ev.classId || !name || !categoryId || !ISO.test(ev.date)) return null;
+  return { id, class_id: ev.classId, category_id: categoryId, name, date: ev.date };
+}
+
 /* ══════════════ Las capas apagadas: en el dispositivo ══════════════ */
 
 const CLAVE = 'aulapro_agenda_capas_apagadas';

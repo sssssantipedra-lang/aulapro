@@ -6,7 +6,8 @@ import type { ScheduleBlock, CalEvent, Class, GradeCategory, GradeItem, Section,
 import type { MarcaPrueba, PruebaFisica, SesionEF } from '../types/ef';
 import { BarraDeCapas, ApuntesDelDia } from '../components/agenda/CapasAgenda';
 import {
-  CAPAS, apuntesDeAgenda, apuntesVisibles, capasApagadas, capasDe, colorDeCapa, eventosVisibles, guardarCapasApagadas, pantallaDe, porFecha,
+  CAPAS, apuntesDeAgenda, apuntesVisibles, capasApagadas, capasDe, categoriasParaColumna, colorDeCapa, columnaDeEvento, eventosVisibles,
+  guardarCapasApagadas, pantallaDe, porFecha,
   type ApunteDeAgenda, type CapaAgenda,
 } from '../lib/capasAgenda';
 import { useFijarClase } from '../hooks/useClaseActiva';
@@ -121,6 +122,8 @@ interface Props {
   esEF?: boolean;
   /** Si el perfil tiene esa pantalla en su menú: una capa cuya pantalla no tiene no se ofrece. */
   tienePantalla?: (s: Section) => boolean;
+  /** Al crear una entrega con clase se ofrece crear también su columna en el cuaderno. Sin esto, no se ofrece. */
+  onAddGradeItem?: (i: GradeItem) => void;
 }
 
 const SIEMPRE = () => true;
@@ -141,7 +144,7 @@ export function Agenda({
   onNav,
   comunidad,
   provincia,
-  sesiones, gradeItems, gradeCategories, workSessions, marcas, pruebas, students, esEF = false, tienePantalla = SIEMPRE,
+  sesiones, gradeItems, gradeCategories, workSessions, marcas, pruebas, students, esEF = false, tienePantalla = SIEMPRE, onAddGradeItem,
 }: Props) {
   const { toast } = useToast();
   const { t, locale, lang } = useI18n();
@@ -173,6 +176,8 @@ export function Agenda({
   // ---- event modal ----
   const [eventModalOpen, setEventModalOpen] = useState(false);
   const [eventForm, setEventForm] = useState<CalEvent>(blankEvent);
+  /** Al crear una entrega con clase: si se crea también su columna en el cuaderno y en qué categoría. */
+  const [columna, setColumna] = useState({ crear: false, categoria: '' });
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
 
   // ---- calendar grid ----
@@ -301,6 +306,7 @@ export function Agenda({
     // Con el filtro por clase puesto, el evento nuevo nace en esa clase
     const cls = classes.find(c => c.id === claseFiltrada);
     setEventForm({ ...blankEvent(), date: date ?? isoDate(today), ...(cls ? { classId: cls.id, color: cls.color ?? PALETTE[0] } : {}) });
+    setColumna({ crear: false, categoria: '' });
     setEventModalOpen(true);
   }
   function openEditEvent(ev: CalEvent) {
@@ -320,12 +326,24 @@ export function Agenda({
     });
   }
 
+  // Una entrega (un examen, un trabajo) nueva y con clase: se ofrece crear también su columna en el cuaderno, para
+  // no apuntarla dos veces. Solo se ofrece; la casilla sale sin marcar.
+  const claseDelEvento = classes.find(c => c.id === eventForm.classId);
+  const categoriasDeColumna = categoriasParaColumna(gradeCategories ?? [], claseDelEvento);
+  const ofrecerColumna = !editingEventId && eventForm.type === 'deadline' && !!onAddGradeItem && tienePantalla('notebook') && categoriasDeColumna.length > 0;
+  const categoriaDeColumna = categoriasDeColumna.some(c => c.id === columna.categoria) ? columna.categoria : (categoriasDeColumna[0]?.id ?? '');
+
   function submitEvent() {
     if (!eventForm.name.trim()) { toast(t('Escribe un nombre para el evento')); return; }
     if (editingEventId) {
       onUpdateCalEvent({ ...eventForm, id: editingEventId });
     } else {
       onAddCalEvent({ ...eventForm, id: uid() });
+      const col = ofrecerColumna && columna.crear ? columnaDeEvento(eventForm, categoriaDeColumna, 'gi' + uid()) : null;
+      if (col && onAddGradeItem) {
+        onAddGradeItem(col);
+        toast(t('Evento añadido, y su columna «{nombre}» en el cuaderno de {clase}.', { nombre: col.name, clase: claseDelEvento?.name ?? '' }));
+      }
     }
     setEventModalOpen(false);
   }
@@ -845,6 +863,26 @@ export function Agenda({
                 <option value="">{t('Ninguna: es para todas o no es de una clase')}</option>
                 {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
+            </div>
+          )}
+
+          {ofrecerColumna && (
+            <div className="ag-columna">
+              <label className="ag-columna-casilla">
+                <input type="checkbox" checked={columna.crear} onChange={e => setColumna(c => ({ ...c, crear: e.target.checked }))} />
+                <span>
+                  <strong>{t('Crear también la columna en el cuaderno')}</strong>
+                  <span>{t('Saldrá en el cuaderno de {clase} con este nombre y esta fecha, lista para poner las notas: así no la apuntas dos veces.', { clase: claseDelEvento?.name ?? '' })}</span>
+                </span>
+              </label>
+              {columna.crear && (
+                <div className="ag-columna-cat">
+                  <label htmlFor="agenda-f14">{t('Categoría del cuaderno')}</label>
+                  <select id="agenda-f14" className="finput" value={categoriaDeColumna} onChange={e => setColumna(c => ({ ...c, categoria: e.target.value }))}>
+                    {categoriasDeColumna.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+                  </select>
+                </div>
+              )}
             </div>
           )}
 

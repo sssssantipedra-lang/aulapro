@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
-  CAPAS, apuntesDeAgenda, apuntesVisibles, capasApagadas, capasDe, eventosVisibles, guardarCapasApagadas, pantallaDe, porFecha,
+  CAPAS, apuntesDeAgenda, apuntesVisibles, capasApagadas, capasDe, categoriasParaColumna, columnaDeEvento, eventosVisibles, guardarCapasApagadas,
+  pantallaDe, porFecha,
   type CapaAgenda,
 } from './capasAgenda';
 import { translate, EN_DICT } from '../i18n';
@@ -126,5 +127,28 @@ describe('la clase de un evento sobrevive a las copias', () => {
     const copia = leerCopiaDeDatos(JSON.stringify({ _app: 'AulaPro', version: 2, data: { classes: [{ id: 'c1', name: '3.º A' }], events: [evento] } }));
     expect(copia.ok).toBe(true);
     expect(copia.ok && (copia.datos.events as unknown[])[0]).toEqual(evento);
+  });
+});
+
+describe('una entrega con clase puede crear su columna en el cuaderno', () => {
+  const clase = { id: 'c1', subject: 'Lengua', subjects: ['Lengua', 'Matemáticas'] };
+  it('solo se ofrecen las categorías de esa clase', () => {
+    const cats = [{ id: 'k1', class_id: 'c1', name: 'Pruebas' }, { id: 'k2', class_id: 'c2', name: 'Pruebas' }, { id: 'k3', class_id: 'c1', name: 'Tareas' }];
+    expect(categoriasParaColumna(cats, clase)).toEqual([{ id: 'k1', label: 'Pruebas' }, { id: 'k3', label: 'Tareas' }]);
+    expect(categoriasParaColumna(cats, undefined)).toEqual([]);
+  });
+  it('con categorías de varias asignaturas, cada una dice la suya (sin asignatura, la principal)', () => {
+    const cats = [{ id: 'k1', class_id: 'c1', name: 'Pruebas' }, { id: 'k2', class_id: 'c1', name: 'Pruebas', subject: 'Matemáticas' }];
+    expect(categoriasParaColumna(cats, clase).map(c => c.label)).toEqual(['Lengua · Pruebas', 'Matemáticas · Pruebas']);
+  });
+  it('la columna lleva el nombre y el día del evento, en su clase', () => {
+    expect(columnaDeEvento({ name: ' Examen de fracciones ', date: '2026-12-01', classId: 'c1' }, 'k1', 'g1'))
+      .toEqual({ id: 'g1', class_id: 'c1', category_id: 'k1', name: 'Examen de fracciones', date: '2026-12-01' });
+  });
+  it('sin clase, sin nombre, sin categoría o sin un día válido no hay columna', () => {
+    expect(columnaDeEvento({ name: 'Examen', date: '2026-12-01' }, 'k1', 'g1')).toBeNull();
+    expect(columnaDeEvento({ name: '  ', date: '2026-12-01', classId: 'c1' }, 'k1', 'g1')).toBeNull();
+    expect(columnaDeEvento({ name: 'Examen', date: '2026-12-01', classId: 'c1' }, '', 'g1')).toBeNull();
+    expect(columnaDeEvento({ name: 'Examen', date: '', classId: 'c1' }, 'k1', 'g1')).toBeNull();
   });
 });
