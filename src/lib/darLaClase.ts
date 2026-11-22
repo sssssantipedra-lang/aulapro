@@ -80,7 +80,7 @@ const VINETA = /^\s*(?:[•·▪◦*–—-]+|\d{1,2}[.)]|[a-z]\))\s+/i;
  * Lo que «Pasar a sesiones» añade detrás de la descripción de cada actividad (`actividadEnTexto`): cómo se
  * organiza y con qué material, en el idioma en que se creó. No se proyecta: el plan es título y descripción.
  */
-const COLA = /\s(?:Organizaci[óo]n|Organitzaci[óo]|Organi[sz]ation|Materiale?s?):\s[\s\S]*$/;
+const COLA = /\s(?:Organizaci[óo]n|Organitzaci[óo]|Organi[sz]ation|Materiale?s?|Equipment):\s[\s\S]*$/;
 
 /**
  * Parte una línea de una sesión en el título de la actividad y su descripción. Las sesiones se escriben en
@@ -88,18 +88,55 @@ const COLA = /\s(?:Organizaci[óo]n|Organitzaci[óo]|Organi[sz]ation|Materiale?s
  * Cómo se hace», «Nombre: cómo se hace» y «Nombre. Cómo se hace». Una línea sin esa forma es toda título.
  */
 export function partirActividad(linea: string): { titulo: string; detalle?: string } {
-  const txt = linea.replace(VINETA, '').replace(/\s+/g, ' ').trim();
+  // La cola se quita antes de partir: en una actividad sin minutos, sus dos puntos se tomarían por los del título
+  const txt = linea.replace(VINETA, '').replace(/\s+/g, ' ').replace(COLA, '').trim();
   if (!txt) return { titulo: '' };
   const m = /^(.{2,90}?\(\s*\d{1,3}\s*(?:min|['′’])[^)]{0,12}\))\s*[.:]?\s*(.*)$/i.exec(txt)
     ?? /^(.{2,70}?):\s+(.+)$/.exec(txt)
     ?? /^(.{2,70}?)\.\s+(.+)$/.exec(txt);
   if (!m) return { titulo: recortar(txt.replace(/[.:]$/, ''), MAX_TITULO) };
-  const detalle = (' ' + m[2]).replace(COLA, '').trim();
+  const detalle = m[2].trim();
   return { titulo: recortar(m[1].trim(), MAX_TITULO), ...(detalle ? { detalle: recortar(detalle, MAX_DETALLE) } : {}) };
 }
 
-const lineasDe = (texto: string | undefined): string[] =>
-  (texto ?? '').split(/\r?\n+/).map(l => l.trim()).filter(l => l.replace(VINETA, '').trim()).slice(0, MAX_ACTIVIDADES_POR_MOMENTO);
+const todasLasLineas = (texto: string | undefined): string[] =>
+  (texto ?? '').split(/\r?\n+/).map(l => l.trim()).filter(l => l.replace(VINETA, '').trim());
+const lineasDe = (texto: string | undefined): string[] => todasLasLineas(texto).slice(0, MAX_ACTIVIDADES_POR_MOMENTO);
+
+const enLimpio = (linea: string) => linea.replace(VINETA, '').replace(/\s+/g, ' ').trim();
+const CON_MINUTOS = /\(\s*\d{1,3}\s*(?:min|['′’])/i;
+
+/**
+ * Lo que una situación de aprendizaje dice de cada momento de sus sesiones (`MomentoSesionEF.texto`: cómo se
+ * presenta la tarea, qué apoyos se dan para que participe todo el grupo, qué feedback da el docente). Es para
+ * el docente, no una actividad, y «Pasar a sesiones» lo deja en la primera línea de cada parte de la sesión.
+ */
+function notasDeMomentos(sda: LearningSituation | undefined): Set<string> {
+  const notas = new Set<string>();
+  for (const ses of sda?.content.sesiones ?? []) {
+    if (!ses.momentos) continue;
+    for (const m of [ses.momentos.preimpacto, ses.momentos.impacto, ses.momentos.postimpacto]) {
+      for (const l of todasLasLineas(m?.texto)) notas.add(enLimpio(l));
+    }
+  }
+  return notas;
+}
+
+/**
+ * Las líneas de una parte de una sesión que vino de una situación de aprendizaje, sin la nota del momento:
+ *  - con la situación a mano, se quitan las líneas que son, tal cual, la nota de uno de sus momentos;
+ *  - sin ella (se borró después de pasar las sesiones), la primera línea si no lleva minutos y todas las
+ *    demás sí: así deja «Pasar a sesiones» la nota delante de las actividades. Solo en las sesiones que no
+ *    escribió el docente (`ia`).
+ */
+function sinNotaDelMomento(lineas: string[], s: Pick<SesionEF, 'ia'>, sda: LearningSituation | undefined): string[] {
+  if (sda) {
+    const notas = notasDeMomentos(sda);
+    return notas.size ? lineas.filter(l => !notas.has(enLimpio(l))) : lineas;
+  }
+  const [primera, ...resto] = lineas;
+  return s.ia && resto.length > 0 && !CON_MINUTOS.test(primera) && resto.every(l => CON_MINUTOS.test(l)) ? resto : lineas;
+}
 
 const tarea = (momento: 0 | 1 | 2 | undefined, i: number, a: { titulo: string; detalle?: string }): TareaPlan => ({
   id: `s${momento ?? ''}-${i}`, texto: a.titulo, hecha: false,
@@ -109,13 +146,16 @@ const tarea = (momento: 0 | 1 | 2 | undefined, i: number, a: { titulo: string; d
 /**
  * El plan de una sesión de Sesiones: una casilla por línea de su inicio (calentamiento), su desarrollo (parte
  * principal) y su cierre (vuelta a la calma). El objetivo, el material, las medidas de inclusión y el plan B
- * no salen: son del docente.
+ * no salen: son del docente. Tampoco, en una sesión que vino de una situación de aprendizaje (`sdas`: las
+ * que hay), lo que la situación dice de cada momento, que va delante de sus actividades (`sinNotaDelMomento`).
  */
-export function planDeSesion(s: SesionEF, ef: boolean): PlanDeClase {
+export function planDeSesion(s: SesionEF, ef: boolean, sdas: readonly LearningSituation[] = []): PlanDeClase {
   const partes = [s.calentamiento, s.principal, s.calma];
+  const sda = s.sdaId ? sdas.find(x => x.id === s.sdaId) : undefined;
   return {
     sesion: { origen: { tipo: 'sesion', id: s.id }, titulo: s.titulo.trim(), ef, ...(s.claseId ? { claseId: s.claseId } : {}) },
-    tareas: partes.flatMap((texto, m) => lineasDe(texto)
+    tareas: partes.flatMap((texto, m) => (s.sdaId ? sinNotaDelMomento(todasLasLineas(texto), s, sda) : todasLasLineas(texto))
+      .slice(0, MAX_ACTIVIDADES_POR_MOMENTO)
       .map(partirActividad).filter(a => a.titulo)
       .map((a, i) => tarea(m as 0 | 1 | 2, i, a))),
   };
@@ -166,7 +206,7 @@ export interface ImagenDeVisor { src: string; pie?: string }
 export function planDeOrigen(fuente: FuenteDeSesiones, origen: OrigenPlan): PlanDeClase | null {
   if (origen.tipo === 'sesion') {
     const s = fuente.sesiones.find(x => x.id === origen.id);
-    return s ? planDeSesion(s, fuente.ef) : null;
+    return s ? planDeSesion(s, fuente.ef, fuente.sdas) : null;
   }
   const sda = fuente.sdas.find(x => x.id === origen.id);
   return sda ? planDeSesionSda(sda, origen.indice) : null;

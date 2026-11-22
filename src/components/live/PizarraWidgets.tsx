@@ -578,7 +578,7 @@ export function AgendaWidget({ uid, clase, fuente, onSesionDada, onAmpliar, onTr
   );
   const traer = (p: PropuestaDeSesion) => {
     if (!fuente) return;
-    const plan = planDeSesion(p.sesion, fuente.ef);
+    const plan = planDeSesion(p.sesion, fuente.ef, fuente.sdas);
     setTareas(prev => fusionarPlan(prev, plan.tareas, false));
     setSesion(plan.sesion);
     onTraida?.();

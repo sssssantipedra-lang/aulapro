@@ -7,6 +7,7 @@ import {
   MAX_ACTIVIDADES_POR_MOMENTO, type TareaPlan,
 } from './darLaClase';
 import { borrarDatosDeVentana, claveDatos } from './pizarraAula';
+import { sesionesDeSda } from './sesiones';
 import type { LearningSituation } from '../types';
 import type { SesionEF } from '../types/ef';
 
@@ -64,6 +65,15 @@ describe('partirActividad', () => {
     expect(partirActividad('Relevos (5 min). Material: conos.')).toEqual({ titulo: 'Relevos (5 min)' });
   });
 
+  it('una actividad sin minutos pasada desde una situación: los dos puntos de «Organización» no son los del título', () => {
+    expect(partirActividad('Reto final. Cada equipo enseña su puesto. Organización: grupos de 4 Material: 6 conos'))
+      .toEqual({ titulo: 'Reto final', detalle: 'Cada equipo enseña su puesto.' });
+    // En inglés, «Pasar a sesiones» escribe «Organisation» y «Equipment»
+    expect(partirActividad('Relay (5 min). In pairs. Equipment: cones.')).toEqual({ titulo: 'Relay (5 min)', detalle: 'In pairs.' });
+    expect(partirActividad('Final challenge. Each team shows its stall. Organisation: groups of 4 Equipment: 6 cones'))
+      .toEqual({ titulo: 'Final challenge', detalle: 'Each team shows its stall.' });
+  });
+
   it('recorta lo que no cabría en la pizarra', () => {
     const a = partirActividad(`Juego: ${'muy largo '.repeat(200)}`);
     expect(a.detalle!.length).toBeLessThanOrEqual(600);
@@ -99,6 +109,61 @@ describe('planDeSesion', () => {
     const p = planDeSesion(sesion(), true);
     expect(esTareas(p.tareas)).toBe(true);
     expect(esSesionEnPizarra(p.sesion)).toBe(true);
+  });
+});
+
+describe('planDeSesion de una sesión pasada desde una situación de aprendizaje', () => {
+  const act = (nombre: string, minutos = 10) => ({ nombre, minutos, descripcion: `Cómo se hace ${nombre}.`, organizacion: 'ORGANIZACIÓN', material: 'MATERIAL' });
+  const NOTA_1 = 'Se presenta el reto. Quien lo necesita trabaja con APOYO VISUAL y una pareja de ayuda (DUA).';
+  const NOTA_2 = 'Las tareas van de menos a más; el docente da FEEDBACK A CADA GRUPO.';
+  const situacion = sda({}, [{ fase: 'Desarrollo', titulo: 'Las cuentas del puesto', descripcion: 'RESUMEN PARA EL DOCENTE', momentos: {
+    preimpacto: { texto: NOTA_1, actividades: [act('Lluvia de precios', 5)] },
+    impacto: { texto: NOTA_2, actividades: [act('Montar el puesto', 25), act('Reto final', 0)] },
+    postimpacto: { texto: '', actividades: [act('Qué nos ha costado', 5)] },
+  } }]);
+  const pasadas = () => sesionesDeSda(situacion, { claseId: 'c1', nuevoId: i => `ses${i}`, t: k => k });
+  const ACTIVIDADES = [
+    [0, 'Lluvia de precios (5 min)', 'Cómo se hace Lluvia de precios.'],
+    [1, 'Montar el puesto (25 min)', 'Cómo se hace Montar el puesto.'],
+    [1, 'Reto final', 'Cómo se hace Reto final.'],
+    [2, 'Qué nos ha costado (5 min)', 'Cómo se hace Qué nos ha costado.'],
+  ];
+
+  it('«Pasar a sesiones» deja delante de cada parte lo que la situación dice del momento', () => {
+    expect(pasadas()[0].calentamiento.split('\n')[0]).toBe(NOTA_1);
+    expect(pasadas()[0].principal.split('\n')[0]).toBe(NOTA_2);
+  });
+
+  it('con la situación a mano, esa nota no se proyecta: solo las actividades, también las que no llevan minutos', () => {
+    const p = planDeSesion(pasadas()[0], false, [situacion]);
+    expect(p.tareas.map(t => [t.momento, t.texto, t.detalle])).toEqual(ACTIVIDADES);
+    const texto = todo(p);
+    for (const privado of ['APOYO VISUAL', 'FEEDBACK A CADA GRUPO', 'ORGANIZACIÓN', 'MATERIAL', 'RESUMEN PARA EL DOCENTE']) expect(texto).not.toContain(privado);
+    // Y por el camino de la pizarra, que es el que usa «Dar la clase»
+    const fuente = { sesiones: pasadas(), sdas: [situacion], pizarras: [], ef: false };
+    expect(planDeOrigen(fuente, { tipo: 'sesion', id: 'ses0' })!.tareas.map(t => t.texto)).toEqual(ACTIVIDADES.map(a => a[1]));
+  });
+
+  it('si la situación se borró, la primera línea sin minutos delante de actividades con minutos tampoco sale', () => {
+    const p = planDeSesion(pasadas()[0], false, []);
+    expect(todo(p)).not.toContain('APOYO VISUAL');
+    expect(p.tareas.filter(t => t.momento === 0).map(t => t.texto)).toEqual(['Lluvia de precios (5 min)']);
+    expect(p.tareas.filter(t => t.momento === 2).map(t => t.texto)).toEqual(['Qué nos ha costado (5 min)']);
+  });
+
+  it('lo que el docente escribió en la sesión se queda: solo se quita la nota tal cual', () => {
+    const [s] = pasadas();
+    const editada = { ...s, calentamiento: `Repaso de ayer\n${s.calentamiento}`, calma: 'Recogemos\nNos despedimos' };
+    const p = planDeSesion(editada, false, [situacion]);
+    expect(p.tareas.filter(t => t.momento === 0).map(t => t.texto)).toEqual(['Repaso de ayer', 'Lluvia de precios (5 min)']);
+    expect(p.tareas.filter(t => t.momento === 2).map(t => t.texto)).toEqual(['Recogemos', 'Nos despedimos']);
+  });
+
+  it('una sesión escrita a mano y unida después a una situación no pierde su primera línea', () => {
+    const mano = sesion({ sdaId: 'sda1', calentamiento: 'Explicación de las normas\nPilla-pilla (8 min): dos la paran.' });
+    expect(planDeSesion(mano, true, [situacion]).tareas.filter(t => t.momento === 0).map(t => t.texto)).toEqual(['Explicación de las normas', 'Pilla-pilla (8 min)']);
+    // Tampoco si la situación ya no está: no la escribió la IA
+    expect(planDeSesion({ ...mano, sdaId: 'borrada' }, true, []).tareas.filter(t => t.momento === 0)).toHaveLength(2);
   });
 });
 
