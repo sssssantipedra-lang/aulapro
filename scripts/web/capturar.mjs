@@ -21,6 +21,9 @@
  *
  * (Playwright y su Chromium tienen que estar instalados: `npm i --no-save playwright@1.56.1` si faltan.)
  *
+ * **Mientras se ejecuta no hay que guardar ningún archivo del repositorio**: el servidor de desarrollo recarga la página
+ * (también por un .md o un guion, que no son de la app) y la captura siguiente sale sin su ventana abierta.
+ *
  * Además escribe en scripts/web/marcas.json dónde caen, en %, las marcas que
  * la portada dibuja sobre las capturas (números, círculos y etiquetas).
  *
@@ -50,7 +53,7 @@ import { ejemplosAula, fichasAula, borradorEvalFoto, reunionYFormacion, ejemplos
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const SITIO = path.join(RAIZ, 'web/sitio');
 const BASE = process.argv[2] || 'http://localhost:5173/';
-const W = 1920, H = 1008, SB = 256;
+const W = 1920, H = 1008, SB = 256, BARRA = 53;   // la ventana, el menú lateral y la barra de pestañas de un apartado
 
 const webp = (buf, q = 84) => sharp(buf).webp({ quality: q, effort: 6 }).toBuffer();
 async function guardar(rel, buf, q) {
@@ -141,8 +144,12 @@ async function zonas(page) {
     // Solo el de fuera: un botón dentro de otro no es otra zona
     const fuera = todos.filter(e => !todos.some(o => o !== e && o.contains(e)));
     const hub = document.querySelector('.hub-tab.on, .hub-tab[aria-selected="true"]')?.closest('[class*=hub]')?.textContent ?? '';
+    const cajaModal = modal ? (() => { const c = modal.querySelector('.modal, [role=dialog]') ?? modal.firstElementChild; const b = c.getBoundingClientRect(); return [b.left, b.top, b.right, b.bottom]; })() : null;
+    // Lo que se ve de cada zona: dentro de la pantalla y, con una ventana abierta, dentro de la ventana (lo que queda
+    // por encima o por debajo de lo que se desplaza dentro de ella no se ve, aunque el navegador lo dé por visible)
+    const [mx0, my0, mx1, my1] = cajaModal ?? [0, 0, innerWidth, innerHeight];
     return {
-      modal: modal ? (() => { const c = modal.querySelector('.modal, [role=dialog]') ?? modal.firstElementChild; const b = c.getBoundingClientRect(); return [b.left, b.top, b.right, b.bottom]; })() : null,
+      modal: cajaModal,
       hub,
       zonas: fuera.map(e => {
         const b = e.getBoundingClientRect();
@@ -153,8 +160,8 @@ async function zonas(page) {
         const texto = e.tagName === 'SELECT' ? (e.selectedOptions[0]?.textContent ?? '').replace(/^●\s*/, '') : e.innerText;
         const nombre = (e.getAttribute('aria-label') || texto || e.title || e.getAttribute('placeholder') || '')
           .split('\n').map(s => s.trim()).filter(Boolean)[0] ?? '';
-        return [Math.max(0, b.left), Math.max(0, b.top), Math.min(innerWidth, b.right), Math.min(innerHeight, b.bottom), tipo, nombre.slice(0, 60)];
-      }),
+        return [Math.max(0, mx0, b.left), Math.max(0, my0, b.top), Math.min(innerWidth, mx1, b.right), Math.min(innerHeight, my1, b.bottom), tipo, nombre.slice(0, 60)];
+      }).filter(([x0, y0, x1, y1]) => x1 - x0 >= 6 && y1 - y0 >= 6),
     };
   });
 }
@@ -199,6 +206,16 @@ async function abrirPerfil(tipo) {
   page.on('pageerror', e => console.log('Error en la app:', e.message));
   // Cerrar una ventana con algo a medias pregunta antes («¿Salir sin guardar?»): en las capturas, sí
   page.on('dialog', d => d.accept().catch(() => {}));
+  // Sin cursor parpadeando ni avisos pasajeros (el de «Deshacer» dura diez segundos). En cada carga de la página, porque
+  // el guion la recarga varias veces (al sumar los ejemplos y al disponer la pizarra)
+  await ctx.addInitScript(() => {
+    const poner = () => {
+      const st = document.createElement('style');
+      st.textContent = '*{caret-color:transparent!important} .toast,.toast-wrap,.deshacer{display:none!important}';
+      document.head.append(st);
+    };
+    if (document.head) poner(); else document.addEventListener('DOMContentLoaded', poner);
+  });
   await ctx.clock.install({ time: new Date('2026-10-14T09:45:00') });
   await page.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 90000 });
   await page.waitForTimeout(2000);
@@ -270,9 +287,6 @@ async function abrirPerfil(tipo) {
   }, { id, patch, borradores, clave: CLAVE_AI });
   await page.reload({ waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(4500);
-  // Sin cursor parpadeando ni animaciones a medias en las capturas
-  // (el aviso «Deshacer» dura diez segundos: tampoco sale)
-  await page.addStyleTag({ content: '*{caret-color:transparent!important} .toast,.toast-wrap,.deshacer{display:none!important}' });
 }
 
 const menu = async nombre => { await page.locator('.sidebar .nav-item', { hasText: new RegExp(`^${nombre}$`) }).click(); await page.waitForTimeout(1300); };
@@ -336,17 +350,23 @@ async function ventanaDeClase(id, titulo, quitar, datos) {
   PANTALLAS[id].img = `${id}.webp`;
   await ocultarDeClase(false);
 }
-/** La ventana abierta, en ancho de tableta (la lista del alumnado pasa arriba), para la portada. Devuelve su tamaño. */
-async function ventanaEstrecha(archivo) {
+/**
+ * La ventana abierta, en ancho de tableta (la lista del alumnado pasa arriba), para la portada. Devuelve su tamaño.
+ * Con `hasta` (un selector de dentro de la ventana) se corta por debajo de esa pieza: la diana va en una tarjeta sobre otra
+ * captura y, entera, la tapaba.
+ */
+async function ventanaEstrecha(archivo, hasta) {
   await page.setViewportSize({ width: 880, height: 1300 });
   await page.evaluate(() => { document.querySelector('.help-fab').style.visibility = 'hidden'; });
   await page.mouse.move(5, 5);
   await page.waitForTimeout(700);
   // (la captura de la página, recortada a la ventana: la de un solo elemento se queda esperando con el reloj parado)
-  const [left, top, width, height] = await page.evaluate(() => {
-    const b = [...document.querySelectorAll('.modal-overlay.open .modal')].pop().getBoundingClientRect();
-    return [b.left, b.top, b.width, b.height].map(Math.round);
-  });
+  const [left, top, width, height] = await page.evaluate(hasta => {
+    const m = [...document.querySelectorAll('.modal-overlay.open .modal')].pop();
+    const b = m.getBoundingClientRect();
+    const fin = hasta ? m.querySelector(hasta).getBoundingClientRect().bottom + 22 : b.bottom;
+    return [b.left, b.top, b.width, fin - b.top].map(Math.round);
+  }, hasta);
   fs.writeFileSync(path.join(SITIO, archivo), await webp(await sharp(await page.screenshot()).extract({ left, top, width, height }).toBuffer()));
   await page.evaluate(() => { document.querySelector('.help-fab').style.visibility = ''; });
   await page.setViewportSize({ width: W, height: H });
@@ -363,9 +383,12 @@ async function pantalla(id, titulo, hubId, opts = {}) {
   const buf = await foto({}, opts.scroll ?? 0);   // `scroll`: píxeles que se baja la página, para enseñar lo que queda debajo
   const img = await guardar(`assets/demo/${opts.archivo ?? id}.webp`, buf);
   const z = await zonas(page);
+  // Con la página bajada, lo que ha quedado debajo de la barra de pestañas (que se queda fija arriba) no se puede pulsar
+  if (opts.scroll) z.zonas = z.zonas.filter(([, y0, , , tipo]) => tipo === 'menu' || tipo === 'pestana' || y0 >= BARRA);
   let spots = acciones(z.zonas, hubId, opts.extra, opts.rutas);
   if (opts.quitar) spots = fuera(spots, opts.quitar);
-  if (opts.mas) spots.push(...opts.mas);   // zonas que no son un botón de la app (lo que asoma de una lista y lleva a ella)
+  // Zonas que no son un botón de la app (lo que asoma de una lista y lleva a ella): debajo de las demás, que mandan
+  if (opts.mas) spots.unshift(...opts.mas);
   PANTALLAS[id] = { title: titulo, img: path.basename(img), spots, ...(z.modal ? { modal: z.modal.map(r) } : {}), ...(opts.datos ?? {}) };
   console.log(`· ${id}: ${spots.length} zonas`);
   return buf;
@@ -479,7 +502,7 @@ await abrirVentana(page.locator('main').getByRole('button', { name: 'Evaluar a l
     await dlg.locator('path').filter({ has: page.locator(`title:text-is("${titulo}")`) }).first().click({ force: true });
     await page.waitForTimeout(150);
   }
-  MARCAS.dianaNota = { size: await ventanaEstrecha('assets/app/diana-nota.webp') };
+  MARCAS.dianaNota = { size: await ventanaEstrecha('assets/app/diana-nota.webp', '.evc-diana-zona') };
   await cerrarModal();
 }
 

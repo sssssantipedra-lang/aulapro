@@ -18,6 +18,8 @@
  * Uso, con la app arrancada en modo desarrollo (`npm run dev`):
  *
  *   node scripts/web/capturar-portada.mjs [http://localhost:5173/]
+ *
+ * Mientras se ejecuta no hay que guardar ningún archivo del repositorio: el servidor de desarrollo recarga la página.
  */
 import { chromium } from 'playwright';
 import sharp from 'sharp';
@@ -38,6 +40,15 @@ async function abrir({ w, h, dpr, movil = false }) {
   const ctx = await browser.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: dpr, locale: 'es-ES', isMobile: movil, hasTouch: movil });
   const page = await ctx.newPage();
   page.on('pageerror', e => console.log('Error en la app:', e.message));
+  // Sin cursor parpadeando ni avisos pasajeros (el de «Deshacer» dura diez segundos), en cada carga de la página
+  await ctx.addInitScript(() => {
+    const poner = () => {
+      const st = document.createElement('style');
+      st.textContent = '*{caret-color:transparent!important} .toast,.toast-wrap,.deshacer{display:none!important}';
+      document.head.append(st);
+    };
+    if (document.head) poner(); else document.addEventListener('DOMContentLoaded', poner);
+  });
   await ctx.clock.install({ time: new Date('2026-10-14T09:45:00') });
   await page.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 90000 });
   await page.waitForTimeout(2500);
@@ -61,8 +72,6 @@ async function sumarEjemplos(page) {
   }, { learningSituations });
   await page.reload({ waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(4500);
-  // Sin cursor parpadeando ni avisos pasajeros (el de «Deshacer» dura diez segundos)
-  await page.addStyleTag({ content: '*{caret-color:transparent!important} .toast,.toast-wrap,.deshacer{display:none!important}' });
 }
 
 async function guardar(page, nombre, ancho) {
