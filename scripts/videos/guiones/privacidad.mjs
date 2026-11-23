@@ -11,7 +11,7 @@ export default {
   titulo: 'Privacidad de los datos y de la IA',
   // Con la app abierta: el uso de la IA ya aceptado, para poder enseñar el panel de información
   despues: async page => {
-    await page.evaluate(() => localStorage.setItem('aulapro_uso_ia', JSON.stringify({ v: '2026-11-04', fecha: new Date().toISOString() })));
+    await page.evaluate(() => localStorage.setItem('aulapro_uso_ia', JSON.stringify({ v: '2026-11-05', fecha: new Date().toISOString() })));   // `VERSION_USO_IA` de `src/lib/usoIA.ts`
     await page.reload({ waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(4500);
     // La grabación se hace con la app fuera de la versión web: «Mis datos» enseña, desde el primer momento, el texto de la versión web
