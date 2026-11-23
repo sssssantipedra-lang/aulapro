@@ -45,13 +45,44 @@ describe('Escalas de registro', () => {
   it('se crea con su concepto y sus clases', async () => {
     const user = userEvent.setup();
     const p = pinta([]);
-    await user.click(screen.getAllByRole('button', { name: /Nueva escala|Crear la primera/ })[0]);
+    await user.click(screen.getByRole('button', { name: 'Crear la primera' }));
     await user.type(screen.getByLabelText('Nombre *'), 'Entrega a tiempo');
     await user.type(screen.getByLabelText('Concepto 1'), 'Trae la tarea');
     await user.click(screen.getByRole('button', { name: '4º A' }));
     await user.click(screen.getByRole('button', { name: 'Crear escala' }));
     expect(p.onAddDiana).toHaveBeenCalledOnce();
     expect(p.onAddDiana.mock.calls[0][0]).toMatchObject({ tipo: 'registro', name: 'Entrega a tiempo', class_id: 'c1', items: [{ name: 'Trae la tarea' }] });
+  });
+
+  it('la primera se puede empezar desde un modelo: «Usar y adaptar» rellena el editor y se crea con sus conceptos', async () => {
+    const user = userEvent.setup();
+    const p = pinta([]);
+    await user.click(screen.getByRole('button', { name: 'Empezar desde un modelo' }));
+    expect(document.querySelectorAll('.mi-tarjeta')).toHaveLength(6);
+    await user.click(screen.getByRole('button', { name: 'Usar y adaptar «Entrega de una tarea»' }));
+    expect((screen.getByLabelText('Nombre *') as HTMLInputElement).value).toBe('Entrega de una tarea');
+    expect((screen.getByLabelText('Concepto 1') as HTMLInputElement).value).toBe('La entrega en la fecha acordada');
+    // Se adapta antes de crearla: se quita un concepto
+    await user.click(screen.getByRole('button', { name: 'Quitar concepto 4' }));
+    await user.click(screen.getByRole('button', { name: 'Crear escala' }));
+    const creada = p.onAddDiana.mock.calls[0][0] as EvalDiana;
+    expect(creada).toMatchObject({ tipo: 'registro', name: 'Entrega de una tarea' });
+    expect(creada.items.map(i => i.name)).toEqual(['La entrega en la fecha acordada', 'La tarea está completa', 'Ha seguido las instrucciones']);
+    expect(new Set(creada.items.map(i => i.id)).size).toBe(3);
+  });
+
+  it('con escalas ya hechas, «Nueva escala» abre el editor y los modelos quedan a un clic; al editar una no se ofrecen', async () => {
+    const user = userEvent.setup();
+    pinta();
+    await user.click(screen.getByRole('button', { name: 'Nueva escala' }));
+    expect(screen.getByLabelText('Nombre *')).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: 'Desde un modelo' }));
+    expect(document.querySelectorAll('.mi-tarjeta')).toHaveLength(6);
+    await user.click(screen.getAllByRole('button', { name: 'Cerrar' })[0]);
+
+    await user.click(screen.getByRole('button', { name: 'Editar «Saque de voleibol»' }));
+    expect(screen.queryByRole('button', { name: 'Desde un modelo' })).toBeNull();
+    expect((screen.getByLabelText('Nombre *') as HTMLInputElement).value).toBe('Saque de voleibol');
   });
 
   it('se valora a la clase con pulgares y se guarda una evaluación por alumno, con su nota', async () => {

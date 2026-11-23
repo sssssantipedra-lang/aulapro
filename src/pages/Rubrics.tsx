@@ -250,7 +250,7 @@ function RubricModal({ open, inicial, onCambio, editing, classes, gradeCategorie
     setFirmaDelModelo(firmaDeLoEscrito(r.name, criterios));
     setMode('manual');
     // El editor se abre por arriba, aunque el modelo elegido fuera el último de la lista
-    ventanaRef.current?.scrollTo({ top: 0 });
+    if (ventanaRef.current) ventanaRef.current.scrollTop = 0;
   }
 
   /* Autoguardado: mientras haya algo hecho y sin guardar, la pantalla lo conserva */
@@ -442,6 +442,7 @@ function RubricModal({ open, inicial, onCambio, editing, classes, gradeCategorie
           <button
             className={mode === 'ia' ? 'btn-ia' : 'btn-ghost'}
             style={{ fontSize: 13, padding: '7px 14px' }}
+            aria-pressed={mode === 'ia'}
             onClick={() => setMode('ia')}
           >
             <Sparkles size={13} />✨ IA
@@ -449,6 +450,7 @@ function RubricModal({ open, inicial, onCambio, editing, classes, gradeCategorie
           <button
             className={mode === 'manual' ? 'btn-accent' : 'btn-ghost'}
             style={{ fontSize: 13, padding: '7px 14px' }}
+            aria-pressed={mode === 'manual'}
             onClick={() => setMode('manual')}
           >
             {t('Manual')}
