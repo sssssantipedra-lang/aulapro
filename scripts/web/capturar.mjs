@@ -114,7 +114,7 @@ const RUTAS_PT = { 'pt-alumnado': [[/^Alumno \d/, 'go:pt-al-resumen']] };
 const EXTRA_ALUMNADO = { 'Alumnado': 'go:pt-alumnado', 'Grupos': 'go:pt-grupos' };
 const EXTRA_ALUMNO = {
   'Mi alumnado': 'go:pt-alumnado', 'Resumen': 'go:pt-al-resumen', 'Programa': 'go:pt-al-programa', 'Sesiones': 'go:pt-al-sesiones',
-  'Coordinaciones': 'go:pt-al-coord', 'Documentos': 'go:pt-al-docs', 'Datos': 'go:pt-al-datos', 'Agenda visual': 'go:pt-agendavisual',
+  'Evaluación': 'go:pt-al-eval', 'Coordinaciones': 'go:pt-al-coord', 'Documentos': 'go:pt-al-docs', 'Datos': 'go:pt-al-datos', 'Agenda visual': 'go:pt-agendavisual',
   'Registrar sesión': 'go:pt-registro',
 };
 const EXTRA_PT = { 'pt-alumnado': EXTRA_ALUMNADO };
@@ -145,7 +145,9 @@ async function zonas(page) {
         const tipo = e.classList.contains('nav-item') ? 'menu'
           : e.classList.contains('hub-tab') ? 'pestana'
           : /^(INPUT|SELECT|TEXTAREA)$/.test(e.tagName) ? 'campo' : 'boton';
-        const nombre = (e.getAttribute('aria-label') || e.innerText || e.title || e.getAttribute('placeholder') || '')
+        // De un desplegable, lo que tiene elegido (su texto son todas las opciones, y la primera no es la que se ve)
+        const texto = e.tagName === 'SELECT' ? (e.selectedOptions[0]?.textContent ?? '').replace(/^●\s*/, '') : e.innerText;
+        const nombre = (e.getAttribute('aria-label') || texto || e.title || e.getAttribute('placeholder') || '')
           .split('\n').map(s => s.trim()).filter(Boolean)[0] ?? '';
         return [Math.max(0, b.left), Math.max(0, b.top), Math.min(innerWidth, b.right), Math.min(innerHeight, b.bottom), tipo, nombre.slice(0, 60)];
       }),
@@ -496,13 +498,18 @@ await pestana('Recursos');
   const baja = b ? Math.max(0, r(b.y - 90)) : 0;
   await pantalla('recursos-fichas', 'Recursos: mis fichas', 'documentos', { scroll: baja, rutas: FICHAS });
 }
-await page.getByText('El viaje del agua').first().click();
-await page.waitForTimeout(1800);
+// Al tocar una ficha guardada sale su panel («Proyectar» y «Editar»): la ficha se abre con «Editar»
+const abrirFicha = async titulo => {
+  await page.getByText(titulo).first().click();
+  await page.waitForTimeout(800);
+  await page.getByRole('button', { name: 'Editar', exact: true }).first().click();
+  await page.waitForTimeout(1800);
+};
+await abrirFicha('El viaje del agua');
 await pantalla('ficha', 'Ficha de ejercicios', 'documentos', { extra: { 'Mis fichas': 'go:recursos' } });
 await menu('Documentos');
 await pestana('Recursos');
-await page.getByText('El dragón que perdió su fuego').first().click();
-await page.waitForTimeout(1800);
+await abrirFicha('El dragón que perdió su fuego');
 await pantalla('lectura', 'Comprensión lectora', 'documentos', { extra: { 'Mis fichas': 'go:recursos' } });
 
 /* En clase */
@@ -712,7 +719,7 @@ await pantalla('ef-portada', 'Educación Física', 'ef', { rutas: EF_HERRAMIENTA
 // Lo que cada lista abre: la sesión, la situación de aprendizaje y la actividad que creó la IA
 const RUTAS_EF = {
   'ef-actividades': [[/^Deportes/, 'go:ef-deportes']],
-  'ef-sesiones': [[/^Voleibol/, 'go:ef-sesion']],
+  'ef-sesiones': [[/^Abrir las sesiones de 1º ESO A/, 'go:ef-sesiones-clase']],
   'ef-sda': [[/^SdA \d/, 'go:ef-sda-doc'], [/Juegos cooperativos/, 'go:ef-sda-doc']],
 };
 for (const [nombre, id] of EF_HERRAMIENTAS) {
@@ -730,9 +737,13 @@ await page.waitForTimeout(1200);
 await pantalla('ef-deportes', 'Actividades: deportes', 'ef', { extra: { 'Todas las actividades': 'go:ef-actividades' } });
 await vuelta();
 await herramienta('Sesiones');
+// Sesiones se abre en la portada de clases: dentro de la clase están sus sesiones («Poner fechas», «Dar la clase») y, al tocar una, su editor
+await page.getByRole('button', { name: 'Abrir las sesiones de 1º ESO A' }).click();
+await page.waitForTimeout(1200);
+await pantalla('ef-sesiones-clase', 'Sesiones de una clase', 'ef', { extra: { 'Sesiones': 'go:ef-sesiones' }, rutas: [[/^Voleibol/, 'go:ef-sesion']] });
 await page.getByText('Voleibol: el toque de dedos').first().click();
 await page.waitForTimeout(1500);
-await pantalla('ef-sesion', 'Sesión de Educación Física', 'ef', { extra: { 'Cerrar': 'fn:closeModal' }, datos: { back: 'ef-sesiones' } });
+await pantalla('ef-sesion', 'Sesión de Educación Física', 'ef', { extra: { 'Cerrar': 'fn:closeModal', 'Cancelar': 'fn:closeModal', 'Guardar': 'fn:closeModal' }, datos: { back: 'ef-sesiones-clase' } });
 await vuelta();
 await herramienta('Situaciones de aprendizaje');
 await page.getByText('Juegos cooperativos: la isla del tesoro').first().click();
@@ -772,13 +783,16 @@ await tabPT('Alumnado');
 await page.locator('main .sec.active').getByText('Alumno 1', { exact: true }).first().click();
 await page.waitForTimeout(1500);
 await pantalla('pt-al-resumen', 'Alumno: resumen', null, { extra: EXTRA_ALUMNO });
-for (const [pestana, id] of [['Programa', 'pt-al-programa'], ['Sesiones', 'pt-al-sesiones'], ['Coordinaciones', 'pt-al-coord'], ['Documentos', 'pt-al-docs'], ['Datos', 'pt-al-datos']]) {
+const ABRIR_DOC = /^Abrir «Informe trimestral a la familia/;
+for (const [pestana, id] of [['Programa', 'pt-al-programa'], ['Sesiones', 'pt-al-sesiones'], ['Evaluación', 'pt-al-eval'], ['Coordinaciones', 'pt-al-coord'], ['Documentos', 'pt-al-docs'], ['Datos', 'pt-al-datos']]) {
   await tabPT(pestana);
   await page.waitForTimeout(1000);
-  await pantalla(id, `Alumno: ${pestana.toLowerCase()}`, null, { extra: EXTRA_ALUMNO, rutas: id === 'pt-al-docs' ? [[/^Abrir «Informe trimestral a la familia/, 'go:pt-doc']] : [] });
+  // Los documentos guardados quedan al final de la pestaña, lejos de lo que se ve. Arriba está elegido justo el que hay de
+  // ejemplo (informe trimestral a la familia, 1.er trimestre): en la demo, «Preparar con IA» lo abre, y la demo avisa de que ya estaba hecho
+  await pantalla(id, `Alumno: ${pestana.toLowerCase()}`, null, { extra: EXTRA_ALUMNO, rutas: id === 'pt-al-docs' ? [[/^Preparar con IA$/, 'go:pt-doc'], [ABRIR_DOC, 'go:pt-doc']] : [] });
 }
 await tabPT('Documentos');
-await page.getByRole('button', { name: /^Abrir «Informe trimestral a la familia/ }).click();
+await page.getByRole('button', { name: ABRIR_DOC }).click();
 await page.waitForTimeout(1500);
 await pantalla('pt-doc', 'Informe trimestral a la familia', null, { extra: { ...EXTRA_ALUMNO, 'Cerrar': 'fn:closeModal' }, datos: { back: 'pt-al-docs' } });
 }
