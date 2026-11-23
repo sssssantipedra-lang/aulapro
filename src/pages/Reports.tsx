@@ -552,7 +552,7 @@ export function Reports(props: Props) {
       </div>
 
       {!conIA && (
-        <AiKeyNotice message={t('El informe de seguimiento no necesita IA. Para que además la IA redacte el texto hace falta tu clave gratuita de Google.')} action={t('Configurar')} onAction={() => onNav('profile')} />
+        <AiKeyNotice message={t('El informe de seguimiento no necesita IA. Para que además la IA redacte el texto hace falta tu clave gratuita de Google.')} action={t('Configurar')} />
       )}
 
       {/* Barra de controles: clase, evaluación y progreso */}

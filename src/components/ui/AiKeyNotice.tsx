@@ -12,7 +12,7 @@ import { abrirClaveIA } from '../../lib/claveIA';
  * pantalla en curso (`VentanaClaveIA`), para no perder lo que se estaba escribiendo. `onAction` ya no hace falta
  * y no se llama; se conserva en el tipo para las pantallas que aún lo pasan.
  */
-export function AiKeyNotice({ message, action }: { message: string; action: string; onAction?: () => void }) {
+export function AiKeyNotice({ message, action }: { message: string; action: string }) {
   return (
     <div className="ai-notice" role="note">
       <Sparkles size={15} style={{ flexShrink: 0 }} aria-hidden="true" />

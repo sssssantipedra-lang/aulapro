@@ -22,7 +22,7 @@ import {
   isMarksCategory, blockConfig, blockKey, sumaDePesos, blockActive, marksFor, studentBlock, BLOCK_ITEM_PREFIX,
   TARGETS, targetLabel, esAsignaturaEF, nombreDelBloque, BLOCK_NAME, MAX_BLOCK_POINTS, type MarkTarget,
 } from '../services/classMarks';
-import { requestSettingsPanel } from '../lib/settingsNav';
+import { abrirClaveIA } from '../lib/claveIA';
 import { requestActitud } from '../lib/actitudNav';
 import { downloadFile } from '../lib/download';
 import { compararAlumnos } from '../lib/alumnado';
@@ -1217,10 +1217,9 @@ interface AiTabProps {
   onChatChange: (next: ChatMessage[]) => void;
   lawDocument: InlineFile | null;
   onLawDocumentChange: (doc: InlineFile | null) => void;
-  onNav: (s: string) => void;
 }
 
-function AiTab({ data, chat, onChatChange, lawDocument, onLawDocumentChange, onNav }: AiTabProps) {
+function AiTab({ data, chat, onChatChange, lawDocument, onLawDocumentChange }: AiTabProps) {
   const { toast } = useToast();
   const { t, lang, locale } = useI18n();
   const [question, setQuestion] = useState('');
@@ -1325,7 +1324,7 @@ function AiTab({ data, chat, onChatChange, lawDocument, onLawDocumentChange, onN
             <span style={{ flex: 1, lineHeight: 1.5 }}>
               {t('Para usar la IA necesitas una clave gratuita de Google (se configura en 2 minutos).')}
             </span>
-            <button className="btn-accent" style={{ fontSize: 12.5, padding: '7px 14px', flexShrink: 0 }} onClick={() => { requestSettingsPanel('ia'); onNav('profile'); }}>
+            <button className="btn-accent" style={{ fontSize: 12.5, padding: '7px 14px', flexShrink: 0 }} onClick={abrirClaveIA}>
               {t('Configurar ahora')}
             </button>
           </div>
@@ -1553,7 +1552,6 @@ export function Notebook(props: Props) {
           onChatChange={props.onChatChange}
           lawDocument={props.lawDocument}
           onLawDocumentChange={props.onLawDocumentChange}
-          onNav={props.onNav}
         />
       )}
     </section>
