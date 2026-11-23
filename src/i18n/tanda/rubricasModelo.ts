@@ -26,9 +26,9 @@ export const EN: Record<string, string> = {
   'Sustituirá lo que ya tienes escrito.': 'This will replace what you have already written.',
   'Sustituir': 'Replace',
   'Etapa de los modelos': 'Stage of the templates',
-  'Primaria y ESO': 'Primary and secondary',
+  'Primaria y ESO': 'Primary and lower secondary',
   'Versión de Primaria': 'Primary version',
-  'Versión de ESO': 'Secondary version',
+  'Versión de ESO': 'Lower secondary version',
 
   // La clave de la IA sin salir de la pantalla
   'La IA funciona con una clave gratuita de Google, que se guarda solo en este dispositivo. Son tres pasos y lo que tenías a medias te espera aquí debajo, tal como lo has dejado.':
