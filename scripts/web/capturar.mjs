@@ -153,9 +153,11 @@ async function zonas(page) {
       hub,
       zonas: fuera.map(e => {
         const b = e.getBoundingClientRect();
+        // (`tab`: las pestañas de dentro de una pantalla, como «Mensual» en la Agenda o «Pasar lista» en Asistencia)
         const tipo = e.classList.contains('nav-item') ? 'menu'
           : e.classList.contains('hub-tab') ? 'pestana'
-          : /^(INPUT|SELECT|TEXTAREA)$/.test(e.tagName) ? 'campo' : 'boton';
+          : /^(INPUT|SELECT|TEXTAREA)$/.test(e.tagName) ? 'campo'
+          : e.getAttribute('role') === 'tab' || e.classList.contains('tab-btn') ? 'tab' : 'boton';
         // De un desplegable, lo que tiene elegido (su texto son todas las opciones, y la primera no es la que se ve)
         const texto = e.tagName === 'SELECT' ? (e.selectedOptions[0]?.textContent ?? '').replace(/^●\s*/, '') : e.innerText;
         const nombre = (e.getAttribute('aria-label') || texto || e.title || e.getAttribute('placeholder') || '')
@@ -408,8 +410,9 @@ async function pantalla(id, titulo, hubId, opts = {}) {
   // Con la página bajada, lo que ha quedado debajo de la barra de pestañas (que se queda fija arriba) no se puede pulsar
   if (opts.scroll) z.zonas = z.zonas.filter(([, y0, , , tipo]) => tipo === 'menu' || tipo === 'pestana' || y0 >= BARRA);
   let spots = acciones(z.zonas, hubId, opts.extra, opts.rutas);
-  // Un botón del contenido que lleva a la pantalla en la que ya se está («Añadir nota» en el Cuaderno, «Pasar lista» en
-  // Asistencia) no haría nada al pulsarlo, y además volvería a empezar lo que se hubiera probado en ella: el aviso de siempre
+  // Un botón del contenido que lleva a la pantalla en la que ya se está («Añadir nota» en el Cuaderno, «Informes de seguimiento
+  // de la clase» en Informes) no haría nada al pulsarlo: el aviso de siempre. La pestaña ya elegida sí se queda como está
+  // (en la demo, ir a la pantalla en la que se está no hace nada)
   spots = spots.map((sp, i) => (sp[4] === `go:${id}` && z.zonas[i][4] === 'boton' ? [sp[0], sp[1], sp[2], sp[3], RE_IA.test(sp[5]) ? 't:ia' : 'g', sp[5]] : sp));
   if (opts.quitar) spots = fuera(spots, opts.quitar);
   // Zonas que no son un botón de la app (lo que asoma de una lista y lleva a ella): debajo de las demás, que mandan

@@ -156,6 +156,8 @@
   function go(id, opt = {}) {
     const s = SCREENS[id];
     if (!s) return;
+    // The tab or the menu entry of the screen one is already on: nothing to do (and what was being tried on it stays)
+    if (id === cur) return;
     if (cleanup) { try { cleanup(); } catch (e) { /* nothing to undo */ } cleanup = null; }
     const first = !cur;
     cur = id;

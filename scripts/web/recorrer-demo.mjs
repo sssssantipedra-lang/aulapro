@@ -7,7 +7,9 @@
  * - a todas las pantallas se llega pulsando desde el inicio de su perfil;
  * - cada pantalla abre con su imagen (1920 x 1008), sin errores de consola ni de red y sin desbordar la página;
  * - cada destino responde de verdad: se pulsa en el centro de su zona y se mira a dónde lleva;
- * - «Evaluar a la clase» con rúbrica y con diana: marcar, «Guardar y siguiente», la lista y la cuenta.
+ * - «Evaluar a la clase» con rúbrica y con diana: marcar, «Guardar y siguiente», «Guardar todo», la lista, la cuenta, a cuántos
+ *   alcanza «Poner a todos este nivel» y que el aviso no tape los botones del pie;
+ * - en catalán y en inglés la página cambia de idioma y los avisos salen en él.
  *
  * No necesita la app: sirve `web/sitio` él mismo. Uso (Playwright y su Chromium tienen que estar instalados):
  *
@@ -54,7 +56,9 @@ for (const modo of MODOS) {
     const w = document.querySelector('#win'), k = w.getBoundingClientRect().width / 1920;
     const en = () => { const r = w.getBoundingClientRect(); return [r.left + cx * k, r.top + (cy + 24) * k]; };
     let [x, y] = en();
-    if (x > innerWidth - 4 || x < 4) document.querySelector('.stage-scroll').scrollLeft += x - innerWidth / 2;
+    // Lo que se ve de la ventana es lo que deja ver su caja de desplazamiento, que en el móvil no llega a los bordes de la página
+    const caja = document.querySelector('.stage-scroll'), c = caja.getBoundingClientRect();
+    if (x > c.right - 8 || x < c.left + 8) caja.scrollLeft += x - (c.left + c.right) / 2;
     [x, y] = en();
     if (y > innerHeight - 4 || y < 70) scrollBy(0, y - innerHeight / 2);
     [x, y] = en();
@@ -147,13 +151,25 @@ for (const modo of MODOS) {
       }
       await p.waitForTimeout(80);
     };
+    const frase = () => p.locator('#view .evc-a').textContent();
+    const ir = async i => { const f = await punto(centro(s.clase.filas[i].caja)); await pulsar(f.x, f.y); await p.waitForTimeout(80); };
     let l = await lista();
+    espera(id, `«Poner a todos» dice a cuántos alcanza (${await frase()})`, (await frase()).includes(`a los ${nombres.length} alumnos que faltan`));
     espera(id, 'se abre con el primero de la lista elegido', l.quien === nombres[0] && l.filas[0].startsWith('sel'));
     espera(id, 'sin marcar nada el botón es «Siguiente»', (await pie().textContent()).trim() === 'Siguiente');
     await marcarTodo();
     l = await lista();
     espera(id, `al marcar, el alumno queda «sin guardar» (${l.filas[0]}; ${l.cuenta})`, /sin/.test(l.filas[0]) && /1 sin guardar/.test(l.cuenta));
     espera(id, 'con algo marcado el botón es «Guardar y siguiente»', (await pie().textContent()).trim() === 'Guardar y siguiente');
+    // El aviso que dice qué pulsar no puede salir encima de los botones del pie (en el móvil va pegado abajo de la pantalla, no de la ventana)
+    if (!movil) {
+      const aviso = await p.evaluate(() => {
+        const t = document.querySelector('#toasts .toast')?.getBoundingClientRect(), f = document.querySelector('#view .evc-f').getBoundingClientRect();
+        return { hay: !!t, tapa: !!t && !(t.right < f.left || t.left > f.right || t.bottom < f.top || t.top > f.bottom) };
+      });
+      espera(id, 'al marcar sale un aviso y no tapa los botones del pie', aviso.hay && !aviso.tapa);
+    }
+    espera(id, `«Poner a todos» alcanza a quienes no tienen nada marcado (${await frase()})`, (await frase()).includes(`a los ${nombres.length - 1} alumnos que faltan`));
     await pie().scrollIntoViewIfNeeded();
     await (movil ? pie().tap() : pie().click());
     await p.waitForTimeout(120);
@@ -165,10 +181,20 @@ for (const modo of MODOS) {
     await pulsar(h.x, h.y);
     await p.waitForTimeout(80);
     espera(id, 'al volver a un alumno guardado se dice que se corrige su evaluación', /corrige esa evaluación/.test(await p.locator('#view .evc-q').textContent()));
+    // «Guardar todo»: lo del segundo se queda marcado sin guardar, se pasa al tercero y se guarda de una vez
+    await ir(1);
+    await marcarTodo();
+    await ir(2);
+    const todo = p.locator('#view .evc-f .gh', { hasText: 'Guardar todo' });
+    espera(id, 'con otro alumno sin guardar sale «Guardar todo (1)»', await todo.isVisible() && (await todo.textContent()).trim() === 'Guardar todo (1)');
+    await todo.scrollIntoViewIfNeeded();
+    await (movil ? todo.tap() : todo.click());
+    await p.waitForTimeout(120);
+    l = await lista();
+    espera(id, `«Guardar todo» deja hecho al segundo (${l.filas[1]}; ${l.cuenta})`, /^hoy\|\d+,\d$/.test(l.filas[1]) && l.cuenta.startsWith(`2 de ${nombres.length}`) && !(await todo.isVisible()));
     // Y el resto de la clase, hasta el final
-    for (let i = 1; i < nombres.length; i++) {
-      const f = await punto(centro(s.clase.filas[i].caja));
-      await pulsar(f.x, f.y);
+    for (let i = 2; i < nombres.length; i++) {
+      await ir(i);
       await marcarTodo();
       await pie().scrollIntoViewIfNeeded();
       await (movil ? pie().tap() : pie().click());
@@ -176,6 +202,24 @@ for (const modo of MODOS) {
     }
     l = await lista();
     espera(id, `con toda la clase guardada la cuenta lo dice (${l.cuenta})`, l.cuenta.startsWith(`${nombres.length} de ${nombres.length}`) && l.filas.every(f => /^hoy( sel)?\|/.test(f)));
+    espera(id, 'con toda la clase guardada, «Poner a todos este nivel» se quita, como en la app', await p.locator('#view .evc-x').isVisible());
+  }
+
+  /* 5. En catalán y en inglés: la página cambia de idioma y los avisos salen en él (las pantallas son capturas en castellano) */
+  for (const lang of ['ca', 'en']) {
+    await p.goto(`${URL_DEMO}?lang=${lang}#rubrica`);
+    await p.reload();
+    await p.waitForTimeout(movil ? 250 : 100);
+    const h = await punto(centro(S.rubrica.rubrica[0][2]));
+    await pulsar(h.x, h.y);
+    await p.waitForTimeout(700);
+    const visto = await p.evaluate(() => ({
+      lang: document.documentElement.lang, titulo: document.querySelector('h1').textContent, aviso: document.querySelector('#toasts .toast span')?.textContent ?? '',
+      vacios: [...document.querySelectorAll('[data-i18n]')].filter(e => !e.textContent.trim()).map(e => e.dataset.i18n),
+    }));
+    espera(lang, `la página está en su idioma (${visto.lang}, «${visto.titulo}»)`, visto.lang === lang && visto.titulo === I18N[lang]['demo.title'] && visto.titulo !== I18N.es['demo.title']);
+    espera(lang, `el aviso sale en su idioma («${visto.aviso}»)`, visto.aviso === I18N[lang]['demo.t.rubric'] && visto.aviso !== I18N.es['demo.t.rubric']);
+    espera(lang, `ningún texto de la página queda vacío (${visto.vacios})`, visto.vacios.length === 0);
   }
 
   console.log(`${modo}: ${ids.length} pantallas, ${pulsadas} destinos pulsados, ${[...ruido].length} errores de consola o de red, ${fallos.length} fallos`);
