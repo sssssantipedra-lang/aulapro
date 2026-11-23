@@ -786,6 +786,7 @@ function AppInner() {
                 onUpdateItem={st.updateGradeItem}
                 onDeleteItem={st.deleteGradeItem}
                 onSetGrade={st.setGrade}
+                onSetGrades={st.setManyGrades}
                 lawDocument={st.lawDocument}
                 onLawDocumentChange={st.setLawDocument}
                 onNav={s => setSection(s as Section)}

@@ -29,7 +29,7 @@ const NOTA = /^(?:\d{1,2}(?:[.,]\d*)?|[.,]\d+)$/;
  * Es la misma regla para la celda del cuaderno, la lista de «Calificar esta actividad» y lo pegado.
  */
 export function leerNota(texto: string): Lectura {
-  const limpio = texto.replace(/[\s  ]+/g, '');
+  const limpio = texto.replace(/\s+/g, '');
   if (limpio === '') return { tipo: 'vacia' };
   if (!NOTA.test(limpio)) return { tipo: 'mal' };
   const n = Number(limpio.replace(',', '.'));
@@ -158,7 +158,7 @@ export function entenderPegado(filas: string[][], opciones: { cabecera?: boolean
 
 /** Un nombre, en palabras comparables: sin tildes, sin mayúsculas y sin signos («Pérez Navarro, Lucía»). */
 function palabras(nombre: string): string[] {
-  return nombre.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().split(/[^a-z0-9ñç]+/).filter(Boolean);
+  return nombre.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().split(/[^a-z0-9ñç]+/).filter(Boolean);
 }
 
 /**
@@ -304,4 +304,9 @@ export function conCambios(notas: GradeMap, cambios: CambioDeNota[]): GradeMap {
     out[c.itemId][c.studentId] = c.value;
   }
   return out;
+}
+
+/** Si la pantalla se maneja con el dedo (tableta o móvil): ahí calificar en lista es más cómodo que en la tabla. */
+export function pantallaTactil(): boolean {
+  try { return typeof window !== 'undefined' && !!window.matchMedia?.('(pointer: coarse)').matches; } catch { return false; }
 }

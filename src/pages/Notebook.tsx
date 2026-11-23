@@ -36,6 +36,10 @@ import { useEvaluacionElegida, type EvaluacionElegida } from '../hooks/useEvalua
 import { SelectorEvaluacion } from '../components/SelectorEvaluacion';
 import { NotasDeCurso } from '../components/cuaderno/NotasDeCurso';
 import { explicacionDePropuestas, propuestasDeCategorias, tiposDeAsignatura } from '../lib/categoriasCuaderno';
+import { cambiosDeRelleno, esBloque, leerNota, leerPegado, pantallaTactil, type CambioDeNota } from '../lib/pegarNotas';
+import { VistaPreviaPegado } from '../components/cuaderno/VistaPreviaPegado';
+import { MenuDeColumna } from '../components/cuaderno/MenuDeColumna';
+import { CalificarActividad } from '../components/cuaderno/CalificarActividad';
 
 // El currículo (unos 650 KB) se abre con la pestaña «Por competencias», no con el cuaderno
 const CompetenciasDeLaClase = lazy(() => import('../components/curriculum/CompetenciasDeLaClase')
@@ -65,6 +69,11 @@ interface Props {
   onUpdateItem: (i: GradeItem) => void;
   onDeleteItem: (id: string) => void;
   onSetGrade: (itemId: string, studentId: string, value: number | null) => void;
+  /**
+   * Varias notas de una vez (pegar un bloque, rellenar los vacíos): un solo cambio, con «Deshacer»
+   * (`setManyGrades` de `useAppState`). Sin él se ponen una a una.
+   */
+  onSetGrades?: (cambios: CambioDeNota[], como: 'pegar' | 'rellenar') => void;
   lawDocument: InlineFile | null;
   onLawDocumentChange: (doc: InlineFile | null) => void;
   onNav: (s: string) => void;
@@ -111,7 +120,24 @@ function celdaVecina(desde: HTMLInputElement, paso: 1 | -1): HTMLInputElement | 
   return null;
 }
 
-function GradeCell({ value, onCommit }: { value: number | null; onCommit: (v: number | null) => void }) {
+/** La celda de la actividad de al lado en la misma fila (se salta el bloque de anotaciones, que no se escribe). */
+function celdaAlLado(desde: HTMLInputElement, paso: 1 | -1): HTMLInputElement | null {
+  let td = desde.closest('td');
+  while (td) {
+    td = (paso > 0 ? td.nextElementSibling : td.previousElementSibling) as HTMLTableCellElement | null;
+    const celda = td?.querySelector<HTMLInputElement>('input.gb-cell');
+    if (celda) return celda;
+  }
+  return null;
+}
+
+function GradeCell({ value, onCommit, itemId, alumnoId, onPegar }: {
+  value: number | null; onCommit: (v: number | null) => void;
+  /** La actividad y el alumno de la celda: para llevarle el foco y saber dónde se pega. */
+  itemId: string; alumnoId: string;
+  /** Un bloque de más de una celda pegado aquí: en vez de escribirse, pasa a la vista previa. */
+  onPegar?: (filas: string[][]) => void;
+}) {
   const { lang, t } = useI18n();
   const { toast } = useToast();
   const [text, setText] = useState<string | null>(null); // null = sin editar
@@ -121,16 +147,12 @@ function GradeCell({ value, onCommit }: { value: number | null; onCommit: (v: nu
 
   function commit() {
     if (text === null) return;
-    const trimmed = text.trim().replace(',', '.');
-    if (trimmed === '') {
-      onCommit(null);
-    } else {
-      const n = Number(trimmed);
-      // Lo que no es una nota entre 0 y 10 no se guarda, y se dice (19-11-2026; antes un 11 o un 85
-      // se guardaban como 10 y las letras se descartaban, las dos cosas sin avisar)
-      if (Number.isNaN(n) || n < 0 || n > 10) toast(t('«{texto}» no es una nota entre 0 y 10: no se ha guardado.', { texto: text.trim() }));
-      else onCommit(Math.round(n * 100) / 100);
-    }
+    const leida = leerNota(text);
+    if (leida.tipo === 'vacia') onCommit(null);
+    // Lo que no es una nota entre 0 y 10 no se guarda, y se dice (19-11-2026; antes un 11 o un 85
+    // se guardaban como 10 y las letras se descartaban, las dos cosas sin avisar)
+    else if (leida.tipo === 'mal') toast(t('«{texto}» no es una nota entre 0 y 10: no se ha guardado.', { texto: text.trim() }));
+    else onCommit(leida.valor);
     setText(null);
   }
 
@@ -139,19 +161,45 @@ function GradeCell({ value, onCommit }: { value: number | null; onCommit: (v: nu
       className="gb-cell"
       type="text"
       inputMode="decimal"
+      autoComplete="off"
       value={shown}
       placeholder="·"
+      data-item={itemId}
+      data-alumno={alumnoId}
+      // Sin nada a medio escribir, Ctrl+Z es el «Deshacer» común (el de pegar notas), no el del campo
+      data-deshacer={text === null ? 'comun' : undefined}
       onChange={e => setText(e.target.value)}
       onBlur={commit}
       onFocus={e => e.target.select()}
+      onPaste={e => {
+        if (!onPegar) return;
+        // Una sola celda se pega como siempre; un bloque copiado de una hoja de cálculo pasa por la vista previa
+        const filas = leerPegado(e.clipboardData.getData('text/plain'));
+        if (!esBloque(filas)) return;
+        e.preventDefault();
+        setText(null);
+        onPegar(filas);
+      }}
       onKeyDown={e => {
+        const celda = e.currentTarget;
         // Intro y la flecha abajo pasan al alumno siguiente y la flecha arriba, al anterior (19-11-2026; antes
         // Intro soltaba el foco y lo que se tecleaba después se perdía). Al salir de la celda se guarda sola.
         if (e.key === 'Enter' || e.key === 'ArrowDown' || e.key === 'ArrowUp') {
           e.preventDefault();
-          const celda = e.target as HTMLInputElement;
           const vecina = celdaVecina(celda, e.key === 'ArrowUp' ? -1 : 1);
           if (vecina) vecina.focus(); else if (e.key === 'Enter') celda.blur();
+        }
+        // Las flechas a los lados pasan a la actividad de al lado cuando ya no pueden moverse dentro de la celda:
+        // con todo seleccionado (como queda al entrar) o con el cursor en ese borde (22-11-2026)
+        if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && !e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey) {
+          const ini = celda.selectionStart ?? 0;
+          const fin = celda.selectionEnd ?? 0;
+          const todo = ini === 0 && fin === celda.value.length;
+          const enElBorde = ini === fin && (e.key === 'ArrowLeft' ? fin === 0 : ini === celda.value.length);
+          if (todo || enElBorde) {
+            const otra = celdaAlLado(celda, e.key === 'ArrowLeft' ? -1 : 1);
+            if (otra) { e.preventDefault(); otra.focus(); }
+          }
         }
         if (e.key === 'Escape') setText(null);
       }}
@@ -166,7 +214,7 @@ function GradesTab({
   classes, students, gradeCategories: todasLasCategorias, gradeItems: todasLasActividades, grades: notasGuardadas,
   classMarks, marksConfigs, onSaveMarksConfig,
   onAddCategory, onUpdateCategory, onDeleteCategory,
-  onAddItem, onUpdateItem, onDeleteItem, onSetGrade, onNav, acsAula = [], comunidad, clase, ev,
+  onAddItem, onUpdateItem, onDeleteItem, onSetGrade, onSetGrades, onNav, acsAula = [], comunidad, clase, ev,
 }: Omit<Props, 'lawDocument' | 'onLawDocumentChange'> & { clase: ReturnType<typeof useClaseActiva>; ev: EvaluacionElegida }) {
   const { toast } = useToast();
   const { t, locale, lang } = useI18n();
@@ -190,6 +238,13 @@ function GradesTab({
   /** Lo mismo para todas las notas de la categoría que se está editando. */
   const [catItemWeights, setCatItemWeights] = useState<Record<string, string>>({});
   const [confirmDel, setConfirmDel] = useState(false);
+  /** La actividad cuyo menú está abierto y la que se está calificando en lista (por su id: si deja de verse, se cierran). */
+  const [menuDe, setMenuDe] = useState<string | null>(null);
+  const [calificando, setCalificando] = useState<string | null>(null);
+  /** Un bloque pegado sobre una celda, a la espera de la vista previa. */
+  const [pegado, setPegado] = useState<{ filas: string[][]; alumnoId: string; actividadId: string } | null>(null);
+  /** La actividad recién creada: en cuanto sale en la tabla, el foco va a su primera celda. */
+  const focoPendiente = useRef<string | null>(null);
 
   const cls = classes.find(c => c.id === classId) ?? classes[0];
   const clsId = cls?.id ?? '';
@@ -315,6 +370,36 @@ function GradesTab({
     [myCategories, myItems],
   );
 
+  /** Las actividades donde se escribe, en el orden en que se ven (sin el bloque de anotaciones, que sale solo). */
+  const editables = useMemo(() => grouped.filter(g => !isMarksCategory(g.cat.id)), [grouped]);
+  const columnasEditables = useMemo(() => editables.flatMap(g => g.items), [editables]);
+  const actividadDelMenu = menuDe ? columnasEditables.find(i => i.id === menuDe) ?? null : null;
+  const actividadEnLista = calificando ? columnasEditables.find(i => i.id === calificando) ?? null : null;
+  const detalleDe = (item: GradeItem) => [myCategories.find(c => c.id === item.category_id)?.name, item.date ? diaCorto(item.date) : '']
+    .filter(Boolean).join(' · ');
+
+  /** Varias notas de una vez: un solo cambio con «Deshacer» si la app lo ofrece; si no, una a una. */
+  function ponerNotas(cambios: CambioDeNota[], como: 'pegar' | 'rellenar') {
+    if (onSetGrades) onSetGrades(cambios, como);
+    else cambios.forEach(c => onSetGrade(c.itemId, c.studentId, c.value));
+  }
+  /** Devuelve el foco a la celda (o a la casilla de la lista) de un alumno en una actividad. */
+  function focoEn(itemId: string, alumnoId: string) {
+    const sel = `[data-item="${CSS.escape(itemId)}"][data-alumno="${CSS.escape(alumnoId)}"]`;
+    (document.querySelector<HTMLInputElement>(`input.pn-cal-nota${sel}`) ?? document.querySelector<HTMLInputElement>(`input.gb-cell${sel}`))?.focus();
+  }
+
+  // Al crear una actividad, el foco va a su primera celda en cuanto sale en la tabla (22-11-2026)
+  useEffect(() => {
+    const id = focoPendiente.current;
+    if (!id || !columnasEditables.some(i => i.id === id)) return;
+    focoPendiente.current = null;
+    const celda = document.querySelector<HTMLInputElement>(`input.gb-cell[data-item="${CSS.escape(id)}"]`);
+    if (!celda) return;
+    celda.focus();
+    celda.scrollIntoView({ block: 'nearest', inline: 'center' });
+  }, [columnasEditables]);
+
   const dec = (n: number) => (lang !== 'en' ? String(n).replace('.', ',') : String(n));
   const parseDec = (v: string) => Number(v.trim().replace(',', '.'));
 
@@ -418,7 +503,13 @@ function GradesTab({
     const w = itemWeight.trim() === '' ? undefined : parseDec(itemWeight);
     if (w !== undefined && !(w >= 0 && w <= 100)) { toast(t('Lo que cuenta cada nota debe estar entre 0 y 100')); return; }
     if (itemModal === 'new') {
-      onAddItem({ id: 'gi' + Date.now(), class_id: clsId, category_id: itemCat, name, date: itemDate, ...(w !== undefined ? { weight: w } : {}) });
+      const id = 'gi' + Date.now();
+      onAddItem({ id, class_id: clsId, category_id: itemCat, name, date: itemDate, ...(w !== undefined ? { weight: w } : {}) });
+      // Lista para poner las notas, si se ve en la evaluación que se está mirando: con el dedo, en la lista de
+      // casillas grandes; con teclado, el foco en la primera celda de su columna
+      if (ev.cuenta(itemDate) && !(esCurso && !verTodas)) {
+        if (pantallaTactil()) setCalificando(id); else focoPendiente.current = id;
+      }
       // Si por su fecha no cae en la evaluación que se está viendo, se dice dónde ha ido: si no, parecería que no se ha guardado
       const suya = periodoDeFecha(itemDate, ev.hoy, ev.rangos);
       toast(ev.cuenta(itemDate) ? t('✅ Columna de nota añadida')
@@ -733,7 +824,7 @@ function GradesTab({
                           </th>]
                         ) : items.map((item, k) => (
                           <th key={item.id} style={k === 0 ? { borderLeft: '2px solid var(--border)' } : undefined}>
-                            <button className="gb-item-hd" onClick={() => openItemModal(item)} title={`${cat.name} · ${item.date} — ${t('clic para editar')}`}>
+                            <button className="gb-item-hd" aria-haspopup="dialog" onClick={() => setMenuDe(item.id)} title={`${cat.name} · ${item.date} — ${t('clic para calificarla, rellenarla o editarla')}`}>
                               <span className="gb-item-name">{item.name}</span>
                               <span className="gb-item-cat">{item.date}{hayPesosElegidos(items) && ` · ${(Math.round((porcentajesEnCategoria(items).get(item.id) ?? 0) * 10) / 10).toLocaleString(locale)}%`}</span>
                             </button>
@@ -789,6 +880,8 @@ function GradesTab({
                                 <GradeCell
                                   value={grades[item.id]?.[s.id] ?? null}
                                   onCommit={v => onSetGrade(item.id, s.id, v)}
+                                  itemId={item.id} alumnoId={s.id}
+                                  onPegar={filas => setPegado({ filas, alumnoId: s.id, actividadId: item.id })}
                                 />
                               </td>
                             ));
@@ -839,9 +932,67 @@ function GradesTab({
                 </table>
               </div>
             </div>
+            {columnasEditables.length > 0 && (
+              <p className="sda-note pn-pista">
+                <span className="pn-pista-teclado">{t('Intro y las flechas pasan de una celda a otra. Para traer notas de una hoja de cálculo, copia allí la columna y pégala sobre la celda del primer alumno: antes de poner nada verás lo que cambia.')} </span>
+                <span>{t('Pulsa el nombre de una actividad para calificarla en una lista o poner una nota a quien no tiene.')}</span>
+              </p>
+            )}
             </>
           )}
         </>
+      )}
+
+      {/* El menú de la columna: calificar en lista, poner una nota a quien no tiene y editar */}
+      {actividadDelMenu && (
+        <MenuDeColumna
+          key={actividadDelMenu.id}
+          item={actividadDelMenu} detalle={detalleDe(actividadDelMenu)} alumnado={myStudents} notas={grades[actividadDelMenu.id]}
+          onClose={() => setMenuDe(null)}
+          onCalificar={() => { setMenuDe(null); setCalificando(actividadDelMenu.id); }}
+          onEditar={() => { setMenuDe(null); openItemModal(actividadDelMenu); }}
+          onRellenar={valor => {
+            const cambios = cambiosDeRelleno(actividadDelMenu.id, myStudents, grades[actividadDelMenu.id], valor);
+            ponerNotas(cambios, 'rellenar');
+            setMenuDe(null);
+            // Sin el «Deshacer» común (que ya lo dice), se avisa aquí
+            if (!onSetGrades) toast(t(cambios.length === 1 ? '✅ Nota puesta a 1 alumno' : '✅ Nota puesta a {n} alumnos', { n: cambios.length }));
+          }}
+        />
+      )}
+
+      {/* «Calificar esta actividad»: el alumnado en lista, con una casilla grande por nota */}
+      {actividadEnLista && (
+        <CalificarActividad
+          item={actividadEnLista} detalle={detalleDe(actividadEnLista)}
+          grupos={editables.map(g => ({ categoria: g.cat.name, items: g.items }))}
+          alumnado={myStudents} notas={grades[actividadEnLista.id]} marca={marcaAcs}
+          onNota={(studentId, v) => onSetGrade(actividadEnLista.id, studentId, v)}
+          onCambiar={setCalificando}
+          onPegar={(filas, alumnoId) => setPegado({ filas, alumnoId, actividadId: actividadEnLista.id })}
+          onClose={() => setCalificando(null)}
+        />
+      )}
+
+      {/* Lo pegado de una hoja de cálculo: nada se escribe hasta que el docente lo ha visto */}
+      {pegado && (
+        <VistaPreviaPegado
+          filas={pegado.filas}
+          donde={{
+            alumnado: myStudents,
+            // En la lista se pega en esa actividad y hacia abajo; en la tabla, también hacia la derecha
+            actividades: actividadEnLista ? [actividadEnLista] : columnasEditables,
+            alumnoId: pegado.alumnoId, actividadId: pegado.actividadId, notas: grades,
+          }}
+          onClose={() => { const { actividadId, alumnoId } = pegado; setPegado(null); focoEn(actividadId, alumnoId); }}
+          onAplicar={cambios => {
+            const { actividadId, alumnoId } = pegado;
+            ponerNotas(cambios, 'pegar');
+            setPegado(null);
+            focoEn(actividadId, alumnoId);
+            if (!onSetGrades) toast(t(cambios.length === 1 ? '✅ 1 nota pegada' : '✅ {n} notas pegadas', { n: cambios.length }));
+          }}
+        />
       )}
 
       {/* Modal del bloque de anotaciones del aula */}

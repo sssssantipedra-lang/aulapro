@@ -40,6 +40,7 @@ import {
 import { translate } from '../i18n/core';
 import { cursoNuevoDe, type PlanDeCurso } from '../lib/cursoNuevo';
 import { apuntarCambioDeCurso } from '../lib/cursoAnterior';
+import { cambiosReales, conCambios, type CambioDeNota } from '../lib/pegarNotas';
 
 /** Cómo se lee cada estado de asistencia en el registro de cambios. */
 const ATT_LABEL: Record<AttendanceStatus, string> = {
@@ -799,6 +800,24 @@ export function useAppState() {
       `${formatGrade(before)} → ${formatGrade(value)}`);
   }, [log, studentName, itemName]);
 
+  /**
+   * Varias notas de una vez (22-11-2026: pegar un bloque de una hoja de cálculo o poner una nota a quien no
+   * tiene, `lib/pegarNotas.ts`). Es un solo cambio: una línea en el registro y un «Deshacer» que las devuelve
+   * todas a como estaban. Lo que no cambia nada no cuenta.
+   */
+  const setManyGrades = useCallback((cambios: CambioDeNota[], como: 'pegar' | 'rellenar') => {
+    const reales = cambiosReales(cambios, mirrorRef.current.grades);
+    if (reales.length === 0) return;
+    apuntarBorrado({ tipo: 'notas', cuantos: reales.length });
+    setGrades(prev => conCambios(prev, reales));
+    const columnas = [...new Set(reales.map(c => c.itemId))];
+    const donde = columnas.length === 1 ? `«${itemName(columnas[0])}»` : `${columnas.length} actividades`;
+    const cuantas = reales.length === 1 ? '1 nota' : `${reales.length} notas`;
+    log('update', 'grade', columnas.length === 1 ? columnas[0] : 'varias',
+      como === 'pegar' ? `Pegó ${cuantas} en ${donde}` : `Puso ${cuantas} a quien no tenía en ${donde}`,
+      como === 'rellenar' ? `con un ${formatGrade(reales[0].value)}` : undefined);
+  }, [log, itemName, apuntarBorrado]);
+
   const saveDianaProfile = useCallback((studentId: string, p: DianaProfile) => {
     setDianaProfiles(prev => ({ ...prev, [studentId]: p }));
   }, []);
@@ -1258,6 +1277,7 @@ export function useAppState() {
     addGradeCategory, updateGradeCategory, deleteGradeCategory,
     addGradeItem, updateGradeItem, deleteGradeItem,
     setGrade,
+    setManyGrades,
     dianaProfiles, saveDianaProfile,
     setAttendanceFor, setAttendanceDay, deleteAttendanceDay,
     addReport, addReports, updateReport, deleteReport,

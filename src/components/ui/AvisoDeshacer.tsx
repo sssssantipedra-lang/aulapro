@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { CalendarDays, FilePlus2, Trash2, Undo2, X } from 'lucide-react';
+import { CalendarDays, FilePlus2, PencilLine, Trash2, Undo2, X } from 'lucide-react';
 import { useI18n } from '../../i18n';
 import { useToast } from './Toast';
 import { DURACION_DESHACER_MS, esCambio, esCreado, textoDeBorrados, type Borrado } from '../../lib/deshacer';
@@ -16,7 +16,8 @@ interface Props {
 }
 
 function escribiendo(el: EventTarget | null): boolean {
-  return el instanceof HTMLElement && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName));
+  // Una celda del cuaderno sin nada a medio escribir no tiene nada propio que deshacer (`data-deshacer="comun"`)
+  return el instanceof HTMLElement && el.dataset.deshacer !== 'comun' && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName));
 }
 
 /**
@@ -99,6 +100,8 @@ export function AvisoDeshacer({ pendiente, onDeshacer, onOlvidar, duracion = DUR
     >
       {esCreado(pendiente.borrados)
         ? <FilePlus2 size={17} className="deshacer-ico" aria-hidden="true" />
+        : pendiente.borrados.every(b => b.tipo === 'notas')
+        ? <PencilLine size={17} className="deshacer-ico" aria-hidden="true" />
         : esCambio(pendiente.borrados)
         ? <CalendarDays size={17} className="deshacer-ico" aria-hidden="true" />
         : <Trash2 size={17} className="deshacer-ico" aria-hidden="true" />}

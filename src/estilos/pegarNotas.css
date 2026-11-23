@@ -1,1 +1,104 @@
 /* Estilos de la mejora «pegarNotas» (tanda del 20-11-2026). Los comunes siguen en index.css. */
+
+/* La pista de debajo de la tabla del cuaderno */
+.pn-pista { margin:10px 4px 0; }
+@media (max-width: 640px) { .pn-pista-teclado { display:none; } }
+/* Con el dedo, las celdas de la tabla son más altas */
+@media (pointer: coarse) { .gb-cell { min-height:40px; } }
+
+/* ── Vista previa de lo pegado (`components/cuaderno/VistaPreviaPegado.tsx`) ── */
+.pn-previa { display:flex; flex-direction:column; gap:12px; }
+.pn-como { margin:0; font-size:13.5px; line-height:1.55; color:var(--text-2); }
+.pn-resumen { list-style:none; margin:0; padding:0; display:flex; flex-wrap:wrap; gap:8px; }
+.pn-resumen li { padding:6px 11px; border-radius:99px; font-size:12.5px; font-weight:600; background:var(--surface); color:var(--text-2); border:0.5px solid var(--border); }
+.pn-resumen li strong { font-weight:800; }
+.pn-resumen li.pn-nueva { background:var(--ok-bg); color:var(--ok-fg); border-color:transparent; }
+.pn-resumen li.pn-cambia { background:var(--warn-bg); color:var(--warn-fg); border-color:transparent; }
+.pn-resumen li.pn-mal { background:rgba(239,68,68,0.12); color:var(--grade-bad); border-color:transparent; }
+.pn-avisos { list-style:none; margin:0; padding:10px 12px; display:flex; flex-direction:column; gap:7px; border-radius:10px; background:var(--warn-bg); color:var(--warn-fg); font-size:12.5px; font-weight:600; line-height:1.5; }
+.pn-avisos li { display:flex; gap:8px; align-items:flex-start; }
+.pn-avisos svg { flex-shrink:0; margin-top:2px; }
+.pn-cabecera { display:flex; align-items:flex-start; gap:9px; font-size:13px; font-weight:600; color:var(--text); cursor:pointer; }
+.pn-cabecera input { margin-top:2px; width:16px; height:16px; flex-shrink:0; cursor:pointer; }
+.pn-cabecera small { display:block; margin-top:2px; font-size:11.5px; font-weight:400; color:var(--text-3); }
+.pn-apartado { margin:0; }
+.pn-tabla-caja { max-height:min(46vh, 420px); overflow:auto; border:0.5px solid var(--border); border-radius:10px; }
+.pn-tabla { width:100%; border-collapse:separate; border-spacing:0; font-size:13px; }
+.pn-tabla th, .pn-tabla td { padding:7px 10px; border-bottom:0.5px solid var(--border); text-align:center; white-space:nowrap; }
+.pn-tabla thead th { position:sticky; top:0; z-index:1; background:var(--surface); font-size:11.5px; font-weight:800; color:var(--text-2); }
+.pn-tabla thead th small { display:block; font-weight:500; color:var(--text-3); font-size:10.5px; }
+.pn-tabla th:first-child { text-align:left; }
+.pn-tabla tbody th { font-weight:600; color:var(--text); max-width:200px; overflow:hidden; text-overflow:ellipsis; }
+.pn-tabla tbody tr:last-child th, .pn-tabla tbody tr:last-child td { border-bottom:none; }
+.pn-tabla td.pn-etiqueta { text-align:left; color:var(--text-3); font-size:12px; max-width:200px; overflow:hidden; text-overflow:ellipsis; }
+.pn-fila-mal td.pn-etiqueta { color:var(--warn-fg); font-weight:700; }
+.pn-distinto { display:inline-flex; align-items:center; justify-content:center; width:18px; height:18px; margin-right:6px; border-radius:50%; background:var(--warn-fg); color:var(--card); font-size:12px; font-weight:800; }
+.pn-c { display:inline-block; min-width:34px; padding:3px 8px; border-radius:7px; font-weight:600; }
+.pn-c.pn-nueva { background:var(--ok-bg); color:var(--ok-fg); }
+.pn-c.pn-cambia { background:var(--warn-bg); color:var(--warn-fg); }
+.pn-c.pn-cambia s { opacity:0.75; font-weight:500; }
+.pn-c.pn-igual { color:var(--text-3); font-weight:500; }
+.pn-c.pn-mal { background:rgba(239,68,68,0.12); color:var(--grade-bad); text-decoration:line-through; max-width:110px; overflow:hidden; text-overflow:ellipsis; vertical-align:bottom; }
+.pn-pie { display:flex; gap:10px; flex-wrap:wrap; }
+.pn-pie .btn-accent { flex:1; justify-content:center; min-height:42px; }
+.pn-error { margin:6px 0 0; font-size:12px; font-weight:700; color:var(--grade-bad); }
+
+/* ── El menú de la columna (`components/cuaderno/MenuDeColumna.tsx`) ── */
+.pn-menu { display:flex; flex-direction:column; gap:14px; }
+.pn-menu-detalle { margin:-10px 0 0; font-size:12.5px; color:var(--text-3); }
+.pn-menu-btn { display:flex; align-items:center; gap:12px; width:100%; min-height:56px; padding:11px 14px; border:0.5px solid var(--border); border-radius:12px; background:var(--surface); color:var(--text); font-family:var(--font); text-align:left; cursor:pointer; transition:background var(--t), border-color var(--t); }
+.pn-menu-btn:hover { background:var(--border); }
+.pn-menu-btn:focus-visible { outline:2px solid var(--accent-d); outline-offset:2px; }
+.pn-menu-btn svg { flex-shrink:0; color:var(--text-2); }
+.pn-menu-btn span { display:flex; flex-direction:column; gap:2px; min-width:0; }
+.pn-menu-btn strong { font-size:14px; font-weight:800; }
+.pn-menu-btn small { font-size:12px; color:var(--text-3); line-height:1.4; }
+.pn-menu-btn.principal { background:var(--accent-l); border-color:transparent; }
+.pn-menu-btn.principal:hover { background:rgba(var(--accent-rgb),0.2); }
+.pn-menu-btn.principal svg, .pn-menu-btn.principal strong { color:var(--accent-d); }
+.pn-rellenar { padding:12px 14px; border:0.5px solid var(--border); border-radius:12px; }
+.pn-rellenar .sda-note { margin-top:8px; }
+.pn-rellenar-fila { display:flex; gap:10px; align-items:stretch; }
+.pn-rellenar-fila .finput { width:96px; flex-shrink:0; text-align:center; font-size:16px; font-weight:700; }
+.pn-rellenar-fila .btn-accent { flex:1; justify-content:center; min-height:44px; }
+
+/* ── «Calificar esta actividad»: la lista con casillas grandes (`components/cuaderno/CalificarActividad.tsx`) ── */
+.modal.pn-cal { width:520px; display:flex; flex-direction:column; padding:0; overflow:hidden; }
+.pn-cal-cab { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; padding:18px 20px 10px; }
+.pn-cal-titulo { display:flex; flex-direction:column; gap:5px; min-width:0; flex:1; }
+.pn-cal-ante { font-size:11.5px; font-weight:800; letter-spacing:0.05em; text-transform:uppercase; color:var(--accent-d); }
+.pn-cal-unica { font-size:17px; font-weight:800; color:var(--text); overflow-wrap:anywhere; }
+.pn-cal-sel { font-size:16px; font-weight:700; padding:9px 12px; cursor:pointer; }
+.pn-cal-detalle { font-size:12.5px; color:var(--text-3); }
+.pn-cal-cuenta { display:flex; align-items:center; gap:12px; padding:0 20px 12px; font-size:12.5px; color:var(--text-2); border-bottom:0.5px solid var(--border); }
+.pn-cal-cuenta > span:first-child { white-space:nowrap; }
+.pn-cal-cuenta strong { font-size:15px; font-weight:800; color:var(--text); }
+.pn-barra { flex:1; height:6px; border-radius:99px; background:var(--border); overflow:hidden; }
+.pn-barra span { display:block; height:100%; border-radius:99px; background:var(--ok); transition:width 0.25s; }
+.pn-cal-lista { list-style:none; margin:0; padding:6px 12px; flex:1; min-height:0; overflow-y:auto; overscroll-behavior:contain; }
+.pn-cal-fila { display:grid; grid-template-columns:minmax(0,1fr) auto 48px; align-items:center; column-gap:10px; padding:5px 8px; border-radius:12px; scroll-margin:70px 0; }
+.pn-cal-fila.activa { background:var(--surface); }
+.pn-cal-nombre { font-size:15px; font-weight:600; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; cursor:pointer; padding:10px 0; }
+.pn-cal-nota { width:92px; height:52px; padding:0 8px; text-align:center; border:1.5px solid var(--border); border-radius:12px; background:var(--card); font-family:var(--font); font-size:20px; font-weight:800; outline:none; transition:border-color var(--t), box-shadow var(--t); }
+.pn-cal-nota::placeholder { color:var(--text-3); font-weight:400; }
+.pn-cal-nota:focus { border-color:var(--accent-d); box-shadow:0 0 0 3px rgba(var(--accent-rgb),0.14); }
+.pn-cal-nota[aria-invalid="true"] { border-color:var(--grade-bad); }
+.pn-cal-fila.con-nota .pn-cal-nota { background:var(--surface); }
+.pn-cal-fila.con-nota .pn-cal-nota:focus { background:var(--card); }
+.pn-cal-sig { grid-column:3; display:flex; align-items:center; justify-content:center; width:48px; height:48px; border:none; border-radius:12px; background:var(--accent-d); color:#fff; cursor:pointer; }
+.pn-cal-sig:focus-visible { outline:2px solid var(--accent-d); outline-offset:2px; }
+.pn-cal-fila .pn-error { grid-column:1 / -1; margin:2px 0 4px; text-align:right; }
+.pn-cal-pie { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 20px; border-top:0.5px solid var(--border); }
+.pn-cal-pie .sda-note { margin:0; }
+.pn-cal-pie .btn-accent { min-height:44px; padding:0 22px; flex-shrink:0; }
+
+/* En el móvil ocupa toda la pantalla: la lista es lo único que hay que ver */
+@media (max-width: 640px) {
+  .modal-overlay.pn-cal-fondo { padding:0; align-items:stretch; }
+  .modal.pn-cal { width:100%; max-height:none; height:100%; border-radius:0; animation:none; }
+  .pn-cal-cab { padding:14px 14px 8px; }
+  .pn-cal-cuenta { padding:0 14px 10px; }
+  .pn-cal-lista { padding:6px 6px; }
+  .pn-cal-pie { padding:10px 14px; }
+  .pn-rellenar-fila { flex-wrap:wrap; }
+}

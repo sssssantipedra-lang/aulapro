@@ -27,7 +27,9 @@ export type TipoBorrado =
   /** No es un borrado sino un cambio que también se deshace: las fechas de varias sesiones puestas o corridas de una vez. */
   | 'fechas'
   /** Tampoco es un borrado: los informes de seguimiento de toda una clase, creados de una vez (deshacer los quita). */
-  | 'informesCreados';
+  | 'informesCreados'
+  /** Otro cambio que se deshace: varias notas del cuaderno puestas de una vez (pegar un bloque, rellenar los vacíos). */
+  | 'notas';
 
 /** Una cosa borrada, para decirla en el aviso. */
 export interface Borrado {
@@ -85,6 +87,7 @@ export const DICHO: Record<TipoBorrado, { uno?: string; sin: string; varios?: st
   pizarra: { uno: 'la pizarra «{nombre}»', sin: 'una pizarra', varios: '{n} pizarras' },
   fechas: { sin: 'la fecha de una sesión', varios: 'la fecha de {n} sesiones' },
   informesCreados: { sin: 'un informe de seguimiento', varios: '{n} informes de seguimiento' },
+  notas: { sin: 'una nota del cuaderno', varios: '{n} notas del cuaderno' },
 };
 
 /** La frase del aviso y la de varios tipos mezclados. */
@@ -98,7 +101,7 @@ export const FRASE_CAMBIO = 'Has cambiado {que}.';
 /** Y lo que se crea de golpe (los informes de seguimiento de una clase): «Has creado…». */
 export const FRASE_CREADO = 'Has creado {que}.';
 const CREADOS: ReadonlySet<TipoBorrado> = new Set<TipoBorrado>(['informesCreados']);
-const CAMBIOS: ReadonlySet<TipoBorrado> = new Set<TipoBorrado>(['fechas', ...CREADOS]);
+const CAMBIOS: ReadonlySet<TipoBorrado> = new Set<TipoBorrado>(['fechas', 'notas', ...CREADOS]);
 /** Si lo apuntado es un cambio y no un borrado (para el dibujo del aviso). */
 export const esCambio = (borrados: readonly Borrado[]): boolean => borrados.length > 0 && borrados.every(b => CAMBIOS.has(b.tipo));
 
