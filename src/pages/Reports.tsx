@@ -666,7 +666,7 @@ export function Reports(props: Props) {
                       }}>
                         <Pencil size={15} />
                       </button>
-                      <button className="ico-btn" title={t('Eliminar informe')} aria-label={t('Eliminar informe')} onClick={() => { onDeleteReport(currentReport.id); toast(t('Informe eliminado')); }}>
+                      <button className="ico-btn" title={t('Eliminar informe')} aria-label={t('Eliminar informe')} onClick={() => { onDeleteReport(currentReport.id); setAlLlegar(false); toast(t('Informe eliminado')); }}>
                         <Trash2 size={15} color="var(--danger)" />
                       </button>
                     </>
