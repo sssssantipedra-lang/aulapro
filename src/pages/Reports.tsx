@@ -270,7 +270,7 @@ export function Reports(props: Props) {
         `- Start with the competencies already consolidated, move to those in progress, and end with a ` +
         `concrete, actionable suggestion for improvement.\n` +
         `- Don't invent facts not given above. Don't mention grade numbers except the overall average if it exists.\n` +
-        `- After the text, on a new line, write exactly ${MARCA_TABLA} and then a JSON array with one object per key competency you mentioned ({"clave":"CCL","valoracion":"excelente"|"bien"|"mejorable","comentario":"..."}): "excelente" = outstanding, "bien" = good, "mejorable" = needs improvement. The comment is TWO complete sentences (25 to 45 words): what the student does that supports the rating, with a concrete example from the evidence, and what to keep doing or how to improve. Use only abbreviations from the list above.\n` +
+        `- After the text, on a new line, write exactly ${MARCA_TABLA} and then a JSON array with one object per key competency you mentioned that has a level in the data above (leave the others out of the table) ({"clave":"CCL","valoracion":"excelente"|"bien"|"mejorable","comentario":"..."}): "excelente" = outstanding, "bien" = good, "mejorable" = needs improvement. The comment is TWO complete sentences (25 to 45 words): what the student does that supports the rating, with a concrete example from the evidence, and what to keep doing or how to improve. Use only abbreviations from the list above.\n` +
         `- Return only the report text followed by that table.`
       : `Redacta el informe de evaluación competencial de un alumno para el periodo «${periodLabel}».\n\n` +
         `ALUMNO: ${student.name}\n` +
@@ -292,7 +292,7 @@ export function Reports(props: Props) {
         `- Empieza por las competencias que ya tiene consolidadas, sigue con las que están en proceso y termina con ` +
         `una propuesta de mejora concreta y accionable.\n` +
         `- No inventes hechos que no aparezcan arriba. No menciones números de nota salvo la media general si existe.\n` +
-        `- Después del texto, en una línea nueva, escribe exactamente ${MARCA_TABLA} y a continuación un array JSON con un objeto por cada competencia clave que hayas mencionado ({"clave":"CCL","valoracion":"excelente"|"bien"|"mejorable","comentario":"..."}): «excelente» es sobresaliente, «bien» es adecuado y «mejorable» es que necesita mejorar. El comentario son DOS frases completas (de 25 a 45 palabras): qué hace el alumno que justifica la valoración, con un ejemplo concreto de las evidencias, y qué mantener o cómo mejorar. Usa solo abreviaturas de la lista de arriba.\n` +
+        `- Después del texto, en una línea nueva, escribe exactamente ${MARCA_TABLA} y a continuación un array JSON con un objeto por cada competencia clave que hayas mencionado y que tenga nivel en los datos de arriba (las demás no van en la tabla) ({"clave":"CCL","valoracion":"excelente"|"bien"|"mejorable","comentario":"..."}): «excelente» es sobresaliente, «bien» es adecuado y «mejorable» es que necesita mejorar. El comentario son DOS frases completas (de 25 a 45 palabras): qué hace el alumno que justifica la valoración, con un ejemplo concreto de las evidencias, y qué mantener o cómo mejorar. Usa solo abreviaturas de la lista de arriba.\n` +
         `- Devuelve únicamente el texto del informe seguido de esa tabla.`;
 
     const raw = await callGemini(en ? SYSTEM_PROMPT_EN : SYSTEM_PROMPT_ES, userPrompt, [], {

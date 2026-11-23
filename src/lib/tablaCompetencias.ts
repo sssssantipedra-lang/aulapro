@@ -95,7 +95,11 @@ export function lineasDeClave(notas: Record<string, number>, en: boolean): strin
   return Object.entries(notas).map(([k, v]) => `- ${k}: ${String(v).replace('.', en ? '.' : ',')}/4 (${valoracionDeNota(v)})`);
 }
 
-/** La valoración de las competencias con nota la fija el código; la IA solo escribe el comentario (y valora las que no tienen nota). */
+/**
+ * La valoración la fija siempre el código, con la nota de la competencia; la IA solo escribe el comentario.
+ * Una competencia sin nota no entra en la tabla: su valoración solo podría ponerla la IA, y la IA no valora
+ * al alumnado (decisión del 3-11-2026; hasta el 23-11-2026 esas filas salían con la valoración de la IA).
+ */
 export function aplicarNotas(tabla: FilaCompetencia[], notas: Record<string, number>): FilaCompetencia[] {
-  return tabla.map(f => (f.clave in notas ? { ...f, valoracion: valoracionDeNota(notas[f.clave]) } : f));
+  return tabla.filter(f => f.clave in notas).map(f => ({ ...f, valoracion: valoracionDeNota(notas[f.clave]) }));
 }

@@ -26,12 +26,13 @@ describe('valoración por código', () => {
     expect([valoracionDeNota(3.6), valoracionDeNota(3), valoracionDeNota(2.5), valoracionDeNota(2.4)]).toEqual(['excelente', 'bien', 'bien', 'mejorable']);
     expect(notasPorClave([{ competencyScores: { CCL: 4, STEM: 2 } }, { competencyScores: { CCL: 3 } }])).toEqual({ CCL: 3.5, STEM: 2 });
   });
-  it('manda la nota sobre lo que diga la IA', () => {
+  it('manda la nota sobre lo que diga la IA, y una competencia sin nota no entra: la IA no valora', () => {
     const t = aplicarNotas([
       { clave: 'CCL', valoracion: 'excelente', comentario: 'x' },
       { clave: 'CD', valoracion: 'bien', comentario: 'y' },
     ], { CCL: 1.5 });
-    expect(t.map(f => f.valoracion)).toEqual(['mejorable', 'bien']);
+    expect(t).toEqual([{ clave: 'CCL', valoracion: 'mejorable', comentario: 'x' }]);
+    expect(aplicarNotas([{ clave: 'CD', valoracion: 'excelente', comentario: 'y' }], {})).toEqual([]);
   });
 });
 
