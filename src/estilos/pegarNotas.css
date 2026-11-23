@@ -8,6 +8,8 @@
 
 /* ── Vista previa de lo pegado (`components/cuaderno/VistaPreviaPegado.tsx`) ── */
 .pn-previa { display:flex; flex-direction:column; gap:12px; }
+/* Recibe el foco al abrirse (para sacarlo de la celda de debajo): no es un control, no lleva contorno */
+.pn-previa:focus { outline:none; }
 .pn-como { margin:0; font-size:13.5px; line-height:1.55; color:var(--text-2); }
 .pn-resumen { list-style:none; margin:0; padding:0; display:flex; flex-wrap:wrap; gap:8px; }
 .pn-resumen li { padding:6px 11px; border-radius:99px; font-size:12.5px; font-weight:600; background:var(--surface); color:var(--text-2); border:0.5px solid var(--border); }

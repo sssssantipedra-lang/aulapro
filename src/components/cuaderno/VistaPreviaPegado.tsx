@@ -3,7 +3,7 @@
  * nota, lo que pisa y lo que no entra. Es obligatoria porque lo pegado se casa por posición y no por nombre: si
  * la hoja del docente no está en el orden de la lista, aquí es donde se ve. La cuenta es de `lib/pegarNotas.ts`.
  */
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { AlertTriangle, ClipboardPaste } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { useI18n } from '../../i18n';
@@ -25,6 +25,13 @@ export function VistaPreviaPegado({ filas, donde, onAplicar, onClose }: Props) {
   const plan = useMemo(() => planDePegado(pegado, donde), [pegado, donde]);
   const primeraConTexto = useMemo(() => (filas[0] ?? []).some(x => leerNota(x).tipo === 'mal'), [filas]);
   const nota = (n: number | null) => (n === null ? '' : lang !== 'en' ? String(n).replace('.', ',') : String(n));
+
+  // Al abrirse, el foco pasa a la ventana. Si se quedara en la celda sobre la que se pegó, lo que se tecleara con
+  // la vista previa delante (un Intro para aceptar, una cifra) caería en el cuaderno de debajo: cambiaría notas que
+  // aquí se dice que no cambian, y sin «Deshacer» (23-11-2026)
+  const caja = useRef<HTMLDivElement>(null);
+  const hayPlan = plan !== null;
+  useEffect(() => { if (hayPlan) caja.current?.focus({ preventScroll: true }); }, [hayPlan]);
 
   if (!plan) return null;
   const total = plan.cambios.length;
@@ -50,7 +57,7 @@ export function VistaPreviaPegado({ filas, donde, onAplicar, onClose }: Props) {
 
   return (
     <Modal open onClose={onClose} wide stickyHeader title={<span className="mk-ttl"><ClipboardPaste size={17} color="var(--accent-d)" />{t('Pegar notas: revisa antes de poner nada')}</span>}>
-      <div className="pn-previa">
+      <div className="pn-previa" ref={caja} tabIndex={-1}>
         <p className="pn-como">
           {sinColumnas
             ? t('Lo que has pegado no trae ninguna columna de notas.')

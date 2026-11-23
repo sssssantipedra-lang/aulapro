@@ -73,6 +73,20 @@ describe('pegar un bloque de una hoja de cálculo', () => {
     expect(new Set(cambios.map(c => c.itemId))).toEqual(new Set(['i2b']));
   });
 
+  it('con la vista previa abierta el foco sale de la celda: lo que se teclee no cae en el cuaderno de debajo', () => {
+    pinta();
+    const origen = celda('i2', 's1');
+    origen.focus();
+    expect(document.activeElement).toBe(origen);
+    pegar(origen, '1\n2');
+    // Antes el foco seguía en la celda: un Intro para aceptar o una cifra cambiaban notas por detrás de la ventana
+    expect(document.activeElement).not.toBe(origen);
+    expect(ventana().contains(document.activeElement)).toBe(true);
+    // Y al cancelar vuelve a la celda donde se pegó
+    fireEvent.click(within(ventana()).getByRole('button', { name: 'Cancelar' }));
+    expect(document.activeElement).toBe(origen);
+  });
+
   it('cancelar no cambia nada, y una sola celda se pega como siempre', () => {
     const p = pinta();
     pegar(celda('i2', 's1'), '1\n2');
