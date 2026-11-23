@@ -102,4 +102,6 @@
   /* El botón flotante de la ayuda (52 px a 20 px del borde) cae sobre la esquina del pie: se le deja sitio */
   .pn-cal-pie { padding:10px 86px 10px 14px; }
   .pn-rellenar-fila { flex-wrap:wrap; }
+  /* Lo mismo en la vista previa de pegar: sin esto el botón de la ayuda tapaba medio «Cancelar» */
+  .pn-pie { padding-right:38px; }
 }
