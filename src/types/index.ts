@@ -489,11 +489,20 @@ export interface DianaDescriptors {
   [key: string]: string;
 }
 
-/** Diana competencial guardada de un alumno. */
-export interface DianaProfile {
+/** Los niveles y los descriptores de una Diana competencial, y el día en que se guardó. */
+export interface DianaGuardada {
   scores: Record<string, number>;
   descriptors: Record<string, string>;
   updated: string;
+}
+
+/**
+ * Diana competencial guardada de un alumno. Lo de arriba es la de todo el curso (la única que había hasta el
+ * 20-11-2026); desde entonces cada evaluación tiene además la suya, por su clave («2026-1», la de `claveDe`
+ * en `lib/periodos.ts`). Se leen y se guardan con `lib/dianaGuardada.ts`.
+ */
+export interface DianaProfile extends DianaGuardada {
+  porEvaluacion?: Record<string, DianaGuardada>;
 }
 
 /* ── Asistencia ── */

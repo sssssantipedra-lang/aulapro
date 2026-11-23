@@ -20,6 +20,7 @@ import { resumir, sinEvaluar } from '../../lib/curriculum/evaluacionPorCriterios
 import { citarNormas, type ComunidadId } from '../../lib/curriculum/comunidades';
 import { saveCompetenciasPdf } from '../../services/exportCompetencias';
 import { isoDate } from '../../lib/utils';
+import { EN_FRASE, type RangoDeFechas } from '../../lib/periodos';
 import type { Class, Evaluation } from '../../types';
 
 /** El resumen de un texto oficial: entero al pasar el ratón, o al tocarlo. */
@@ -48,13 +49,16 @@ function Nota({ valor }: { valor: number | null }) {
   );
 }
 
-export function CompetenciasEspecificas({ cls, comunidad, alumno, evaluaciones }: {
+export function CompetenciasEspecificas({ cls, comunidad, alumno, evaluaciones, periodo, rango }: {
   cls: Class | null;
   comunidad: ComunidadId | undefined;
   /** El nombre del alumno, para el PDF. */
   alumno: string;
-  /** Las evaluaciones del alumno. */
+  /** Las evaluaciones del alumno: las de la evaluación elegida o, en «Curso», todas. */
   evaluaciones: Evaluation[];
+  /** La evaluación de la que son («2ª evaluación»), para decirlo en la pantalla y en el PDF; sin ella, todo el curso. */
+  periodo?: string;
+  rango?: RangoDeFechas | null;
 }) {
   const { t, lang } = useI18n();
   const { toast } = useToast();
@@ -65,7 +69,7 @@ export function CompetenciasEspecificas({ cls, comunidad, alumno, evaluaciones }
   async function exportar() {
     setExportando(true);
     const res = await saveCompetenciasPdf({
-      alumno, clase: cls?.name ?? '', fecha: isoDate(), materias,
+      alumno, clase: cls?.name ?? '', fecha: isoDate(), materias, periodo, rango: rango ?? undefined,
       cita: curriculo ? citarNormas(curriculo.normas, lang) : undefined,
     }, lang);
     setExportando(false);
@@ -75,7 +79,10 @@ export function CompetenciasEspecificas({ cls, comunidad, alumno, evaluaciones }
   return (
     <section className="card" aria-labelledby="ce-titulo">
       <div className="card-hd">
-        <div className="card-ttl" id="ce-titulo">{t('Competencias específicas')}</div>
+        <div className="card-ttl" id="ce-titulo">
+          {t('Competencias específicas')}
+          {periodo && <span className="sda-chip">{t(periodo)}</span>}
+        </div>
         {materias.length > 0 && (
           <button type="button" className="btn-ghost" onClick={exportar} disabled={exportando} style={{ gap: 6 }}>
             <FileDown size={14} aria-hidden="true" />{t('Exportar PDF')}
@@ -92,7 +99,12 @@ export function CompetenciasEspecificas({ cls, comunidad, alumno, evaluaciones }
       {estado === 'listo' && materias.length === 0 && (
         <p className="ce-aviso">{t('Ninguna asignatura de esta clase tiene materia oficial.')}</p>
       )}
-      {estado === 'listo' && materias.length > 0 && !hayNotas && (
+      {estado === 'listo' && materias.length > 0 && !hayNotas && periodo && (
+        <p className="ce-aviso">
+          {t('No hay criterios oficiales evaluados en {evaluacion}. Lo evaluado en otras fechas está en su evaluación y en «Curso».', { evaluacion: t(EN_FRASE[periodo] ?? periodo) })}
+        </p>
+      )}
+      {estado === 'listo' && materias.length > 0 && !hayNotas && !periodo && (
         <p className="ce-aviso">
           {t('Aún no hay notas: en Rúbricas y Dianas, marca qué criterios oficiales evalúa cada criterio o ítem, y evalúa con ellos.')}
         </p>

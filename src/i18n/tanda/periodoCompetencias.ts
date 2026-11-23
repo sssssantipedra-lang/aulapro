@@ -25,6 +25,23 @@ export const EN: Record<string, string> = {
   'otro curso': 'another school year',
   'Queda 1 criterio sin evaluar en todo el curso, por repartir:': '1 criterion has not been assessed all year and is still to be planned:',
   'Quedan {n} criterios sin evaluar en todo el curso, por repartir:': '{n} criteria have not been assessed all year and are still to be planned:',
+  // La Diana competencial por evaluación
+  'La Diana de una evaluación se rellena con las rúbricas, dianas y escalas evaluadas en estas fechas.': 'The learner profile of a term is filled in from the rubrics, targets and checklist scales assessed on these dates.',
+  '✅ Diana de {evaluacion} guardada': '✅ Learner profile for {evaluacion} saved',
+  'Este alumno no tiene en {evaluacion} evaluaciones con competencias clave ni con criterios oficiales. Mira en otra evaluación o en «Curso», o evalúa con rúbricas y dianas que los tengan marcados.':
+    'This student has no assessments with key competences or official criteria in {evaluacion}. Look in another term or under “Year”, or assess with rubrics and targets that have them ticked.',
+  'Diana de todo el curso': 'Learner profile for the whole year',
+  'Diana de {evaluacion}': 'Learner profile for {evaluacion}',
+  'Con cambios sin guardar': 'With unsaved changes',
+  'Guardada el {fecha}': 'Saved on {fecha}',
+  'Sin guardar todavía': 'Not saved yet',
+  'Cuenta 1 evaluación de este alumno hecha en {evaluacion}.': '1 assessment of this student made in {evaluacion} counts.',
+  'Cuentan {n} evaluaciones de este alumno hechas en {evaluacion}.': '{n} assessments of this student made in {evaluacion} count.',
+  'No hay evaluaciones de este alumno en {evaluacion}.': 'There are no assessments of this student in {evaluacion}.',
+  'En todo el curso tiene {n}.': 'Over the whole year there are {n}.',
+  'Tiene guardada la Diana de:': 'There is a saved learner profile for:',
+  'No hay criterios oficiales evaluados en {evaluacion}. Lo evaluado en otras fechas está en su evaluación y en «Curso».':
+    'No official criteria have been assessed in {evaluacion}. What was assessed on other dates is in its term and under “Year”.',
 };
 
 export const CA: Record<string, string> = {
@@ -50,4 +67,21 @@ export const CA: Record<string, string> = {
   'otro curso': 'un altre curs',
   'Queda 1 criterio sin evaluar en todo el curso, por repartir:': 'Queda 1 criteri sense avaluar en tot el curs, per repartir:',
   'Quedan {n} criterios sin evaluar en todo el curso, por repartir:': 'Queden {n} criteris sense avaluar en tot el curs, per repartir:',
+  // La Diana competencial por evaluación
+  'La Diana de una evaluación se rellena con las rúbricas, dianas y escalas evaluadas en estas fechas.': 'La Diana d’una avaluació s’omple amb les rúbriques, dianes i escales avaluades en aquestes dates.',
+  '✅ Diana de {evaluacion} guardada': '✅ Diana de {evaluacion} desada',
+  'Este alumno no tiene en {evaluacion} evaluaciones con competencias clave ni con criterios oficiales. Mira en otra evaluación o en «Curso», o evalúa con rúbricas y dianas que los tengan marcados.':
+    'Aquest alumne no té en {evaluacion} avaluacions amb competències clau ni amb criteris oficials. Mira en una altra avaluació o a «Curs», o avalua amb rúbriques i dianes que els tinguin marcats.',
+  'Diana de todo el curso': 'Diana de tot el curs',
+  'Diana de {evaluacion}': 'Diana de {evaluacion}',
+  'Con cambios sin guardar': 'Amb canvis sense desar',
+  'Guardada el {fecha}': 'Desada el {fecha}',
+  'Sin guardar todavía': 'Encara sense desar',
+  'Cuenta 1 evaluación de este alumno hecha en {evaluacion}.': 'Compta 1 avaluació d’aquest alumne feta en {evaluacion}.',
+  'Cuentan {n} evaluaciones de este alumno hechas en {evaluacion}.': 'Compten {n} avaluacions d’aquest alumne fetes en {evaluacion}.',
+  'No hay evaluaciones de este alumno en {evaluacion}.': 'No hi ha avaluacions d’aquest alumne en {evaluacion}.',
+  'En todo el curso tiene {n}.': 'En tot el curs en té {n}.',
+  'Tiene guardada la Diana de:': 'Té desada la Diana de:',
+  'No hay criterios oficiales evaluados en {evaluacion}. Lo evaluado en otras fechas está en su evaluación y en «Curso».':
+    'No hi ha criteris oficials avaluats en {evaluacion}. El que s’ha avaluat en altres dates és a la seva avaluació i a «Curs».',
 };

@@ -13,7 +13,7 @@ import type { Class, Evaluation } from '../../types';
 beforeEach(() => { localStorage.clear(); vi.useFakeTimers({ toFake: ['Date'] }); vi.setSystemTime(new Date(2026, 10, 20, 10)); });
 afterEach(() => { cleanup(); localStorage.clear(); vi.useRealTimers(); });
 
-const QUINTO: Class = { id: 'c1', name: '5º A', subject: 'Matemáticas', room: '', color: '#000', etapa: 'primaria', curso: 5 };
+const QUINTO: Class = { id: 'c1', name: '5º A', subject: 'Matemáticas', subjects: ['Matemáticas'], room: '', color: '#000', etapa: 'primaria', curso: 5 };
 
 const evaluacion = (notas: Record<string, number>, date: string): Evaluation => ({
   id: 'e' + date, rubric_id: 'r', rubric_name: 'Mercado', student_id: 's1', student_name: '',

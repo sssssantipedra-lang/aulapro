@@ -20,6 +20,9 @@ export interface DatosCompetencias {
   cita?: string;
   /** AAAA-MM-DD. */
   fecha: string;
+  /** La evaluación de la que son las notas («2ª evaluación») y sus fechas; sin ella, las de todo el curso. */
+  periodo?: string;
+  rango?: { desde: string; hasta: string };
   materias: { asignatura: string; notas: NotaMateria }[];
 }
 
@@ -27,6 +30,10 @@ export function buildCompetenciasHtml(d: DatosCompetencias, lang: Lang): string 
   const t = (k: string, v?: Record<string, string | number>) => translate(lang, k, v);
   const locale = lang === 'en' ? 'en-GB' : lang === 'ca' ? 'ca-ES' : 'es-ES';
   const fecha = fromIsoDate(d.fecha).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' });
+  const dia = (f: string) => fromIsoDate(f).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' });
+  const periodo = !d.periodo ? '' : d.rango
+    ? t('{periodo} (del {desde} al {hasta})', { periodo: t(d.periodo), desde: dia(d.rango.desde), hasta: dia(d.rango.hasta) })
+    : t(d.periodo);
   const nota = (n: number | null) => (n === null ? '—' : n.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }));
 
   const tablas = d.materias.map(({ asignatura, notas }) => {
@@ -48,7 +55,7 @@ export function buildCompetenciasHtml(d: DatosCompetencias, lang: Lang): string 
   return `<!doctype html><html lang="${lang}"><head><meta charset="utf-8">` +
     `<title>${esc(t('Competencias específicas'))} · ${esc(d.alumno)}</title><style>${ESTILO}</style></head><body>` +
     `<header><h1>${esc(t('Competencias específicas'))}</h1>` +
-    `<p><strong>${esc(d.alumno)}</strong> · ${esc(d.clase)} · ${esc(fecha)}</p>` +
+    `<p><strong>${esc(d.alumno)}</strong> · ${esc(d.clase)}${periodo ? ` · ${esc(periodo)}` : ''} · ${esc(fecha)}</p>` +
     (d.cita ? `<p class="cita">${esc(t('Currículo: {cita}', { cita: d.cita }))}</p>` : '') +
     `</header><div class="materias">${tablas}</div>` +
     `<footer>${esc(t('Nota de cada criterio: media de las veces que se ha evaluado. Competencia: media de sus criterios evaluados. Área: media de sus competencias evaluadas. Sobre 10.'))}</footer>` +
@@ -86,7 +93,7 @@ export async function saveCompetenciasPdf(d: DatosCompetencias, lang: Lang): Pro
     // «Ana López» → «Ana-Lopez»: sin tildes, que algunos sistemas de archivos llevan mal
     const slug = (x: string) => x.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
     // Vertical: es una hoja A4 de tablas estrechas (sin indicarlo, sale horizontal)
-    const res = await docs.savePdf(html, `competencias-${slug(d.alumno) || 'alumno'}.pdf`, { landscape: false, carpeta: CARPETAS.informes });
+    const res = await docs.savePdf(html, `competencias-${slug(d.alumno) || 'alumno'}${d.periodo ? `-${slug(translate(lang, d.periodo))}` : ''}.pdf`, { landscape: false, carpeta: CARPETAS.informes });
     if (!res.canceled && !res.error && res.path) docs.reveal(res.path);
     return res;
   }

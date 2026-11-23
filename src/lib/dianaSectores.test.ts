@@ -29,6 +29,19 @@ describe('evidencias de la Diana', () => {
     expect(s.ds5).toHaveLength(1);
   });
 
+  it('una rúbrica con otros niveles se pasa a 1-4 con su nivel más alto, como en el acta', () => {
+    // El nivel más alto de una rúbrica de tres niveles es un 4 en la Diana; antes contaba como un 3
+    const tres = evidenciasPorSector([{ ...evaluacion({ CCL: 3, STEM: 2 }), max_level: 3 }], [], formato);
+    expect(tres.ds1).toEqual([{ value: 4, etiqueta: 'CCL 4 («Mercado»)' }]);
+    expect(tres.ds2[0].value).toBe(2.7);
+    // Y el de una de cinco tampoco se sale de la escala
+    const cinco = evidenciasPorSector([{ ...evaluacion({ CCL: 5, STEM: 2.5 }), max_level: 5 }], [], formato);
+    expect(cinco.ds1[0].value).toBe(4);
+    expect(cinco.ds2[0].value).toBe(2);
+    // Con cuatro niveles, o sin el dato, queda como estaba
+    expect(evidenciasPorSector([{ ...evaluacion({ CCL: 3 }), max_level: 4 }], [], formato).ds1[0].value).toBe(3);
+  });
+
   it('una competencia específica llega a los sectores de sus competencias clave, una vez por sector', () => {
     const s = evidenciasPorSector([], [mates([{ n: 2, nota: 7.5, clave: ['CCL', 'STEM', 'CCEC'] }])], formato);
     // 7,5 sobre 10 es un 3 de 4
