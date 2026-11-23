@@ -32,7 +32,7 @@ export default {
   despues: async page => {
     await page.evaluate(() => {
       localStorage.setItem('aulapro_gemini_key', 'AIza' + 'x'.repeat(35));
-      localStorage.setItem('aulapro_uso_ia', JSON.stringify({ v: '2026-11-04', fecha: new Date().toISOString() }));
+      localStorage.setItem('aulapro_uso_ia', JSON.stringify({ v: '2026-11-05', fecha: new Date().toISOString() }));   // `VERSION_USO_IA` de `src/lib/usoIA.ts`
     });
     await page.reload({ waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(4500);
@@ -59,25 +59,31 @@ export default {
         await p.mouse.wheel(0, 380); await esperar(p, 1500);
         await clicar(p, modal(p).getByRole('button', { name: /Crear rúbrica/ }).last(), rapido);
       } },
-    { texto: 'Pulsa «Evaluar alumno», elige la clase y el alumno, y marca el nivel de cada criterio.',
+    // Desde el 20-11-2026 la ventana es «Evaluar a la clase»: la clase va arriba (aquí solo hay una, la de la rúbrica),
+    // el alumnado sale en una lista con el primero ya elegido y «Guardar y siguiente» no cierra la ventana
+    { texto: 'Pulsa «Evaluar a la clase»: el alumnado sale en una lista, con el primero ya elegido. Marca el nivel de cada criterio.',
       hacer: async p => {
         await esperar(p, 600);
-        await clicar(p, p.locator('main').getByRole('button', { name: 'Evaluar alumno' }).first(), rapido);
+        await clicar(p, p.locator('main').getByRole('button', { name: 'Evaluar a la clase' }).first(), rapido);
         const d = modal(p);
-        const selects = d.locator('select');
-        await mover(p, selects.nth(0), rapido);
-        await selects.nth(0).selectOption({ index: 1 });
-        await esperar(p, 500);
-        await selects.nth(1).selectOption({ index: 1 });
-        await esperar(p, 500);
+        await mover(p, d.locator('.evc-al').first(), rapido);
         const filas = d.locator('tbody tr');
         for (const [fila, nivel] of [[0, 3], [1, 4], [2, 2]]) await clicar(p, filas.nth(fila).locator('td').nth(nivel), rapido);
       } },
-    { texto: 'Al guardar, la nota se calcula sola y pasa al cuaderno.',
-      hacer: async p => { await clicar(p, modal(p).getByRole('button', { name: /Guardar evaluación/ }), rapido); await esperar(p, 800); } },
+    { texto: 'Con «Guardar y siguiente», la nota se calcula sola, pasa al cuaderno y ya tienes delante al siguiente de la lista.',
+      hacer: async p => {
+        await clicar(p, modal(p).getByRole('button', { name: 'Guardar y siguiente' }), rapido);
+        await esperar(p, 1800);
+        await mover(p, modal(p).locator('.evc-cuenta'), { pasos: 20, espera: 1200 });
+        await clicar(p, modal(p).getByRole('button', { name: 'Cerrar', exact: true }).last(), rapido);
+      } },
     { texto: 'En el cuaderno docente aparece la nota registrada, en la categoría que elegiste, junto al resto de notas del alumno.',
       hacer: async p => {
         await menu(p, 'Cuaderno de Notas', rapido);
+        // El cuaderno se abre en la clase de ahora según el horario: se pasa a la de la rúbrica
+        const clases = p.locator('main .class-pick select').first();
+        await mover(p, clases, rapido);
+        await clases.selectOption(await clases.locator('option').evaluateAll(os => os.find(o => o.textContent.includes('1º ESO A')).value));
         await esperar(p, 1500);
         await mover(p, p.locator('th', { hasText: 'Resolución de problemas en equipo' }), { pasos: 20, espera: 1200 });
         // La celda de «Alumno 1» justo debajo de esa columna

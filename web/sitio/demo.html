@@ -194,6 +194,43 @@ footer a:hover{color:var(--text)}
 .dia-cuenta{position:absolute;display:grid;place-items:center;background:#fff;color:#94a3b8;font:400 12px/1 var(--f-app);opacity:0;pointer-events:none}
 .dia-cuenta.on{opacity:1}
 
+/* ---------- «Evaluar a la clase»: the list, who is being assessed, the total and the footer, drawn again with the
+   app's own measures and colours (src/estilos/evaluarClase.css) over a capture taken without them ---------- */
+.evc-r{position:absolute;display:flex;align-items:center;gap:8px;padding:6px 8px;border:1.5px solid transparent;border-radius:9px;color:#0f172a;font:600 13px/1.4 var(--f-app);pointer-events:none;transition:background-color .15s,border-color .15s}
+.evc-r.sel{background:#fff;border-color:#0ea5e9;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.evc-r i{flex:0 0 18px;display:grid;place-items:center;width:18px;height:18px;border:1.5px solid #ece6db;border-radius:50%;background:#fff;color:#fff}
+.evc-r i svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;opacity:0}
+.evc-r.hoy i{background:#10b981;border-color:#10b981}
+.evc-r.hoy i svg{opacity:1}
+.evc-r.sin i{border-color:#f59e0b;background:#f59e0b;box-shadow:inset 0 0 0 3.5px #fff}
+.evc-r b{flex:1;min-width:0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.evc-r span{flex:none;font:700 11px/1.4 var(--f-app);color:#94a3b8;white-space:nowrap}
+.evc-r.hoy span{color:#047857}
+.evc-r.sin span{color:#b45309}
+.evc-n{position:absolute;display:flex;align-items:baseline;justify-content:space-between;gap:6px;padding:0 4px;color:#475569;font:400 12.5px/22px var(--f-app);white-space:nowrap;pointer-events:none}
+.evc-n strong{font-size:15px;font-weight:800;color:#0f172a}
+.evc-n em{font:700 11.5px/22px var(--f-app);color:#b45309}
+.evc-b{position:absolute;border-radius:99px;background:#ece6db;overflow:hidden;pointer-events:none}
+.evc-b span{display:block;height:100%;border-radius:99px;background:#10b981;transition:width .25s}
+.evc-q{position:absolute;color:#0f172a;pointer-events:none}
+.evc-q div{display:flex;align-items:baseline;gap:10px}
+.evc-q strong{font:800 16px/1.4 var(--f-app)}
+.evc-q div span{font:400 12px/1.4 var(--f-app);color:#94a3b8}
+.evc-q p{margin-top:6px;padding:8px 12px;border:1px solid rgba(245,158,11,.3);border-radius:9px;background:#fffbeb;color:#b45309;font:400 12.5px/1.45 var(--f-app)}
+.win .evc-q button{font-weight:700;color:#0ea5e9;text-decoration:underline;text-underline-offset:2px;pointer-events:auto}
+.evc-t{position:absolute;display:flex;align-items:center;gap:10px;white-space:nowrap;pointer-events:none}
+.evc-t b{padding:4px 14px;border-radius:99px;background:rgba(14,165,233,.12);color:#0ea5e9;font:800 13px/1.4 var(--f-app)}
+.evc-t span{font:400 12px/1.4 var(--f-app);color:#94a3b8}
+.evc-t i{font:600 13px/1.4 var(--f-app);color:#475569}
+.evc-f{position:absolute;display:flex;justify-content:flex-end;gap:10px}
+.win .evc-f button{display:inline-flex;align-items:center;gap:6px;padding:0 18px;border-radius:10px;font:700 13.5px/1 var(--f-app);white-space:nowrap;transition:opacity .2s,background-color .2s}
+.win .evc-f .gh{padding:0 16px;background:#fbf8f3;box-shadow:inset 0 0 0 .5px #ece6db;color:#475569;font-weight:600}
+.win .evc-f .gh:hover{background:#ece6db}
+.win .evc-f .ac{background:#0ea5e9;color:#fff}
+.win .evc-f .ac:hover{opacity:.85}
+.win .evc-f .ac:disabled{opacity:.5;cursor:default}
+.evc-f svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
 /* ---------- the board: pen bar, timer, roulette and calculator, drawn like the app's white board ---------- */
 .lv{position:absolute}
 .pzi{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
@@ -320,7 +357,7 @@ html.zoom-open{overflow:hidden}
       <p class="kicker" data-i18n="demo.kicker">Demo interactiva</p>
       <h1 class="h1" data-i18n="demo.title">Toca AulaPro por dentro.</h1>
     </div>
-    <p class="lede" data-i18n="demo.lede">Recorre todas las pantallas, con el perfil de docente de aula, el de Educación Física y el de PT y AL, como si ya la estuvieras usando. Es una demo: lo que crea la IA (situaciones de aprendizaje, informes, fichas, actas…) es un ejemplo ya hecho, los botones te enseñan dónde está cada cosa y no se guarda nada.</p>
+    <p class="lede" data-i18n="demo.lede">Recorre todas las pantallas, con el perfil de docente de aula, el de Educación Física y el de PT y AL, como si ya la estuvieras usando. Es una demo: lo que crea la IA (situaciones de aprendizaje, fichas, actas de reunión…) es un ejemplo ya hecho, los botones te enseñan dónde está cada cosa y no se guarda nada.</p>
   </section>
 
   <div class="tools">

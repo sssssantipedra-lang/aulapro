@@ -34,7 +34,11 @@
  * «Evaluar a la clase» (rúbrica y diana) también se puede probar en la demo: de la ventana se apunta
  * dónde están la lista del alumnado, la cuenta, a quién se evalúa y el pie (`datosDeClase`), y la demo
  * los vuelve a dibujar encima para que «Guardar y siguiente» pase de verdad al alumno siguiente
- * (`claseEval` en `assets/demo.js`, con los estilos de `src/estilos/evaluarClase.css`).
+ * (`claseEval` en `assets/demo.js`, con los estilos de `src/estilos/evaluarClase.css`). Como la pizarra,
+ * cada ventana se captura dos veces: completa (`rubrica.webp`, la que se amplía) y sin lo que la demo
+ * vuelve a dibujar (`rubrica-base.webp`). Para la portada (`assets/app/rubrica.webp` y `diana-nota.webp`)
+ * la misma ventana se captura a medio evaluar y en ancho de tableta, con la lista arriba: es más estrecha
+ * y se lee mejor en pequeño.
  */
 import { chromium } from 'playwright';
 import sharp from 'sharp';
@@ -155,8 +159,11 @@ async function zonas(page) {
   });
 }
 
-/** Botones que en la app piden algo a la IA (o lo rehacen con ella): en la demo avisan de que no generan nada. */
-const RE_IA = /(con IA\b|^Generar|^Volver a generar|^Crear (la primera|ficha|escape|tarjetas|lectura)|^Nueva (situación|ficha|actividad)|^Corregir|^Reconocer|^Retocar|^Desde (un manual|una foto)|^Proponer|^Preparar|^Redactar|^Ajustar$|^Adaptar)/i;
+/**
+ * Botones que en la app piden algo a la IA (o lo rehacen con ella): en la demo avisan de que no generan nada.
+ * «Corregir» (una evaluación, en el Historial), «Nueva ficha» y «Nueva actividad» no la usan: salieron de la lista el 23-11-2026.
+ */
+const RE_IA = /(con IA\b|^Generar|^Volver a generar|^Crear (la primera|ficha|escape|tarjetas|lectura)|^Nueva situación|^Reconocer|^Retocar|^Desde (un manual|una foto)|^Proponer|^Preparar|^Redactar|^Ajustar$|^Adaptar)/i;
 
 /** Convierte las zonas de una pantalla en botones de la demo. */
 function acciones(z, hubId, extra = {}, rutas = []) {
@@ -264,12 +271,28 @@ async function abrirPerfil(tipo) {
   await page.reload({ waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(4500);
   // Sin cursor parpadeando ni animaciones a medias en las capturas
-  await page.addStyleTag({ content: '*{caret-color:transparent!important} .toast,.toast-wrap{display:none!important}' });
+  // (el aviso «Deshacer» dura diez segundos: tampoco sale)
+  await page.addStyleTag({ content: '*{caret-color:transparent!important} .toast,.toast-wrap,.deshacer{display:none!important}' });
 }
 
 const menu = async nombre => { await page.locator('.sidebar .nav-item', { hasText: new RegExp(`^${nombre}$`) }).click(); await page.waitForTimeout(1300); };
 const pestana = async nombre => { await page.locator('.hub-tab', { hasText: new RegExp(`^${nombre}$`) }).click(); await page.waitForTimeout(1300); };
 const cerrarModal = async () => { await page.locator('.modal-overlay.open').last().getByRole('button', { name: 'Cerrar' }).first().click(); await page.waitForTimeout(500); };
+/**
+ * Pulsa algo que abre una ventana y espera a que esté abierta. Si no se abre (pasó una vez con el acta de una reunión,
+ * sin causa aparente), vuelve a pulsar; a la tercera, el guion se para aquí y no con una captura equivocada.
+ */
+async function abrirVentana(loc) {
+  for (let intento = 1; ; intento++) {
+    await loc.click();
+    const abierta = await page.locator('.modal-overlay.open').first().waitFor({ timeout: 4000 }).then(() => true, () => false);
+    if (abierta) break;
+    if (intento === 3) throw new Error('No se ha abierto la ventana tras pulsar ' + loc);
+    console.log('  (la ventana no se abrió: se vuelve a pulsar)');
+  }
+  await page.mouse.move(5, 5);   // el ratón se queda donde estaba el botón, ahora encima de algo de la ventana
+  await page.waitForTimeout(1200);
+}
 const arriba = () => page.evaluate(() => window.scrollTo(0, 0));
 const foto = async (opts = {}, y = 0) => { await arriba(); if (y) await page.evaluate(v => window.scrollTo(0, v), y); await page.waitForTimeout(350); return page.screenshot(opts); };
 /**
@@ -289,8 +312,47 @@ const datosDeClase = () => page.evaluate(() => {
     quien: caja(dlg.querySelector('.evc-quien')),
     aviso: caja(dlg.querySelector('.evc-quien .evc-aviso') ?? dlg.querySelector('.evc-quien')),
     pie: caja(dlg.querySelector('.evc-pie-btns')),
+    dato: caja(dlg.querySelector('.evc-pie-dato')),
   };
 });
+/** Esconde (o vuelve a enseñar) lo que la demo dibuja de nuevo en «Evaluar a la clase»; se ocultan, no se quitan: así no se mueve nada. */
+const ocultarDeClase = oculto => page.evaluate(oculto => {
+  const dlg = [...document.querySelectorAll('.modal-overlay.open')].pop();
+  const piezas = [...dlg.querySelectorAll('.evc-al, .evc-cuenta > *, .evc-quien, .evc-pie-btns, .evc-pie-dato .score-pill, .evc-pie-dato .score-pill + span')];
+  for (const el of piezas) el.style.visibility = oculto ? 'hidden' : '';
+}, oculto);
+/**
+ * La ventana de «Evaluar a la clase» para la demo: la captura completa (la que se amplía) y la base, sin lo que la demo
+ * vuelve a dibujar. `quitar` son las zonas que la demo pone por su cuenta (las celdas de la rúbrica, la diana).
+ */
+async function ventanaDeClase(id, titulo, quitar, datos) {
+  await guardar(`assets/demo/${id}.webp`, await foto());
+  await ocultarDeClase(true);
+  await pantalla(id, titulo, 'evaluar', {
+    archivo: `${id}-base`, quitar, extra: { 'Cerrar': 'fn:closeModal' }, rutas: [[/^Poner a todos el nivel/, 't:todos']],
+    datos: { ...datos, back: id === 'rubrica' ? 'rubricas' : 'dianas' },
+  });
+  PANTALLAS[id].base = PANTALLAS[id].img;
+  PANTALLAS[id].img = `${id}.webp`;
+  await ocultarDeClase(false);
+}
+/** La ventana abierta, en ancho de tableta (la lista del alumnado pasa arriba), para la portada. Devuelve su tamaño. */
+async function ventanaEstrecha(archivo) {
+  await page.setViewportSize({ width: 880, height: 1300 });
+  await page.evaluate(() => { document.querySelector('.help-fab').style.visibility = 'hidden'; });
+  await page.mouse.move(5, 5);
+  await page.waitForTimeout(700);
+  // (la captura de la página, recortada a la ventana: la de un solo elemento se queda esperando con el reloj parado)
+  const [left, top, width, height] = await page.evaluate(() => {
+    const b = [...document.querySelectorAll('.modal-overlay.open .modal')].pop().getBoundingClientRect();
+    return [b.left, b.top, b.width, b.height].map(Math.round);
+  });
+  fs.writeFileSync(path.join(SITIO, archivo), await webp(await sharp(await page.screenshot()).extract({ left, top, width, height }).toBuffer()));
+  await page.evaluate(() => { document.querySelector('.help-fab').style.visibility = ''; });
+  await page.setViewportSize({ width: W, height: H });
+  await page.waitForTimeout(600);
+  return [width, height];
+}
 const caja = async loc => { const b = await loc.boundingBox(); return [r(b.x), r(b.y), r(b.x + b.width), r(b.y + b.height)]; };
 
 const PANTALLAS = {};
@@ -360,9 +422,7 @@ await pestana('Rúbricas');
 await pantalla('rubricas', 'Rúbricas', 'evaluar', { extra: { 'Evaluar a la clase': 'go:rubrica' } });
 
 // «Evaluar a la clase» con una rúbrica: la clase de ahora, su alumnado en la lista y nada marcado
-const TODOS = [[/^Poner a todos el nivel/, 't:todos']];
-await page.locator('main').getByRole('button', { name: 'Evaluar a la clase' }).first().click();
-await page.waitForTimeout(900);
+await abrirVentana(page.locator('main').getByRole('button', { name: 'Evaluar a la clase' }).first());
 {
   const dlg = page.locator('.modal-overlay.open').last();
   const clase = await datosDeClase();
@@ -375,8 +435,7 @@ await page.waitForTimeout(900);
     const [x0, y0, , y1] = caja(pastilla);
     return { celdas, total: { caja: [x0, y0, caja(pct)[2], y1], max: +pastilla.textContent.split('/')[1] } };
   });
-  const quitar = [...celdas.flat(), ...clase.filas.map(f => f.caja), clase.quien, clase.pie];
-  await pantalla('rubrica', 'Evaluar a la clase con una rúbrica', 'evaluar', { quitar, extra: { 'Cerrar': 'fn:closeModal' }, rutas: TODOS, datos: { rubrica: celdas, total, clase, back: 'rubricas' } });
+  await ventanaDeClase('rubrica', 'Evaluar a la clase con una rúbrica', celdas.flat(), { rubrica: celdas, total, clase });
   // Para la portada, a mitad de evaluar: el primero de la lista ya guardado y, en el segundo, dos niveles marcados.
   // (Esa evaluación se queda en los datos de ejemplo de esta pasada: sale en el Historial, como en la app.)
   const filas = dlg.locator('table tbody tr');
@@ -384,18 +443,13 @@ await page.waitForTimeout(900);
   await dlg.getByRole('button', { name: 'Guardar y siguiente' }).click();
   await page.waitForTimeout(500);
   for (const [fila, nivel] of [[0, 4], [1, 3]]) await filas.nth(fila).locator('td').nth(nivel).click();
-  await page.mouse.move(5, 5);
-  await page.waitForTimeout(500);
-  const [mx0, my0, mx1, my1] = PANTALLAS.rubrica.modal;
-  fs.writeFileSync(path.join(SITIO, 'assets/app/rubrica.webp'), await webp(await sharp(await foto()).extract({ left: mx0, top: my0, width: mx1 - mx0, height: my1 - my0 }).toBuffer()));
-  MARCAS.rubrica = { size: [mx1 - mx0, my1 - my0] };
+  MARCAS.rubrica = { size: await ventanaEstrecha('assets/app/rubrica.webp') };
   await cerrarModal();
 }
 
 await pestana('Dianas');
 await pantalla('dianas', 'Dianas', 'evaluar', { extra: { 'Evaluar a la clase': 'go:dianaeval' } });
-await page.locator('main').getByRole('button', { name: 'Evaluar a la clase' }).first().click();
-await page.waitForTimeout(900);
+await abrirVentana(page.locator('main').getByRole('button', { name: 'Evaluar a la clase' }).first());
 {
   const dlg = page.locator('.modal-overlay.open').filter({ has: page.locator('svg[aria-label="Diana de evaluación"]') }).last();
   const clase = await datosDeClase();
@@ -416,11 +470,7 @@ await page.waitForTimeout(900);
     const cuenta = [...dlg.querySelectorAll('*')].find(e => e.children.length === 0 && /ítems marcados/.test(e.textContent) && e.checkVisibility());
     return { svg: [b.left, b.top, b.right, b.bottom].map(Math.round), viewBox: svg.getAttribute('viewBox'), items, nota: nota && caja(nota), cuenta: cuenta && caja(cuenta) };
   });
-  await pantalla('dianaeval', 'Evaluar a la clase con una diana', 'evaluar', {
-    quitar: [diana.svg, ...clase.filas.map(f => f.caja), clase.quien, clase.pie],
-    extra: { 'Cerrar': 'fn:closeModal' }, rutas: TODOS,
-    datos: { diana, clase, back: 'dianas' },
-  });
+  await ventanaDeClase('dianaeval', 'Evaluar a la clase con una diana', [diana.svg], { diana, clase });
   // Rellena para la captura de la portada: un nivel por ítem
   const niveles = [4, 3, 3, 2, 4, 3];
   const n = diana.items.length;
@@ -429,13 +479,7 @@ await page.waitForTimeout(900);
     await dlg.locator('path').filter({ has: page.locator(`title:text-is("${titulo}")`) }).first().click({ force: true });
     await page.waitForTimeout(150);
   }
-  await page.mouse.move(5, 5);
-  await page.waitForTimeout(500);
-  const m = PANTALLAS.dianaeval.modal;
-  const lleno = await foto();
-  const [mx0, my0, mx1, my1] = m;
-  fs.writeFileSync(path.join(SITIO, 'assets/app/diana-nota.webp'), await webp(await sharp(lleno).extract({ left: mx0, top: my0, width: mx1 - mx0, height: Math.min(H, my1) - my0 }).toBuffer()));
-  MARCAS.dianaNota = { size: [mx1 - mx0, Math.min(H, my1) - my0] };
+  MARCAS.dianaNota = { size: await ventanaEstrecha('assets/app/diana-nota.webp') };
   await cerrarModal();
 }
 
@@ -467,14 +511,13 @@ await menu('Documentos');
 await pantalla('documentos', 'Documentos', 'documentos');
 await pestana('Informes');
 {
-  // El informe de seguimiento del primer alumno de la clase, el que la app compone al instante y sin IA: se guarda
-  // tal como sale y se captura con él a la vista
-  await page.locator('main').getByRole('button', { name: /Alumno \d+$/ }).first().click();
+  // Los informes de seguimiento de toda la clase, que la app compone al instante y sin IA, creados de una vez; a la vista,
+  // el de un alumno que tiene de todo: calificaciones, competencias, «Lo positivo» y «A mejorar»
+  await page.locator('main').getByRole('button', { name: 'Informes de seguimiento de la clase' }).click();
+  await page.waitForTimeout(1500);
+  await page.locator('main').getByRole('button', { name: /Alumno 52$/ }).first().click();
+  await page.mouse.move(5, 5);
   await page.waitForTimeout(900);
-  await page.locator('main').getByRole('button', { name: 'Informe de seguimiento', exact: true }).click();
-  await page.waitForTimeout(1200);
-  await page.locator('main').getByRole('button', { name: 'Guardar informe' }).first().click();
-  await page.waitForTimeout(1200);
   await pantalla('informes', 'Informes', 'documentos');
 }
 await pestana('Actas');
@@ -489,7 +532,7 @@ await pestana('Recursos');
 {
   // Con la quinta tarjeta («Al instante»), las fichas guardadas quedan debajo de lo que se ve: lo que asoma de «Mis fichas»
   // lleva a la misma pantalla bajada hasta ellas, y desde ahí se abre cada una
-  const FICHAS = [[/El viaje del agua/, 'go:ficha'], [/El drag/, 'go:lectura'], [/Tarjetas interactivas/, 'go:tarjetas-panel']];
+  const FICHAS = [[/El viaje del agua/, 'go:ficha'], [/El drag/, 'go:lectura'], [/Tarjetas interactivas/, 'go:tarjetas-panel'], [/^Nueva ficha$/, 'go:recursos']];
   const titulo = page.locator('main .card-ttl', { hasText: /^Mis fichas$/ }).first();
   await arriba();
   const b = await titulo.boundingBox();
@@ -677,14 +720,12 @@ await pestana('Pizarra y herramientas');
 /* Centro y equipo, y lo de abajo */
 await menu('Reuniones');
 await pantalla('reuniones', 'Reuniones', null, { rutas: [[/^Reunión de ciclo/, 'go:reunion']] });
-await page.getByText('Reunión de ciclo').first().click();
-await page.waitForTimeout(1500);
+await abrirVentana(page.getByText('Reunión de ciclo').first());
 await pantalla('reunion', 'Acta de reunión', null, { extra: { 'Cerrar': 'fn:closeModal' }, datos: { back: 'reuniones' } });
 await cerrarModal();
 await menu('Formaciones');
 await pantalla('formaciones', 'Formaciones', null, { rutas: [[/^Curso: evaluaci/, 'go:formacion']] });
-await page.getByText('Curso: evaluación competencial').first().click();
-await page.waitForTimeout(1500);
+await abrirVentana(page.getByText('Curso: evaluación competencial').first());
 await pantalla('formacion', 'Resumen de formación', null, { extra: { 'Cerrar': 'fn:closeModal' }, datos: { back: 'formaciones' } });
 await cerrarModal();
 await menu('Trabajo compartido');
@@ -741,8 +782,7 @@ await herramienta('Sesiones');
 await page.getByRole('button', { name: 'Abrir las sesiones de 1º ESO A' }).click();
 await page.waitForTimeout(1200);
 await pantalla('ef-sesiones-clase', 'Sesiones de una clase', 'ef', { extra: { 'Sesiones': 'go:ef-sesiones' }, rutas: [[/^Voleibol/, 'go:ef-sesion']] });
-await page.getByText('Voleibol: el toque de dedos').first().click();
-await page.waitForTimeout(1500);
+await abrirVentana(page.getByText('Voleibol: el toque de dedos').first());
 await pantalla('ef-sesion', 'Sesión de Educación Física', 'ef', { extra: { 'Cerrar': 'fn:closeModal', 'Cancelar': 'fn:closeModal', 'Guardar': 'fn:closeModal' }, datos: { back: 'ef-sesiones-clase' } });
 await vuelta();
 await herramienta('Situaciones de aprendizaje');
@@ -792,8 +832,7 @@ for (const [pestana, id] of [['Programa', 'pt-al-programa'], ['Sesiones', 'pt-al
   await pantalla(id, `Alumno: ${pestana.toLowerCase()}`, null, { extra: EXTRA_ALUMNO, rutas: id === 'pt-al-docs' ? [[/^Preparar con IA$/, 'go:pt-doc'], [ABRIR_DOC, 'go:pt-doc']] : [] });
 }
 await tabPT('Documentos');
-await page.getByRole('button', { name: ABRIR_DOC }).click();
-await page.waitForTimeout(1500);
+await abrirVentana(page.getByRole('button', { name: ABRIR_DOC }));
 await pantalla('pt-doc', 'Informe trimestral a la familia', null, { extra: { ...EXTRA_ALUMNO, 'Cerrar': 'fn:closeModal' }, datos: { back: 'pt-al-docs' } });
 }
 
@@ -823,8 +862,7 @@ await pantalla('sesiones', 'Sesiones', 'documentos', { rutas: [[/^(Abrir las ses
 await page.getByText('5º Primaria A', { exact: true }).first().click();
 await page.waitForTimeout(1200);
 await pantalla('sesiones-clase', 'Sesiones de una clase', 'documentos', { extra: { 'Sesiones': 'go:sesiones' }, rutas: [[/^Preparamos los puestos/, 'go:sesion'], [/^Ver la SdA/, 'go:sda']] });
-await page.getByText('Preparamos los puestos del mercado').first().click();
-await page.waitForTimeout(1500);
+await abrirVentana(page.getByText('Preparamos los puestos del mercado').first());
 await page.getByText('Imágenes', { exact: true }).first().scrollIntoViewIfNeeded();
 await page.waitForTimeout(600);
 await pantalla('sesion', 'Sesión con imágenes', 'documentos', { extra: { 'Cancelar': 'fn:closeModal', 'Cerrar': 'fn:closeModal', 'Guardar': 'fn:closeModal' }, datos: { back: 'sesiones-clase' } });
@@ -836,7 +874,7 @@ await menu('Documentos');
 await pestana('Recursos');
 await page.getByText('Tarjetas interactivas: el tiempo y la naturaleza').first().click();
 await page.waitForTimeout(1000);
-await pantalla('tarjetas-panel', 'Recursos: una ficha de tarjetas interactivas', 'documentos', { scroll: 560, extra: { 'Proyectar': 'go:tarjetas-juego', 'Memory': 'go:memory', 'Editar': 'go:tarjetas-editor' }, rutas: [[/El viaje del agua/, 'go:ficha'], [/El drag/, 'go:lectura']] });
+await pantalla('tarjetas-panel', 'Recursos: una ficha de tarjetas interactivas', 'documentos', { scroll: 560, extra: { 'Proyectar': 'go:tarjetas-juego', 'Memory': 'go:memory', 'Editar': 'go:tarjetas-editor' }, rutas: [[/El viaje del agua/, 'go:ficha'], [/El drag/, 'go:lectura'], [/^Nueva ficha$/, 'go:recursos']] });
 await fijarOrden();
 await page.getByRole('button', { name: 'Proyectar' }).first().click();
 await page.waitForTimeout(1500);
@@ -883,8 +921,7 @@ await pantalla('tarjetas-editor', 'Editar tarjetas interactivas', 'documentos', 
 
 /* El peso de cada nota dentro de su categoría */
 await menu('Cuaderno de Notas');
-await page.locator('[title="Editar categoría"]').first().click();
-await page.waitForTimeout(900);
+await abrirVentana(page.locator('[title="Editar categoría"]').first());
 {
   const pesos = page.locator('.modal-overlay.open input[placeholder="50"]');   // los de cada nota; el de la categoría lleva su valor
   if (await pesos.count() >= 2) { await pesos.nth(0).fill('30'); await pesos.nth(1).fill('70'); }

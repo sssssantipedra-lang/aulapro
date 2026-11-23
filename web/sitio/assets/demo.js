@@ -2,7 +2,8 @@
    and scaled to fit. Each screen is a real screenshot of the app (assets/demo, made by
    scripts/web/capturar.mjs) with buttons laid over it where the app has them, so the whole window,
    menu included, answers like the app. Some tools really work: the board (pencil, felt pen, highlighter and
-   eraser), roulette, timer, calculator, attendance, behaviour notes, rubric and assessment target. Nothing is saved.
+   eraser), roulette, timer, calculator, attendance, behaviour notes, and assessing the class with a rubric or an
+   assessment target (the list of students, «Guardar y siguiente»). Nothing is saved.
    The board is spread out on purpose (timer, roulette and calculator each have their own room, clear of the bars and
    of the pen bar): see scripts/web/capturar.mjs. */
 (() => {
@@ -195,11 +196,7 @@
     go(s && s.back ? s.back : 'inicio');
   }
 
-  const FN = {
-    closeModal,
-    full: toggleFull,
-    dianaSave() { toast(t(diana && diana.done ? 'demo.t.dianaSave' : 'demo.t.dianaEarly')); }
-  };
+  const FN = { closeModal, full: toggleFull };
   function run(action, el, e) {
     const i = action.indexOf(':');
     const kind = i < 0 ? action : action.slice(0, i), arg = i < 0 ? '' : action.slice(i + 1);
@@ -301,40 +298,149 @@
     });
   };
 
-  /* ================= Evaluar con rúbrica: one level per criterion ================= */
+  /* ================= Evaluar a la clase: the list, who is being assessed and «Guardar y siguiente» =================
+     The window of the rubric and the one of the target are the same in the app (components/evaluar/EvaluarClasePartes.tsx):
+     the class at the top, its students in a list at the left with who is done, and a footer that saves and moves on to
+     the next one. The capture brings where each piece is (`clase`, scripts/web/capturar.mjs) and the demo draws them
+     again on top, in castellano like the capture, with the app's rules: what is marked for each student is kept while
+     moving to another, saving marks the student as done today with the mark, and «siguiente» is the next one in the
+     list who is not done today. `inst` is the instrument: its size, an empty set of marks, its mark out of 10 and how
+     to show a set of marks. */
+  const EVC_CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+  const EVC_SAVE = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/></svg>';
+  const EVC_NEXT = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>';
+  const nota = v => v.toFixed(1).replace('.', ',');
+  function claseEval(el, c, inst) {
+    const rows = c.filas.map(f => ({ name: f.nombre, before: f.antes, marks: inst.blank(), saved: null }));
+    const n = rows.length;
+    let sel = 0, told = false;
+    const same = (a, b) => a.every((v, i) => v === b[i]);
+    const dirty = r => (r.saved ? !same(r.marks, r.saved) : r.marks.some(Boolean));
+    // The next one in the list, going round, who is not done today; -1 if nobody is left
+    const nextOf = i => { for (let k = 1; k < n; k++) { const j = (i + k) % n; if (!rows[j].saved) return j; } return -1; };
+
+    const rowEls = c.filas.map(f => mk(el, 'div', 'evc-r', px(...f.caja), `<i>${EVC_CHECK}</i><b></b><span></span>`));
+    const hits = c.filas.map((f, i) => {
+      const b = mk(el, 'button', 'spot', px(...f.caja));
+      b.addEventListener('click', () => { sel = i; paint(); });
+      return b;
+    });
+    rowEls.forEach((r, i) => { $('b', r).textContent = rows[i].name; });
+    const count = mk(el, 'div', 'evc-n', px(...c.cuenta));
+    count.setAttribute('aria-live', 'polite');
+    const bar = mk(el, 'div', 'evc-b', px(...c.barra), '<span></span>');
+    const who = mk(el, 'div', 'evc-q', px(...c.quien));
+    const [fx0, fy0, fx1, fy1] = c.pie;
+    const foot = mk(el, 'div', 'evc-f', `right:${W - fx1}px;top:${fy0}px;height:${fy1 - fy0}px;min-width:${fx1 - fx0}px`);
+    const closeB = mk(foot, 'button', 'gh', '', 'Cerrar');
+    closeB.dataset.act = 'fn:closeModal';
+    const act = mk(foot, 'button', 'ac');
+
+    function paint() {
+      const done = rows.filter(r => r.saved).length, open = rows.filter(dirty).length;
+      rows.forEach((r, i) => {
+        const st = dirty(r) ? 'sin' : r.saved ? 'hoy' : '';
+        rowEls[i].className = 'evc-r' + (st ? ' ' + st : '') + (i === sel ? ' sel' : '');
+        const dato = st === 'sin' ? 'sin guardar' : st === 'hoy' ? nota(inst.grade(r.saved)) : r.before;
+        rowEls[i].lastChild.textContent = dato;
+        hits[i].setAttribute('aria-label', dato ? `${r.name}, ${dato}` : r.name);
+        hits[i].setAttribute('aria-pressed', String(i === sel));
+      });
+      count.innerHTML = `<span><strong>${done} de ${n}</strong> ${esc(c.hoy || 'evaluados')}</span>${open ? `<em>${open} sin guardar</em>` : ''}`;
+      bar.firstChild.style.width = (n ? done / n * 100 : 0) + '%';
+      const r = rows[sel];
+      const msg = r.saved
+        ? 'Ya lo has evaluado hoy: lo que cambies corrige esa evaluación. <button type="button" data-act="t:evcOtro">Es otro trabajo</button>'
+        : r.before
+          ? `Ya tiene una evaluación del ${esc(r.before)}. Lo que guardes ahora será una evaluación nueva. <button type="button" data-act="t:evcCorr">Corregir la del ${esc(r.before)}</button>`
+          : '';
+      who.innerHTML = `<div><strong>${esc(r.name)}</strong><span>${sel + 1} de ${n} en la lista</span></div>${msg ? `<p>${msg}</p>` : ''}`;
+      // As in the app: «Siguiente» with nothing to save; with something, «Guardar y siguiente» while somebody is left
+      const next = nextOf(sel), d = dirty(r) && inst.count(r.marks) > 0;
+      act.innerHTML = d ? EVC_SAVE + (next >= 0 ? 'Guardar y siguiente' : r.saved ? 'Guardar cambios' : 'Guardar evaluación') : 'Siguiente' + EVC_NEXT;
+      act.disabled = !d && next < 0;
+      inst.show(r.marks);
+    }
+    act.addEventListener('click', () => {
+      const r = rows[sel];
+      let said = '';
+      if (dirty(r) && inst.count(r.marks) > 0) {
+        const part = inst.count(r.marks) < inst.size;
+        r.saved = r.marks.slice();
+        const all = rows.every(x => x.saved);
+        if (all) said = 'demo.t.evcFin';
+        else if (part) said = 'demo.t.evcParcial';
+        else if (!told) { told = true; said = 'demo.t.evcSave'; }
+      } else if (r.saved) r.marks = r.saved.slice();   // everything unmarked on someone already saved: nothing to save
+      const next = nextOf(sel);
+      if (next >= 0) sel = next;
+      paint();
+      if (said) toast(t(said));
+    });
+    paint();
+    return { marks: () => rows[sel].marks, changed: paint };
+  }
+
+  /* ================= Evaluar a la clase con una rúbrica: one level per criterion ================= */
   const LV = { 1: ['#dc2626', 'rgba(220,38,38,.10)'], 2: ['#d97706', 'rgba(217,119,6,.10)'], 3: ['#2563eb', 'rgba(37,99,235,.10)'], 4: ['#16a34a', 'rgba(22,163,74,.10)'] };
   INIT.rubrica = (el, s) => {
+    const grid = s.rubrica || [];
+    if (!grid.length || !s.clase) return null;
     let told = false;
-    (s.rubrica || []).forEach((row, r) => {
-      const pick = mk(el, 'div', 'pick');
-      let state = 0;
-      const btns = row.map(([x0, y0, x1, y1], c) => {
-        const b = mk(el, 'button', 'spot', px(x0, y0, x1, y1));
-        b.setAttribute('aria-label', t('demo.cell', { c: r + 1, n: c + 1 }));
-        b.setAttribute('aria-pressed', 'false');
-        return b;
-      });
-      btns.forEach((b, c) => b.addEventListener('click', () => {
-        const [x0, y0, x1, y1] = row[c];
-        state = state === c + 1 ? 0 : c + 1;
-        if (state) {
-          const [bc, tint] = LV[state] || LV[4];
-          pick.style.cssText = px(x0 + 3, y0 + 3, x1 - 3, y1 - 3) + `;background:${tint};box-shadow:inset 0 0 0 2px ${bc}`;
-          pick.classList.remove('on');
-          void pick.offsetWidth;
+    const max = grid[0].length;
+    const picks = grid.map(() => mk(el, 'div', 'pick'));
+    const btns = grid.map((row, r) => row.map(([x0, y0, x1, y1], c) => {
+      const b = mk(el, 'button', 'spot', px(x0, y0, x1, y1));
+      b.setAttribute('aria-label', t('demo.cell', { c: r + 1, n: c + 1 }));
+      b.setAttribute('aria-pressed', 'false');
+      return b;
+    }));
+    // The total of the footer: the pill «7 / 12» and its percentage
+    const T = s.total;
+    const tot = T ? mk(el, 'div', 'evc-t', `left:${T.caja[0]}px;top:${T.caja[1]}px;height:${T.caja[3] - T.caja[1]}px;min-width:${T.caja[2] - T.caja[0]}px`) : null;
+    const show = marks => {
+      marks.forEach((lv, r) => {
+        const pick = picks[r];
+        if (lv) {
+          const [x0, y0, x1, y1] = grid[r][lv - 1];
+          const [bc, tint] = LV[lv] || LV[4];
+          const css = px(x0 + 3, y0 + 3, x1 - 3, y1 - 3) + `;background:${tint};box-shadow:inset 0 0 0 2px ${bc}`;
+          if (pick.dataset.css !== css) {   // only what changes pops in
+            pick.dataset.css = css;
+            pick.style.cssText = css;
+            pick.classList.remove('on');
+            void pick.offsetWidth;
+          }
           pick.classList.add('on');
-        } else pick.classList.remove('on');
-        btns.forEach((o, j) => o.setAttribute('aria-pressed', String(j === c && !!state)));
-        if (!told) { told = true; toast(t('demo.t.rubric')); }
-      }));
+        } else { pick.classList.remove('on'); pick.dataset.css = ''; }
+        btns[r].forEach((b, j) => b.setAttribute('aria-pressed', String(j + 1 === lv)));
+      });
+      if (tot) {
+        const sum = marks.reduce((a, v) => a + v, 0);
+        tot.innerHTML = `<b>${sum} / ${T.max}</b><span>(${T.max ? Math.round(sum / T.max * 100) : 0}%)</span>`;
+      }
+    };
+    const cls = claseEval(el, s.clase, {
+      size: grid.length,
+      blank: () => grid.map(() => 0),
+      count: m => m.filter(Boolean).length,
+      // As in the app (gradeFromLevels): only what is marked counts, never as a zero
+      grade: m => { const on = m.filter(Boolean); return on.length ? on.reduce((a, v) => a + v / max, 0) / on.length * 10 : 0; },
+      show
     });
+    btns.forEach((row, r) => row.forEach((b, c) => b.addEventListener('click', () => {
+      const m = cls.marks();
+      m[r] = m[r] === c + 1 ? 0 : c + 1;   // the level already chosen, again: it is taken off
+      cls.changed();
+      if (!told) { told = true; toast(t('demo.t.rubric')); }
+    })));
+    return null;
   };
 
-  /* ================= Evaluar con diana: each ring is a level, the mark works itself out ================= */
-  let diana = null;
+  /* ================= Evaluar a la clase con una diana: each ring is a level, the mark works itself out ================= */
   INIT.dianaeval = (el, s) => {
     const d = s.diana;
-    if (!d) return null;
+    if (!d || !s.clase) return null;
     const [vx, vy, vw, vh] = d.viewBox.split(/\s+/).map(Number);
     const C = 170, R = 116, RINGS = 4;
     const n = d.items.length, step = 2 * Math.PI / n, gap = Math.min(step * 0.05, 0.035);
@@ -360,13 +466,20 @@
     el.append(svg);
 
     const pills = d.items.map(it => mk(el, 'div', 'dia-pill', px(...it.pill)));
-    const nota = d.nota ? mk(el, 'div', 'dia-nota', px(...d.nota)) : null;
+    const notaEl = d.nota ? mk(el, 'div', 'dia-nota', px(...d.nota)) : null;
     const cuenta = d.cuenta ? mk(el, 'div', 'dia-cuenta', px(...d.cuenta)) : null;
-    const levels = d.items.map(() => 0);
-    diana = { done: false };
+    // The footer says the mark too, once something is marked
+    const K = s.clase.dato && s.clase.pie;
+    const foot = K ? mk(el, 'div', 'evc-t', `left:${s.clase.dato[0]}px;top:${K[1]}px;height:${K[3] - K[1]}px`) : null;
     let told = false;
-
-    function paint() {
+    // As in the app: each item counts with its weight, and only what is marked
+    const grade = levels => {
+      let sum = 0, w = 0;
+      levels.forEach((lv, i) => { if (lv) { const wi = d.items[i].weight || 1; sum += lv / RINGS * wi; w += wi; } });
+      return w ? Math.round(sum / w * 100) / 10 : 0;
+    };
+    const count = levels => levels.filter(Boolean).length;
+    function show(levels) {
       levels.forEach((lv, i) => {
         const a0 = i * step - Math.PI / 2;
         if (lv) { petals[i].setAttribute('d', petal(a0 + gap, a0 + step - gap, ringR[lv - 1])); petals[i].setAttribute('fill', COLOR[lv - 1]); }
@@ -375,40 +488,37 @@
         pills[i].style.background = lv ? COLOR[lv - 1] : '';
         pills[i].textContent = lv ? `${lv} · ${LABEL[lv - 1]}` : '';
       });
-      const marked = levels.filter(Boolean).length;
-      let sum = 0, w = 0;
-      levels.forEach((lv, i) => { if (lv) { const wi = d.items[i].weight || 1; sum += lv / RINGS * wi; w += wi; } });
-      const grade = w ? Math.round(sum / w * 100) / 10 : null;
-      if (nota) {
-        nota.classList.toggle('on', grade != null);
-        nota.textContent = grade == null ? '' : grade.toFixed(1).replace('.', ',');
-        nota.style.color = grade == null ? '' : grade < 5 ? '#dc2626' : grade < 7 ? '#d97706' : '#047857';
+      const marked = count(levels), g = grade(levels);
+      if (notaEl) {
+        notaEl.classList.toggle('on', marked > 0);
+        notaEl.textContent = marked ? nota(g) : '';
+        notaEl.style.color = !marked ? '' : g < 5 ? '#dc2626' : g < 7 ? '#d97706' : '#047857';
       }
       if (cuenta) { cuenta.classList.toggle('on', marked > 0); cuenta.textContent = `${marked}/${n} ítems marcados`; }
-      diana.done = marked === n;
-      if (diana.done) toast(t('demo.t.dianaDone', { n: grade.toFixed(1).replace('.', ',') }));
+      if (foot) foot.innerHTML = marked ? `<i>Nota calculada</i><b>${nota(g)}</b>` : '';
     }
+    const cls = claseEval(el, s.clase, { size: n, blank: () => d.items.map(() => 0), count, grade, show });
     const hit = mk(el, 'button', 'spot big', px(...d.svg));
     hit.setAttribute('aria-label', t('demo.dianaHit'));
     hit.addEventListener('click', e => {
+      const levels = cls.marks();
       if (e.detail === 0) {   // keyboard: next item, at Bien
         const i = levels.indexOf(0);
-        if (i >= 0) { levels[i] = 3; paint(); }
-        return;
+        if (i < 0) return;
+        levels[i] = 3;
+      } else {
+        const r = hit.getBoundingClientRect();
+        const x = vx + (e.clientX - r.left) * vw / r.width, y = vy + (e.clientY - r.top) * vh / r.height;
+        const dx = x - C, dy = y - C, dist = Math.hypot(dx, dy);
+        if (dist > R) return;
+        let a = Math.atan2(dy, dx) + Math.PI / 2;
+        a = (a % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
+        levels[Math.min(n - 1, Math.floor(a / step))] = clamp(Math.ceil(dist / (R / RINGS)), 1, RINGS);
       }
-      const r = hit.getBoundingClientRect();
-      const x = vx + (e.clientX - r.left) * vw / r.width, y = vy + (e.clientY - r.top) * vh / r.height;
-      const dx = x - C, dy = y - C, dist = Math.hypot(dx, dy);
-      if (dist > R) return;
-      let a = Math.atan2(dy, dx) + Math.PI / 2;
-      a = (a % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
-      const i = Math.min(n - 1, Math.floor(a / step));
-      const lv = clamp(Math.ceil(dist / (R / RINGS)), 1, RINGS);
-      levels[i] = lv;
-      paint();
-      if (!told && !diana.done) { told = true; toast(t('demo.t.diana')); }
+      cls.changed();
+      if (count(levels) === n) toast(t('demo.t.dianaDone', { n: nota(grade(levels)) }));
+      else if (!told) { told = true; toast(t('demo.t.diana')); }
     });
-    paint();
     return null;
   };
 
@@ -902,7 +1012,7 @@
   go(SCREENS[hash] ? hash : 'inicio', { quiet: true });
 
   // warm the screens one can reach in a click once the page is idle, so they answer at once
-  const warm = () => ['evaluar', 'enclase', 'pizarra-base', 'actitud', 'cuaderno', 'asistencia', 'rubricas', 'rubrica', 'dianas', 'dianaeval']
+  const warm = () => ['evaluar', 'enclase', 'pizarra-base', 'actitud', 'cuaderno', 'asistencia', 'rubricas', 'rubrica-base', 'dianas', 'dianaeval-base']
     .forEach(n => { const i = new Image(); i.src = `assets/demo/${n}.webp`; });
   if ('requestIdleCallback' in window) requestIdleCallback(warm, { timeout: 3000 }); else setTimeout(warm, 1500);
 })();
