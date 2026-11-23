@@ -40,6 +40,7 @@ export const EN: Record<string, string> = {
   'No hay evaluaciones de este alumno en {evaluacion}.': 'There are no assessments of this student in {evaluacion}.',
   'En todo el curso tiene {n}.': 'Over the whole year there are {n}.',
   'Tiene guardada la Diana de:': 'There is a saved learner profile for:',
+  'Sin descriptor. Tócalo para escribirlo, o usa «Rellenar desde evaluaciones».': 'No descriptor. Tap it to write one, or use “Fill from assessments”.',
   'No hay criterios oficiales evaluados en {evaluacion}. Lo evaluado en otras fechas está en su evaluación y en «Curso».':
     'No official criteria have been assessed in {evaluacion}. What was assessed on other dates is in its term and under “Year”.',
 };
@@ -82,6 +83,7 @@ export const CA: Record<string, string> = {
   'No hay evaluaciones de este alumno en {evaluacion}.': 'No hi ha avaluacions d’aquest alumne en {evaluacion}.',
   'En todo el curso tiene {n}.': 'En tot el curs en té {n}.',
   'Tiene guardada la Diana de:': 'Té desada la Diana de:',
+  'Sin descriptor. Tócalo para escribirlo, o usa «Rellenar desde evaluaciones».': 'Sense descriptor. Toca’l per escriure’l, o fes servir «Emplenar des de les avaluacions».',
   'No hay criterios oficiales evaluados en {evaluacion}. Lo evaluado en otras fechas está en su evaluación y en «Curso».':
     'No hi ha criteris oficials avaluats en {evaluacion}. El que s’ha avaluat en altres dates és a la seva avaluació i a «Curs».',
 };

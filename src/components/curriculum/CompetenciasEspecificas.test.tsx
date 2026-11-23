@@ -84,6 +84,18 @@ describe('competencias específicas del alumno', () => {
     expect(await screen.findByText(/Aún no hay notas/)).toBeTruthy();
   });
 
+  it('de una evaluación, lo dice junto al título, y sin notas en ella no manda a marcar criterios', async () => {
+    render(
+      <I18nProvider><ToastProvider>
+        <CompetenciasEspecificas cls={QUINTO} comunidad="madrid" alumno="Ana López" evaluaciones={[]}
+          periodo="2ª evaluación" rango={{ desde: '2027-01-01', hasta: '2027-03-31' }} />
+      </ToastProvider></I18nProvider>,
+    );
+    expect(await screen.findByText(/No hay criterios oficiales evaluados en la 2\.ª evaluación/)).toBeTruthy();
+    expect(screen.queryByText(/Aún no hay notas/)).toBeNull();
+    expect(within(document.getElementById('ce-titulo')!).getByText('2ª evaluación')).toBeTruthy();
+  });
+
   it('una clase sin etapa ni curso pide que se indiquen', () => {
     pinta({ ...QUINTO, etapa: undefined, curso: undefined }, []);
     expect(screen.getByText(/Indica la etapa y el curso de la clase/)).toBeTruthy();
@@ -118,6 +130,24 @@ describe('PDF de las competencias específicas', () => {
     try {
       await saveCompetenciasPdf({ alumno: 'Ana López', clase: '5º A', fecha: '2026-10-03', materias: [] }, 'es');
       expect(savePdf).toHaveBeenCalledWith(expect.stringContaining('<h1>Competencias específicas</h1>'), 'competencias-Ana-Lopez.pdf', { landscape: false, carpeta: 'Informes' });
+    } finally {
+      delete (window as { electronAPI?: unknown }).electronAPI;
+    }
+  });
+
+  it('de una evaluación, el documento y el nombre del archivo dicen cuál, con sus fechas', async () => {
+    const datos = {
+      alumno: 'Ana López', clase: '5º A', fecha: '2027-03-20', materias: [],
+      periodo: '2ª evaluación', rango: { desde: '2027-01-01', hasta: '2027-03-31' },
+    };
+    expect(buildCompetenciasHtml(datos, 'es'))
+      .toContain('<strong>Ana López</strong> · 5º A · 2ª evaluación (del 1 ene 2027 al 31 mar 2027) · 20 de marzo de 2027');
+    const savePdf = vi.fn().mockResolvedValue({ canceled: true });
+    window.electronAPI = { docs: { savePdf, reveal: vi.fn() } } as unknown as typeof window.electronAPI;
+    try {
+      await saveCompetenciasPdf(datos, 'es');
+      // La de la 1.ª y la de la 2.ª no se pisan en la carpeta
+      expect(savePdf.mock.calls[0][1]).toBe('competencias-Ana-Lopez-2-evaluacion.pdf');
     } finally {
       delete (window as { electronAPI?: unknown }).electronAPI;
     }

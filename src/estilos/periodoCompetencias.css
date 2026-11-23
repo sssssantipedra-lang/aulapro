@@ -32,3 +32,11 @@
 @media (pointer: coarse) {
   .dn-otras .ev-enlace { padding:6px 0; }
 }
+/* La cuenta, con «+3 en otras» debajo o sin ello, ocupa lo mismo: las barras de todas las filas empiezan y acaban a la par */
+.cob-barra-ev + .cob-cuenta { min-width:74px; text-align:right; }
+
+/* «Competencias específicas» con la evaluación al lado: en el móvil, el título y el botón de exportar bajan de línea sin partirse */
+.ce-titulo { display:flex; flex-wrap:wrap; align-items:center; gap:4px 8px; }
+.ce-periodo { white-space:nowrap; }
+.card-hd:has(> .ce-titulo) { flex-wrap:wrap; gap:8px 12px; }
+.card-hd:has(> .ce-titulo) > .btn-ghost { white-space:nowrap; }

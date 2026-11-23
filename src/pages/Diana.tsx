@@ -902,7 +902,7 @@ Redacta un descriptor, en español de España, solo para estos sectores: ${lista
                           <p style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.55, margin: 0 }}>{desc}</p>
                         ) : (
                           <p style={{ fontSize: 11.5, color: 'var(--text-3)', margin: 0, fontStyle: 'italic' }}>
-                            {t('Sin descriptor. Usa "Sugerir con IA" para generarlo.')}
+                            {t('Sin descriptor. Tócalo para escribirlo, o usa «Rellenar desde evaluaciones».')}
                           </p>
                         )}
                         {/* Editable descriptor textarea */}

@@ -79,9 +79,9 @@ export function CompetenciasEspecificas({ cls, comunidad, alumno, evaluaciones, 
   return (
     <section className="card" aria-labelledby="ce-titulo">
       <div className="card-hd">
-        <div className="card-ttl" id="ce-titulo">
+        <div className="card-ttl ce-titulo" id="ce-titulo">
           {t('Competencias específicas')}
-          {periodo && <span className="sda-chip">{t(periodo)}</span>}
+          {periodo && <span className="sda-chip ce-periodo">{t(periodo)}</span>}
         </div>
         {materias.length > 0 && (
           <button type="button" className="btn-ghost" onClick={exportar} disabled={exportando} style={{ gap: 6 }}>
