@@ -507,7 +507,7 @@ function GradesTab({
       onAddItem({ id, class_id: clsId, category_id: itemCat, name, date: itemDate, ...(w !== undefined ? { weight: w } : {}) });
       // Lista para poner las notas, si se ve en la evaluación que se está mirando: con el dedo, en la lista de
       // casillas grandes; con teclado, el foco en la primera celda de su columna
-      if (ev.cuenta(itemDate) && !(esCurso && !verTodas)) {
+      if (myStudents.length > 0 && ev.cuenta(itemDate) && !(esCurso && !verTodas)) {
         if (pantallaTactil()) setCalificando(id); else focoPendiente.current = id;
       }
       // Si por su fecha no cae en la evaluación que se está viendo, se dice dónde ha ido: si no, parecería que no se ha guardado
@@ -727,6 +727,8 @@ function GradesTab({
                 ? t('En «{actividad}» falta 1 alumno por calificar', { actividad: aCompletar.item.name })
                 : t('En «{actividad}» faltan {n} alumnos por calificar', { actividad: aCompletar.item.name, n: aCompletar.faltan.length })}
               porque={t('El resto de la clase ya tiene nota: {nombres}.', { nombres: nombresDe(aCompletar.faltan) })}
+              // Abre la lista de casillas grandes, con el foco en el primero que falta
+              accion={t('Calificar esta actividad')} onAccion={() => setCalificando(aCompletar.item.id)}
               onCerrar={() => sugerencias.marcar(aCompletar.clave)}
             />
           )}
