@@ -3,6 +3,7 @@
  * rúbricas y dianas (1-4) y las competencias específicas por las competencias
  * clave con las que las conecta el decreto (de 10 a 4).
  */
+import { notasDeClaves } from './competenciasClave';
 import { describe, it, expect } from 'vitest';
 import { evidenciasPorSector, nivelDelSector } from './dianaSectores';
 import type { NotaMateria } from './curriculum/evaluacionPorCriterios';
@@ -45,16 +46,8 @@ describe('evidencias de la Diana', () => {
   });
 
   it('con las mismas evaluaciones, el sector de una sola competencia clave es el número del acta redondeado', () => {
-    // La cuenta de la segunda página del acta (`claveDe` en `pages/Records.tsx`), sobre 4
-    const delActa = (evs: Evaluation[], code: string) => {
-      let suma = 0, n = 0;
-      for (const ev of evs) {
-        const max = ev.max_level && ev.max_level > 0 ? ev.max_level : 4;
-        const v = ev.competencyScores?.[code];
-        if (v !== undefined) { suma += (v / max) * 4; n++; }
-      }
-      return n ? Math.round((suma / n) * 10) / 10 : null;
-    };
+    // La cuenta de la segunda página del acta (`notasDeClaves`, la que usa `pages/Records.tsx`), sobre 4
+    const delActa = (evs: Evaluation[], code: string) => notasDeClaves(evs, 4)[code] ?? null;
     const casos: Evaluation[][] = [
       [evaluacion({ STEM: 3, CD: 2, CE: 4 }), evaluacion({ STEM: 2, CD: 3 })],
       [{ ...evaluacion({ STEM: 2, CD: 1 }), max_level: 3 }, evaluacion({ STEM: 4, CD: 1 }), { ...evaluacion({ STEM: 5, CE: 2 }), max_level: 5 }],

@@ -744,7 +744,6 @@ const EN: Record<string, string> = {
   'Editando: {name}': 'Editing: {name}',
   'Descriptores': 'Descriptors',
   'Analizando perfil competencial...': 'Analysing competency profile...',
-  'Sin descriptor. Usa "Sugerir con IA" para generarlo.': 'No descriptor. Use "Suggest with AI" to generate one.',
   'Escribe un descriptor para esta competencia...': 'Write a descriptor for this competency...',
   '{n} competencia pendiente': '{n} competency left',
   '{n} competencias pendientes': '{n} competencies left',

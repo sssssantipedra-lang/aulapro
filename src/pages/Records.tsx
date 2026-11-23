@@ -15,6 +15,7 @@ import { compararAlumnos } from '../lib/alumnado';
 import { CARPETAS } from '../lib/carpetas';
 import { DocPreview } from '../components/DocPreview';
 import { useMateriasOficiales } from '../hooks/useNotasPorCompetencias';
+import { notasDeClaves } from '../lib/competenciasClave';
 import { notasDeMateria } from '../lib/curriculum/evaluacionPorCriterios';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
 import { mediaDeCategoria, mediaPonderada } from '../lib/ponderacion';
@@ -190,19 +191,7 @@ export function Records({
    * niveles también sale sobre 4.
    */
   function claveDe(studentId: string): Record<string, number> {
-    const sums: Record<string, number> = {};
-    const counts: Record<string, number> = {};
-    for (const ev of evsDeClase) {
-      if (ev.student_id !== studentId) continue;
-      const max = ev.max_level && ev.max_level > 0 ? ev.max_level : 4;
-      for (const [code, v] of Object.entries(ev.competencyScores ?? {})) {
-        sums[code] = (sums[code] ?? 0) + ((v / max) * (escalaClave === 'nota' ? 10 : maxNivel));
-        counts[code] = (counts[code] ?? 0) + 1;
-      }
-    }
-    const out: Record<string, number> = {};
-    for (const code of Object.keys(counts)) out[code] = Math.round((sums[code] / counts[code]) * 10) / 10;
-    return out;
+    return notasDeClaves(evsDeClase.filter(ev => ev.student_id === studentId), escalaClave === 'nota' ? 10 : maxNivel);
   }
 
   /** Nota de cada competencia específica de la materia, por su número. */

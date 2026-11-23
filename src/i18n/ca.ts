@@ -861,7 +861,6 @@ export const CA: Record<string, string> = {
   "Editando: {name}": "Editant: {name}",
   "Descriptores": "Descriptors",
   "Analizando perfil competencial...": "Analitzant el perfil competencial...",
-  "Sin descriptor. Usa \"Sugerir con IA\" para generarlo.": "Sense descriptor. Fes servir \"Suggerir amb IA\" per generar-lo.",
   "Escribe un descriptor para esta competencia...": "Escriu un descriptor per a aquesta competència...",
   "{n} competencia pendiente": "{n} competència pendent",
   "{n} competencias pendientes": "{n} competències pendents",
