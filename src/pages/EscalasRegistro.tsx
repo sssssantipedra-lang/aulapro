@@ -18,6 +18,7 @@ import { useI18n } from '../i18n';
 import { clasesDe, conObjetivos } from '../lib/objetivos';
 import { NIVELES_REGISTRO, esRegistro } from '../lib/registro';
 import { ModelosDeInstrumento } from '../components/evaluar/ModelosDeInstrumento';
+import { AbrirArchivoDeInstrumento, GuardarInstrumentoComoArchivo } from '../components/evaluar/ArchivoDeInstrumento';
 import { MODELOS_ESCALA, enOrden, escalaDeModelo, resumenDeEscala } from '../lib/modelosInstrumentos';
 
 interface Props {
@@ -71,6 +72,13 @@ export function EscalasRegistro({
     setDelModelo(loEscrito(rellena));
     setModo('manual');
   }
+  /** Una escala guardada como archivo (`lib/archivoInstrumento.ts`) se abre en el editor, sin clase: el docente elige las suyas y la crea. */
+  function abrirArchivo(d: Pick<EvalDiana, 'name' | 'items'>) {
+    setEsNueva(true);
+    setModo('manual');
+    setDelModelo(null);
+    setEditando({ id: 'reg' + uid(), tipo: 'registro', name: d.name, items: d.items.map(i => ({ id: i.id, name: i.name, weight: 1 })), levels: NIVELES_REGISTRO });
+  }
   const hayAlgoEscrito = !!editando && (!!editando.name.trim() || editando.items.some(i => i.name.trim()));
 
   function guardar() {
@@ -107,8 +115,11 @@ export function EscalasRegistro({
           <h1 className="pg-title">{t('Escalas de registro')}</h1>
           <p className="pg-sub">{t('Un concepto concreto y, por cada alumno, un pulgar arriba (bien hecho) o abajo (mejorable)')}</p>
         </div>
-        {/* Quien ya tiene escalas sabe lo que quiere escribir: el editor; los modelos quedan a un clic */}
-        <button className="btn-accent" onClick={() => nueva(escalas.length === 0 ? 'modelo' : 'manual')}><Plus size={15} />{t('Nueva escala')}</button>
+        <div className="ai-cabecera">
+          <AbrirArchivoDeInstrumento tipo="registro" onDiana={abrirArchivo} />
+          {/* Quien ya tiene escalas sabe lo que quiere escribir: el editor; los modelos quedan a un clic */}
+          <button className="btn-accent" onClick={() => nueva(escalas.length === 0 ? 'modelo' : 'manual')}><Plus size={15} />{t('Nueva escala')}</button>
+        </div>
       </div>
 
       {escalas.length === 0 ? (
@@ -135,6 +146,7 @@ export function EscalasRegistro({
                   <span className="reg-card-acc">
                     <button className="ico-btn" onClick={() => { setEsNueva(false); setEditando(d); }} title={t('Editar')} aria-label={t('Editar «{nombre}»', { nombre: d.name })}><Pencil size={14} /></button>
                     <button className="ico-btn" onClick={() => descargarPdf(d)} title={t('Descargar en PDF')} aria-label={t('Descargar «{nombre}» en PDF', { nombre: d.name })}><FileDown size={14} /></button>
+                    <GuardarInstrumentoComoArchivo diana={d} />
                     <button className="ico-btn" onClick={() => duplicar(d)} title={t('Duplicar')} aria-label={t('Duplicar «{nombre}»', { nombre: d.name })}><Copy size={14} /></button>
                     <button className="ico-btn" onClick={() => setABorrar(d)} title={t('Eliminar')} aria-label={t('Eliminar «{nombre}»', { nombre: d.name })}><Trash2 size={14} color="var(--danger)" /></button>
                   </span>

@@ -23,6 +23,9 @@ import { useI18n } from '../i18n';
 import { clasesDe, objetivoPara } from '../lib/objetivos';
 import { useBorradorVentana } from '../hooks/useBorrador';
 import { AvisoBorrador } from '../components/AvisoBorrador';
+import { AbrirArchivoDeInstrumento, GuardarInstrumentoComoArchivo } from '../components/evaluar/ArchivoDeInstrumento';
+import { AiKeyNotice } from '../components/ui/AiKeyNotice';
+import { useHayClaveIA } from '../hooks/useClaveIA';
 import { idDeEvaluacion, type Marcado } from '../lib/evaluarClase';
 import { useEvaluarClase, type GuardarEvaluacion } from '../hooks/useEvaluarClase';
 import { AlumnoQueSeEvalua, CabeceraDeEvaluarClase, ListaDeClase, PieDeEvaluarClase } from '../components/evaluar/EvaluarClasePartes';
@@ -82,7 +85,9 @@ interface DianaModalProps {
 function DianaModal({ open, inicial, onCambio, editing, classes, gradeCategories, lawDocument, onClose, onSave, comunidad }: DianaModalProps) {
   const { toast } = useToast();
   const { t, lang } = useI18n();
-  const [mode, setMode] = useState<'ia' | 'manual'>('ia');
+  // Sin clave de la IA no se abre en la pestaña de la IA; al día, por si la clave se pone en su ventana, encima de esta
+  const sinClave = !useHayClaveIA();
+  const [mode, setMode] = useState<'ia' | 'manual'>(sinClave ? 'manual' : 'ia');
 
   const [aiContext, setAiContext] = useState('');
   const [aiCount, setAiCount]     = useState(5);
@@ -131,7 +136,7 @@ function DianaModal({ open, inicial, onCambio, editing, classes, gradeCategories
     } else {
       setTarget({});
       setLevels(defaultLevels(lang));
-      setMode('ia');
+      setMode(sinClave ? 'manual' : 'ia');
       setName('');
       setItems([blankItem()]);
       setAiContext('');
@@ -341,6 +346,12 @@ function DianaModal({ open, inicial, onCambio, editing, classes, gradeCategories
 
         {mode === 'ia' ? (
           <div>
+            {sinClave && (
+              <AiKeyNotice
+                message={t('Para que la IA escriba la diana hace falta la clave gratuita de Google. Sin ella puedes escribirla a mano.')}
+                action={t('Configurar la IA')}
+              />
+            )}
             <div className="fgroup">
               <label className="flabel" htmlFor="evaldianas-f2">{t('¿Qué quieres evaluar? *')}</label>
               <textarea
@@ -361,7 +372,7 @@ function DianaModal({ open, inicial, onCambio, editing, classes, gradeCategories
             </div>
             <button
               className="btn-ia"
-              disabled={!aiContext.trim() || generating}
+              disabled={!aiContext.trim() || generating || sinClave}
               onClick={handleGenerate}
               style={{ width: '100%', justifyContent: 'center' }}
             >
@@ -682,6 +693,12 @@ export function DianasTab({
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
   function openNew()  { setEditing(null); setInicial(null); setModalOpen(true); }
+  /** Una diana guardada como archivo (`lib/archivoInstrumento.ts`) se abre en el editor, sin clase: el docente elige las suyas y la guarda. */
+  function abrirArchivo(d: Pick<EvalDiana, 'name' | 'items' | 'levels'>) {
+    setEditing(null);
+    setInicial({ mode: 'manual', aiContext: '', aiCount: 5, name: d.name, items: d.items, target: {}, levels: d.levels ?? defaultLevels(lang) });
+    setModalOpen(true);
+  }
   function openEdit(d: EvalDiana) { setEditing(d); setModalOpen(true); }
   function openEval(d: EvalDiana) { setEvalDiana(d); setEvalOpen(true); }
 
@@ -716,6 +733,7 @@ export function DianasTab({
         <p style={{ fontSize: 12.5, color: 'var(--text-2)', flex: 1, lineHeight: 1.5 }}>
           {t('Marca el nivel de logro de cada ítem y la nota sobre 10 se calcula sola.')}
         </p>
+        <AbrirArchivoDeInstrumento tipo="diana" onDiana={abrirArchivo} />
         <button className="btn-accent" onClick={openNew}>
           <Plus size={15} />{t('Nueva diana')}
         </button>
@@ -752,6 +770,7 @@ export function DianasTab({
                   <div style={{ display: 'flex', gap: 2, marginLeft: 8, flexShrink: 0 }}>
                     <button className="ico-btn" onClick={() => openEdit(d)} title={t('Editar diana')}><Pencil size={14} /></button>
                     <button className="ico-btn" onClick={() => descargarPdf(d)} title={t('Descargar en PDF')} aria-label={t('Descargar «{nombre}» en PDF', { nombre: d.name })}><FileDown size={14} /></button>
+                    <GuardarInstrumentoComoArchivo diana={d} />
                     <button className="ico-btn" onClick={() => duplicate(d)} title={t('Duplicar diana')}><Copy size={14} /></button>
                     <button className="ico-btn" onClick={() => setConfirmDelete(d.id)} title={t('Eliminar diana')}><Trash2 size={14} color="var(--danger)" /></button>
                   </div>

@@ -36,6 +36,7 @@ import { DescriptoresDeModelo, EtapaDeModelos, ModelosDeInstrumento } from '../c
 import { MODELOS_RUBRICA, enOrden, etapaDePartida, resumenDeRubrica, rubricaDeModelo, type EtapaModelo } from '../lib/modelosInstrumentos';
 import { AiKeyNotice } from '../components/ui/AiKeyNotice';
 import { useHayClaveIA } from '../hooks/useClaveIA';
+import { AbrirArchivoDeInstrumento, GuardarInstrumentoComoArchivo } from '../components/evaluar/ArchivoDeInstrumento';
 
 /* ─── Props ─── */
 interface Props {
@@ -1116,6 +1117,16 @@ export function Rubrics({
   const borradorRubric = useBorradorVentana<BorradorRubrica>('rubrica', rubricModalOpen, p => p.manualName || p.aiPreview?.name || p.aiContext);
   const { cambiar: cambiarBorradorRubric } = borradorRubric;
   const alCambiarRubric = useCallback((b: BorradorRubrica | null) => cambiarBorradorRubric(b), [cambiarBorradorRubric]);
+  /** Una rúbrica guardada como archivo (`lib/archivoInstrumento.ts`) se abre en el editor, sin clase: el docente elige las suyas y la guarda. */
+  function abrirArchivoDeRubrica(r: Pick<Rubric, 'name' | 'criteria' | 'levels'>) {
+    setEditingRubric(null);
+    setInicialRubric({
+      mode: 'manual', aiContext: '', aiCount: 4, aiPreview: null,
+      manualName: r.name, manualCriteria: r.criteria.map(criterionFromRubric), target: {}, levels: r.levels ?? defaultLevels(lang),
+    });
+    setRubricModalOpen(true);
+  }
+
   function continuarRubric() {
     const d = borradorRubric.continuar();
     if (!d) return;
@@ -1253,6 +1264,7 @@ export function Rubrics({
           </span>
         )}
         <span className="toolbar-spacer" />
+        <AbrirArchivoDeInstrumento tipo="rubrica" onRubrica={abrirArchivoDeRubrica} />
         <button className="btn-accent" style={{ height: 36 }} onClick={() => openNewRubric()}>
           <Plus size={15} />{t('Nueva rúbrica')}
         </button>
@@ -1302,6 +1314,7 @@ export function Rubrics({
                     <button className="ico-btn" onClick={() => descargarPdf(r)} title={t('Descargar en PDF')} aria-label={t('Descargar «{nombre}» en PDF', { nombre: r.name })}>
                       <FileDown size={14} />
                     </button>
+                    <GuardarInstrumentoComoArchivo rubrica={r} />
                     <button className="ico-btn" onClick={() => duplicateRubric(r)} title={t('Duplicar rúbrica')}>
                       <Copy size={14} />
                     </button>

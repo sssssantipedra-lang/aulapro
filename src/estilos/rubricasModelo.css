@@ -62,3 +62,9 @@
 .vci-pie { display:flex; justify-content:flex-end; gap:8px; flex-wrap:wrap; margin-top:6px; }
 /* Para quien entra con la cuenta del centro y no puede crear la clave */
 .ak-centro { font-size:12px; line-height:1.5; color:var(--text-3); }
+
+/* ── «Abrir archivo» de un instrumento (components/evaluar/ArchivoDeInstrumento.tsx) ── */
+.ai-abrir { height:36px; padding:0 14px; font-size:13px; flex-shrink:0; }
+/* La cabecera de Escalas de registro: «Abrir archivo» y «Nueva escala» */
+.ai-cabecera { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+@media (max-width:640px) { .ai-abrir { height:42px; } }
