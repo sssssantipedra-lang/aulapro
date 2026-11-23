@@ -476,7 +476,7 @@ function AppInner() {
           // El ejemplo de PT y AL lleva el nombre que le pone la bienvenida
           await st.createAndOpenProfile(input.especialidades?.length || input.tipoDocente === 'ef' ? input : {
             name: t(DEMO_USER.full_name), school: t(DEMO_USER.school),
-            subject: t(DEMO_USER.subject), course: '2025-2026', community: DEMO_COMMUNITY,
+            subject: t(DEMO_USER.subject), course: input.course || '', community: DEMO_COMMUNITY,   // el curso de hoy, el que calcula la bienvenida
           }, { demo: true, lang });
           setSection('dashboard', { sustituir: true });
           toast(t('✅ Datos de ejemplo cargados'));

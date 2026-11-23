@@ -38,7 +38,8 @@ if (!ENSAYO) audios.forEach(a => { if (!fs.existsSync(a)) throw new Error('Falta
 const duraciones = ENSAYO ? guion.escenas.map(e => Math.max(1.5, e.texto.length / 15)) : audios.map(dur);
 
 const tmp = ENSAYO ? null : fs.mkdtempSync(path.join(AQUI, '.tmp-'));
-const browser = await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
+// En castellano también la interfaz del navegador: con solo `locale`, los campos de fecha y hora salían como en EE. UU. («10/14/2026», «09:00 AM»)
+const browser = await chromium.launch({ args: ['--lang=es-ES'], env: { ...process.env, LANG: 'es_ES.UTF-8', LANGUAGE: 'es_ES' }, ...(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {}) });
 const ctx = await browser.newContext({
   viewport: { width: OW, height: OH }, locale: 'es-ES',
   ...(ENSAYO ? {} : { recordVideo: { dir: tmp, size: { width: OW, height: OH } } }),
