@@ -2,13 +2,13 @@ import { CORRECCION_CON_IA } from '../lib/correccionIA';
 import { AyudaVideo } from '../components/AyudaVideo';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
-  Plus, Pencil, Trash2, ClipboardCheck, X, Paperclip, Sparkles, ChevronDown, Copy, Search, FileDown,
+  Plus, Pencil, Trash2, ClipboardCheck, X, Paperclip, Sparkles, ChevronDown, Copy, Search, FileDown, LayoutTemplate,
 } from 'lucide-react';
 import type { Rubric, RubricCriterion, Evaluation, Class, Student, EvalDiana, GradeCategory, GradeTarget, OfficialCriterionRef, ScheduleBlock } from '../types';
 import { GradeTargetsPicker } from '../components/GradeTargetPicker';
 import { buildRubricaHtml, guardarInstrumentoPdf, nombresDeClases } from '../services/exportInstrumento';
 import type { InlineFile } from '../services/gemini';
-import { callGemini, parseGeminiJson } from '../services/gemini';
+import { callGemini, hasApiKey, parseGeminiJson } from '../services/gemini';
 import { competenciasClaveValidas, isoDate } from '../lib/utils';
 import { levelsOf, levelColor, gradeFromLevels, defaultLevels, competencyScoresFor, type AchievementLevel } from '../types';
 import { officialCriteriaScoresFor } from '../lib/curriculum/evaluacionPorCriterios';
@@ -32,6 +32,9 @@ import { textoLibreParaIA } from '../lib/documentoParaIA';
 import { idDeEvaluacion, marcados, type Marcado } from '../lib/evaluarClase';
 import { useEvaluarClase, type GuardarEvaluacion } from '../hooks/useEvaluarClase';
 import { AlumnoQueSeEvalua, CabeceraDeEvaluarClase, ListaDeClase, PieDeEvaluarClase } from '../components/evaluar/EvaluarClasePartes';
+import { DescriptoresDeModelo, EtapaDeModelos, ModelosDeInstrumento } from '../components/evaluar/ModelosDeInstrumento';
+import { MODELOS_RUBRICA, enOrden, etapaDePartida, resumenDeRubrica, rubricaDeModelo, type EtapaModelo } from '../lib/modelosInstrumentos';
+import { AiKeyNotice } from '../components/ui/AiKeyNotice';
 
 /* ─── Props ─── */
 interface Props {
@@ -67,10 +70,13 @@ interface Props {
   /** Lo escrito en el buscador general, para llegar con la lista ya filtrada (18-11-2026). Solo se mira al montar. */
   busquedaInicial?: string;
   onBusquedaUsada?: () => void;
+  /** El perfil es de Educación Física: sus rúbricas modelo salen las primeras. */
+  ef?: boolean;
 }
 
 /* ─── Internal types ─── */
-type RubricMode = 'ia' | 'manual';
+/** `modelo`: partir de una rúbrica ya escrita (`lib/modelosInstrumentos.ts`), sin IA. */
+type RubricMode = 'modelo' | 'ia' | 'manual';
 
 interface CriterionDraft {
   id: string;
@@ -108,6 +114,11 @@ function criterionFromRubric(c: RubricCriterion): CriterionDraft {
   return { id: c.id, name: c.name, descs: { ...c.descriptors }, competencies: c.competencies, officialCriteria: c.officialCriteria };
 }
 
+/** Lo escrito en el editor manual, para saber si sigue siendo el modelo tal cual o el docente ya lo ha tocado. */
+function firmaDeLoEscrito(name: string, criteria: CriterionDraft[]): string {
+  return JSON.stringify([name.trim(), criteria.map(c => [c.name.trim(), c.descs])]);
+}
+
 
 /* ═══════════════════════════════════════════════════════════════════════════
    RUBRIC MODAL (create / edit)
@@ -134,12 +145,23 @@ interface RubricModalProps {
   onClose: () => void;
   onSave: (r: Rubric) => void;
   comunidad?: ComunidadId;
+  /** Con qué pestaña se abre una rúbrica nueva. Sin decirlo: con clave de la IA, «IA»; sin ella, «Desde un modelo». */
+  modoInicial?: RubricMode;
+  ef?: boolean;
 }
 
-function RubricModal({ open, inicial, onCambio, editing, classes, gradeCategories, lawDocument, onClose, onSave, comunidad }: RubricModalProps) {
+function RubricModal({ open, inicial, onCambio, editing, classes, gradeCategories, lawDocument, onClose, onSave, comunidad, modoInicial, ef = false }: RubricModalProps) {
   const { toast } = useToast();
   const { t, lang } = useI18n();
-  const [mode, setMode] = useState<RubricMode>('ia');
+  // Sin clave de la IA no se abre en la pestaña de la IA: se empieza por los modelos, que no la necesitan
+  const [mode, setMode] = useState<RubricMode>(() => modoInicial ?? (hasApiKey() ? 'ia' : 'modelo'));
+  const sinClave = !hasApiKey();
+
+  /* Desde un modelo */
+  /** Primaria o ESO, si el docente la ha cambiado; si no, la de la clase elegida o la de la mayoría de sus clases. */
+  const [etapaElegida, setEtapaElegida] = useState<EtapaModelo | null>(null);
+  /** Lo que dejó escrito el último modelo usado: mientras no se toque, otro modelo lo sustituye sin preguntar. */
+  const [firmaDelModelo, setFirmaDelModelo] = useState<string | null>(null);
 
   /* AI state */
   const [aiContext, setAiContext] = useState('');
@@ -195,7 +217,7 @@ function RubricModal({ open, inicial, onCambio, editing, classes, gradeCategorie
       setLevels(inicial.levels);
     } else {
       setLevels(defaultLevels(lang));
-      setMode('ia');
+      setMode(modoInicial ?? (hasApiKey() ? 'ia' : 'modelo'));
       setManualName('');
       setManualCriteria([blankCriterion()]);
       setAiContext('');
@@ -204,6 +226,26 @@ function RubricModal({ open, inicial, onCambio, editing, classes, gradeCategorie
       setTarget({});
     }
   });
+
+  useResetOnChange(String(open), () => { setEtapaElegida(null); setFirmaDelModelo(null); });
+
+  /* ── Desde un modelo ── */
+  const etapaModelo = etapaElegida ?? etapaDePartida(classes, claseDestino);
+  const modelos = enOrden(MODELOS_RUBRICA, ef);
+  const hayAlgoEscrito = !!manualName.trim() || manualCriteria.some(c => c.name.trim());
+  /** Rellena el editor manual con el modelo y lo abre: el docente cambia lo que quiera antes de guardar. */
+  function usarModelo(id: string) {
+    const modelo = MODELOS_RUBRICA.find(m => m.id === id);
+    if (!modelo) return;
+    const r = rubricaDeModelo(modelo, etapaModelo, lang);
+    const criterios: CriterionDraft[] = r.criteria.map(c => ({ id: uid(), name: c.name, descs: { ...c.descriptors }, competencies: c.competencies }));
+    setManualName(r.name);
+    setManualCriteria(criterios);
+    // Los modelos están escritos para los cuatro niveles de partida
+    setLevels(defaultLevels(lang));
+    setFirmaDelModelo(firmaDeLoEscrito(r.name, criterios));
+    setMode('manual');
+  }
 
   /* Autoguardado: mientras haya algo hecho y sin guardar, la pantalla lo conserva */
   useEffect(() => {
@@ -373,14 +415,24 @@ function RubricModal({ open, inicial, onCambio, editing, classes, gradeCategorie
           <div>
             <div className="modal-title">{t(editing ? 'Editar rúbrica' : 'Nueva rúbrica')}</div>
             <p style={{ fontSize: 12.5, color: 'var(--text-3)', marginTop: 3 }}>
-              {t(mode === 'ia' ? 'Genera criterios con IA' : 'Define los criterios manualmente')}
+              {mode === 'modelo' ? t('Parte de una rúbrica ya escrita y adáptala') : t(mode === 'ia' ? 'Genera criterios con IA' : 'Define los criterios manualmente')}
             </p>
           </div>
           <button className="ico-btn" onClick={onClose} aria-label={t('Cerrar')} title={t('Cerrar')}><X size={18} /></button>
         </div>
 
         {/* Mode toggle */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 18, flexWrap: 'wrap' }}>
+          {!editing && (
+            <button
+              className={mode === 'modelo' ? 'btn-accent' : 'btn-ghost'}
+              style={{ fontSize: 13, padding: '7px 14px' }}
+              aria-pressed={mode === 'modelo'}
+              onClick={() => setMode('modelo')}
+            >
+              <LayoutTemplate size={13} />{t('Desde un modelo')}
+            </button>
+          )}
           <button
             className={mode === 'ia' ? 'btn-ia' : 'btn-ghost'}
             style={{ fontSize: 13, padding: '7px 14px' }}
@@ -397,6 +449,29 @@ function RubricModal({ open, inicial, onCambio, editing, classes, gradeCategorie
           </button>
         </div>
 
+        {/* ── DESDE UN MODELO ── */}
+        {mode === 'modelo' && (
+          <div className="mi">
+            <div className="mi-cab">
+              <p className="mi-intro">
+                {t('Rúbricas ya escritas, sin IA. Elige una y pulsa «Usar y adaptar»: se abre el editor con todo relleno y cambias lo que quieras antes de guardarla.')}
+              </p>
+              <EtapaDeModelos etapa={etapaModelo} onEtapa={setEtapaElegida} />
+            </div>
+            <ModelosDeInstrumento
+              modelos={modelos.map(m => resumenDeRubrica(m, lang))}
+              etapa={etapaModelo}
+              avisar={hayAlgoEscrito && firmaDeLoEscrito(manualName, manualCriteria) !== firmaDelModelo}
+              onUsar={usarModelo}
+              detalle={id => {
+                const m = MODELOS_RUBRICA.find(x => x.id === id);
+                return m ? <DescriptoresDeModelo criterios={rubricaDeModelo(m, etapaModelo, lang).criteria} niveles={defaultLevels(lang)} /> : null;
+              }}
+            />
+          </div>
+        )}
+
+        {mode !== 'modelo' && (<>
         <GradeTargetsPicker
           value={target}
           onChange={setTarget}
@@ -443,10 +518,17 @@ function RubricModal({ open, inicial, onCambio, editing, classes, gradeCategorie
             )}
           </p>
         </div>
+        </>)}
 
         {/* ── AI MODE ── */}
         {mode === 'ia' && (
           <div>
+            {sinClave && (
+              <AiKeyNotice
+                message={t('Para que la IA escriba la rúbrica hace falta la clave gratuita de Google. Sin ella puedes partir de un modelo o escribirla a mano.')}
+                action={t('Configurar la IA')} onAction={() => toast(t('La clave de la IA se pone en Configuración › Clave de la IA.'))}
+              />
+            )}
             <div className="fgroup">
               <label className="flabel" htmlFor="rubrics-f2">{t('Contexto de la actividad *')}</label>
               <textarea
@@ -469,7 +551,7 @@ function RubricModal({ open, inicial, onCambio, editing, classes, gradeCategorie
             </div>
             <button
               className="btn-ia"
-              disabled={!aiContext.trim() || aiGenerating}
+              disabled={!aiContext.trim() || aiGenerating || sinClave}
               onClick={handleGenerate}
               style={{ width: '100%', justifyContent: 'center', marginBottom: 16 }}
             >
@@ -1004,7 +1086,7 @@ export function Rubrics({
   onAddRubric, onUpdateRubric, onDeleteRubric,
   onAddDiana, onUpdateDiana, onDeleteDiana, onAddEvaluation, onUpdateEvaluation, scheduleBlocks,
   defaultOpenEvalRubricId, defaultOpenEvalStudentId, defaultOpenEvalClassId,
-  onEvalOpened, comunidad, vista = 'rubrics', busquedaInicial = '', onBusquedaUsada,
+  onEvalOpened, comunidad, vista = 'rubrics', busquedaInicial = '', onBusquedaUsada, ef = false,
 }: Props) {
   const { toast } = useToast();
   const { t, locale, lang } = useI18n();
@@ -1021,6 +1103,8 @@ export function Rubrics({
   const [editingRubric, setEditingRubric] = useState<Rubric | null>(null);
   // Una rúbrica que se cerró o se quedó a medias: se ofrece continuarla
   const [inicialRubric, setInicialRubric] = useState<BorradorRubrica | null>(null);
+  /** La pestaña con la que se abre «Nueva rúbrica» si se pide una en concreto (los botones del estado vacío). */
+  const [modoInicial, setModoInicial] = useState<RubricMode | undefined>();
   const borradorRubric = useBorradorVentana<BorradorRubrica>('rubrica', rubricModalOpen, p => p.manualName || p.aiPreview?.name || p.aiContext);
   const { cambiar: cambiarBorradorRubric } = borradorRubric;
   const alCambiarRubric = useCallback((b: BorradorRubrica | null) => cambiarBorradorRubric(b), [cambiarBorradorRubric]);
@@ -1054,9 +1138,10 @@ export function Rubrics({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [defaultOpenEvalRubricId]);
 
-  function openNewRubric() {
+  function openNewRubric(modo?: RubricMode) {
     setEditingRubric(null);
     setInicialRubric(null);
+    setModoInicial(modo);
     setRubricModalOpen(true);
   }
 
@@ -1160,7 +1245,7 @@ export function Rubrics({
           </span>
         )}
         <span className="toolbar-spacer" />
-        <button className="btn-accent" style={{ height: 36 }} onClick={openNewRubric}>
+        <button className="btn-accent" style={{ height: 36 }} onClick={() => openNewRubric()}>
           <Plus size={15} />{t('Nueva rúbrica')}
         </button>
       </div>
@@ -1171,11 +1256,16 @@ export function Rubrics({
           <ClipboardCheck size={40} style={{ margin: '0 auto 14px', opacity: 0.3 }} />
           <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6 }}>{t('Sin rúbricas todavía')}</div>
           <p style={{ fontSize: 13, marginBottom: 18 }}>
-            {t('Crea tu primera rúbrica manualmente o con ayuda de la IA.')}
+            {t('Empieza por una rúbrica modelo ya escrita y adáptala, o créala a mano o con ayuda de la IA.')}
           </p>
-          <button className="btn-ia" onClick={openNewRubric} style={{ margin: '0 auto' }}>
-            <Sparkles size={14} />{t('✨ Crear rúbrica')}
-          </button>
+          <div className="mi-vacio">
+            <button className="btn-accent" onClick={() => openNewRubric('modelo')}>
+              <LayoutTemplate size={14} />{t('Empezar desde un modelo')}
+            </button>
+            <button className="btn-ghost" onClick={() => openNewRubric(hasApiKey() ? 'ia' : 'manual')}>
+              {hasApiKey() ? <><Sparkles size={14} />{t('Crear con IA')}</> : <><Pencil size={14} />{t('Crear a mano')}</>}
+            </button>
+          </div>
         </div>
       ) : visibleRubrics.length === 0 ? (
         <p className="seat-hint">{t('Ninguna rúbrica coincide con «{q}».', { q: query.trim() })}</p>
@@ -1332,6 +1422,8 @@ export function Rubrics({
         onClose={() => setRubricModalOpen(false)}
         onSave={handleSaveRubric}
         comunidad={comunidad}
+        modoInicial={modoInicial}
+        ef={ef}
       />
 
       {/* Eval modal */}
