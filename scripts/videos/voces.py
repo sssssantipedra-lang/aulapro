@@ -14,7 +14,8 @@ El modelo se descarga la primera vez en la caché de Hugging Face. Va lento sin 
 menos con la comprobación) y no es exacto: a veces se come o repite palabras, y a menudo, al acabar la frase, tras un
 silencio corto suelta un «eh» o un «mm». Por eso cada frase se transcribe con Whisper, palabra a palabra y con sus tiempos:
 - se corta en el primer silencio después de su última palabra (y antes de la primera), con un fundido corto: así no queda el
-  «eh» del final (`limites`);
+  «eh» del final (`limites`); si Whisper oye palabras después de la última del texto (a veces suelta un «ups» o
+  repite una palabra), se quitan antes (`sin_propina`);
 - se puntúa lo que se oye dentro de ese corte contra lo que tenía que decir, restando por cada palabra de más (un
   tartamudeo, un «eh» que Whisper escriba) y por cada sonido fuerte en una pausa de dentro de la frase (`puntuar`);
 - si no llega a `PARECIDO`, se repite con otra semilla (hasta `INTENTOS` veces) y se queda la que mejor puntúe.
@@ -108,8 +109,22 @@ def palabras(t):
 def parecido(oido, dicho):
     """De 0 a 1, cuánto se parece lo oído a lo escrito, y cuántas palabras de más se oyen."""
     sm = difflib.SequenceMatcher(None, palabras(oido), palabras(dicho))
-    de_mas = sum(max(0, (i2 - i1) - (j2 - j1)) for tag, i1, i2, j1, j2 in sm.get_opcodes() if tag in ('insert', 'replace'))
+    de_mas = sum(max(0, (i2 - i1) - (j2 - j1)) for tag, i1, i2, j1, j2 in sm.get_opcodes() if tag in ('delete', 'replace'))
     return sm.ratio(), de_mas
+
+
+def sin_propina(ws, dicho):
+    """Las palabras de Whisper sin las que se oyen después del final del texto: Chatterbox a veces añade una o dos
+    («ups», «IA», «quiero») tras una pausa, y el recorte tiene que acabar en la última palabra de verdad."""
+    oidas, de = [], []
+    for k, w in enumerate(ws):
+        for p in palabras(w.word):
+            oidas.append(p)
+            de.append(k)
+    ops = difflib.SequenceMatcher(None, oidas, palabras(dicho)).get_opcodes()
+    if ops and ops[-1][0] == 'delete' and ops[-1][1] > 0:
+        return ws[:de[ops[-1][1] - 1] + 1]
+    return ws
 
 
 PASO = 0.02          # s de cada trozo al medir el volumen
@@ -233,6 +248,7 @@ def main():
                 if oido:
                     segs, _ = oido.transcribe(x, language='es', beam_size=5, word_timestamps=True)
                     ws = [w for s in segs for w in s.words]
+                ws = sin_propina(ws, dicho)
                 ini, fin, ruidos = limites(x, 16000, ws)
                 p, oyo, de_mas = puntuar(ws, ini, fin, ruidos, dicho, texto) if oido else (1.0, '', 0)
                 if mejor is None or p > mejor['p']:
