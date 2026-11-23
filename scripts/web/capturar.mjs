@@ -6,7 +6,10 @@
  *
  * Se hacen sobre la app de verdad, con los datos de ejemplo y un miércoles a
  * las 9:45 (hay clase en marcha), para los tres perfiles: docente de aula, Educación
- * Física y PT y AL (`FASES=aula,ef,apoyo` para hacer solo alguno). Los datos de ejemplo de la
+ * Física y PT y AL, y una cuarta pasada, `nuevas`, con las sesiones, las tarjetas interactivas y los
+ * pesos del cuaderno (`FASES=aula,ef` para hacer solo alguna: las pantallas de las demás se conservan).
+ * Desde el 20-11-2026 la clase de cada pantalla la decide la app (la clase activa): con ese reloj es la
+ * que está en marcha, 5º Primaria A, con su marca «Ahora», y aquí ya no se elige otra a mano. Los datos de ejemplo de la
  * app no traen nada de lo que crea la IA (situaciones de aprendizaje, informes, fichas, actas…),
  * así que antes de capturar se le suma un ejemplo de cada cosa (`scripts/web/ejemplos.mjs`).
  * Nada se genera de verdad: lo único que se escribe es lo que se ve en la captura. Así la demo y las capturas salen siempre
@@ -14,8 +17,9 @@
  *
  * Uso, con la app arrancada en modo desarrollo (`npm run dev`):
  *
- *   npm i --no-save playwright@1.56.1
  *   node scripts/web/capturar.mjs [http://localhost:5173/]
+ *
+ * (Playwright y su Chromium tienen que estar instalados: `npm i --no-save playwright@1.56.1` si faltan.)
  *
  * Además escribe en scripts/web/marcas.json dónde caen, en %, las marcas que
  * la portada dibuja sobre las capturas (números, círculos y etiquetas).
@@ -26,6 +30,11 @@
  * dibujar al usarlo (`pizarra-base.webp`: anillo y cifras del temporizador, ruleta,
  * pantalla de la calculadora y paleta del lápiz). Si cambia algo de esa pantalla
  * (ver `docs/PIZARRA.md`), hay que cambiar aquí y en `INIT.pizarra` de `assets/demo.js`.
+ *
+ * «Evaluar a la clase» (rúbrica y diana) también se puede probar en la demo: de la ventana se apunta
+ * dónde están la lista del alumnado, la cuenta, a quién se evalúa y el pie (`datosDeClase`), y la demo
+ * los vuelve a dibujar encima para que «Guardar y siguiente» pase de verdad al alumno siguiente
+ * (`claseEval` en `assets/demo.js`, con los estilos de `src/estilos/evaluarClase.css`).
  */
 import { chromium } from 'playwright';
 import sharp from 'sharp';
@@ -168,7 +177,7 @@ function acciones(z, hubId, extra = {}, rutas = []) {
 const fuera = (zs, cajas) => zs.filter(([x0, y0, x1, y1]) => !cajas.some(([a, b, c, d]) => x0 >= a - 2 && y0 >= b - 2 && x1 <= c + 2 && y1 <= d + 2));
 
 /* ── La sesión ───────────────────────────────────────────────────────── */
-const FASES = (process.env.FASES || 'aula,ef,apoyo').split(',');
+const FASES = (process.env.FASES || 'aula,ef,apoyo,nuevas').split(',');
 const browser = await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
 let ctx, page;
 const CLAVE_AI = 'clave-de-ejemplo-no-valida';   // Solo para que la app no pida la clave: no se conecta a nada
@@ -179,6 +188,8 @@ async function abrirPerfil(tipo) {
   ctx = await browser.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: 1, locale: 'es-ES' });
   page = await ctx.newPage();
   page.on('pageerror', e => console.log('Error en la app:', e.message));
+  // Cerrar una ventana con algo a medias pregunta antes («¿Salir sin guardar?»): en las capturas, sí
+  page.on('dialog', d => d.accept().catch(() => {}));
   await ctx.clock.install({ time: new Date('2026-10-14T09:45:00') });
   await page.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 90000 });
   await page.waitForTimeout(2000);
@@ -259,13 +270,25 @@ const pestana = async nombre => { await page.locator('.hub-tab', { hasText: new 
 const cerrarModal = async () => { await page.locator('.modal-overlay.open').last().getByRole('button', { name: 'Cerrar' }).first().click(); await page.waitForTimeout(500); };
 const arriba = () => page.evaluate(() => window.scrollTo(0, 0));
 const foto = async (opts = {}, y = 0) => { await arriba(); if (y) await page.evaluate(v => window.scrollTo(0, v), y); await page.waitForTimeout(350); return page.screenshot(opts); };
-/** Elige en un desplegable la opción cuyo texto empieza así (para enseñar clases de Primaria). */
-async function elegir(select, texto) {
-  // La clase de ahora lleva un punto delante en el desplegable («● 5º Primaria A»): no cuenta para buscarla
-  const v = await select.locator('option').evaluateAll((os, t) => (os.find(o => o.textContent.replace(/^●\s*/, '').trim().startsWith(t)) ?? os.find(o => o.value))?.value, texto);
-  await select.selectOption(v);
-  await page.waitForTimeout(400);
-}
+/**
+ * «Evaluar a la clase» (la ventana de la rúbrica y la de la diana): dónde están la lista del alumnado, la cuenta, a quién
+ * se evalúa y el pie. La demo los vuelve a dibujar encima para que la lista y «Guardar y siguiente» respondan.
+ */
+const datosDeClase = () => page.evaluate(() => {
+  const dlg = [...document.querySelectorAll('.modal-overlay.open')].pop();
+  const caja = el => { const x = el.getBoundingClientRect(); return [Math.round(x.left), Math.round(x.top), Math.round(x.right), Math.round(x.bottom)]; };
+  const cuenta = dlg.querySelector('.evc-cuenta');
+  return {
+    filas: [...dlg.querySelectorAll('.evc-al')].map(b => ({ caja: caja(b), nombre: b.querySelector('.evc-nombre').textContent, antes: b.querySelector('.evc-dato')?.textContent ?? '' })),
+    cuenta: caja(cuenta),
+    // «evaluados hoy» si la clase ya se evaluó otro día con este instrumento, «evaluados» si es la primera vez
+    hoy: cuenta.querySelector('span').textContent.replace(/^\d+ de \d+\s*/, '').trim(),
+    barra: caja(dlg.querySelector('.evc-barra')),
+    quien: caja(dlg.querySelector('.evc-quien')),
+    aviso: caja(dlg.querySelector('.evc-quien .evc-aviso') ?? dlg.querySelector('.evc-quien')),
+    pie: caja(dlg.querySelector('.evc-pie-btns')),
+  };
+});
 const caja = async loc => { const b = await loc.boundingBox(); return [r(b.x), r(b.y), r(b.x + b.width), r(b.y + b.height)]; };
 
 const PANTALLAS = {};
@@ -278,6 +301,7 @@ async function pantalla(id, titulo, hubId, opts = {}) {
   const z = await zonas(page);
   let spots = acciones(z.zonas, hubId, opts.extra, opts.rutas);
   if (opts.quitar) spots = fuera(spots, opts.quitar);
+  if (opts.mas) spots.push(...opts.mas);   // zonas que no son un botón de la app (lo que asoma de una lista y lleva a ella)
   PANTALLAS[id] = { title: titulo, img: path.basename(img), spots, ...(z.modal ? { modal: z.modal.map(r) } : {}), ...(opts.datos ?? {}) };
   console.log(`· ${id}: ${spots.length} zonas`);
   return buf;
@@ -314,7 +338,6 @@ await page.getByRole('tab', { name: 'Semanal', exact: true }).click();
 await page.waitForTimeout(900);
 await pantalla('agendasemana', 'Horario semanal', null, { extra: AGENDA });
 await menu('Cuaderno de Notas');
-await elegir(page.locator('main .class-pick select').first(), '3º Primaria A');
 const cuaderno = await pantalla('cuaderno', 'Cuaderno de Notas');
 fs.writeFileSync(path.join(SITIO, 'assets/app/cuaderno.webp'), await webp(cuaderno));
 
@@ -332,52 +355,48 @@ await menu('Asistencia');
 await menu('Evaluar');
 await pantalla('evaluar', 'Evaluar', 'evaluar');
 await pestana('Rúbricas');
-await pantalla('rubricas', 'Rúbricas', 'evaluar', { extra: { 'Evaluar alumno': 'go:rubrica' } });
+await pantalla('rubricas', 'Rúbricas', 'evaluar', { extra: { 'Evaluar a la clase': 'go:rubrica' } });
 
-// La ventana de evaluar con rúbrica, con clase y alumno elegidos y sin nada marcado
-await page.locator('main').getByRole('button', { name: 'Evaluar alumno' }).first().click();
+// «Evaluar a la clase» con una rúbrica: la clase de ahora, su alumnado en la lista y nada marcado
+const TODOS = [[/^Poner a todos el nivel/, 't:todos']];
+await page.locator('main').getByRole('button', { name: 'Evaluar a la clase' }).first().click();
 await page.waitForTimeout(900);
 {
-  const dlg = page.locator('.modal-overlay').filter({ has: page.locator('table') }).last();
-  const selects = dlg.locator('select');
-  await elegir(selects.nth(0), '4º Primaria A');
-  await page.waitForTimeout(300);
-  const alumnos = await selects.nth(1).locator('option').evaluateAll(os => os.map(o => o.value).filter(Boolean));
-  await selects.nth(1).selectOption(alumnos[alumnos.length - 1]);
-  await page.waitForTimeout(500);
-  const celdas = await page.evaluate(() => {
-    const tabla = [...document.querySelectorAll('.modal-overlay.open table')].pop();
-    return [...tabla.querySelectorAll('tbody tr')].map(tr => [...tr.querySelectorAll('td')].slice(1).map(td => {
-      const b = td.getBoundingClientRect();
-      return [Math.round(b.left), Math.round(b.top), Math.round(b.right), Math.round(b.bottom)];
-    })).filter(f => f.length);
+  const dlg = page.locator('.modal-overlay.open').last();
+  const clase = await datosDeClase();
+  const { celdas, total } = await page.evaluate(() => {
+    const dlg = [...document.querySelectorAll('.modal-overlay.open')].pop();
+    const caja = el => { const b = el.getBoundingClientRect(); return [Math.round(b.left), Math.round(b.top), Math.round(b.right), Math.round(b.bottom)]; };
+    const celdas = [...dlg.querySelectorAll('table tbody tr')].map(tr => [...tr.querySelectorAll('td')].slice(1).map(caja)).filter(f => f.length);
+    // La puntuación del pie: la pastilla «0 / 12» y el porcentaje, que la demo vuelve a escribir
+    const pastilla = dlg.querySelector('.evc-pie-dato .score-pill'), pct = pastilla.nextElementSibling;
+    const [x0, y0, , y1] = caja(pastilla);
+    return { celdas, total: { caja: [x0, y0, caja(pct)[2], y1], max: +pastilla.textContent.split('/')[1] } };
   });
-  const quitar = celdas.flat();
-  const buf = await pantalla('rubrica', 'Evaluar con rúbrica', 'evaluar', { quitar, extra: { 'Cerrar': 'fn:closeModal', 'Cancelar': 'fn:closeModal', 'Guardar evaluación': 't:rubSave' }, datos: { rubrica: celdas, back: 'rubricas' } });
-  const m = PANTALLAS.rubrica.modal;
-  const [mx0, my0, mx1, my1] = m;
-  fs.writeFileSync(path.join(SITIO, 'assets/app/rubrica.webp'), await webp(await sharp(buf).extract({ left: mx0, top: my0, width: mx1 - mx0, height: my1 - my0 }).toBuffer()));
-  MARCAS.rubrica = { size: [mx1 - mx0, my1 - my0], ia: await page.evaluate(([x0, y0, w, h]) => {
-    const t = [...document.querySelectorAll('.modal-overlay.open *')].find(e => e.checkVisibility() && /Evaluar trabajo con IA$/.test(e.textContent.trim()) && e.children.length < 3);
-    if (!t) return null;   // apagado desde el 3-11-2026
-    const b = t.getBoundingClientRect();
-    return [+((b.left - x0) / w * 100).toFixed(1), +((b.top - y0) / h * 100).toFixed(1), +(b.width / w * 100).toFixed(1), +(b.height / h * 100).toFixed(1)];
-  }, [mx0, my0, mx1 - mx0, my1 - my0]) };
+  const quitar = [...celdas.flat(), ...clase.filas.map(f => f.caja), clase.quien, clase.pie];
+  await pantalla('rubrica', 'Evaluar a la clase con una rúbrica', 'evaluar', { quitar, extra: { 'Cerrar': 'fn:closeModal' }, rutas: TODOS, datos: { rubrica: celdas, total, clase, back: 'rubricas' } });
+  // Para la portada, a mitad de evaluar: el primero de la lista ya guardado y, en el segundo, dos niveles marcados.
+  // (Esa evaluación se queda en los datos de ejemplo de esta pasada: sale en el Historial, como en la app.)
+  const filas = dlg.locator('table tbody tr');
+  for (const [fila, nivel] of [[0, 3], [1, 4], [2, 3]]) await filas.nth(fila).locator('td').nth(nivel).click();
+  await dlg.getByRole('button', { name: 'Guardar y siguiente' }).click();
+  await page.waitForTimeout(500);
+  for (const [fila, nivel] of [[0, 4], [1, 3]]) await filas.nth(fila).locator('td').nth(nivel).click();
+  await page.mouse.move(5, 5);
+  await page.waitForTimeout(500);
+  const [mx0, my0, mx1, my1] = PANTALLAS.rubrica.modal;
+  fs.writeFileSync(path.join(SITIO, 'assets/app/rubrica.webp'), await webp(await sharp(await foto()).extract({ left: mx0, top: my0, width: mx1 - mx0, height: my1 - my0 }).toBuffer()));
+  MARCAS.rubrica = { size: [mx1 - mx0, my1 - my0] };
   await cerrarModal();
 }
 
 await pestana('Dianas');
-await pantalla('dianas', 'Dianas', 'evaluar', { extra: { 'Evaluar alumno': 'go:dianaeval' } });
-await page.locator('main').getByRole('button', { name: 'Evaluar alumno' }).first().click();
+await pantalla('dianas', 'Dianas', 'evaluar', { extra: { 'Evaluar a la clase': 'go:dianaeval' } });
+await page.locator('main').getByRole('button', { name: 'Evaluar a la clase' }).first().click();
 await page.waitForTimeout(900);
 {
-  const dlg = page.locator('.modal-overlay').filter({ has: page.locator('svg[aria-label="Diana de evaluación"]') }).last();
-  const selects = dlg.locator('select');
-  await elegir(selects.nth(0), '6º Primaria A');
-  await page.waitForTimeout(300);
-  const alumnos = await selects.nth(1).locator('option').evaluateAll(os => os.map(o => o.value).filter(Boolean));
-  await selects.nth(1).selectOption(alumnos[alumnos.length - 1]);
-  await page.waitForTimeout(500);
+  const dlg = page.locator('.modal-overlay.open').filter({ has: page.locator('svg[aria-label="Diana de evaluación"]') }).last();
+  const clase = await datosDeClase();
   const diana = await page.evaluate(() => {
     const svg = [...document.querySelectorAll('.modal-overlay.open svg[aria-label="Diana de evaluación"]')].pop();
     const b = svg.getBoundingClientRect();
@@ -395,10 +414,10 @@ await page.waitForTimeout(900);
     const cuenta = [...dlg.querySelectorAll('*')].find(e => e.children.length === 0 && /ítems marcados/.test(e.textContent) && e.checkVisibility());
     return { svg: [b.left, b.top, b.right, b.bottom].map(Math.round), viewBox: svg.getAttribute('viewBox'), items, nota: nota && caja(nota), cuenta: cuenta && caja(cuenta) };
   });
-  await pantalla('dianaeval', 'Evaluar con diana', 'evaluar', {
-    quitar: [diana.svg],
-    extra: { 'Cerrar': 'fn:closeModal', 'Cancelar': 'fn:closeModal', 'Guardar evaluación': 'fn:dianaSave' },
-    datos: { diana, back: 'dianas' },
+  await pantalla('dianaeval', 'Evaluar a la clase con una diana', 'evaluar', {
+    quitar: [diana.svg, ...clase.filas.map(f => f.caja), clase.quien, clase.pie],
+    extra: { 'Cerrar': 'fn:closeModal' }, rutas: TODOS,
+    datos: { diana, clase, back: 'dianas' },
   });
   // Rellena para la captura de la portada: un nivel por ítem
   const niveles = [4, 3, 3, 2, 4, 3];
@@ -422,10 +441,8 @@ await page.waitForTimeout(900);
 
 await pestana('Diana competencial');
 {
-  // Con un alumno elegido, para que se vea su perfil
+  // Con un alumno elegido, para que se vea su perfil (la clase es la de ahora)
   const sel = page.locator('main select');
-  await elegir(sel.nth(0), '5º Primaria A');
-  await page.waitForTimeout(300);
   const alumnos = await sel.nth(1).locator('option').evaluateAll(os => os.map(o => o.value).filter(Boolean));
   await sel.nth(1).selectOption(alumnos[1] ?? alumnos[0]);
   await page.waitForTimeout(900);
@@ -447,9 +464,17 @@ await pantalla('historial', 'Historial', 'evaluar');
 await menu('Documentos');
 await pantalla('documentos', 'Documentos', 'documentos');
 await pestana('Informes');
-await page.locator('main').getByText('Alumno 1', { exact: true }).first().click();   // con el informe que redactó la IA a la vista
-await page.waitForTimeout(900);
-await pantalla('informes', 'Informes', 'documentos');
+{
+  // El informe de seguimiento del primer alumno de la clase, el que la app compone al instante y sin IA: se guarda
+  // tal como sale y se captura con él a la vista
+  await page.locator('main').getByRole('button', { name: /Alumno \d+$/ }).first().click();
+  await page.waitForTimeout(900);
+  await page.locator('main').getByRole('button', { name: 'Informe de seguimiento', exact: true }).click();
+  await page.waitForTimeout(1200);
+  await page.locator('main').getByRole('button', { name: 'Guardar informe' }).first().click();
+  await page.waitForTimeout(1200);
+  await pantalla('informes', 'Informes', 'documentos');
+}
 await pestana('Actas');
 await pantalla('actas', 'Actas', 'documentos');
 await pestana('Situaciones de aprendizaje');
@@ -459,7 +484,18 @@ await page.waitForTimeout(1500);
 await pantalla('sda', 'Situación de aprendizaje', 'documentos', { extra: { 'Mis situaciones de aprendizaje': 'go:situaciones' } });
 await menu('Documentos');
 await pestana('Recursos');
-await pantalla('recursos', 'Recursos', 'documentos', { rutas: [[/El viaje del agua/, 'go:ficha'], [/El drag/, 'go:lectura'], [/Tarjetas interactivas/, 'go:tarjetas-panel']] });
+{
+  // Con la quinta tarjeta («Al instante»), las fichas guardadas quedan debajo de lo que se ve: lo que asoma de «Mis fichas»
+  // lleva a la misma pantalla bajada hasta ellas, y desde ahí se abre cada una
+  const FICHAS = [[/El viaje del agua/, 'go:ficha'], [/El drag/, 'go:lectura'], [/Tarjetas interactivas/, 'go:tarjetas-panel']];
+  const titulo = page.locator('main .card-ttl', { hasText: /^Mis fichas$/ }).first();
+  await arriba();
+  const b = await titulo.boundingBox();
+  const asoma = b && b.y < H - 24 ? [[SB + 24, r(b.y - 14), W - 24, H, 'go:recursos-fichas', 'Mis fichas']] : [];
+  await pantalla('recursos', 'Recursos', 'documentos', { rutas: FICHAS, mas: asoma });
+  const baja = b ? Math.max(0, r(b.y - 90)) : 0;
+  await pantalla('recursos-fichas', 'Recursos: mis fichas', 'documentos', { scroll: baja, rutas: FICHAS });
+}
 await page.getByText('El viaje del agua').first().click();
 await page.waitForTimeout(1800);
 await pantalla('ficha', 'Ficha de ejercicios', 'documentos', { extra: { 'Mis fichas': 'go:recursos' } });
@@ -497,8 +533,7 @@ await pestana('Anotar actitud');
 
 await pestana('Distribución de aula');
 {
-  // Desde el 20-11-2026 la Distribución usa el selector de clase común (ClassChips), no `.seat-select`
-  await elegir(page.locator('main .seat-toolbar .class-pick select').first(), '2º Primaria A');
+  // Desde el 20-11-2026 la Distribución usa el selector de clase común y abre la clase de ahora
   const sentar = page.getByRole('button', { name: 'Sentar por orden de lista' }).first();
   if (await sentar.isVisible()) { await sentar.click(); await page.waitForTimeout(600); }
   await pantalla('distribucion', 'Distribución de aula', 'enclase');
@@ -802,7 +837,7 @@ await page.getByText('Tarjetas interactivas: el tiempo y la naturaleza').first()
 await page.waitForTimeout(800);
 await page.getByRole('button', { name: 'Memory' }).first().click();
 await page.waitForTimeout(1200);
-await page.getByRole('button', { name: 'Empezar' }).click();
+await page.getByRole('button', { name: 'Empezar', exact: true }).click();
 await page.waitForTimeout(900);
 {
   // Se juega un poco: dos parejas encontradas y una carta levantada
@@ -834,7 +869,6 @@ await pantalla('tarjetas-editor', 'Editar tarjetas interactivas', 'documentos', 
 
 /* El peso de cada nota dentro de su categoría */
 await menu('Cuaderno de Notas');
-await elegir(page.locator('main .class-pick select').first(), '3º Primaria A');
 await page.locator('[title="Editar categoría"]').first().click();
 await page.waitForTimeout(900);
 {
