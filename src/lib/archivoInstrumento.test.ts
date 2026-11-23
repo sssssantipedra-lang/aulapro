@@ -115,6 +115,27 @@ describe('abrir un archivo de instrumento', () => {
     expect(JSON.stringify(r)).not.toMatch(/ajen|Alguien|evaluaciones|ya-existe/);
   });
 
+  it('los niveles vuelven numerados del 1 al N y cada descriptor sigue a su nivel', () => {
+    // Niveles 2, 4 y 6, con uno sin nombre en medio: el editor los numera 1, 2 y 3 al guardar
+    const r = leerArchivoDeInstrumento(JSON.stringify({
+      formato: FORMATO_INSTRUMENTO, version: 1, tipo: 'rubrica', name: 'De fuera',
+      levels: [{ value: 6, label: 'Alto' }, { value: 2, label: 'Bajo' }, { value: 3, label: ' ' }, { value: 4, label: 'Medio' }],
+      partes: [{ name: 'Orden', descriptors: { 2: 'bajo', 3: 'sin nivel', 4: 'medio', 6: 'alto', 1: 'no existe' } }],
+    }), ids());
+    if (!r.ok || r.tipo !== 'rubrica') throw new Error('no se ha leído');
+    expect(r.rubrica.levels).toEqual([{ value: 1, label: 'Bajo' }, { value: 2, label: 'Medio' }, { value: 3, label: 'Alto' }]);
+    expect(r.rubrica.criteria[0].descriptors).toEqual({ 1: 'bajo', 2: 'medio', 3: 'alto' });
+
+    const d = leerArchivoDeInstrumento(JSON.stringify({
+      formato: FORMATO_INSTRUMENTO, version: 1, tipo: 'diana', name: 'De fuera',
+      levels: [{ value: 0, label: 'Cero' }, { value: 5, label: 'Poco' }, { value: 10, label: 'Mucho' }],
+      partes: [{ name: 'Ítem', descriptors: { 5: 'poco', 10: 'mucho' } }],
+    }), ids());
+    if (!d.ok || d.tipo !== 'diana') throw new Error('no se ha leído');
+    expect(d.diana.levels).toEqual([{ value: 1, label: 'Poco' }, { value: 2, label: 'Mucho' }]);
+    expect(d.diana.items[0].descriptors).toEqual({ 1: 'poco', 2: 'mucho' });
+  });
+
   it('sin niveles propios valen los cuatro de partida: los descriptores del 1 al 4', () => {
     const r = leerArchivoDeInstrumento(JSON.stringify({
       formato: FORMATO_INSTRUMENTO, version: 1, tipo: 'rubrica', name: 'Cuaderno',

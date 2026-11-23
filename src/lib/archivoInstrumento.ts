@@ -116,15 +116,21 @@ function nivelesDe(v: unknown): AchievementLevel[] | undefined {
   return niveles.length >= 2 && niveles.length <= MAX_NIVELES ? niveles : undefined;
 }
 
-function descriptoresDe(v: unknown, valores: ReadonlySet<number> | null): Record<number, string> {
+/**
+ * Los descriptores de un criterio. `posicion` dice qué lugar ocupa cada nivel del archivo entre los del
+ * instrumento (del 1 al N); sin niveles propios valen los cuatro de partida, del 1 al 4.
+ */
+function descriptoresDe(v: unknown, posicion: ReadonlyMap<number, number> | null): Record<number, string> {
   const out: Record<number, string> = {};
   if (!v || typeof v !== 'object' || Array.isArray(v)) return out;
   for (const [k, texto] of Object.entries(v as Record<string, unknown>)) {
     const n = Number(k);
-    // Solo los niveles del instrumento (o, con los cuatro de partida, del 1 al 4): un descriptor de un nivel que no existe no se ve en ningún sitio
-    if (!Number.isInteger(n) || (valores ? !valores.has(n) : n < 1 || n > 4)) continue;
+    if (!Number.isInteger(n)) continue;
+    // Solo los niveles del instrumento: un descriptor de un nivel que no existe no se ve en ningún sitio
+    const lugar = posicion ? posicion.get(n) : n >= 1 && n <= 4 ? n : undefined;
+    if (lugar === undefined) continue;
     const d = limpio(texto, MAX_DESCRIPTOR);
-    if (d) out[n] = d;
+    if (d) out[lugar] = d;
   }
   return out;
 }
@@ -159,8 +165,12 @@ export function leerArchivoDeInstrumento(texto: string, nuevoId: () => string): 
 
   const tipo = a.tipo as TipoDeInstrumento;
   const name = limpio(a.name, MAX_NOMBRE);
-  const levels = tipo === 'registro' ? undefined : nivelesDe(a.levels);
-  const valores = levels ? new Set(levels.map(l => l.value)) : null;
+  const leidos = tipo === 'registro' ? undefined : nivelesDe(a.levels);
+  // Los niveles van siempre del 1 al N, como los deja el editor, que al guardar los vuelve a numerar. Un archivo
+  // de fuera con otros números (2, 4 y 6, o con un nivel sin nombre en medio) se renumera aquí junto con sus
+  // descriptores: si no, al guardar cada descriptor quedaría en el nivel de otro o se perdería.
+  const posicion = leidos ? new Map(leidos.map((l, i) => [l.value, i + 1])) : null;
+  const levels = leidos?.map((l, i) => ({ value: i + 1, label: l.label }));
 
   const partes = a.partes.slice(0, MAX_PARTES).flatMap(p => {
     const nombre = limpio((p as ParteDeArchivo | null)?.name, MAX_NOMBRE);
@@ -171,7 +181,7 @@ export function leerArchivoDeInstrumento(texto: string, nuevoId: () => string): 
     const peso = typeof parte.weight === 'number' && parte.weight > 0 && parte.weight <= 10 ? parte.weight : 1;
     return [{
       name: nombre, peso,
-      descriptors: tipo === 'registro' ? {} : descriptoresDe(parte.descriptors, valores),
+      descriptors: tipo === 'registro' ? {} : descriptoresDe(parte.descriptors, posicion),
       ...(competencies.length ? { competencies } : {}),
       ...(officialCriteria.length ? { officialCriteria } : {}),
     }];

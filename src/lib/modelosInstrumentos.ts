@@ -189,7 +189,7 @@ export const MODELOS_RUBRICA: readonly ModeloRubrica[] = [
         nombre: ['Ortografía y presentación', 'Ortografia i presentació', 'Spelling and presentation'], competencias: ['CCL'],
         niveles: {
           primaria: [
-            ['Comete muchas faltas en palabras de uso frecuente y la letra cuesta de leer.', "Fa moltes faltes en paraules d'ús freqüent i la lletra costa de llegir.", 'Makes many mistakes in common words and the handwriting is hard to read.'],
+            ['Comete muchas faltas en palabras de uso frecuente y cuesta leer su letra.', "Fa moltes faltes en paraules d'ús freqüent i la lletra costa de llegir.", 'Makes many mistakes in common words and the handwriting is hard to read.'],
             ['Comete algunas faltas en palabras trabajadas en clase y la presentación es mejorable.', "Fa algunes faltes en paraules treballades a classe i la presentació és millorable.", 'Makes some mistakes in words practised in class and the presentation could be better.'],
             ['Escribe bien las palabras trabajadas, usa el punto y la mayúscula y presenta el texto limpio.', "Escriu bé les paraules treballades, fa servir el punt i la majúscula i presenta el text net.", 'Spells practised words correctly, uses full stops and capitals, and hands in a clean text.'],
             ['Escribe casi sin faltas, usa bien los signos de puntuación y cuida márgenes, letra y limpieza.', "Escriu gairebé sense faltes, fa servir bé els signes de puntuació i té cura dels marges, la lletra i la netedat.", 'Writes almost without mistakes, punctuates well and takes care of margins, handwriting and neatness.'],
@@ -731,7 +731,7 @@ export const MODELOS_ESCALA: readonly ModeloEscala[] = [
       ['Participa en el calentamiento', "Participa en l'escalfament", 'Takes part in the warm-up'],
       ['Respeta las normas del juego', 'Respecta les normes del joc', 'Respects the rules of the game'],
       ['Cuida el material y ayuda a recogerlo', 'Té cura del material i ajuda a recollir-lo', 'Looks after the equipment and helps put it away'],
-      ['Se asea al terminar', "Es renta en acabar", 'Washes up at the end'],
+      ['Se asea al terminar', "Es renta en acabar", 'Washes and changes at the end'],
     ],
   },
   {
