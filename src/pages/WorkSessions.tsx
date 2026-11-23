@@ -50,7 +50,7 @@ function emptySession(kind: WorkSessionKind): WorkSession {
   };
 }
 
-export function WorkSessions({ kind, sessions, onSave, onDelete, onNav }: Props) {
+export function WorkSessions({ kind, sessions, onSave, onDelete }: Props) {
   const { t, locale } = useI18n();
   const { toast } = useToast();
   const [openId, setOpenId] = useState<string | null>(null);
@@ -153,7 +153,7 @@ export function WorkSessions({ kind, sessions, onSave, onDelete, onNav }: Props)
       </div>
 
       {!hasApiKey() && (
-        <AiKeyNotice message={t('Para usar la IA necesitas una clave gratuita de Google (se configura en 2 minutos).')} action={t('Configurar ahora')} onAction={() => onNav('profile')} />
+        <AiKeyNotice message={t('Para usar la IA necesitas una clave gratuita de Google (se configura en 2 minutos).')} action={t('Configurar ahora')} />
       )}
 
       {recuperable && (

@@ -52,7 +52,6 @@ import { hiloDeFicha, hiloPorId } from '../lib/hilos';
 import { urlIlustracion } from '../lib/ilustraciones';
 import { urlPicto } from '../lib/pictos';
 import { TIPO_LABEL, TIPO_EMOJI } from '../components/fichas/tipos';
-import { requestSettingsPanel } from '../lib/settingsNav';
 import { useFichaParaPedido } from '../lib/apoyoNav';
 import { contextoFichaApoyo, nivelDe, trimestreDe } from '../lib/apoyo';
 import { useNombreCurso } from '../hooks/useNombreCurso';
@@ -171,7 +170,7 @@ interface BorradorFicha {
   modoTarjeta: 'recortables' | 'interactivas';
 }
 
-export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject, apoyo, students = [], acsAula = [], comunidad }: Props) {
+export function Resources({ classes, fichas, onSave, onDelete, onProject, apoyo, students = [], acsAula = [], comunidad }: Props) {
   const { toast } = useToast();
   const { t, lang, locale } = useI18n();
   const nombreCurso = useNombreCurso();
@@ -1014,7 +1013,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
       </div>
 
       {sinClave && (
-        <AiKeyNotice message={t('Sin la clave gratuita de Google puedes empezar en blanco o crear hojas al instante. Para que la IA escriba los recursos, configúrala.')} action={t('Configurar la IA')} onAction={() => { requestSettingsPanel('ia'); onNav('profile'); }} />
+        <AiKeyNotice message={t('Sin la clave gratuita de Google puedes empezar en blanco o crear hojas al instante. Para que la IA escriba los recursos, configúrala.')} action={t('Configurar la IA')} />
       )}
 
       {borrador.encontrado && (

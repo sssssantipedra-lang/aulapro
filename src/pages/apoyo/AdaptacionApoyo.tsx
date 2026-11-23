@@ -34,7 +34,7 @@ interface Props {
   onNav: (s: Section) => void;
 }
 
-export function AdaptacionApoyo({ alumno, data, onChange, materias, comunidad, onAbrir, onNav }: Props) {
+export function AdaptacionApoyo({ alumno, data, onChange, materias, comunidad, onAbrir }: Props) {
   const { t, lang } = useI18n();
   const { toast } = useToast();
   const nombreCurso = useNombreCurso();
@@ -80,7 +80,7 @@ export function AdaptacionApoyo({ alumno, data, onChange, materias, comunidad, o
       <p className="ap-sub" style={{ margin: '0 0 12px' }}>
         {t('Adapta lo que programa el tutor en un área a este alumno, con su nivel, sus objetivos y su informe. Es el documento (ACI o ACIS); para los materiales, usa «Ficha adaptada».')}
       </p>
-      {sinClave && <AiKeyNotice message={t('Para que la IA prepare los documentos necesitas una clave gratuita de Google (se configura en 2 minutos).')} action={t('Configurar ahora')} onAction={() => onNav('profile')} />}
+      {sinClave && <AiKeyNotice message={t('Para que la IA prepare los documentos necesitas una clave gratuita de Google (se configura en 2 minutos).')} action={t('Configurar ahora')} />}
       {!nivel || materias.length === 0 ? (
         <p className="ap-aviso">{t('Para adaptar con el currículo de su nivel, indica antes su nivel de competencia en la pestaña «Datos».')}</p>
       ) : (

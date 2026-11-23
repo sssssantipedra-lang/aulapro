@@ -8,6 +8,8 @@ import { AvisoPasarAWeb } from './components/AvisoPasarAWeb';
 import { DatosIlegiblesPantalla } from './components/DatosIlegibles';
 import { AvisoSinGuardar } from './components/AvisoSinGuardar';
 import { AvisoDeshacer } from './components/ui/AvisoDeshacer';
+import { VentanaClaveIA } from './components/VentanaClaveIA';
+import { useHayClaveIA } from './hooks/useClaveIA';
 import { CONECTAR_YA, ConectarDriveWeb, EntrarWeb } from './pages/EntrarWeb';
 import { AceptarCondiciones } from './components/AceptarCondiciones';
 import { condicionesAceptadas } from './lib/condiciones';
@@ -173,6 +175,9 @@ function AppInner() {
   const [showAddTask, setShowAddTask] = useState(false);
   const [taskText, setTaskText]       = useState('');
   const [taskPri, setTaskPri]         = useState<'high'|'medium'|'low'>('medium');
+
+  // Al poner la clave de la IA en su ventana, la pantalla de debajo se vuelve a pintar y activa su botón de generar
+  useHayClaveIA();
 
   // Al profesorado de PT y AL, su menú y su Inicio (ver lib/navigation.ts).
   const tipo = st.currentUser?.tipo ?? 'aula';
@@ -492,6 +497,7 @@ function AppInner() {
     <div style={{ display: 'flex', minHeight: '100vh' }}>
       <AvisoSinGuardar motivo={st.errorGuardado} exportar={st.exportData} />
       <AvisoDeshacer pendiente={st.borradoPendiente} onDeshacer={st.deshacerBorrado} onOlvidar={st.olvidarBorrado} />
+      <VentanaClaveIA />
       {isWebApp() && <AvisoCopiaWeb exportar={st.exportData} oculto={section === 'profile' || !!st.errorGuardado} onIrADatos={() => { setSection('profile'); setMenuOpen(false); }} />}
       {(!phone || menuOpen) && <Sidebar
         mini={menuMini}
@@ -698,6 +704,7 @@ function AppInner() {
                 scheduleBlocks={st.scheduleBlocks}
                 gradeCategories={st.gradeCategories}
                 comunidad={st.currentUser?.community}
+                ef={tipo === 'ef'}
               />
             )}
             {section === 'registros' && (
@@ -706,6 +713,7 @@ function AppInner() {
                 gradeCategories={st.gradeCategories}
                 onAddDiana={st.addDiana} onUpdateDiana={st.updateDiana} onDeleteDiana={st.deleteDiana}
                 onAddEvaluation={guardarEvaluacion}
+                ef={tipo === 'ef'}
               />
             )}
             {section === 'diana' && (

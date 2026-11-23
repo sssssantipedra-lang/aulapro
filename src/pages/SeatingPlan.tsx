@@ -35,7 +35,7 @@ import { useI18n } from '../i18n';
 import { ClassMarksModal } from '../components/seating/ClassMarksModal';
 import { markTypeInfo } from '../services/classMarks';
 import { isoDate } from '../lib/utils';
-import { requestSettingsPanel } from '../lib/settingsNav';
+import { abrirClaveIA } from '../lib/claveIA';
 import { compararAlumnos } from '../lib/alumnado';
 import { ClassChips } from '../components/ui/ClassChips';
 import { useClaseActiva } from '../hooks/useClaseActiva';
@@ -598,7 +598,7 @@ export function SeatingPlan({
             <p className="seat-modal-p">
               {t('Para generar grupos equilibrados con IA hace falta la clave gratuita de Google que se configura en Configuración. También puedes sentar al alumnado a mano, sin IA.')}
             </p>
-            <button className="btn-accent" onClick={() => { setAiOpen(false); requestSettingsPanel('ia'); onNav('profile'); }}>
+            <button className="btn-accent" onClick={abrirClaveIA}>
               {t('Configurar la IA')}
             </button>
           </>

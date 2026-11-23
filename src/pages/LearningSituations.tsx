@@ -45,7 +45,6 @@ import { clonarSda } from '../lib/clonar';
 import { AiKeyNotice } from '../components/ui/AiKeyNotice';
 import { isDesktop } from '../services/storage';
 import { groupSituations, filterSituations, sdaAreas, type SdaGroupBy } from '../lib/sdaLibrary';
-import { requestSettingsPanel } from '../lib/settingsNav';
 import { alumnosConBarreras, barrerasDeClases, palabrasDeNombres } from '../lib/barreras';
 import { CasillaAcs } from '../components/apoyo/CasillaAcs';
 import { useAcsParaIA } from '../hooks/useAcsParaIA';
@@ -1057,7 +1056,7 @@ export function LearningSituations({
       </div>
 
       {sinClave && (
-        <AiKeyNotice message={t('Para redactar situaciones de aprendizaje hace falta la clave gratuita de Google que se configura en Configuración.')} action={t('Configurar la IA')} onAction={() => { requestSettingsPanel('ia'); onNav('profile'); }} />
+        <AiKeyNotice message={t('Para redactar situaciones de aprendizaje hace falta la clave gratuita de Google que se configura en Configuración.')} action={t('Configurar la IA')} />
       )}
 
       <div className="card sda-form">
@@ -1448,7 +1447,7 @@ export function LearningSituations({
       </div>
 
       {sinClave && (
-        <AiKeyNotice message={t('Para redactar situaciones de aprendizaje hace falta la clave gratuita de Google que se configura en Configuración.')} action={t('Configurar la IA')} onAction={() => { requestSettingsPanel('ia'); onNav('profile'); }} />
+        <AiKeyNotice message={t('Para redactar situaciones de aprendizaje hace falta la clave gratuita de Google que se configura en Configuración.')} action={t('Configurar la IA')} />
       )}
 
       {borrador.encontrado && (

@@ -1,1 +1,64 @@
 /* Estilos de la mejora «rubricasModelo» (tanda del 20-11-2026). Los comunes siguen en index.css. */
+
+/* ── «Desde un modelo»: la lista de rúbricas y de escalas de registro ya escritas (components/evaluar/ModelosDeInstrumento.tsx) ── */
+.mi-cab { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
+.mi-intro { flex:1; min-width:220px; margin:0; font-size:12.5px; line-height:1.55; color:var(--text-2); }
+/* Primaria o ESO: dos botones pegados, como un interruptor */
+.mi-etapa { display:inline-flex; flex-shrink:0; border:1px solid var(--border); border-radius:10px; overflow:hidden; background:var(--surface); }
+.mi-etapa button { min-height:36px; padding:0 14px; border:none; background:transparent; color:var(--text-2); font-family:var(--font); font-size:12.5px; font-weight:600; cursor:pointer; }
+.mi-etapa button + button { border-left:1px solid var(--border); }
+.mi-etapa button.sel { background:var(--accent-l); color:var(--accent-d); font-weight:800; }
+.mi-etapa button:focus-visible { outline:2px solid var(--accent-d); outline-offset:-2px; }
+
+.mi-lista { list-style:none; margin:0; padding:0; display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px; }
+.mi-tarjeta { display:flex; flex-direction:column; gap:6px; min-width:0; padding:12px 14px; border:1px solid var(--border); border-radius:12px; background:var(--surface); }
+/* Con los descriptores a la vista, la tarjeta ocupa las dos columnas: cuatro niveles no caben en media ventana */
+.mi-tarjeta.abierta { grid-column:1 / -1; }
+.mi-tit { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.mi-tit strong { font-size:14px; color:var(--text); margin-right:2px; }
+.mi-chip { padding:2px 8px; border-radius:99px; background:var(--card); border:1px solid var(--border); font-size:10.5px; font-weight:700; color:var(--text-3); white-space:nowrap; }
+.mi-chip.ef { background:var(--accent-l); border-color:transparent; color:var(--accent-d); }
+.mi-uso { margin:0; font-size:12.5px; line-height:1.5; color:var(--text-2); }
+.mi-partes { margin:0; font-size:12px; line-height:1.5; color:var(--text-3); overflow-wrap:anywhere; }
+.mi-acc { display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; margin-top:auto; padding-top:6px; }
+.mi-ver { display:inline-flex; align-items:center; gap:4px; min-height:36px; padding:0 2px; border:none; background:none; color:var(--accent-d); font-family:var(--font); font-size:12.5px; font-weight:700; cursor:pointer; }
+.mi-ver svg { transition:transform 0.15s; }
+.mi-ver[aria-expanded="true"] svg { transform:rotate(180deg); }
+.mi-usar { margin-left:auto; min-height:36px; padding:0 14px; font-size:13px; }
+.mi-aviso { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:auto; padding:8px 10px; border-radius:10px; background:var(--warn-bg); color:var(--warn-fg); font-size:12.5px; font-weight:600; }
+.mi-aviso span { flex:1; min-width:150px; }
+.mi-aviso button { min-height:34px; padding:0 12px; font-size:12.5px; }
+
+/* Los descriptores de un modelo, antes de elegirlo */
+.mi-detalle { margin-top:6px; padding-top:10px; border-top:1px solid var(--border); }
+.mi-criterios { display:flex; flex-direction:column; gap:8px; }
+.mi-criterio { padding:10px 12px; border-radius:8px; background:var(--card); border:0.5px solid var(--border); }
+.mi-criterio-nombre { font-weight:700; font-size:13px; margin-bottom:6px; color:var(--text); }
+.mi-niveles { display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:6px; }
+.mi-nivel { padding:5px 7px; border-radius:6px; background:var(--surface); font-size:11.5px; line-height:1.45; color:var(--text-2); }
+.mi-nivel span { display:block; margin-bottom:2px; font-weight:700; color:var(--text); }
+
+/* Los dos botones del estado vacío de Rúbricas y de Escalas de registro */
+.mi-vacio { display:flex; justify-content:center; gap:8px; flex-wrap:wrap; }
+
+/* Las dos pestañas de «Nueva escala de registro» */
+.mi-modos { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
+.mi-modos button { font-size:13px; padding:7px 14px; }
+
+@media (max-width:640px) {
+  .mi-lista { grid-template-columns:minmax(0, 1fr); }
+  .mi-niveles { grid-template-columns:repeat(2, minmax(0, 1fr)); }
+  .mi-etapa button, .mi-ver, .mi-usar, .mi-aviso button { min-height:42px; }
+}
+
+/* ── La clave de la IA en una ventana, sobre la pantalla en curso (components/VentanaClaveIA.tsx) ── */
+/* Por encima de las ventanas de siempre (z-index 100): casi siempre se abre desde una */
+.modal-overlay.vci-fondo { z-index:300; }
+.vci { width:640px; }
+.vci .ak-steps { grid-template-columns:minmax(0, 1fr); }
+.vci-lista { display:flex; flex-direction:column; align-items:center; gap:10px; padding:18px 8px 6px; text-align:center; }
+.vci-lista strong { font-size:15px; color:var(--text); }
+.vci-lista span { font-size:13px; color:var(--text-2); line-height:1.5; }
+.vci-pie { display:flex; justify-content:flex-end; gap:8px; flex-wrap:wrap; margin-top:6px; }
+/* Para quien entra con la cuenta del centro y no puede crear la clave */
+.ak-centro { font-size:12px; line-height:1.5; color:var(--text-3); }

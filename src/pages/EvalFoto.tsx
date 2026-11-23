@@ -18,7 +18,6 @@ import { useNombreCurso } from '../hooks/useNombreCurso';
 import { compararAlumnos } from '../lib/alumnado';
 import { calcularNota, cambiosDelDocente, ESTADOS_PREGUNTA, idColumnaFoto, leerPuntos, puntosValidos, type CorreccionFoto } from '../lib/evalFoto';
 import { fotoParaIA, LADO_FOTO_EXAMEN } from '../lib/fotos';
-import { requestSettingsPanel } from '../lib/settingsNav';
 import { isoDate } from '../lib/utils';
 import { hasApiKey, type InlineFile } from '../services/gemini';
 import { corregirPorFoto, MAX_FOTOS_SOLUCIONES, MAX_FOTOS_TRABAJO, type TipoTrabajo } from '../services/evaluarFoto';
@@ -234,7 +233,7 @@ export function EvalFoto({ classes, students, gradeCategories, gradeItems, onAdd
       </div>
 
       {sinClave && (
-        <AiKeyNotice message={t('Para corregir por foto hace falta la clave gratuita de Google que se configura en Configuración.')} action={t('Configurar la IA')} onAction={() => { requestSettingsPanel('ia'); onNav('profile'); }} />
+        <AiKeyNotice message={t('Para corregir por foto hace falta la clave gratuita de Google que se configura en Configuración.')} action={t('Configurar la IA')} />
       )}
 
       {borrador.encontrado && (

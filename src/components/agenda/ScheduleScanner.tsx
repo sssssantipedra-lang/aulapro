@@ -12,7 +12,7 @@ import { fileToBase64 } from '../../lib/utils';
 import { PALETTE } from '../../lib/demoData';
 import { useToast } from '../ui/Toast';
 import { useI18n, weekdayLabel } from '../../i18n';
-import { requestSettingsPanel } from '../../lib/settingsNav';
+import { abrirClaveIA } from '../../lib/claveIA';
 
 interface Props {
   open: boolean;
@@ -31,7 +31,7 @@ const SYSTEM_PROMPT =
   'Eres un asistente que transcribe horarios escolares españoles a datos estructurados, ' +
   'copiando la tabla tal cual, celda a celda, sin reordenar ni resumir nada.';
 
-export function ScheduleScanner({ open, classes, existingCount, onClose, onImport, onNav }: Props) {
+export function ScheduleScanner({ open, classes, existingCount, onClose, onImport }: Props) {
   const { toast } = useToast();
   const { t, locale } = useI18n();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -190,7 +190,7 @@ export function ScheduleScanner({ open, classes, existingCount, onClose, onImpor
             <p style={{ fontSize: 13.5, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 20, maxWidth: 400, margin: '0 auto 20px' }}>
               {t('Para leer el horario hace falta la clave gratuita de Google que se configura en Configuración.')}
             </p>
-            <button className="btn-accent" onClick={() => { onClose(); requestSettingsPanel('ia'); onNav('profile'); }}>
+            <button className="btn-accent" onClick={abrirClaveIA}>
               {t('Configurar la IA')}
             </button>
           </div>

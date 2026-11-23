@@ -35,6 +35,7 @@ import { AlumnoQueSeEvalua, CabeceraDeEvaluarClase, ListaDeClase, PieDeEvaluarCl
 import { DescriptoresDeModelo, EtapaDeModelos, ModelosDeInstrumento } from '../components/evaluar/ModelosDeInstrumento';
 import { MODELOS_RUBRICA, enOrden, etapaDePartida, resumenDeRubrica, rubricaDeModelo, type EtapaModelo } from '../lib/modelosInstrumentos';
 import { AiKeyNotice } from '../components/ui/AiKeyNotice';
+import { useHayClaveIA } from '../hooks/useClaveIA';
 
 /* ─── Props ─── */
 interface Props {
@@ -155,13 +156,15 @@ function RubricModal({ open, inicial, onCambio, editing, classes, gradeCategorie
   const { t, lang } = useI18n();
   // Sin clave de la IA no se abre en la pestaña de la IA: se empieza por los modelos, que no la necesitan
   const [mode, setMode] = useState<RubricMode>(() => modoInicial ?? (hasApiKey() ? 'ia' : 'modelo'));
-  const sinClave = !hasApiKey();
+  // Al día: si la clave se pone en su ventana, encima de esta, el botón de generar se activa con lo escrito intacto
+  const sinClave = !useHayClaveIA();
 
   /* Desde un modelo */
   /** Primaria o ESO, si el docente la ha cambiado; si no, la de la clase elegida o la de la mayoría de sus clases. */
   const [etapaElegida, setEtapaElegida] = useState<EtapaModelo | null>(null);
   /** Lo que dejó escrito el último modelo usado: mientras no se toque, otro modelo lo sustituye sin preguntar. */
   const [firmaDelModelo, setFirmaDelModelo] = useState<string | null>(null);
+  const ventanaRef = useRef<HTMLDivElement>(null);
 
   /* AI state */
   const [aiContext, setAiContext] = useState('');
@@ -207,7 +210,8 @@ function RubricModal({ open, inicial, onCambio, editing, classes, gradeCategorie
       });
       setLevels(levelsOf(editing));
     } else if (inicial) {
-      setMode(inicial.mode);
+      // Un borrador con algo escrito se continúa en el editor, no en la lista de modelos
+      setMode(inicial.mode === 'modelo' ? 'manual' : inicial.mode);
       setManualName(inicial.manualName);
       setManualCriteria(inicial.manualCriteria);
       setAiContext(inicial.aiContext);
@@ -245,6 +249,8 @@ function RubricModal({ open, inicial, onCambio, editing, classes, gradeCategorie
     setLevels(defaultLevels(lang));
     setFirmaDelModelo(firmaDeLoEscrito(r.name, criterios));
     setMode('manual');
+    // El editor se abre por arriba, aunque el modelo elegido fuera el último de la lista
+    ventanaRef.current?.scrollTo({ top: 0 });
   }
 
   /* Autoguardado: mientras haya algo hecho y sin guardar, la pantalla lo conserva */
@@ -409,7 +415,7 @@ function RubricModal({ open, inicial, onCambio, editing, classes, gradeCategorie
 
   return (
     <div className={`modal-overlay${open ? ' open' : ''}`} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="modal wide" style={{ maxHeight: '92vh' }}>
+      <div className="modal wide" style={{ maxHeight: '92vh' }} ref={ventanaRef}>
         {/* Header */}
         <div className="modal-hd">
           <div>
@@ -526,7 +532,7 @@ function RubricModal({ open, inicial, onCambio, editing, classes, gradeCategorie
             {sinClave && (
               <AiKeyNotice
                 message={t('Para que la IA escriba la rúbrica hace falta la clave gratuita de Google. Sin ella puedes partir de un modelo o escribirla a mano.')}
-                action={t('Configurar la IA')} onAction={() => toast(t('La clave de la IA se pone en Configuración › Clave de la IA.'))}
+                action={t('Configurar la IA')}
               />
             )}
             <div className="fgroup">
