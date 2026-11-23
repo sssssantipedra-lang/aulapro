@@ -722,11 +722,14 @@ export function Reports(props: Props) {
                       </button>
                     )}
                   </div>
-                  <p className="inf-nota">
-                    {t(currentReport.origen === 'ia' || !currentReport.origen
-                      ? 'Revísalo siempre antes de entregarlo. La IA se equivoca.'
-                      : 'Revísalo siempre antes de entregarlo: las reglas solo ven lo que has anotado en AulaPro.')}
-                  </p>
+                  {/* Lo escrito entero a mano no necesita aviso: ni la IA ni las reglas han puesto nada */}
+                  {(currentReport.seguimiento || (currentReport.origen ?? 'ia') === 'ia') && (
+                    <p className="inf-nota">
+                      {t((currentReport.origen ?? 'ia') === 'ia'
+                        ? 'Revísalo siempre antes de entregarlo. La IA se equivoca.'
+                        : 'Revísalo siempre antes de entregarlo: las reglas solo ven lo que has anotado en AulaPro.')}
+                    </p>
+                  )}
                 </>
               ) : (
                 <EmptyReport

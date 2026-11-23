@@ -63,7 +63,8 @@ describe('las partes del informe', () => {
       ...r, seguimiento: { ...r.seguimiento!, desde: undefined, hasta: undefined, notas: [{ asignatura: 'Lengua', media: 6.6, evaluaciones: [4.8, 8.4, null], categorias: [{ nombre: 'Pruebas', peso: 100, media: 6 }] }] },
     }, ctx());
     expect(p.datos[1]).toEqual(['Periodo', 'Final de curso']);
-    expect(p.notas[0].filas).toEqual([['1ª evaluación', '', '4,8'], ['2ª evaluación', '', '8,4'], ['3ª evaluación', '', '—'], ['Pruebas', '100 %', '6,0']]);
+    // La 3.ª aún no tiene notas: no lleva fila
+    expect(p.notas[0].filas).toEqual([['1ª evaluación', '', '4,8'], ['2ª evaluación', '', '8,4'], ['Pruebas', '100 %', '6,0']]);
     expect(p.notas[0].total).toEqual(['Nota final de curso', '6,6']);
   });
 
@@ -122,6 +123,8 @@ describe('el documento', () => {
     const r = deSeguimiento();
     const sin = cuerpoDeInformeHtml(partesDeInforme(r, ctx()), es);
     expect(sin).not.toContain('Comentario');
+    expect(sin).toContain('<ul class="comps">');
+    expect(sin).toContain('<b>CCL</b> Comunicación lingüística');
     const con = cuerpoDeInformeHtml(partesDeInforme({ ...r, tabla: [{ clave: 'CCL', valoracion: 'excelente', comentario: 'Expone con soltura.' }] }, ctx()), es);
     expect(con).toContain('<th>Comentario</th>');
     expect(con).toContain('Expone con soltura.');

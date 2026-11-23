@@ -23,6 +23,12 @@
 .inf-hoja table.comp tbody th { font-weight:700; }
 .inf-hoja table.comp tbody th span { display:block; font-weight:400; color:var(--text-3); font-size:11px; }
 .inf-hoja table.comp td.val { font-weight:700; white-space:nowrap; }
+.inf-hoja ul.comps { list-style:none; margin:0; padding:0; display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:0 18px; font-size:12.5px; line-height:1.4; }
+.inf-hoja ul.comps li { display:flex; justify-content:space-between; align-items:baseline; gap:10px; padding:6px 0; border-bottom:1px solid var(--border); }
+.inf-hoja ul.comps li span { color:var(--text-2); min-width:0; }
+.inf-hoja ul.comps li b { color:var(--text); margin-right:3px; }
+.inf-hoja ul.comps li strong { white-space:nowrap; }
+@media (max-width:720px) { .inf-hoja ul.comps { grid-template-columns:minmax(0,1fr); } }
 .inf-hoja dl.asis { display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:8px; margin:0; }
 .inf-hoja dl.asis > div { background:var(--surface); border-radius:10px; padding:8px 10px; }
 .inf-hoja dl.asis dt { font-size:11px; color:var(--text-3); line-height:1.3; }

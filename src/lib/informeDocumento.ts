@@ -9,6 +9,7 @@
  */
 import type { CompetencyReport } from '../types';
 import { seVe } from './informeSeguimiento';
+import { EVALUACIONES } from './periodos';
 import { COLOR_VALORACION, NOMBRE, normalizarValoracion } from './tablaCompetencias';
 import { fromIsoDate } from './utils';
 
@@ -75,7 +76,7 @@ export function partesDeInforme(r: CompetencyReport, c: ContextoDeInforme): Part
     asignatura: n.asignatura,
     filas: [
       // Con la nota de cada evaluación (final de curso) van primero: es de lo que sale la nota final
-      ...(n.evaluaciones ?? []).map((v, k): [string, string, string] => [t(['1ª evaluación', '2ª evaluación', '3ª evaluación'][k] ?? ''), '', nota(v, locale)]),
+      ...(n.evaluaciones ?? []).flatMap((v, k): [string, string, string][] => (v === null ? [] : [[t(EVALUACIONES[k] ?? ''), '', nota(v, locale)]])),
       ...n.categorias.filter(x => x.media !== null).map((x): [string, string, string] => [x.nombre, `${x.peso} %`, nota(x.media, locale)]),
     ],
     total: [t(n.evaluaciones ? 'Nota final de curso' : 'Nota de la evaluación'), nota(n.media, locale)],
@@ -114,7 +115,7 @@ export const ESTILO_INFORME = `
 :root { --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; background: #fff; }
-@page { size: A4 portrait; margin: 20mm 18mm; }
+@page { size: A4 portrait; margin: 16mm 16mm; }
 .rep { font-family: Georgia, 'Times New Roman', serif; color: #111827; }
 .rep h1 { font-size: 22px; font-weight: 700; margin: 0 0 4px; }
 .rep .sub { font-family: var(--font); font-size: 12px; color: #6b7280; margin-bottom: 16px; }
@@ -134,6 +135,12 @@ html, body { margin: 0; padding: 0; background: #fff; }
 .rep h2 { font-family: var(--font); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: #374151;
   font-weight: 700; margin: 22px 0 8px; break-after: avoid; }
 .rep h2 + table.comp { margin-top: 0; }
+.rep ul.comps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px;
+  font-family: var(--font); font-size: 11px; line-height: 1.4; break-inside: avoid; }
+.rep ul.comps li { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding: 4px 0; border-bottom: 1px solid #d1d5db; }
+.rep ul.comps li span { color: #6b7280; }
+.rep ul.comps li b { color: #111827; margin-right: 3px; }
+.rep ul.comps li strong { white-space: nowrap; }
 .rep .notas { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
 .rep table.nt { width: 100%; border-collapse: collapse; font-family: var(--font); font-size: 11.5px; line-height: 1.4; break-inside: avoid; }
 .rep table.nt caption { text-align: left; font-weight: 700; font-size: 12.5px; padding: 0 0 5px; color: #111827; }
@@ -149,6 +156,23 @@ html, body { margin: 0; padding: 0; background: #fff; }
   color: #6b7280; border-top: 1px solid #d1d5db; padding-top: 10px; line-height: 1.5; }
 .rep .alumno { break-inside: avoid; page-break-inside: avoid; }
 .rep .alumno.hoja { break-inside: auto; page-break-inside: auto; }
+/* La hoja de seguimiento va más apretada que el informe de solo texto: lo normal es que quepa en una página */
+.rep .hoja .hd { padding-bottom: 8px; margin-bottom: 10px; }
+.rep .hoja h1 { font-size: 20px; }
+.rep .hoja .sub { margin-bottom: 0; }
+.rep .hoja > dl { margin-bottom: 4px; }
+.rep .hoja > dl > div { padding: 7px 12px 7px 0; }
+.rep .hoja dd { font-size: 12.5px; }
+.rep .hoja h2 { margin: 15px 0 6px; }
+.rep .hoja .cuerpo { font-size: 13px; line-height: 1.65; margin-top: 12px; }
+.rep .hoja table.comp { font-size: 11px; }
+.rep .hoja table.comp th, .rep .hoja table.comp td { padding: 4px 8px; }
+.rep .hoja table.comp tbody th span { display: inline; margin-left: 6px; font-size: 10.5px; }
+.rep .hoja table.nt td, .rep .hoja table.nt th { padding: 4px 8px; }
+.rep .hoja dl.asis > div { padding: 6px 12px 6px 0; }
+.rep .hoja ul.fr { font-size: 12.5px; line-height: 1.5; }
+.rep .hoja .obs { font-size: 12.5px; line-height: 1.6; }
+.rep .hoja .pie { margin-top: 18px; padding-top: 8px; font-size: 10px; }
 .rep .salto { page-break-after: always; break-after: page; }
 `;
 
@@ -166,11 +190,17 @@ export function cuerpoDeInformeHtml(p: PartesDeInforme, t: T): string {
   }
   if (p.competencias.length) {
     const conComentario = p.competencias.some(f => f.comentario);
-    const filas = p.competencias.map(f => `<tr><th scope="row">${esc(f.clave)}<span>${esc(f.nombre)}</span></th>`
-      + `<td class="val" style="color:${f.color}">${esc(f.valoracion)}</td>${conComentario ? `<td>${esc(f.comentario)}</td>` : ''}</tr>`).join('');
     // En el informe de seguimiento la tabla lleva su título; en el competencial va detrás del texto, como siempre
     const titulo = p.notas.length || p.asistencia.length || p.positivos.length || p.mejorar.length || p.observacion ? `<h2>${esc(t('Competencias clave'))}</h2>` : '';
-    out.push(`${titulo}<table class="comp"><thead><tr><th>${esc(t('Competencia clave'))}</th><th>${esc(t('Valoración'))}</th>${conComentario ? `<th>${esc(t('Comentario'))}</th>` : ''}</tr></thead><tbody>${filas}</tbody></table>`);
+    if (conComentario) {
+      const filas = p.competencias.map(f => `<tr><th scope="row">${esc(f.clave)}<span>${esc(f.nombre)}</span></th>`
+        + `<td class="val" style="color:${f.color}">${esc(f.valoracion)}</td><td>${esc(f.comentario)}</td></tr>`).join('');
+      out.push(`${titulo}<table class="comp"><thead><tr><th>${esc(t('Competencia clave'))}</th><th>${esc(t('Valoración'))}</th><th>${esc(t('Comentario'))}</th></tr></thead><tbody>${filas}</tbody></table>`);
+    } else {
+      // Sin comentarios (la hoja por reglas, antes de que el docente escriba ninguno) van en dos columnas: ocupan la mitad
+      out.push(`${titulo}<ul class="comps">${p.competencias.map(f => `<li><span><b>${esc(f.clave)}</b> ${esc(f.nombre)}</span>`
+        + `<strong style="color:${f.color}">${esc(f.valoracion)}</strong></li>`).join('')}</ul>`);
+    }
   }
   const lista = (titulo: string, frases: string[]) => {
     if (frases.length) out.push(`<h2>${esc(t(titulo))}</h2><ul class="fr">${frases.map(f => `<li>${esc(f)}</li>`).join('')}</ul>`);
