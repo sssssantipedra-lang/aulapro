@@ -1,11 +1,12 @@
 /**
  * Vídeo 2: crear una rúbrica con IA y evaluar con ella. La respuesta de la IA es un ejemplo fijo (no se gasta ninguna
- * clave): la grabación la simula con una rúbrica de «Exposición oral». La voz está en audio/crear-rubrica/0N.mp3.
+ * clave): la grabación la simula con una rúbrica de «Resolución de problemas en equipo». La voz está en audio/crear-rubrica/0N.mp3.
  *
  * Puesto al día el 23-11-2026 con «Evaluar a la clase» (escenas 4 y 5: la lista del alumnado y «Guardar y siguiente») y con
- * la clase activa (escena 6: el cuaderno se abre en la clase de ahora y hay que pasar a la de la rúbrica). Ensayado contra
- * la app sin grabar. **Las frases de las escenas 4 y 5 han cambiado: antes de grabar hay que volver a generar
- * audio/crear-rubrica/04.mp3 y 05.mp3**; el vídeo publicado sigue siendo el de antes.
+ * la clase activa (escena 6: el cuaderno se abre en la clase de ahora y hay que pasar a la de la rúbrica). Con la clave de
+ * ejemplo, «Nueva rúbrica» se abre en la pestaña de la IA («Desde un modelo | IA | Manual»). Ensayado contra la app. Falta
+ * regenerar todas las voces con la voz común de los vídeos (fal.ai sin saldo el 23-11-2026): las de audio/crear-rubrica/
+ * son las de antes, y 04 y 05 aún dicen las frases antiguas.
  */
 import { menu, mover, clicar, esperar, rapido } from '../lib.mjs';
 

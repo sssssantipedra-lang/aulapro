@@ -1,4 +1,8 @@
-/** Vídeo: empezar con AulaPro (perfil, primera clase y alumnado). Sin datos de ejemplo: se parte de la bienvenida. */
+/**
+ * Vídeo: empezar con AulaPro (perfil, primera clase y alumnado). Sin datos de ejemplo: se parte de la bienvenida.
+ * Puesto al día el 23-11-2026: escena nueva con «Crear varios grupos» de «Nueva clase» (se enseña la lista y se
+ * cancela, para que Mis clases siga con una sola clase), y el alumno de ejemplo con número e iniciales, sin nombre.
+ */
 import { menu, mover, clicar, esperar, rapido } from '../lib.mjs';
 
 const modal = p => p.locator('.modal-overlay.open');
@@ -32,11 +36,26 @@ export default {
         await clicar(p, modal(p).getByRole('button', { name: 'Crear clase' }), rapido);
         await esperar(p, 500);
       } },
+    { texto: 'Si das la misma asignatura a varios grupos, con «Crear varios grupos» ves la lista y los creas todos de una vez.',
+      hacer: async p => {
+        await clicar(p, p.getByRole('button', { name: /Nueva clase/ }).first(), rapido);
+        await clicar(p, modal(p).getByRole('button', { name: /Crear varios grupos/ }), rapido);
+        await clicar(p, modal(p).locator('.vg').getByRole('button', { name: 'Primaria', exact: true }), rapido);
+        await clicar(p, modal(p).locator('.vg').getByRole('button', { name: '5.º', exact: true }), { ...rapido, despues: 150 });
+        await clicar(p, modal(p).locator('.vg').getByRole('button', { name: '6.º', exact: true }), { ...rapido, despues: 150 });
+        await clicar(p, modal(p).locator('#vg-letras'), { ...rapido, despues: 100 });
+        await p.keyboard.press('Control+A');   // la casilla trae ya una letra
+        await p.keyboard.type('A, B', { delay: 70 });
+        await clicar(p, modal(p).locator('.vg-materia', { hasText: /^Matemáticas$/ }), rapido);
+        await mover(p, modal(p).locator('.vg-lista'), { pasos: 12, espera: 700 });
+        await mover(p, modal(p).getByRole('button', { name: /Crear 4 clases/ }), { pasos: 12, espera: 600 });
+        await clicar(p, modal(p).locator('.vg').getByRole('button', { name: 'Cancelar' }), rapido);
+      } },
     { texto: 'Añade a tu alumnado con «Nuevo alumno». Te recomendamos no escribir el nombre completo: usa el número de lista y solo el nombre, o sus iniciales. También puedes importar la lista con un archivo CSV.',
       hacer: async p => {
         await clicar(p, p.getByRole('button', { name: /Nuevo alumno/ }), rapido);
         await clicar(p, modal(p).locator('input').first(), rapido);
-        await p.keyboard.type('12 Marta', { delay: 110 });
+        await p.keyboard.type('12 M. P.', { delay: 110 });
         await esperar(p, 1500);
         await clicar(p, modal(p).getByRole('button', { name: 'Guardar' }), rapido);
         await esperar(p, 400);

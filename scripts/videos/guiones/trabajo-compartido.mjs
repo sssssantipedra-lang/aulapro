@@ -1,4 +1,9 @@
-/** Vídeo: trabajo compartido (archivo cifrado). */
+/**
+ * Vídeo: trabajo compartido (archivo cifrado).
+ * Puesto al día el 23-11-2026: se ensayó contra la app de hoy y las cuatro frases siguen siendo ciertas (clases a
+ * elegir, contraseña propuesta que se pasa por otro medio, «Conservar lo mío» o «Actualizar con esto» sin borrar nada);
+ * no cambian. Solo se regeneró la voz.
+ */
 import { menu, mover, clicar, esperar, rapido } from '../lib.mjs';
 import { por } from './_comun.mjs';
 export default {

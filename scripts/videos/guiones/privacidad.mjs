@@ -1,6 +1,8 @@
 /**
  * Vídeo 3: la privacidad de los datos y de la IA, con la propia app: dónde se guarda el trabajo y qué se envía a la IA.
  * La voz está en audio/privacidad/0N.mp3.
+ * Puesto al día el 23-11-2026: «AulaPro no tiene servidores para tus datos» pasa a «no lo sube a sus servidores»,
+ * porque desde el 10-11-2026 el registro de usuarios guarda el correo y el tiempo de uso (nunca el trabajo). Lo demás sigue siendo cierto.
  */
 import { menu, mover, clicar, esperar, rapido } from '../lib.mjs';
 
@@ -25,7 +27,7 @@ export default {
   escenas: [
     { texto: 'Así protege AulaPro los datos de tu alumnado.',
       hacer: async p => { await menu(p, 'Inicio', rapido); } },
-    { texto: 'Tu trabajo se guarda en tu navegador, en tu Drive u OneDrive, o en una carpeta de tu ordenador. AulaPro no tiene servidores para tus datos y no puede verlos.',
+    { texto: 'Tu trabajo se guarda en tu navegador, en tu Drive u OneDrive, o en una carpeta de tu ordenador. AulaPro no lo sube a sus servidores y no puede verlo.',
       hacer: async p => {
         await menu(p, 'Configuración', rapido);
         await clicar(p, p.getByText('Datos y copias', { exact: true }).first(), rapido);
