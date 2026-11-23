@@ -4,6 +4,7 @@ Genera las voces de los vídeos de ayuda en el propio equipo, gratis y sin envia
     python3.11 -m venv .venv-voces && .venv-voces/bin/pip install chatterbox-tts faster-whisper soundfile
     .venv-voces/bin/python scripts/videos/voces.py <id> [<id>…]          # o «todos»
     .venv-voces/bin/python scripts/videos/voces.py --frase 3 <id>        # solo la escena 3 de ese vídeo
+    .venv-voces/bin/python scripts/videos/voces.py --intentos 8 --frase 3 <id>   # con más semillas, si no llega
 
 Lee las frases de `guiones/<id>.mjs` (con node) y deja `audio/<id>/01.mp3`, 02… (MP3 mono de 64 kbit/s, sin silencios en
 los extremos), y borra los que sobren. Necesita node y ffmpeg. Cada frase dice en el registro cuánto ha tardado.
@@ -211,6 +212,9 @@ def main():
     motor = 'chatterbox'
     if '--motor' in args:
         i = args.index('--motor'); motor = args[i + 1]; del args[i:i + 2]
+    intentos = INTENTOS
+    if '--intentos' in args:
+        i = args.index('--intentos'); intentos = int(args[i + 1]); del args[i:i + 2]
     solo = None
     if '--frase' in args:
         i = args.index('--frase'); solo = int(args[i + 1]); del args[i:i + 2]
@@ -239,7 +243,7 @@ def main():
             base = int(hashlib.sha256(texto.encode()).hexdigest()[:8], 16)
             mejor = None
             empieza = time.time()
-            for intento in range(INTENTOS if oido else 1):
+            for intento in range(intentos if oido else 1):
                 wav = os.path.join(carpeta, f'{n:02d}-{intento}.wav')
                 voz.decir(dicho, wav, base + intento)
                 x = np.frombuffer(subprocess.run(['ffmpeg', '-v', 'error', '-i', wav, '-ac', '1', '-ar', '16000', '-f', 'f32le', '-'],
