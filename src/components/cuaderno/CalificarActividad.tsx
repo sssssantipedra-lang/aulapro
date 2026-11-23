@@ -45,12 +45,30 @@ function Casilla({ alumno, itemId, valor, ultimo, activo, marca, onNota, onFoco,
   const escrito = valor !== null ? (lang !== 'en' ? String(valor).replace('.', ',') : String(valor)) : '';
   const mal = texto !== null && leerNota(texto).tipo === 'mal';
 
+  /**
+   * Lo escrito y aún sin guardar. La nota se guarda al salir de la casilla, pero la lista también se cierra sin
+   * que la casilla pierda el foco: con el botón de atrás del móvil, al pasar a otra actividad o, en el iPhone,
+   * al tocar «Hecho» (allí tocar un botón no saca el foco del campo). Al desmontarse, la casilla guarda lo suyo.
+   */
+  const sinGuardar = useRef<{ texto: string | null; onNota: (v: number | null) => void }>({ texto: null, onNota });
+  useEffect(() => { sinGuardar.current.onNota = onNota; });
+  function escribir(v: string | null) { sinGuardar.current.texto = v; setTexto(v); }
+  useEffect(() => {
+    const pendiente = sinGuardar.current;
+    return () => {
+      if (pendiente.texto === null) return;
+      const leida = leerNota(pendiente.texto);
+      pendiente.texto = null;
+      if (leida.tipo !== 'mal') pendiente.onNota(leida.tipo === 'nota' ? leida.valor : null);
+    };
+  }, []);
+
   function guardar() {
     if (texto === null) return;
     const leida = leerNota(texto);
     if (leida.tipo === 'mal') return; // se queda escrito y señalado: no se guarda
     onNota(leida.tipo === 'nota' ? leida.valor : null);
-    setTexto(null);
+    escribir(null);
   }
   /** La casilla del alumno de debajo (o de arriba). */
   function vecina(desde: HTMLElement, paso: 1 | -1): HTMLInputElement | null {
@@ -72,7 +90,7 @@ function Casilla({ alumno, itemId, valor, ultimo, activo, marca, onNota, onFoco,
         data-item={itemId} data-alumno={alumno.id}
         value={texto ?? escrito} placeholder="·" aria-invalid={mal}
         style={{ color: mal ? 'var(--grade-bad)' : notaColor(valor) }}
-        onChange={e => setTexto(e.target.value)}
+        onChange={e => escribir(e.target.value)}
         onFocus={e => { onFoco(); e.target.select(); e.target.scrollIntoView?.({ block: 'nearest' }); }}
         onBlur={guardar}
         onPaste={e => {
@@ -80,7 +98,7 @@ function Casilla({ alumno, itemId, valor, ultimo, activo, marca, onNota, onFoco,
           const filas = leerPegado(e.clipboardData.getData('text/plain'));
           if (!esBloque(filas)) return;
           e.preventDefault();
-          setTexto(null);
+          escribir(null);
           onPegar(filas);
         }}
         onKeyDown={e => {
@@ -89,7 +107,7 @@ function Casilla({ alumno, itemId, valor, ultimo, activo, marca, onNota, onFoco,
             pasar(e.currentTarget, e.key === 'ArrowUp' ? -1 : 1, e.key === 'Enter');
           }
           // Escape deshace lo escrito en la casilla; la ventana se cierra con el segundo
-          if (e.key === 'Escape' && texto !== null) { e.stopPropagation(); setTexto(null); }
+          if (e.key === 'Escape' && texto !== null) { e.stopPropagation(); escribir(null); }
         }}
       />
       {/* «Siguiente» a la vista junto a la casilla: el teclado de números del iPhone no trae esa tecla */}

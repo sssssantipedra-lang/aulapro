@@ -10,8 +10,8 @@
  * Reglas:
  *  - Una nota es un número de 0 a 10, con coma o punto decimal. Lo demás («NP», «11», «7/10») se señala y no entra.
  *  - Una celda vacía de lo pegado no cambia nada: nunca borra una nota que ya estaba.
- *  - Si la primera fila no trae ninguna nota y las demás sí, es la cabecera de la hoja y no se cuenta
- *    (el docente puede decir lo contrario).
+ *  - Si la primera fila trae títulos donde las demás traen notas, es la cabecera de la hoja y no se cuenta
+ *    (el docente puede decir lo contrario). «NP», «-» o «Falta» no son un título: son un alumno sin nota.
  *  - Las columnas de texto del principio (los nombres) y el número de lista no ocupan columna del cuaderno: se
  *    enseñan al lado de cada alumno para comprobar el orden, y se avisa si un nombre no se parece al de su fila.
  *  - Lo que no cabe (más filas que alumnado, más columnas que actividades) se dice y no entra.
@@ -111,11 +111,54 @@ export interface Pegado {
 const esNota = (x: string) => leerNota(x).tipo === 'nota';
 const hayTexto = (x: string) => leerNota(x).tipo === 'mal';
 
-/** La primera fila parece la cabecera de la hoja: no trae ninguna nota, trae algún texto y debajo sí hay notas. */
+/**
+ * Lo que un docente escribe en la casilla de un alumno en vez de una nota («NP», «-», «Falta», «Exento», «IN»…),
+ * ya sin tildes, mayúsculas ni puntos. No es el título de una columna.
+ */
+const SIN_NOTA: ReadonlySet<string> = new Set([
+  'np', 'ne', 'nc', 'ns', 'sc', 'nd', 'na', 'n/a', 'n/p', 'n/e', 'n/c', 's/c', 's/n', 'sn', 'x', 'f', 'fj', 'fi', 'no',
+  'falta', 'faltas', 'falto', 'ausente', 'absent', 'absente', 'exento', 'exenta', 'exempt', 'exempta',
+  'pendiente', 'pendent', 'pending', 'missing',
+  'no presentado', 'no presentada', 'no presentat', 'no se presenta', 'no es presenta', 'not submitted',
+  'no entregado', 'no entregada', 'no entregat', 'sin entregar', 'sense entregar', 'sense lliurar',
+  'sin nota', 'sense nota', 'no evaluado', 'no evaluada', 'no avaluat', 'no avaluada', 'no calificado', 'no calificada',
+  'in', 'su', 'bi', 'nt', 'sb', 'insuficiente', 'suficiente', 'bien', 'notable', 'sobresaliente',
+  'insuficient', 'suficient', 'be', 'excel·lent', 'apto', 'apta', 'no apto', 'no apta', 'apte', 'no apte',
+]);
+
+/** Un texto, para compararlo: sin tildes, sin mayúsculas, sin puntos y con un solo espacio entre palabras. */
+function comparable(x: string): string {
+  return x.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\./g, '').replace(/\s+/g, ' ').trim();
+}
+
+/** Si un texto es de los que se ponen en vez de una nota: una de esas marcas, o solo signos («-», «—», «?»). */
+export function esMarcaSinNota(x: string): boolean {
+  const c = comparable(x);
+  return c !== '' && (SIN_NOTA.has(c) || !/[\p{L}\p{N}]/u.test(c));
+}
+
+/**
+ * La primera fila parece la cabecera de la hoja: en las columnas que debajo traen notas no trae ninguna nota y
+ * sí algún título. Un título no es lo que se escribe en vez de una nota («NP», «-», «Falta») ni un texto que se
+ * repite más abajo en su columna: eso es la fila del primer alumno, que no tiene nota, y tomarla por cabecera
+ * correría una fila todas las notas (23-11-2026). Las columnas de nombres no cuentan: «Alumno 1» con la casilla
+ * vacía es un alumno sin nota, no una cabecera.
+ */
 export function pareceCabecera(filas: string[][]): boolean {
   if (filas.length < 2) return false;
   const primera = filas[0];
-  return !primera.some(esNota) && primera.some(hayTexto) && filas.slice(1).some(f => f.some(esNota));
+  const debajo = filas.slice(1);
+  let hayTitulo = false;
+  for (let k = 0; k < primera.length; k++) {
+    const columna = debajo.map(f => f[k] ?? '');
+    if (!columna.some(esNota)) continue; // una columna de nombres, o vacía
+    const x = primera[k] ?? '';
+    if (esNota(x)) return false;
+    if (!hayTexto(x) || esMarcaSinNota(x)) continue;
+    const c = comparable(x);
+    if (!columna.some(y => comparable(y) === c)) hayTitulo = true;
+  }
+  return hayTitulo;
 }
 
 /** Una columna que cuenta 1, 2, 3… desde arriba (cinco filas o más): el número de lista, no una nota. */

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   cambiosDeRelleno, cambiosReales, conCambios, entenderPegado, esBloque, leerNota, leerPegado, nombresParecidos,
-  pareceCabecera, planDePegado, sinNota, MAX_FILAS,
+  esMarcaSinNota, pareceCabecera, planDePegado, sinNota, MAX_FILAS,
 } from './pegarNotas';
 import type { GradeMap } from '../types';
 
@@ -96,16 +96,47 @@ describe('entenderPegado', () => {
   });
 
   it('el docente puede decir que la primera fila no es una cabecera, o que sí lo es', () => {
-    const filas = leerPegado('NP\n7\n6');
+    const filas = leerPegado('Examen\n7\n6');
     expect(entenderPegado(filas).celdas).toEqual([['7'], ['6']]);
-    expect(entenderPegado(filas, { cabecera: false }).celdas).toEqual([['NP'], ['7'], ['6']]);
+    expect(entenderPegado(filas, { cabecera: false }).celdas).toEqual([['Examen'], ['7'], ['6']]);
     expect(entenderPegado(leerPegado('5\n7\n6'), { cabecera: true }).celdas).toEqual([['7'], ['6']]);
+    expect(entenderPegado(leerPegado('NP\n7\n6'), { cabecera: true }).celdas).toEqual([['7'], ['6']]);
   });
 
   it('una primera fila con alguna nota no es una cabecera', () => {
     expect(pareceCabecera(leerPegado('NP\t7\n6\t5'))).toBe(false);
     expect(pareceCabecera(leerPegado('Examen'))).toBe(false);
     expect(pareceCabecera(leerPegado('Hola\nAdiós'))).toBe(false);
+  });
+
+  it('el primer alumno sin nota no es la cabecera: tomarlo por ella correría una fila todas las notas', () => {
+    // Lo que se escribe en vez de una nota
+    for (const marca of ['NP', 'N.P.', 'np', '-', '—', '?', 'x', 'Falta', 'Exento', 'No presentado', 'IN', 'Pendiente']) {
+      const filas = leerPegado(`${marca}\n7\n8\n9`);
+      expect(pareceCabecera(filas), marca).toBe(false);
+      expect(entenderPegado(filas).celdas, marca).toEqual([[marca], ['7'], ['8'], ['9']]);
+    }
+    expect(esMarcaSinNota('Examen T3')).toBe(false);
+    expect(esMarcaSinNota('Nota')).toBe(false);
+    expect(esMarcaSinNota('')).toBe(false);
+    // Un texto que se repite más abajo en su columna tampoco es un título
+    expect(pareceCabecera(leerPegado('No lo hizo\n7\nNo lo hizo\n9'))).toBe(false);
+    // Con los nombres al lado: el primero sin nota, o con «NP», es un alumno
+    expect(pareceCabecera(leerPegado('Alumno 1\t\nAlumno 2\t7\nAlumno 3\t8'))).toBe(false);
+    expect(pareceCabecera(leerPegado('Alumno 1\tNP\nAlumno 2\t7\nAlumno 3\t8'))).toBe(false);
+    expect(entenderPegado(leerPegado('Alumno 1\tNP\nAlumno 2\t7\nAlumno 3\t8'))).toMatchObject({
+      cabecera: false, etiquetas: ['Alumno 1', 'Alumno 2', 'Alumno 3'], celdas: [['NP'], ['7'], ['8']],
+    });
+    // Y con el número de lista delante
+    expect(pareceCabecera(leerPegado('1\tAlumno 1\tNP\n2\tAlumno 2\t7'))).toBe(false);
+  });
+
+  it('una cabecera de verdad se sigue reconociendo, aunque debajo haya alumnos sin nota', () => {
+    expect(pareceCabecera(leerPegado('Nota\nNP\n7\n8'))).toBe(true);
+    expect(pareceCabecera(leerPegado('Nombre\tExamen\nAlumno 1\tNP\nAlumno 2\t7'))).toBe(true);
+    expect(pareceCabecera(leerPegado('Nº\tNombre\tExamen\tTrabajo\n1\tAlumno 1\t\t6\n2\tAlumno 2\t7\t'))).toBe(true);
+    // Basta con un título en una columna de notas: la otra puede venir sin él
+    expect(pareceCabecera(leerPegado('Examen\t\n7\t8\n6\t5'))).toBe(true);
   });
 
   it('las columnas de nombre del principio se apartan y se enseñan como etiqueta', () => {

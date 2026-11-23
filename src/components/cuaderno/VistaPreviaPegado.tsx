@@ -69,7 +69,8 @@ export function VistaPreviaPegado({ filas, donde, onAplicar, onClose }: Props) {
           </ul>
         )}
 
-        {(plan.descuadradas > 0 || plan.filasQueSobran > 0 || plan.columnasQueSobran > 0) && (
+        {/* Sin ninguna columna de notas no hay nada que colocar: sobran los avisos de orden */}
+        {!sinColumnas && (plan.descuadradas > 0 || plan.filasQueSobran > 0 || plan.columnasQueSobran > 0) && (
           <ul className="pn-avisos" role="alert">
             {plan.descuadradas > 0 && (
               <li><AlertTriangle size={14} aria-hidden="true" />
@@ -85,7 +86,7 @@ export function VistaPreviaPegado({ filas, donde, onAplicar, onClose }: Props) {
                   : t('Sobran {n} filas: tu hoja trae más filas que alumnos quedan desde {alumno}. No entran.', { n: plan.filasQueSobran, alumno: primerAlumno })}
               </li>
             )}
-            {plan.columnasQueSobran > 0 && !sinColumnas && (
+            {plan.columnasQueSobran > 0 && (
               <li><AlertTriangle size={14} aria-hidden="true" />
                 {plan.columnasQueSobran === 1
                   ? t('Sobra 1 columna: no hay más actividades a la derecha de «{actividad}». No entra.', { actividad: plan.columnas[plan.columnas.length - 1].nombre })
@@ -105,7 +106,7 @@ export function VistaPreviaPegado({ filas, donde, onAplicar, onClose }: Props) {
             </span>
           </label>
         )}
-        {(pegado.numeroDeLista || pegado.etiquetas) && (
+        {!sinColumnas && (pegado.numeroDeLista || pegado.etiquetas) && (
           <p className="sda-note pn-apartado">
             {pegado.numeroDeLista && t('La columna con el número de lista (1, 2, 3…) no se cuenta como nota.') + ' '}
             {pegado.etiquetas && t('Los nombres de tu hoja salen junto a cada alumno para que compruebes el orden; no se usan para colocar las notas.')}

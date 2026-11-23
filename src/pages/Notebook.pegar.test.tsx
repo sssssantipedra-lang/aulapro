@@ -130,6 +130,84 @@ describe('el menú de la columna', () => {
   });
 });
 
+describe('la lista de «Calificar esta actividad» no pierde lo escrito al cerrarse', () => {
+  function abreLista() {
+    fireEvent.click(screen.getByRole('button', { name: /Redacción de invierno/ }));
+    fireEvent.click(within(ventana()).getByRole('button', { name: /Calificar esta actividad/ }));
+    return ventana().querySelectorAll<HTMLInputElement>('input.pn-cal-nota');
+  }
+
+  it('el botón de atrás del móvil la cierra tocando el fondo, sin que la casilla pierda el foco: la nota se guarda', () => {
+    const p = pinta();
+    const casillas = abreLista();
+    fireEvent.change(casillas[1], { target: { value: '6,5' } });
+    // Así la cierra `cerrarLoAbierto` (lib/loAbierto.ts): un clic en el fondo, sin blur
+    fireEvent.click(document.querySelector('.pn-cal-fondo')!);
+    expect(document.querySelector('.pn-cal')).toBeNull();
+    expect(p.onSetGrade).toHaveBeenCalledTimes(1);
+    expect(p.onSetGrade).toHaveBeenCalledWith('i2b', 's2', 6.5);
+  });
+
+  it('«Hecho» sin salir de la casilla (como en el iPhone) también guarda, y una sola vez si la casilla ya había guardado', () => {
+    const p = pinta();
+    let casillas = abreLista();
+    fireEvent.change(casillas[2], { target: { value: '9' } });
+    fireEvent.click(within(ventana()).getByRole('button', { name: 'Hecho' }));
+    expect(p.onSetGrade).toHaveBeenCalledTimes(1);
+    expect(p.onSetGrade).toHaveBeenCalledWith('i2b', 's3', 9);
+    // Con el foco fuera antes de cerrar (lo normal en un ordenador), no se guarda dos veces
+    casillas = abreLista();
+    fireEvent.change(casillas[1], { target: { value: '4' } });
+    fireEvent.blur(casillas[1]);
+    fireEvent.click(within(ventana()).getByRole('button', { name: 'Hecho' }));
+    expect(p.onSetGrade).toHaveBeenCalledTimes(2);
+    expect(p.onSetGrade).toHaveBeenLastCalledWith('i2b', 's2', 4);
+  });
+
+  it('lo que no es una nota, o lo deshecho con Escape, no se guarda al cerrar', () => {
+    const p = pinta();
+    const casillas = abreLista();
+    fireEvent.change(casillas[1], { target: { value: 'NP' } });
+    fireEvent.change(casillas[2], { target: { value: '3' } });
+    fireEvent.keyDown(casillas[2], { key: 'Escape' });
+    fireEvent.click(within(ventana()).getByRole('button', { name: 'Hecho' }));
+    expect(p.onSetGrade).not.toHaveBeenCalled();
+  });
+
+  it('al pasar a otra actividad con el desplegable, lo escrito va a la actividad en la que se escribió', () => {
+    const p = pinta();
+    const casillas = abreLista();
+    fireEvent.change(casillas[1], { target: { value: '7' } });
+    fireEvent.change(within(ventana()).getByRole('combobox', { name: 'Actividad' }), { target: { value: 'i2' } });
+    expect(p.onSetGrade).toHaveBeenCalledTimes(1);
+    expect(p.onSetGrade).toHaveBeenCalledWith('i2b', 's2', 7);
+  });
+});
+
+describe('la cabecera de lo pegado', () => {
+  it('el primer alumno con «NP» no se toma por la cabecera: las notas no se corren una fila', () => {
+    const p = pinta();
+    pegar(celda('i2', 's1'), 'NP\n7\n9');
+    const previa = ventana();
+    // La casilla de la cabecera se ofrece, pero sin marcar
+    expect((within(previa).getByRole('checkbox') as HTMLInputElement).checked).toBe(false);
+    fireEvent.click(within(previa).getByRole('button', { name: 'Poner 2 notas' }));
+    expect(p.onSetGrades).toHaveBeenCalledWith([
+      { itemId: 'i2', studentId: 's2', value: 7 },
+      { itemId: 'i2', studentId: 's3', value: 9 },
+    ], 'pegar');
+  });
+
+  it('un texto de varias líneas sin notas no trae nada que poner, ni avisos de orden', () => {
+    pinta();
+    pegar(celda('i2', 's1'), 'hola\nadiós');
+    const previa = ventana();
+    expect(within(previa).getByText('Lo que has pegado no trae ninguna columna de notas.')).toBeTruthy();
+    expect(within(previa).queryByText(/no coinciden con el alumno/)).toBeNull();
+    expect((within(previa).getByRole('button', { name: 'No hay nada que poner' }) as HTMLButtonElement).disabled).toBe(true);
+  });
+});
+
 describe('moverse con las flechas', () => {
   it('a los lados pasan a la actividad vecina del mismo alumno', () => {
     pinta();
