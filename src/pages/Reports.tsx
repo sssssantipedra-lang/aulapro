@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   FileText, Sparkles, Download, FileDown, Users, ArrowRight, Check, Trash2, Pencil, AlertTriangle, Eye, ListChecks, RefreshCw, PenLine,
 } from 'lucide-react';
@@ -115,6 +115,12 @@ export function Reports(props: Props) {
     if (alumnoInicial) onAlumnoAbierto?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- una vez, al entrar
   }, []);
+  // En pantallas estrechas el informe queda debajo de la lista del alumnado: al elegir a alguien (o al llegar desde su ficha) se lleva a la vista
+  const panel = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!selected || !window.matchMedia?.('(max-width: 860px)').matches) return;
+    panel.current?.scrollIntoView?.({ block: 'start', behavior: 'smooth' });
+  }, [selected]);
   const [generating, setGenerating] = useState<string | null>(null);
   const [batch, setBatch]       = useState<{ done: number; total: number } | null>(null);
   const [draft, setDraft]       = useState('');
@@ -627,7 +633,7 @@ export function Reports(props: Props) {
               </p>
             </div>
           ) : (
-            <div className="card">
+            <div className="card inf-panel" ref={panel}>
               <div className="card-hd">
                 <div>
                   <div style={{ fontSize: 15.5, fontWeight: 800, color: 'var(--text)' }}>{current.name}</div>

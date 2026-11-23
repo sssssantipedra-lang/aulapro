@@ -27,6 +27,9 @@ interface Props {
   onCancelar: () => void;
 }
 
+/** Las líneas que necesita una frase para verse entera donde el campo no crece solo (`field-sizing`), contando con un móvil. */
+const filasPara = (texto: string) => Math.min(7, Math.max(2, Math.ceil(texto.length / 38)));
+
 const SECCIONES: { id: SeccionSeguimiento; nombre: string }[] = [
   { id: 'notas', nombre: 'Calificaciones' }, { id: 'asistencia', nombre: 'Asistencia' }, { id: 'competencias', nombre: 'Competencias clave' },
 ];
@@ -58,7 +61,7 @@ export function EditorSeguimiento({ nombre, periodo, inicial, partes, etiquetaCo
         {lista.map((f, i) => (
           <div className="inf-frase" key={i}>
             <div className="inf-frase-txt">
-              <textarea className="finput" rows={2} value={f.texto} aria-label={t('{titulo}: frase {n}', { titulo: t(titulo), n: i + 1 })}
+              <textarea className="finput" rows={filasPara(f.texto)} value={f.texto} aria-label={t('{titulo}: frase {n}', { titulo: t(titulo), n: i + 1 })}
                 onChange={e => poner(i, { ...f, texto: e.target.value })} />
               <button type="button" className="ico-btn" title={t('Quitar esta frase')} aria-label={t('Quitar esta frase')} onClick={() => poner(i, null)}>
                 <Trash2 size={15} />

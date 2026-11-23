@@ -24,7 +24,8 @@ const deSeguimiento = (extra: Partial<CompetencyReport> = {}): CompetencyReport 
   tabla: [{ clave: 'CCL', valoracion: 'excelente', comentario: '' }, { clave: 'STEM', valoracion: 'mejorable', comentario: '' }],
   seguimiento: {
     desde: '2027-01-01', hasta: '2027-03-31',
-    notas: [{ asignatura: 'Lengua', media: 8.4, categorias: [{ nombre: 'Pruebas', peso: 60, media: 8 }, { nombre: 'Tareas', peso: 40, media: 9 }, { nombre: 'Proyectos', peso: 0, media: null }] }],
+    notas: [{ asignatura: 'Lengua', media: 8.4, categorias: [{ nombre: 'Pruebas', peso: 60, media: 8 }, { nombre: 'Tareas', peso: 40, media: 9 }, { nombre: 'Proyectos', peso: 0, media: null }] },
+      { asignatura: 'Plástica', media: 7, categorias: [{ nombre: 'Láminas', peso: 70, media: 7 }, { nombre: 'Libreta', peso: 30, media: null }] }],
     asistencia: { dias: 20, faltas: 1, justificadas: 2, retrasos: 0 },
     positivos: [{ texto: 'En Lengua su nota es de 8,4 sobre 10, un buen resultado.', origen: ORIGEN }, { texto: 'Ayuda a quien lo necesita.' }],
     mejorar: [{ texto: 'Ha faltado a clase 1 día sin justificante.', origen: 'Asistencia: 1 falta sin justificar' }],
@@ -39,8 +40,10 @@ describe('las partes del informe', () => {
     expect(p.titulo).toBe('Informe de seguimiento');
     expect(p.datos).toEqual([['Grupo', '5.º A'], ['Periodo', textoDePeriodo(deSeguimiento(), es, 'es-ES')], ['Fecha', '10 de febrero de 2027']]);
     expect(p.datos[1][1]).toMatch(/^2ª evaluación \(del 1 ene 2027 al 31 mar 2027\)$/);
-    // Una categoría sin notas no sale; la nota, con un decimal y la coma del idioma
-    expect(p.notas).toEqual([{ asignatura: 'Lengua', filas: [['Pruebas', '60 %', '8,0'], ['Tareas', '40 %', '9,0']], total: ['Nota de la evaluación', '8,4'] }]);
+    // Una categoría sin peso ni notas no sale; la nota, con un decimal y la coma del idioma
+    expect(p.notas[0]).toEqual({ asignatura: 'Lengua', filas: [['Pruebas', '60 %', '8,0'], ['Tareas', '40 %', '9,0']], total: ['Nota de la evaluación', '8,4'] });
+    // Una con peso y sin notas todavía sale sin nota, para que los porcentajes sumen 100
+    expect(p.notas[1].filas).toEqual([['Láminas', '70 %', '7,0'], ['Libreta', '30 %', '—']]);
     expect(p.asistencia).toEqual([['Días registrados', '20'], ['Faltas sin justificar', '1'], ['Faltas justificadas', '2'], ['Retrasos', '0']]);
     expect(p.competencias.map(c => [c.clave, c.nombre, c.valoracion])).toEqual([['CCL', 'Comunicación lingüística', 'Excelente'], ['STEM', 'Matemática, ciencia, tecnología e ingeniería', 'Necesita mejorar']]);
     expect(p.positivos).toEqual(['En Lengua su nota es de 8,4 sobre 10, un buen resultado.', 'Ayuda a quien lo necesita.']);

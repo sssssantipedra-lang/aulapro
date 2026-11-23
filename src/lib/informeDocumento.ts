@@ -77,7 +77,8 @@ export function partesDeInforme(r: CompetencyReport, c: ContextoDeInforme): Part
     filas: [
       // Con la nota de cada evaluación (final de curso) van primero: es de lo que sale la nota final
       ...(n.evaluaciones ?? []).flatMap((v, k): [string, string, string][] => (v === null ? [] : [[t(EVALUACIONES[k] ?? ''), '', nota(v, locale)]])),
-      ...n.categorias.filter(x => x.media !== null).map((x): [string, string, string] => [x.nombre, `${x.peso} %`, nota(x.media, locale)]),
+      // Una categoría con peso y sin notas todavía se enseña sin nota: si no, los porcentajes no sumarían 100
+      ...n.categorias.filter(x => x.media !== null || x.peso > 0).map((x): [string, string, string] => [x.nombre, `${x.peso} %`, nota(x.media, locale)]),
     ],
     total: [t(n.evaluaciones ? 'Nota final de curso' : 'Nota de la evaluación'), nota(n.media, locale)],
   }));

@@ -114,7 +114,7 @@ export const EN: Record<string, string> = {
   'Comentario de cada competencia (opcional)': 'Comment on each competency (optional)',
   'Sin comentario': 'No comment',
   'Comentario de {competencia}': 'Comment on {competencia}',
-  'La valoración la fija la media de tus evaluaciones con rúbricas y dianas (sobre 4): excelente desde 3,5, bien desde 2,5.': 'The rating is set by the average of your assessments with rubrics and bullseyes (out of 4): excellent from 3.5, good from 2.5.',
+  'La valoración la fija la media de tus evaluaciones con rúbricas y dianas (sobre 4): excelente desde 3,5, bien desde 2,5.': 'The rating is set by the average of your assessments with rubrics and bullseyes (out of 4): exceeding expectations from 3.5, meeting expectations from 2.5.',
   'Las reglas no han encontrado nada que destacar en este periodo. Puedes escribirlo tú.': 'The rules have found nothing to highlight in this period. You can write it yourself.',
   'Añadir una frase': 'Add a sentence',
   'Las reglas no han encontrado nada que mejorar en este periodo. Puedes escribirlo tú.': 'The rules have found nothing to improve in this period. You can write it yourself.',
