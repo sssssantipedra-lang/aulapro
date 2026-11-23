@@ -233,6 +233,54 @@ describe('deshacer un borrado', () => {
   });
 });
 
+describe('varias notas del cuaderno de una vez (pegar un bloque, rellenar los vacíos)', () => {
+  it('son un solo cambio: una línea en el registro y un «Deshacer» que las devuelve todas', () => {
+    const { result } = conEjemplo();
+    const antes = result.current.grades;
+    const columna = result.current.gradeItems.find(i => Object.keys(antes[i.id] ?? {}).length >= 3)!;
+    const [a, b, c] = Object.keys(antes[columna.id]);
+    const registro = result.current.auditLog.length;
+    act(() => result.current.setManyGrades([
+      { itemId: columna.id, studentId: a, value: 1.5 },
+      { itemId: columna.id, studentId: b, value: null },
+      // Lo que ya estaba así no cuenta como cambio
+      { itemId: columna.id, studentId: c, value: antes[columna.id][c] },
+    ], 'pegar'));
+    expect(result.current.grades[columna.id][a]).toBe(1.5);
+    expect(result.current.grades[columna.id][b]).toBeNull();
+    expect(result.current.borradoPendiente?.borrados).toEqual([{ tipo: 'notas', cuantos: 2 }]);
+    expect(result.current.auditLog.length).toBe(registro + 1);
+    expect(result.current.auditLog[0].what).toBe(`Pegó 2 notas en «${columna.name}»`);
+
+    act(() => { result.current.deshacerBorrado(); });
+    expect(result.current.grades).toBe(antes);
+  });
+
+  it('si no cambia nada, no deja aviso ni línea en el registro', () => {
+    const { result } = conEjemplo();
+    const antes = result.current.grades;
+    const columna = result.current.gradeItems.find(i => Object.keys(antes[i.id] ?? {}).length > 0)!;
+    const [a] = Object.keys(antes[columna.id]);
+    const registro = result.current.auditLog.length;
+    act(() => result.current.setManyGrades([{ itemId: columna.id, studentId: a, value: antes[columna.id][a] }], 'rellenar'));
+    expect(result.current.grades).toBe(antes);
+    expect(result.current.borradoPendiente).toBeNull();
+    expect(result.current.auditLog.length).toBe(registro);
+  });
+
+  it('una nota escrita después en el cuaderno retira el aviso: deshacer se la llevaría', () => {
+    const { result } = conEjemplo();
+    const antes = result.current.grades;
+    const columna = result.current.gradeItems.find(i => Object.keys(antes[i.id] ?? {}).length >= 2)!;
+    const [a, b] = Object.keys(antes[columna.id]);
+    act(() => result.current.setManyGrades([{ itemId: columna.id, studentId: a, value: 0.25 }], 'rellenar'));
+    expect(result.current.borradoPendiente).not.toBeNull();
+    act(() => result.current.setGrade(columna.id, b, 0.75));
+    expect(result.current.borradoPendiente).toBeNull();
+    expect(result.current.grades[columna.id][a]).toBe(0.25);
+  });
+});
+
 describe('deshacer en Educación Física y en PT y AL', () => {
   const sesion = (id: string, titulo: string) => ({ id, titulo }) as unknown as SesionEF;
 

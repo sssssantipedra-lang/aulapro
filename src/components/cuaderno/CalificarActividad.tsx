@@ -73,7 +73,7 @@ function Casilla({ alumno, itemId, valor, ultimo, activo, marca, onNota, onFoco,
         value={texto ?? escrito} placeholder="·" aria-invalid={mal}
         style={{ color: mal ? 'var(--grade-bad)' : notaColor(valor) }}
         onChange={e => setTexto(e.target.value)}
-        onFocus={e => { onFoco(); e.target.select(); e.target.scrollIntoView({ block: 'nearest' }); }}
+        onFocus={e => { onFoco(); e.target.select(); e.target.scrollIntoView?.({ block: 'nearest' }); }}
         onBlur={guardar}
         onPaste={e => {
           if (!onPegar) return;

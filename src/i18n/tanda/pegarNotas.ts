@@ -138,9 +138,9 @@ export const CA: Record<string, string> = {
   '{n} nombres de tu hoja no coinciden con el alumno de su fila (marcados con ≠). Puede que tu hoja no esté en el orden de la lista: compruébalo antes de seguir.':
     '{n} noms del teu full no coincideixen amb l\'alumne de la seva fila (marcats amb ≠). Pot ser que el teu full no estigui en l\'ordre de la llista: comprova-ho abans de continuar.',
   'Sobra 1 fila: tu hoja trae más filas que alumnos quedan desde {alumno}. No entra.':
-    'Sobra 1 fila: el teu full porta més files que alumnes queden des de {alumno}. No entra.',
+    'Sobra 1 fila: començant per {alumno}, el teu full porta més files que alumnes queden. No entra.',
   'Sobran {n} filas: tu hoja trae más filas que alumnos quedan desde {alumno}. No entran.':
-    'Sobren {n} files: el teu full porta més files que alumnes queden des de {alumno}. No entren.',
+    'Sobren {n} files: començant per {alumno}, el teu full porta més files que alumnes queden. No entren.',
   'Sobra 1 columna: no hay más actividades a la derecha de «{actividad}». No entra.':
     'Sobra 1 columna: no hi ha més activitats a la dreta de «{actividad}». No entra.',
   'Sobran {n} columnas: no hay más actividades a la derecha de «{actividad}». No entran.':

@@ -397,7 +397,7 @@ function GradesTab({
     const celda = document.querySelector<HTMLInputElement>(`input.gb-cell[data-item="${CSS.escape(id)}"]`);
     if (!celda) return;
     celda.focus();
-    celda.scrollIntoView({ block: 'nearest', inline: 'center' });
+    celda.scrollIntoView?.({ block: 'nearest', inline: 'center' });
   }, [columnasEditables]);
 
   const dec = (n: number) => (lang !== 'en' ? String(n).replace('.', ',') : String(n));
