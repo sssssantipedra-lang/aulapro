@@ -5,8 +5,7 @@
  *
  * Puesto al día el 23-11-2026: la primera escena enseña que «Configurar la IA», en cualquier pantalla que pida la
  * clave, abre los mismos pasos en una ventana encima (aquí, en «Nueva rúbrica»); el resto sigue por Configuración ›
- * Clave de la IA, que no ha cambiado. Falta regenerar todas las voces con la voz común de los vídeos
- * (fal.ai sin saldo el 23-11-2026): las de audio/clave-ia/ son las de antes y 01 y 02 dicen las frases antiguas.
+ * Clave de la IA, que no ha cambiado.
  */
 import { menu, mover, clicar, clave, esperar, rapido } from '../lib.mjs';
 

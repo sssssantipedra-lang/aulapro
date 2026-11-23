@@ -28,7 +28,7 @@ export default {
         await esperar(p, 300);
         await mover(p, p.locator('main .clase-ahora'), { pasos: 12, espera: 600 });
         await clicar(p, p.getByRole('button', { name: /Buen comportamiento/ }).nth(0), rapido);
-        await clicar(p, p.getByRole('button', { name: /Participa/ }).nth(1), rapido);
+        await clicar(p, p.getByRole('button', { name: /Participa/ }).nth(2), rapido);
       } },
     { texto: 'Cada anotación suma o resta, y cuenta en el trabajo diario del cuaderno.',
       hacer: async p => {

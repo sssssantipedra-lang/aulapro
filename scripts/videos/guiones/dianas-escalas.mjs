@@ -4,7 +4,6 @@
  * Puesto al día el 23-11-2026: sin clave de la IA, «Nueva diana» se abre en «Manual», así que el vídeo escribe los
  * ítems a mano y enseña cómo se dibuja la diana (ya no dice que la IA los propone); las tarjetas tienen «Evaluar a la
  * clase», con el alumnado en una lista; y «Nueva escala» tiene «Desde un modelo», con seis escalas ya escritas, sin IA.
- * Falta regenerar las cuatro voces (fal.ai sin saldo el 23-11-2026): las de audio/dianas-escalas/ dicen las frases antiguas.
  */
 import { menu, mover, clicar, esperar, rapido } from '../lib.mjs';
 import { modal, pestana, por, cerrar } from './_comun.mjs';
@@ -47,6 +46,9 @@ export default {
       hacer: async p => {
         await cerrar(p);
         await esperar(p, 300);
+        // Cerrar sin guardar deja el aviso de borrador («Continuar» o «Descartar»): se descarta para que no se quede
+        const descartar = p.locator('main').getByRole('button', { name: 'Descartar' }).first();
+        if (await descartar.isVisible().catch(() => false)) await clicar(p, descartar, rapido);
         await clicar(p, p.locator('main').getByRole('button', { name: 'Evaluar a la clase' }).first(), rapido);
         await esperar(p, 600);
         await mover(p, modal(p).locator('.evc-al').first(), { pasos: 10, espera: 300 });

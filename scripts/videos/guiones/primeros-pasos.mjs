@@ -63,9 +63,9 @@ export default {
       } },
     { texto: 'Y ya está: desde el menú tienes el cuaderno, la asistencia y la evaluación de tu clase.',
       hacer: async p => {
-        await menu(p, 'Cuaderno de Notas', rapido);
-        await menu(p, 'Asistencia', rapido);
-        await menu(p, 'Evaluar', rapido);
+        await menu(p, 'Cuaderno de Notas', rapido); await esperar(p, 700);
+        await menu(p, 'Asistencia', rapido); await esperar(p, 900);
+        await menu(p, 'Evaluar', rapido); await esperar(p, 900);
       } },
   ],
 };

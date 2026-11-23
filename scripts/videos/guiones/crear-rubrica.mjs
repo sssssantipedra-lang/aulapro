@@ -4,9 +4,7 @@
  *
  * Puesto al día el 23-11-2026 con «Evaluar a la clase» (escenas 4 y 5: la lista del alumnado y «Guardar y siguiente») y con
  * la clase activa (escena 6: el cuaderno se abre en la clase de ahora y hay que pasar a la de la rúbrica). Con la clave de
- * ejemplo, «Nueva rúbrica» se abre en la pestaña de la IA («Desde un modelo | IA | Manual»). Ensayado contra la app. Falta
- * regenerar todas las voces con la voz común de los vídeos (fal.ai sin saldo el 23-11-2026): las de audio/crear-rubrica/
- * son las de antes, y 04 y 05 aún dicen las frases antiguas.
+ * ejemplo, «Nueva rúbrica» se abre en la pestaña de la IA («Desde un modelo | IA | Manual»). Ensayado contra la app.
  */
 import { menu, mover, clicar, esperar, rapido } from '../lib.mjs';
 

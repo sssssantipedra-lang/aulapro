@@ -51,9 +51,17 @@ export default {
       } },
     { texto: 'Dibuja sobre la pantalla, cambia el fondo y guarda la disposición para otro día.',
       hacer: async p => {
-        await clicar(p, por(p, 'Dibujar sobre la pantalla'), rapido); await esperar(p, 600);
-        await mover(p, por(p, 'Cambiar el fondo'), { pasos: 14, espera: 900 });
-        await mover(p, por(p, 'Guardar y recuperar'), { pasos: 14, espera: 1000 });
+        await clicar(p, por(p, 'Dibujar sobre la pantalla'), rapido); await esperar(p, 300);
+        // Un trazo en la parte de abajo, donde no hay ventanas
+        const { width: an, height: al } = p.viewportSize();
+        const punto = (x, y) => [x * an, y * al];
+        await p.mouse.move(...punto(0.58, 0.84), { steps: 10 }); await p.mouse.down();
+        for (let i = 1; i <= 24; i++) await p.mouse.move(...punto(0.58 + i * 0.012, 0.84 - Math.sin(i / 24 * Math.PI) * 0.08), { steps: 2 });
+        await p.mouse.up(); await esperar(p, 300);
+        await clicar(p, por(p, 'Dejar de dibujar'), rapido);
+        await clicar(p, por(p, 'Cambiar el fondo'), rapido);
+        await clicar(p, p.locator('[role="dialog"][aria-label="Fondo"] button').nth(2), rapido);
+        await clicar(p, por(p, 'Guardar y recuperar'), { pasos: 14, espera: 200, despues: 1000 });
       } },
   ],
 };
