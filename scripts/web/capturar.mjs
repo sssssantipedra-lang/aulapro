@@ -194,7 +194,9 @@ const fuera = (zs, cajas) => zs.filter(([x0, y0, x1, y1]) => !cajas.some(([a, b,
 
 /* ── La sesión ───────────────────────────────────────────────────────── */
 const FASES = (process.env.FASES || 'aula,ef,apoyo,nuevas').split(',');
-const browser = await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
+// `LANG`: el formato de los campos de fecha nativos sale del idioma del navegador, no del de la página (`locale`); sin él,
+// en una máquina en inglés Asistencia y las sesiones enseñaban «10/14/2026»
+const browser = await chromium.launch({ ...(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {}), env: { ...process.env, LANG: 'es_ES.UTF-8', LANGUAGE: 'es' } });
 let ctx, page;
 const CLAVE_AI = 'clave-de-ejemplo-no-valida';   // Solo para que la app no pida la clave: no se conecta a nada
 
@@ -284,6 +286,10 @@ async function abrirPerfil(tipo) {
     localStorage.setItem(k, JSON.stringify({ ...JSON.parse(localStorage.getItem(k)), ...patch }));
     for (const [tipo, b] of Object.entries(borradores)) localStorage.setItem(`aulapro_borrador_${id}_${tipo}`, JSON.stringify(b));
     localStorage.setItem('aulapro_gemini_key', clave);
+    // El perfil de ejemplo lleva escrito el curso 2025-2026 y las capturas son del 14-10-2026: el acta decía «Curso 2025-2026»
+    // encima de «1ª evaluación (del 1 sept 2026 al 31 dic 2026)»
+    const perfiles = JSON.parse(localStorage.getItem('aulapro_web_profiles') || '[]');
+    localStorage.setItem('aulapro_web_profiles', JSON.stringify(perfiles.map(p => (p.id === id ? { ...p, course: '2026-2027' } : p))));
   }, { id, patch, borradores, clave: CLAVE_AI });
   await page.reload({ waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(4500);
@@ -327,12 +333,15 @@ const datosDeClase = () => page.evaluate(() => {
     aviso: caja(dlg.querySelector('.evc-quien .evc-aviso') ?? dlg.querySelector('.evc-quien')),
     pie: caja(dlg.querySelector('.evc-pie-btns')),
     dato: caja(dlg.querySelector('.evc-pie-dato')),
+    // «Poner a todos este nivel»: el bloque entero (la app lo quita cuando no queda nadie) y su frase, que dice a cuántos alcanza
+    todos: caja(dlg.querySelector('.evc-todos')),
+    todosFrase: caja(dlg.querySelector('.evc-todos-a')),
   };
 });
 /** Esconde (o vuelve a enseñar) lo que la demo dibuja de nuevo en «Evaluar a la clase»; se ocultan, no se quitan: así no se mueve nada. */
 const ocultarDeClase = oculto => page.evaluate(oculto => {
   const dlg = [...document.querySelectorAll('.modal-overlay.open')].pop();
-  const piezas = [...dlg.querySelectorAll('.evc-al, .evc-cuenta > *, .evc-quien, .evc-pie-btns, .evc-pie-dato .score-pill, .evc-pie-dato .score-pill + span')];
+  const piezas = [...dlg.querySelectorAll('.evc-al, .evc-cuenta > *, .evc-quien, .evc-todos-a, .evc-pie-btns, .evc-pie-dato .score-pill, .evc-pie-dato .score-pill + span')];
   for (const el of piezas) el.style.visibility = oculto ? 'hidden' : '';
 }, oculto);
 /**
@@ -364,7 +373,7 @@ async function ventanaEstrecha(archivo, hasta) {
   const [left, top, width, height] = await page.evaluate(hasta => {
     const m = [...document.querySelectorAll('.modal-overlay.open .modal')].pop();
     const b = m.getBoundingClientRect();
-    const fin = hasta ? m.querySelector(hasta).getBoundingClientRect().bottom + 22 : b.bottom;
+    const fin = hasta ? m.querySelector(hasta).getBoundingClientRect().bottom + 8 : b.bottom;   // (más abajo asoma media línea de «Observaciones»)
     return [b.left, b.top, b.width, fin - b.top].map(Math.round);
   }, hasta);
   fs.writeFileSync(path.join(SITIO, archivo), await webp(await sharp(await page.screenshot()).extract({ left, top, width, height }).toBuffer()));
@@ -374,6 +383,19 @@ async function ventanaEstrecha(archivo, hasta) {
   return [width, height];
 }
 const caja = async loc => { const b = await loc.boundingBox(); return [r(b.x), r(b.y), r(b.x + b.width), r(b.y + b.height)]; };
+/**
+ * Los datos del perfil, tal como están guardados, y cómo dejarlos otra vez así. Lo que se guarda solo para una captura
+ * de la portada (la evaluación del primero de la lista) no debe quedarse: la demo enseñaría «150 evaluaciones» en Evaluar
+ * y 151 en el Historial, con una evaluación de hoy que «Evaluar a la clase» dice que no existe.
+ */
+const datosGuardados = () => page.evaluate(() => { const k = 'aulapro_web_data_' + localStorage.getItem('aulapro_active_profile'); return [k, localStorage.getItem(k)]; });
+async function reponerDatos([clave, datos]) {
+  await page.waitForTimeout(1500);   // que el guardado automático acabe con lo suyo antes de escribir encima
+  await page.evaluate(([k, d]) => localStorage.setItem(k, d), [clave, datos]);
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await page.locator('.sidebar .nav-item').first().waitFor();
+  await page.waitForTimeout(3000);
+}
 
 const PANTALLAS = {};
 const MARCAS = {};
@@ -386,6 +408,9 @@ async function pantalla(id, titulo, hubId, opts = {}) {
   // Con la página bajada, lo que ha quedado debajo de la barra de pestañas (que se queda fija arriba) no se puede pulsar
   if (opts.scroll) z.zonas = z.zonas.filter(([, y0, , , tipo]) => tipo === 'menu' || tipo === 'pestana' || y0 >= BARRA);
   let spots = acciones(z.zonas, hubId, opts.extra, opts.rutas);
+  // Un botón del contenido que lleva a la pantalla en la que ya se está («Añadir nota» en el Cuaderno, «Pasar lista» en
+  // Asistencia) no haría nada al pulsarlo, y además volvería a empezar lo que se hubiera probado en ella: el aviso de siempre
+  spots = spots.map((sp, i) => (sp[4] === `go:${id}` && z.zonas[i][4] === 'boton' ? [sp[0], sp[1], sp[2], sp[3], RE_IA.test(sp[5]) ? 't:ia' : 'g', sp[5]] : sp));
   if (opts.quitar) spots = fuera(spots, opts.quitar);
   // Zonas que no son un botón de la app (lo que asoma de una lista y lleva a ella): debajo de las demás, que mandan
   if (opts.mas) spots.unshift(...opts.mas);
@@ -406,7 +431,9 @@ fs.writeFileSync(path.join(SITIO, 'assets/app/inicio.webp'), await webp(inicio))
 MARCAS.inicio = await page.evaluate(() => {
   const pc = (el, dx = 0, dy = 0) => { const b = el.getBoundingClientRect(); return [+((b.left + dx) / innerWidth * 100).toFixed(1), +((b.top + dy) / innerHeight * 100).toFixed(1)]; };
   const pasos = document.querySelector('.fs-bar, .first-steps, [class*=fs-]');
-  const hoja = t => [...document.querySelectorAll('main *')].find(e => e.childElementCount === 0 && e.textContent.trim() === t);
+  // (el título de una tarjeta lleva su icono dentro: se busca por su texto propio, no por ser una hoja)
+  const propio = e => [...e.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join('').trim();
+  const hoja = t => [...document.querySelectorAll('main *')].find(e => e.checkVisibility() && propio(e) === t);
   const jornada = hoja('Tu jornada de hoy');
   const atencion = hoja('Necesitan atención');
   return { pasos: pasos && pc(pasos, 0, 26), jornada: jornada && pc(jornada, -14, 10), atencion: atencion && pc(atencion, -14, 10) };
@@ -415,7 +442,8 @@ MARCAS.inicio = await page.evaluate(() => {
 await menu('Mis Clases');
 await pantalla('clases', 'Mis Clases');
 // La Agenda se abre en su portada de dos tarjetas; las pestañas Resumen, Mensual y Semanal son botones de la propia pantalla
-const AGENDA = { 'Resumen': 'go:agenda', 'Mensual': 'go:agendames', 'Semanal': 'go:agendasemana', 'Agenda mensual': 'go:agendames', 'Horario semanal': 'go:agendasemana' };
+// «También se ve: Sesiones · Cuaderno…» enciende o apaga una capa: no lleva a Sesiones (el salto «Sesiones» es el de la portada de Documentos)
+const AGENDA = { 'Resumen': 'go:agenda', 'Mensual': 'go:agendames', 'Semanal': 'go:agendasemana', 'Agenda mensual': 'go:agendames', 'Horario semanal': 'go:agendasemana', 'Sesiones': 'g' };
 await menu('Agenda');
 await pantalla('agenda', 'Agenda', null, { extra: AGENDA });
 await page.getByRole('tab', { name: 'Mensual', exact: true }).click();
@@ -460,7 +488,8 @@ await abrirVentana(page.locator('main').getByRole('button', { name: 'Evaluar a l
   });
   await ventanaDeClase('rubrica', 'Evaluar a la clase con una rúbrica', celdas.flat(), { rubrica: celdas, total, clase });
   // Para la portada, a mitad de evaluar: el primero de la lista ya guardado y, en el segundo, dos niveles marcados.
-  // (Esa evaluación se queda en los datos de ejemplo de esta pasada: sale en el Historial, como en la app.)
+  // Esa evaluación solo es para esta captura: después los datos vuelven a quedar como estaban.
+  const antes = await datosGuardados();
   const filas = dlg.locator('table tbody tr');
   for (const [fila, nivel] of [[0, 3], [1, 4], [2, 3]]) await filas.nth(fila).locator('td').nth(nivel).click();
   await dlg.getByRole('button', { name: 'Guardar y siguiente' }).click();
@@ -468,6 +497,8 @@ await abrirVentana(page.locator('main').getByRole('button', { name: 'Evaluar a l
   for (const [fila, nivel] of [[0, 4], [1, 3]]) await filas.nth(fila).locator('td').nth(nivel).click();
   MARCAS.rubrica = { size: await ventanaEstrecha('assets/app/rubrica.webp') };
   await cerrarModal();
+  await reponerDatos(antes);
+  await menu('Evaluar');
 }
 
 await pestana('Dianas');
@@ -531,13 +562,16 @@ await pantalla('historial', 'Historial', 'evaluar');
 
 /* Documentos */
 await menu('Documentos');
+await pestana('Informes');
+// Los informes de seguimiento de toda la clase, que la app compone al instante y sin IA, creados de una vez. Antes de capturar
+// la portada de Documentos: su tarjeta cuenta los informes, y decía «1 informe» con seis hechos en la pantalla de al lado
+await page.locator('main').getByRole('button', { name: 'Informes de seguimiento de la clase' }).click();
+await page.waitForTimeout(1500);
+await pestana('Resumen');
 await pantalla('documentos', 'Documentos', 'documentos');
 await pestana('Informes');
 {
-  // Los informes de seguimiento de toda la clase, que la app compone al instante y sin IA, creados de una vez; a la vista,
-  // el de un alumno que tiene de todo: calificaciones, competencias, «Lo positivo» y «A mejorar»
-  await page.locator('main').getByRole('button', { name: 'Informes de seguimiento de la clase' }).click();
-  await page.waitForTimeout(1500);
+  // A la vista, el de un alumno que tiene de todo: calificaciones, competencias, «Lo positivo» y «A mejorar»
   await page.locator('main').getByRole('button', { name: /Alumno 52$/ }).first().click();
   await page.mouse.move(5, 5);
   await page.waitForTimeout(900);
@@ -580,6 +614,14 @@ await pantalla('lectura', 'Comprensión lectora', 'documentos', { extra: { 'Mis 
 
 /* En clase */
 await menu('En clase');
+{
+  // La clase se sienta antes de capturar la portada del apartado, que cuenta las clases con mesas (decía «0 clases con mesas»
+  // y, en la pantalla de al lado, la clase ya sentada). Desde el 20-11-2026 la Distribución abre la clase de ahora
+  await pestana('Distribución de aula');
+  const sentar = page.getByRole('button', { name: 'Sentar por orden de lista' }).first();
+  if (await sentar.isVisible()) { await sentar.click(); await page.waitForTimeout(900); }
+  await pestana('Resumen');
+}
 await pantalla('enclase', 'En clase', 'enclase');
 await pestana('Anotar actitud');
 {
@@ -605,12 +647,7 @@ await pestana('Anotar actitud');
 }
 
 await pestana('Distribución de aula');
-{
-  // Desde el 20-11-2026 la Distribución usa el selector de clase común y abre la clase de ahora
-  const sentar = page.getByRole('button', { name: 'Sentar por orden de lista' }).first();
-  if (await sentar.isVisible()) { await sentar.click(); await page.waitForTimeout(600); }
-  await pantalla('distribucion', 'Distribución de aula', 'enclase');
-}
+await pantalla('distribucion', 'Distribución de aula', 'enclase');
 
 await pestana('Pizarra y herramientas');
 {

@@ -33,7 +33,8 @@ const BASE = process.argv[2] || 'http://localhost:5173/';
 const OUT = path.join(RAIZ, 'web/sitio/assets/portada');
 fs.mkdirSync(OUT, { recursive: true });
 
-const browser = await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
+// `LANG`: el formato de los campos de fecha nativos sale del idioma del navegador, no del de la página
+const browser = await chromium.launch({ ...(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {}), env: { ...process.env, LANG: 'es_ES.UTF-8', LANGUAGE: 'es' } });
 
 /** Abre la app de ejemplo de docente de aula en una ventana de ese tamaño, con los ejemplos de la IA sumados. */
 async function abrir({ w, h, dpr, movil = false }) {

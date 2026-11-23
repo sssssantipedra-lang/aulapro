@@ -175,6 +175,10 @@
     (s.spots || []).forEach(sp => spot(el, sp));
     if (INIT[id]) cleanup = INIT[id](el, s, opt) || null;
     view.replaceChildren(el);
+    // «Evaluar a la clase» has its buttons at the foot of the window, right where the tips come out: there, they go at the top
+    toastBox.classList.toggle('alto', !!s.clase);
+    // On a phone the window does not fit: a screen that is a dialog opens scrolled to it, not to the menu behind
+    if (s.modal && wrap.classList.contains('narrow')) $('.stage-scroll', wrap).scrollLeft = Math.max(0, s.modal[0] * scale - 8);
     if (!first && !opt.quiet && !reduce.matches) el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200, easing: 'ease-out' });
     if (!opt.quiet) srNote.textContent = `${t('demo.screen')}: ${s.title}`;
     if (HINT[id] && !opt.quiet && !opt.noHint) setTimeout(() => { if (cur === id) toast(t(HINT[id])); }, 450);
@@ -334,7 +338,13 @@
     const foot = mk(el, 'div', 'evc-f', `right:${W - fx1}px;top:${fy0}px;height:${fy1 - fy0}px;min-width:${fx1 - fx0}px`);
     const closeB = mk(foot, 'button', 'gh', '', 'Cerrar');
     closeB.dataset.act = 'fn:closeModal';
+    // «Guardar todo (n)»: as in the app, only while somebody else in the list has marks waiting to be saved
+    const allB = mk(foot, 'button', 'gh');
     const act = mk(foot, 'button', 'ac');
+    // «Poner a todos este nivel»: its sentence says how many students it reaches (not done today and with nothing marked),
+    // and the app takes the whole block away when nobody is left
+    const reach = c.todosFrase ? mk(el, 'div', 'evc-a', px(...c.todosFrase)) : null;
+    const gone = c.todos ? mk(el, 'div', 'evc-x', px(...c.todos)) : null;
 
     function paint() {
       const done = rows.filter(r => r.saved).length, open = rows.filter(dirty).length;
@@ -359,8 +369,20 @@
       const next = nextOf(sel), d = dirty(r) && inst.count(r.marks) > 0;
       act.innerHTML = d ? EVC_SAVE + (next >= 0 ? 'Guardar y siguiente' : r.saved ? 'Guardar cambios' : 'Guardar evaluación') : 'Siguiente' + EVC_NEXT;
       act.disabled = !d && next < 0;
+      const others = rows.some((x, i) => i !== sel && dirty(x));
+      allB.hidden = !others;
+      allB.innerHTML = EVC_SAVE + `Guardar todo (${open})`;
+      const left = rows.filter(x => !x.saved && !x.marks.some(Boolean)).length;
+      if (reach) reach.textContent = (left === 1 ? 'Marca ese nivel en todo a 1 alumno que falta.' : `Marca ese nivel en todo a los ${left} alumnos que faltan.`)
+        + ' Después cambias solo las excepciones; no se guarda nada hasta que pulses Guardar.';
+      if (gone) gone.hidden = left > 0;
       inst.show(r.marks);
     }
+    allB.addEventListener('click', () => {
+      rows.forEach(x => { if (dirty(x)) { if (inst.count(x.marks) > 0) x.saved = x.marks.slice(); else x.marks = x.saved.slice(); } });
+      paint();
+      toast(t(rows.every(x => x.saved) ? 'demo.t.evcFin' : 'demo.t.evcTodo'));
+    });
     act.addEventListener('click', () => {
       const r = rows[sel];
       let said = '';
