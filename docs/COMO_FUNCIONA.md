@@ -125,6 +125,8 @@ Reglas de cálculo que comparten todas las pantallas:
 - **La clase que abre cada pantalla**, una sola regla (`src/lib/claseActiva.ts`, `useClaseActiva`): la pedida, la de ahora según el horario y el calendario, la última usada.
 - **Cada pantalla tiene su dirección** (`#/…`, `src/lib/ruta.ts`, `useRuta`) y el botón de atrás cambia de pantalla o cierra la ventana abierta.
 - **Borrar se puede deshacer** diez segundos (`src/lib/deshacer.ts`, `apuntarBorrado`), y también un cambio de fechas de varias sesiones (`apuntarCambio`).
+- **Sin IA también se trabaja**: fichas en blanco y al instante (`src/lib/fichaInstante.ts`), rúbricas y escalas modelo (`src/lib/modelosInstrumentos.ts`) e informes de seguimiento por reglas (`src/lib/informeSeguimiento.ts`). La clave de la IA se pone en una ventana sobre la pantalla en curso (`abrirClaveIA`, `VentanaClaveIA`).
+- **Qué es una nota** lo decide `leerNota` (`src/lib/pegarNotas.ts`), para la celda, la lista, el relleno y lo pegado de una hoja de cálculo.
 - **Final de curso**: «Empezar curso nuevo» (Configuración › Datos y copias; `src/lib/cursoNuevo.ts`, `startNewSchoolYear`) pasa al curso siguiente conservando lo que sirve, con copia obligatoria antes; «Vaciar el curso» sigue al lado.
 - **Competencias.** Cada criterio de una rúbrica o ítem de una diana puede llevar los criterios oficiales que evalúa. Al evaluar, la nota se apunta en ellos, y de ahí salen las notas por competencia específica y clave (`src/lib/curriculum/evaluacionPorCriterios.ts`). La nota que manda en el cuaderno sigue siendo la del cuaderno.
 

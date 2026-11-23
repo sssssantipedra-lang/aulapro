@@ -59,8 +59,16 @@ quinto y sexto. En la ESO, curso a curso, con sus materias optativas propias
 Clásica, Filosofía y Argumentación…) y una sola Lengua Extranjera para la
 primera y la segunda. El resto de comunidades siguen el estatal.
 
-Las funciones de IA usan una clave gratuita de Google Gemini que el docente pega
-en Configuración. Sin clave, la aplicación funciona entera menos lo que redacta la IA.
+Las funciones de IA usan una clave gratuita de Google Gemini. Se pone sin salir
+de la pantalla: cualquier aviso «Configurar la IA» abre una ventana con los tres
+pasos (abrir Google AI Studio, crear y copiar la clave, pegarla); al quedar
+comprobada se cierra sola y lo que se estaba escribiendo sigue igual, con el
+botón de generar activo. También se pone en Configuración › Clave de la IA. La
+primera vez hay que marcar la casilla de aceptación del uso de la IA. Si se
+entra en Google con la cuenta del centro y no deja crear la clave, vale una
+cuenta personal de Google, que no tiene que ser la de AulaPro. Sin clave, la
+aplicación funciona entera menos lo que redacta la IA: hay rúbricas y escalas
+modelo, fichas en blanco y al instante e informes de seguimiento sin IA.
 PRIVACIDAD: los nombres del alumnado NUNCA se envían a Google. Antes de cada
 petición a la IA se cambian por códigos, nuevos y al azar en cada petición (un
 mismo alumno no lleva el mismo código dos veces), se quitan los correos y, de lo
@@ -310,7 +318,25 @@ Tiene TRES PESTAÑAS arriba:
    10%; deben sumar 100% por asignatura), y dentro de cada categoría se añaden
    pruebas («Examen T1», «Cuaderno»). Se escriben notas de 0 a 10 en la rejilla
    y la media ponderada se calcula sola, con la media del grupo abajo. Se
-   exporta a Excel. Al empezar el cuaderno de una asignatura se ofrecen
+   exporta a Excel.
+   COMO UNA HOJA DE CÁLCULO: Intro y flecha abajo pasan al alumno siguiente,
+   flecha arriba al anterior y las flechas a los lados, a la actividad vecina;
+   al añadir una actividad el cursor queda en su primera celda. PEGAR NOTAS: en
+   Excel, Google Sheets o LibreOffice se copia la columna de notas (o varias
+   seguidas) y se pega sobre la celda del primer alumno. Antes de poner nada
+   sale una vista previa con lo que es nuevo, lo que cambia una nota que ya
+   estaba y lo que no entra. Las notas se colocan por orden, no por nombre: la
+   hoja tiene que estar en el orden de la lista; si se copian también los
+   nombres, salen al lado y se marca con ≠ el que no coincide. Vale la coma o
+   el punto decimal; lo que no es una nota de 0 a 10 («NP», «11») no entra, y
+   una celda vacía de la hoja no borra la nota que ya estaba. Al pulsar el
+   NOMBRE DE UNA ACTIVIDAD se abre su menú: «Calificar esta actividad» (la
+   lista del alumnado con una casilla grande para cada nota, pensada para
+   tableta y móvil, donde se abre sola al añadir una actividad; «Siguiente» en
+   el teclado o el botón de flecha pasan al alumno de debajo), «Poner una nota
+   a quien no tiene» (no toca las notas que ya están) y «Editar o eliminar
+   esta actividad». Tras pegar o rellenar hay diez segundos para «Deshacer»
+   (también Ctrl+Z). Al empezar el cuaderno de una asignatura se ofrecen
    categorías según la materia (las cuatro destrezas en una lengua
    extranjera, interpretación, escucha y creación en Música, creaciones,
    proceso y análisis en Plástica, los tres componentes en Educación Física),
@@ -346,7 +372,9 @@ Tiene TRES PESTAÑAS arriba:
    su texto y el decreto del que sale. Las notas salen de las rúbricas y dianas
    con criterios oficiales marcados, como en la Diana competencial (que tiene
    el detalle de cada alumno criterio a criterio), y no cambian la nota de
-   «Calificaciones». Se exporta a Excel. La clase necesita etapa y curso.
+   «Calificaciones». Se exporta a Excel. La clase necesita etapa y curso. Lleva
+   el mismo selector «1.ª · 2.ª · 3.ª · Curso»: la tabla y el Excel son de la
+   evaluación elegida; sin notas en ella lo dice y ofrece «Ver todo el curso».
 3. «✨ Consulta IA»: el asistente pedagógico que SÍ VE LOS DATOS del docente
    (clases, medias, asistencia, evaluaciones, agenda). Ahí es donde se pregunta
    «¿cómo va Alumno 1?», «¿quién va justo en 2ºB?» o «proponme refuerzo». Se puede
@@ -488,7 +516,11 @@ Al final, «COBERTURA DEL CURRÍCULO»: una fila por clase y asignatura con mate
 oficial, con una barra y «12 de 20»: cuántos criterios de evaluación oficiales
 tienen ya nota de alguna rúbrica o diana que los lleve marcados. Al pulsar la
 fila salen los que faltan, con su texto. Solo salen las clases con etapa y
-curso. Al crear una situación de aprendizaje para una clase que ya tiene
+curso. Lleva el selector de evaluación «1.ª · 2.ª · 3.ª · Curso»: con una
+evaluación elegida, cada fila dice cuántos criterios se han evaluado en ella y
+«+N en otras», y al abrirla salen los evaluados en esta evaluación, los
+evaluados solo en otra (con cuál) y los que no se han evaluado en todo el
+curso, que son los que quedan por repartir; en «Curso», evaluados y pendientes. Al crear una situación de aprendizaje para una clase que ya tiene
 criterios evaluados y otros sin evaluar, sale la casilla «Dar prioridad a lo
 que aún no has evaluado en esta clase» (marcada): a la IA le llegan solo los
 números de las competencias específicas pendientes, y las elige si encajan con
@@ -496,7 +528,21 @@ la idea.
 
 [rubrics] RÚBRICAS
 Rúbricas con criterios y niveles de logro (el nivel más alto equivale a un 10 y
-el resto reparte proporcionalmente); se pueden crear a mano o con la IA. Aquí se
+el resto reparte proporcionalmente). «Nueva rúbrica» tiene tres pestañas:
+«Desde un modelo», «IA» y «Manual». «Desde un modelo» ofrece diez rúbricas ya
+escritas, sin IA: exposición oral, expresión escrita, resolución de problemas,
+trabajo en equipo, cuaderno del alumno, lectura en voz alta, proyecto,
+práctica de laboratorio y, para Educación Física, juego colectivo y expresión
+corporal; varias tienen versión de Primaria y de ESO (interruptor arriba).
+«Ver los descriptores» las enseña enteras y «Usar y adaptar» abre el editor
+relleno para cambiar lo que se quiera, elegir las clases y guardar. Sin clave
+de la IA la ventana se abre en «Desde un modelo»; con clave, en «IA».
+GUARDAR COMO ARCHIVO Y ABRIR ARCHIVO (rúbricas, dianas y escalas): el icono de
+guardar de cada tarjeta descarga el instrumento solo, sin alumnado, clases ni
+notas, para pasarlo a otro docente o conservarlo; «Abrir archivo», junto a
+«Nueva rúbrica», «Nueva diana» o «Nueva escala», lo abre en el editor para
+elegir las clases y guardarlo. No es una copia de los datos ni «Trabajo
+compartido», que manda clases enteras con contraseña. Aquí se
 evalúa a cada alumno. IMPORTANTE: si la rúbrica declara clase y categoría del
 cuaderno, la nota entra sola en el cuaderno en una columna propia; si no las
 declara, la evaluación se queda solo en el Historial. Cada criterio de rúbrica
@@ -542,7 +588,8 @@ nota, para imprimirla y evaluar en papel (abre la ventana de imprimir del navega
 [dianas] DIANAS
 El otro instrumento de evaluación, en su propia pestaña de Evaluar (antes iba
 dentro de Rúbricas). Una diana tiene ítems con peso y niveles de logro, y se
-evalúa marcando el nivel de cada ítem sobre la diana, con la misma ventana
+evalúa marcando el nivel de cada ítem sobre la diana (sin clave de la IA,
+«Nueva diana» se abre en «Manual»), con la misma ventana
 «Evaluar a la clase» de las rúbricas (lista de la clase, «Guardar y siguiente»
 y «Poner a todos este nivel»). Se crea a mano o con la
 IA y, como las rúbricas, lleva competencias clave y criterios oficiales, y su
@@ -555,7 +602,10 @@ Un instrumento rápido, en su pestaña de Evaluar: se elige un concepto concreto
 varios: «Golpea con la palma», «Entrega a tiempo»…) y, por cada alumno, un PULGAR
 ARRIBA (bien hecho) o un PULGAR ABAJO (mejorable); pulsar otra vez el mismo pulgar
 lo quita y el pulgar de la cabecera marca «bien hecho» a toda la clase. «Nueva
-escala» pide el nombre, los conceptos y las clases donde se usa (una o varias, con
+escala» tiene «Desde un modelo», con seis escalas ya escritas (hábitos de trabajo
+en clase, entrega de una tarea, trabajo cooperativo, participación en un debate o
+una asamblea, hábitos en la sesión de Educación Física y trabajo con dispositivos):
+«Usar y adaptar» rellena el editor. A mano, pide el nombre, los conceptos y las clases donde se usa (una o varias, con
 su categoría del cuaderno, como las rúbricas). «Valorar a la clase» enseña a toda la
 clase en una tabla, con lo que se valoró la última vez; «Guardar valoración» guarda
 una evaluación por alumno. La nota sobre 10 es la proporción de pulgares arriba
@@ -576,7 +626,15 @@ escalas de registro, y la nota la pone siempre el docente.
 
 [diana] DIANA COMPETENCIAL
 Perfil visual de competencias clave de un alumno, en forma de diana. La clase
-viene puesta (la que toca o la última usada) y se elige al alumno. Debajo, «Competencias específicas»: por asignatura con currículo
+viene puesta (la que toca o la última usada) y se elige al alumno. Lleva el
+selector «1.ª · 2.ª · 3.ª · Curso», el mismo del cuaderno y las actas: se abre
+en la evaluación de hoy, «Rellenar desde evaluaciones» cuenta las rúbricas,
+dianas y escalas de las fechas de esa evaluación y cada evaluación guarda su
+propia Diana; «Curso» es la de todo el curso (las guardadas antes del
+23-11-2026 están ahí). Si la de una evaluación está sin guardar, la pantalla
+dice en cuáles hay una guardada, con un enlace. Las competencias específicas
+y su PDF son de la evaluación elegida, y dicen lo mismo que la segunda página
+del acta de ese periodo. Debajo, «Competencias específicas»: por asignatura con currículo
 oficial, la nota de cada criterio de evaluación (media de las veces que se ha
 evaluado), de cada competencia específica (media de sus criterios) y del área
 (media de sus competencias). Sale de las evaluaciones con criterios oficiales
@@ -602,16 +660,39 @@ dónde sale; la IA no propone ni cambia ningún nivel, y los sectores sin datos
 los marca el docente.
 
 [reports] INFORMES
-Informes de evaluación competencial redactados por la IA a partir de las
-evaluaciones, las notas del cuaderno y la asistencia REALES del alumno, citando
-las competencias clave LOMLOE. Se generan por periodo (1ª, 2ª, 3ª evaluación o
-final) y en lote. Si un alumno no tiene datos, la IA se niega a inventarlo. Si
-la clase tiene currículo oficial y hay rúbricas o dianas con criterios oficiales
-evaluados, a la IA le llegan también las competencias específicas del alumno,
-con su texto del decreto de la comunidad y su nota, y se apoya en ellas para
-decir qué tiene consolidado y qué en proceso, con palabras sencillas para las
-familias, sin códigos. El pie del informe cita entonces ese decreto. Se
-exportan a PDF y se pueden editar a mano.
+Informes para las familias, con o sin IA. No hace falta la clave. Al elegir un
+alumno sin informe salen «Informe de seguimiento», «Escribir a mano» y, con
+clave, «Generar informe».
+«INFORME DE SEGUIMIENTO»: crea al instante, con reglas fijas y sin IA, una
+hoja con las calificaciones de cada asignatura por categoría, la asistencia,
+las competencias clave (su valoración la fija la media de las evaluaciones con
+rúbricas y dianas) y hasta cinco frases a cada lado de «Lo positivo» y «A
+mejorar», escritas para la familia, sin siglas y sin comparar con el resto de
+la clase, más «Observaciones del docente» y un texto de presentación opcional.
+Se revisa y se cambia antes de guardar: se editan o quitan frases, se añaden
+otras, se escribe un comentario por competencia y se desmarcan las partes que
+no se quieran entregar. Debajo de cada frase se ve de qué dato sale; eso no se
+entrega nunca. «Informes de seguimiento de la clase» los crea de una vez para
+todo el alumnado que aún no tiene informe en esa evaluación, sin pisar los que
+ya había, con «Deshacer». También se abre desde la ficha del alumno, debajo de
+«Lo más relevante». Nada del informe de seguimiento sale del dispositivo.
+«ESCRIBIR A MANO»: para redactar uno sin IA ni reglas.
+CON IA (opcional): «Generar informe» redacta el informe competencial a partir
+de las evaluaciones, las notas del cuaderno y la asistencia REALES del alumno,
+citando las competencias clave LOMLOE; si no tiene datos, la IA se niega a
+inventarlo. En un informe de seguimiento, «Redactar el texto con IA» añade
+solo el párrafo y los comentarios de las competencias. La IA no valora al
+alumno: la valoración de cada competencia la fija su nota, y una competencia
+sin nota no sale en la tabla. Si la clase tiene currículo oficial y hay
+rúbricas o dianas con criterios oficiales evaluados, a la IA le llegan también
+las competencias específicas del alumno, con su texto del decreto y su nota,
+y el pie del informe cita ese decreto.
+POR EVALUACIÓN: el informe cuenta las notas, la asistencia, las anotaciones y
+las evaluaciones de la evaluación elegida con el selector «1.ª · 2.ª · 3.ª ·
+Curso», el mismo del cuaderno y del acta; en «Final de curso» lleva la nota de
+cada evaluación y la final. Si los datos cambian después de guardar, avisa y
+«Actualizar los datos» lo pone al día sin perder lo escrito. Sale en PDF, Word
+y texto, de un alumno o de toda la clase.
 
 [records] ACTAS
 El acta oficial de calificaciones de una clase, con una columna por categoría y

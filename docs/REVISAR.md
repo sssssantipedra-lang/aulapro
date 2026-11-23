@@ -151,6 +151,11 @@ Pendiente:
   - Al empezar curso nuevo, una rúbrica con criterios oficiales de un curso sigue a su grupo cuando sube al siguiente, sin avisar de los criterios.
   - Que las medias por competencias cuenten solo la última evaluación de cada instrumento, y si en una sesión de EF se puede evaluar a su clase con un instrumento que no es de ella.
   - Con las 24 ventanas de la pizarra ocupadas, «Dar la clase» la abre sin plan y sin avisar: falta decidir qué decir.
+  - La Diana competencial se abre en la evaluación de hoy: quien ya tenía Dianas guardadas la ve vacía, con un enlace a la de «Curso».
+  - Una clave de la IA que Google rechaza se guarda igual, y un modelo de rúbrica en versión de ESO no avisa si después se marca una clase de Primaria.
+  - En una pantalla táctil, cada actividad nueva del cuaderno abre sola la lista de casillas grandes; y Ctrl+Z en una celda vacía deshace el último cambio común, sea cual sea.
+  - El editor del informe de seguimiento no tiene borrador automático, y una frase quitada vuelve con «Actualizar los datos».
+  - Conviene leer los modelos de rúbricas y escalas (`src/lib/modelosInstrumentos.ts`), sobre todo en catalán.
 - Al eliminar una clase no se van sus bloques del horario ni su distribución de aula (visto el 20-11-2026 al repasar «Deshacer»; ya era así).
 - PT y AL:
   - Faltan el formato oficial de Cataluña y el de Madrid.
