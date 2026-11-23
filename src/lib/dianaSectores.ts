@@ -43,9 +43,10 @@ export function evidenciasPorSector(
   for (const ev of evaluaciones) {
     const max = ev.max_level && ev.max_level > 0 ? ev.max_level : 4;
     for (const [code, nivel] of Object.entries(ev.competencyScores ?? {})) {
-      const value = Math.round((nivel / max) * 4 * 10) / 10;
+      // Sin redondear: la media del sector sale de los mismos números que la del acta (el redondeo, al enseñarlo)
+      const value = (nivel / max) * 4;
       for (const sid of LOMLOE_TO_DIANA[code] ?? []) {
-        out[sid as SectorId].push({ value, etiqueta: `${code} ${formato.numero(value)} («${ev.rubric_name}»)` });
+        out[sid as SectorId].push({ value, etiqueta: `${code} ${formato.numero(Math.round(value * 10) / 10)} («${ev.rubric_name}»)` });
       }
     }
   }

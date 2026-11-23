@@ -33,13 +33,47 @@ describe('evidencias de la Diana', () => {
     // El nivel más alto de una rúbrica de tres niveles es un 4 en la Diana; antes contaba como un 3
     const tres = evidenciasPorSector([{ ...evaluacion({ CCL: 3, STEM: 2 }), max_level: 3 }], [], formato);
     expect(tres.ds1).toEqual([{ value: 4, etiqueta: 'CCL 4 («Mercado»)' }]);
-    expect(tres.ds2[0].value).toBe(2.7);
+    // El valor va sin redondear (la media del sector sale de los mismos números que la del acta); la etiqueta, a un decimal
+    expect(tres.ds2[0].value).toBeCloseTo(8 / 3, 10);
+    expect(tres.ds2[0].etiqueta).toBe('STEM 2,7 («Mercado»)');
     // Y el de una de cinco tampoco se sale de la escala
     const cinco = evidenciasPorSector([{ ...evaluacion({ CCL: 5, STEM: 2.5 }), max_level: 5 }], [], formato);
     expect(cinco.ds1[0].value).toBe(4);
     expect(cinco.ds2[0].value).toBe(2);
     // Con cuatro niveles, o sin el dato, queda como estaba
     expect(evidenciasPorSector([{ ...evaluacion({ CCL: 3 }), max_level: 4 }], [], formato).ds1[0].value).toBe(3);
+  });
+
+  it('con las mismas evaluaciones, el sector de una sola competencia clave es el número del acta redondeado', () => {
+    // La cuenta de la segunda página del acta (`claveDe` en `pages/Records.tsx`), sobre 4
+    const delActa = (evs: Evaluation[], code: string) => {
+      let suma = 0, n = 0;
+      for (const ev of evs) {
+        const max = ev.max_level && ev.max_level > 0 ? ev.max_level : 4;
+        const v = ev.competencyScores?.[code];
+        if (v !== undefined) { suma += (v / max) * 4; n++; }
+      }
+      return n ? Math.round((suma / n) * 10) / 10 : null;
+    };
+    const casos: Evaluation[][] = [
+      [evaluacion({ STEM: 3, CD: 2, CE: 4 }), evaluacion({ STEM: 2, CD: 3 })],
+      [{ ...evaluacion({ STEM: 2, CD: 1 }), max_level: 3 }, evaluacion({ STEM: 4, CD: 1 }), { ...evaluacion({ STEM: 5, CE: 2 }), max_level: 5 }],
+      [{ ...evaluacion({ STEM: 3 }), max_level: 3 }, { ...evaluacion({ STEM: 1 }), max_level: 3 }, { ...evaluacion({ STEM: 2 }), max_level: 3 }],
+    ];
+    for (const evs of casos) {
+      const s = evidenciasPorSector(evs, [], formato);
+      // STEM, CD y CE son las únicas competencias clave de sus sectores (Matemática, Digital y Emprendimiento)
+      for (const [code, sector] of [['STEM', 'ds2'], ['CD', 'ds3'], ['CE', 'ds6']] as const) {
+        const acta = delActa(evs, code);
+        const diana = nivelDelSector(s[sector]);
+        if (acta === null) expect(diana).toBeNull();
+        else {
+          const media = s[sector].reduce((a, e) => a + e.value, 0) / s[sector].length;
+          expect(Math.round(media * 10) / 10).toBe(acta);
+          expect(diana).toBe(Math.max(1, Math.min(4, Math.round(media))));
+        }
+      }
+    }
   });
 
   it('una competencia específica llega a los sectores de sus competencias clave, una vez por sector', () => {
