@@ -380,8 +380,10 @@ export function seguimientoLimpio(s: InformeSeguimiento): InformeSeguimiento {
 
 /**
  * La hoja recalculada con los datos de ahora, sin perder lo que el docente escribió: su observación, las
- * partes que decidió no entregar, las frases que añadió a mano (las que no salen de ningún dato) y los
- * comentarios de la tabla de competencias. Las frases que salían de un dato se cambian por las nuevas.
+ * partes que decidió no entregar, las frases que añadió a mano (las que no salen de ningún dato), los
+ * comentarios de la tabla de competencias y la redacción que dio a una frase cuyo dato sigue igual (mismo
+ * `origen`: si cambió «Ha faltado a clase 3 días sin justificante» por sus palabras y las faltas siguen
+ * siendo 3, se quedan sus palabras). Las frases cuyo dato ha cambiado se cambian por las nuevas.
  */
 export function recalcular(
   antes: Pick<CompetencyReport, 'seguimiento' | 'tabla'>, ahora: SeguimientoCompuesto,
@@ -389,11 +391,15 @@ export function recalcular(
   const prev = antes.seguimiento;
   const aMano = (xs: readonly FraseSeguimiento[] | undefined) => (xs ?? []).filter(f => !f.origen && f.texto.trim());
   const comentario = new Map((antes.tabla ?? []).map(f => [f.clave, f.comentario]));
+  const conSuRedaccion = (nuevas: readonly FraseSeguimiento[], viejas: readonly FraseSeguimiento[] | undefined) => {
+    const escrito = new Map((viejas ?? []).filter(f => f.origen && f.texto.trim()).map(f => [f.origen, f.texto]));
+    return nuevas.map(f => (f.origen && escrito.has(f.origen) ? { ...f, texto: escrito.get(f.origen) as string } : f));
+  };
   return {
     seguimiento: {
       ...ahora.seguimiento,
-      positivos: [...ahora.seguimiento.positivos, ...aMano(prev?.positivos)],
-      mejorar: [...ahora.seguimiento.mejorar, ...aMano(prev?.mejorar)],
+      positivos: [...conSuRedaccion(ahora.seguimiento.positivos, prev?.positivos), ...aMano(prev?.positivos)],
+      mejorar: [...conSuRedaccion(ahora.seguimiento.mejorar, prev?.mejorar), ...aMano(prev?.mejorar)],
       observacion: prev?.observacion ?? '',
       ...(prev?.ocultar?.length ? { ocultar: prev.ocultar } : {}),
     },

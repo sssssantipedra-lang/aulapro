@@ -305,6 +305,27 @@ describe('guardar, recalcular y saber si está al día', () => {
     ]);
   });
 
+  it('al recalcular, una frase que el docente redactó a su manera se queda si su dato no ha cambiado', () => {
+    const c = componer(cuaderno(), P2, 'a', { evaluations: [evaluacion('e1', 'a', '2027-01-20', { CCL: 3.8 })] });
+    const deLaNota = c.seguimiento.positivos.find(f => f.origen?.includes('Media de'));
+    const deLaCompetencia = c.seguimiento.positivos.find(f => f.origen?.includes('CCL') || f.origen?.includes('lingüística'));
+    expect(deLaNota && deLaCompetencia).toBeTruthy();
+    const antes: Pick<CompetencyReport, 'seguimiento' | 'tabla'> = {
+      seguimiento: { ...c.seguimiento, positivos: c.seguimiento.positivos.map(f => (f === deLaNota ? { ...f, texto: 'Va muy bien en Lengua.' } : f === deLaCompetencia ? { ...f, texto: 'Se explica de maravilla.' } : f)) },
+      tabla: c.tabla,
+    };
+    // Cambia la nota (otra media, otro dato) y no la competencia
+    const d = cuaderno();
+    d.grades.ex2 = { ...d.grades.ex2, a: 9.5 };
+    const r = recalcular(antes, componer(d, P2, 'a', { evaluations: [evaluacion('e1', 'a', '2027-01-20', { CCL: 3.8 })] }));
+    const textos = r.seguimiento.positivos.map(f => f.texto);
+    expect(textos).toContain('Se explica de maravilla.');
+    expect(textos).not.toContain('Va muy bien en Lengua.');
+    expect(textos.some(x => x.startsWith('En Lengua su nota es de'))).toBe(true);
+    // Y no se duplica: cada dato, una frase
+    expect(new Set(r.seguimiento.positivos.map(f => f.origen)).size).toBe(r.seguimiento.positivos.length);
+  });
+
   it('sabe si los datos han cambiado desde que se guardó', () => {
     const antes = guardado();
     const igual = componer(cuaderno(), P2, 'a', { evaluations: [evaluacion('e1', 'a', '2027-01-20', { CCL: 3.8 })] });

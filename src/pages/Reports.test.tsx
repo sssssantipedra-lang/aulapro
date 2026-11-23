@@ -45,14 +45,14 @@ const bloques = { 'c1|Matemáticas': { ...DEFAULT_BLOCK, enabled: false } };
 
 /** Los informes guardados, como los tendría el perfil: la pantalla de prueba los apunta aquí al cambiar. */
 let guardados: CompetencyReport[] = [];
-function Pantalla({ iniciales = [], alumnoInicial }: { iniciales?: CompetencyReport[]; alumnoInicial?: string }) {
+function Pantalla({ iniciales = [], alumnoInicial, evaluations = evaluaciones, grades = notas }: { iniciales?: CompetencyReport[]; alumnoInicial?: string; evaluations?: Evaluation[]; grades?: GradeMap }) {
   const [reports, setReports] = useState<CompetencyReport[]>(iniciales);
   useEffect(() => { guardados = reports; }, [reports]);
   const sinEl = (r: CompetencyReport) => (prev: CompetencyReport[]) => prev.filter(x => !(x.student_id === r.student_id && x.period === r.period));
   return (
     <I18nProvider><ToastProvider>
-      <Reports classes={[clase]} students={alumnos} evaluations={evaluaciones} rubrics={[]} dianas={[]}
-        gradeCategories={categorias} gradeItems={actividades} grades={notas} attendance={asistencia}
+      <Reports classes={[clase]} students={alumnos} evaluations={evaluations} rubrics={[]} dianas={[]}
+        gradeCategories={categorias} gradeItems={actividades} grades={grades} attendance={asistencia}
         classMarks={anotaciones} marksConfigs={bloques} reports={reports} alumnoInicial={alumnoInicial}
         onAddReport={r => setReports(prev => [r, ...sinEl(r)(prev)])}
         onAddReports={rs => setReports(prev => [...rs, ...prev])}
@@ -181,8 +181,87 @@ describe('Informes sin clave de IA', () => {
   });
 });
 
+describe('Informes: lo que no se puede guardar mal', () => {
+  it('al cambiar de evaluación con el editor abierto, la hoja de una no se guarda como informe de la otra', () => {
+    render(<Pantalla />);
+    elegir('Alumno 1');
+    fireEvent.click(screen.getByRole('button', { name: 'Informe de seguimiento' }));
+    expect(document.querySelector('.inf-partes')?.textContent).toContain('8,5');
+    // Con la hoja de la 2.ª a medias, pasa a la 1.ª: el editor se cierra y no queda nada de la 2.ª a la vista
+    fireEvent.click(screen.getByRole('button', { name: '1ª evaluación' }));
+    expect(document.querySelector('.inf-editor')).toBeNull();
+    expect(guardados).toHaveLength(0);
+    fireEvent.click(screen.getByRole('button', { name: 'Informe de seguimiento' }));
+    expect(document.querySelector('.inf-partes')?.textContent).toContain('4,0');
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar informe' }));
+    expect(guardados).toHaveLength(1);
+    expect(guardados[0]).toMatchObject({ period: '1ª evaluación' });
+    expect(guardados[0].seguimiento).toMatchObject({ desde: '2026-09-01', hasta: '2026-12-31' });
+    expect(guardados[0].seguimiento?.notas[0].media).toBe(4);
+  });
+
+  it('lo mismo al escribir a mano: el texto a medias de una evaluación no se guarda en otra', () => {
+    const deLaPrimera: CompetencyReport = { id: 'm1', student_id: 's3', student_name: 'Alumno 3', class_id: 'c1', period: '1ª evaluación', date: '2026-12-01', text: 'El de la primera.', origen: 'mano' };
+    render(<Pantalla iniciales={[deLaPrimera]} />);
+    elegir('Alumno 3');
+    fireEvent.click(screen.getByRole('button', { name: 'Escribir a mano' }));
+    fireEvent.change(screen.getByLabelText('Texto del informe'), { target: { value: 'Un borrador de la segunda.' } });
+    fireEvent.click(screen.getByRole('button', { name: '1ª evaluación' }));
+    expect(screen.queryByLabelText('Texto del informe')).toBeNull();
+    expect(hoja()).toContain('El de la primera.');
+    expect(guardados).toEqual([deLaPrimera]);
+  });
+
+  it('toda la clase de una vez no crea hojas en blanco: con algo anotado pero nada que entregar, no hay informe', () => {
+    // Sin notas en la 2.ª, el alumno 3 solo tiene una evaluación con una rúbrica sin competencias clave: nada que decir a su familia
+    const sinCompetencias: Evaluation = { id: 'e9', rubric_id: 'r9', rubric_name: 'Cuaderno', student_id: 's3', student_name: 'Alumno 3', class_id: 'c1', date: '2027-02-05', scores: { a: 3 }, notes: '' };
+    render(<Pantalla evaluations={[...evaluaciones, sinCompetencias]} grades={{ i1: notas.i1 }} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Informes de seguimiento de la clase' }));
+    expect(guardados.map(r => r.student_id)).toEqual(['s1']);
+    expect(screen.getByText(/1 informe de seguimiento creado\..*2 alumnos no tienen datos en esta evaluación\./)).toBeTruthy();
+  });
+
+  it('una hoja a la que se le quita todo no se guarda vacía', () => {
+    render(<Pantalla />);
+    elegir('Alumno 2');
+    fireEvent.click(screen.getByRole('button', { name: 'Informe de seguimiento' }));
+    const editor = within(document.querySelector('.inf-editor') as HTMLElement);
+    fireEvent.click(editor.getByRole('checkbox', { name: 'Calificaciones' }));
+    while (editor.queryAllByRole('button', { name: 'Quitar esta frase' }).length) fireEvent.click(editor.getAllByRole('button', { name: 'Quitar esta frase' })[0]);
+    fireEvent.click(editor.getByRole('button', { name: 'Guardar informe' }));
+    expect(guardados).toHaveLength(0);
+    expect(screen.getByText(/El informe está vacío/)).toBeTruthy();
+    expect(document.querySelector('.inf-editor')).toBeTruthy();
+    // Con una observación ya hay algo que entregar
+    fireEvent.change(screen.getByLabelText('Observaciones del docente'), { target: { value: 'Hablamos el jueves.' } });
+    fireEvent.click(editor.getByRole('button', { name: 'Guardar informe' }));
+    expect(guardados).toHaveLength(1);
+  });
+});
+
 describe('Informes con la IA como opción', () => {
   beforeEach(() => { ia.conClave = true; });
+
+  it('antes de que la IA redacte encima de un texto que escribió el docente, pregunta: en el informe a mano y en la hoja de seguimiento', async () => {
+    const aMano: CompetencyReport = { id: 'm1', student_id: 's1', student_name: 'Alumno 1', class_id: 'c1', period: '2ª evaluación', date: '2027-02-01', text: 'Lo escribí yo.', origen: 'mano' };
+    const confirmar = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    render(<Pantalla iniciales={[aMano]} />);
+    elegir('Alumno 1');
+    fireEvent.click(screen.getByRole('button', { name: 'Redactar el texto con IA' }));
+    expect(confirmar).toHaveBeenCalledOnce();
+    expect(ia.llamadas).toHaveLength(0);
+    expect(guardados[0].text).toBe('Lo escribí yo.');
+    // La hoja de seguimiento con un texto de presentación escrito en el editor
+    elegir('Alumno 2');
+    fireEvent.click(screen.getByRole('button', { name: 'Informe de seguimiento' }));
+    fireEvent.change(screen.getByLabelText('Texto de presentación (opcional)'), { target: { value: 'Mi presentación.' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar informe' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Redactar el texto con IA' }));
+    expect(confirmar).toHaveBeenCalledTimes(2);
+    expect(ia.llamadas).toHaveLength(0);
+    expect(guardados.find(r => r.student_id === 's2')?.text).toBe('Mi presentación.');
+    confirmar.mockRestore();
+  });
 
   it('lo que recibe la IA es de la evaluación elegida: notas, asistencia y evaluaciones', async () => {
     ia.respuesta = 'Texto de la IA.';

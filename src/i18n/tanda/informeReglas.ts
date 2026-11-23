@@ -58,6 +58,9 @@ export const EN: Record<string, string> = {
 
   // La pantalla de Informes
   'Has corregido este texto a mano. Si la IA lo vuelve a redactar, se pierde lo que escribiste. ¿Continuar?': 'You have edited this text by hand. If the AI writes it again, what you wrote will be lost. Continue?',
+  'Este texto lo escribiste tú. Si la IA lo redacta, se pierde lo que escribiste. ¿Continuar?': 'You wrote this text yourself. If the AI writes it, what you wrote will be lost. Continue?',
+  'El informe está vacío: deja marcada alguna parte o escribe algo antes de guardarlo': 'The report is empty: leave some part ticked or write something before saving it',
+  'Informes para las familias: de seguimiento, al instante y sin IA, o redactados por la IA con tus propias evaluaciones.': 'Reports for families: progress reports, instant and without AI, or written by the AI from your own assessments.',
   'Todo el alumnado tiene ya su informe de esta evaluación': 'Every student already has a report for this term',
   'No hay notas, asistencia, anotaciones ni evaluaciones de esta evaluación: no se ha creado ningún informe': 'There are no grades, attendance, notes or assessments in this term: no report has been created',
   '{n} informe de seguimiento creado. Revísalo antes de entregarlo.': '{n} progress report created. Check it before handing it out.',
@@ -190,6 +193,9 @@ export const CA: Record<string, string> = {
 
   // La pantalla de Informes
   'Has corregido este texto a mano. Si la IA lo vuelve a redactar, se pierde lo que escribiste. ¿Continuar?': 'Has corregit aquest text a mà. Si la IA el torna a redactar, es perd el que vas escriure. Vols continuar?',
+  'Este texto lo escribiste tú. Si la IA lo redacta, se pierde lo que escribiste. ¿Continuar?': 'Aquest text el vas escriure tu. Si la IA el redacta, es perd el que vas escriure. Vols continuar?',
+  'El informe está vacío: deja marcada alguna parte o escribe algo antes de guardarlo': 'L’informe és buit: deixa marcada alguna part o escriu alguna cosa abans de desar-lo',
+  'Informes para las familias: de seguimiento, al instante y sin IA, o redactados por la IA con tus propias evaluaciones.': 'Informes per a les famílies: de seguiment, a l’instant i sense IA, o redactats per la IA amb les teves pròpies avaluacions.',
   'Todo el alumnado tiene ya su informe de esta evaluación': 'Tot l’alumnat ja té el seu informe d’aquesta avaluació',
   'No hay notas, asistencia, anotaciones ni evaluaciones de esta evaluación: no se ha creado ningún informe': 'No hi ha notes, assistència, anotacions ni avaluacions d’aquesta avaluació: no s’ha creat cap informe',
   '{n} informe de seguimiento creado. Revísalo antes de entregarlo.': '{n} informe de seguiment creat. Revisa’l abans de lliurar-lo.',

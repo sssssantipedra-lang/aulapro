@@ -24,7 +24,7 @@ import { textoLibreParaIA, soloDatosDeSalud } from '../lib/documentoParaIA';
 import { useClaseActiva, useFijarClase } from '../hooks/useClaseActiva';
 import { useEvaluacionElegida } from '../hooks/useEvaluacionElegida';
 import { SelectorEvaluacion } from '../components/SelectorEvaluacion';
-import { asistenciaDelPeriodo, claseDelPeriodo, componerSeguimiento, datosCambiados, notasDelPeriodo, origenDelTexto, recalcular } from '../lib/informeSeguimiento';
+import { asistenciaDelPeriodo, claseDelPeriodo, componerSeguimiento, datosCambiados, notasDelPeriodo, origenDelTexto, recalcular, tieneContenido } from '../lib/informeSeguimiento';
 import { cuerpoDeInformeHtml, informeEnTexto, informesHtml, partesDeInforme, textoDePeriodo, type ContextoDeInforme } from '../lib/informeDocumento';
 import { EditorSeguimiento, type BorradorDeSeguimiento } from '../components/informes/EditorSeguimiento';
 
@@ -84,12 +84,18 @@ const SYSTEM_PROMPT_EN =
 const SIN_ANOTACIONES: ClassMark[] = [];
 const SIN_BLOQUES: Record<string, MarksBlockConfig> = {};
 
-const nuevoId = () => 'rep' + Date.now() + Math.random().toString(36).slice(2, 6);
+/** Los de toda la clase se crean en el mismo milisegundo: el contador evita que dos compartan id. */
+let creados = 0;
+const nuevoId = () => 'rep' + Date.now() + (creados++).toString(36) + Math.random().toString(36).slice(2, 6);
 
-/** Qué se está escribiendo en el panel del alumno: la hoja de seguimiento o el texto a mano. */
+/**
+ * Qué se está escribiendo en el panel del alumno: la hoja de seguimiento o el texto a mano. Lleva la
+ * evaluación en la que se abrió: si el docente cambia de evaluación con el editor abierto, lo que tenía a
+ * medias no se guarda en la otra (la hoja de la 1.ª habría quedado como informe de la 2.ª).
+ */
 type Edicion =
-  | { tipo: 'seguimiento'; alumno: string; inicial: BorradorDeSeguimiento }
-  | { tipo: 'texto'; alumno: string };
+  | { tipo: 'seguimiento'; alumno: string; periodo: string; inicial: BorradorDeSeguimiento }
+  | { tipo: 'texto'; alumno: string; periodo: string };
 
 export function Reports(props: Props) {
   const {
@@ -323,9 +329,14 @@ export function Reports(props: Props) {
     return true;
   }
 
-  /** Volver a pedir el texto a la IA lo cambia entero: si el docente lo corrigió a mano, se le pregunta antes. */
+  /** Volver a pedir el texto a la IA lo cambia entero: si el docente lo corrigió o lo escribió él, se le pregunta antes. */
   function regenerar(student: Student, r: CompetencyReport) {
-    if (r.editado && r.text.trim() && !window.confirm(t('Has corregido este texto a mano. Si la IA lo vuelve a redactar, se pierde lo que escribiste. ¿Continuar?'))) return;
+    if (r.text.trim()) {
+      const aviso = r.origen === 'mano'
+        ? 'Este texto lo escribiste tú. Si la IA lo redacta, se pierde lo que escribiste. ¿Continuar?'
+        : r.editado ? 'Has corregido este texto a mano. Si la IA lo vuelve a redactar, se pierde lo que escribiste. ¿Continuar?' : '';
+      if (aviso && !window.confirm(t(aviso))) return;
+    }
     void generateFor(student);
   }
 
@@ -362,7 +373,8 @@ export function Reports(props: Props) {
     const nuevos: CompetencyReport[] = [];
     for (const s of pendientes) {
       const c = componer(s);
-      if (c?.hayDatos) nuevos.push(informeDe(s, { text: '', seguimiento: c.seguimiento, tabla: c.tabla }));
+      // Con algo anotado pero nada que entregar (una rúbrica sin competencias clave, por ejemplo) saldría una hoja en blanco
+      if (c?.hayDatos && tieneContenido({ text: '', seguimiento: c.seguimiento, tabla: c.tabla })) nuevos.push(informeDe(s, { text: '', seguimiento: c.seguimiento, tabla: c.tabla }));
     }
     const hechos = nuevos.length;
     if (onAddReports) onAddReports(nuevos); else nuevos.forEach(onAddReport);
@@ -376,16 +388,17 @@ export function Reports(props: Props) {
   function abrirSeguimiento(student: Student, modo: 'nuevo' | 'editar' | 'recalcular') {
     const previo = reportOf(student.id);
     if (modo === 'editar' && previo?.seguimiento) {
-      setEdicion({ tipo: 'seguimiento', alumno: student.id, inicial: { text: previo.text, seguimiento: previo.seguimiento, tabla: previo.tabla ?? [] } });
+      setEdicion({ tipo: 'seguimiento', alumno: student.id, periodo: period, inicial: { text: previo.text, seguimiento: previo.seguimiento, tabla: previo.tabla ?? [] } });
       return;
     }
     const c = componer(student);
     if (!c) return;
     const base = previo?.seguimiento ? recalcular(previo, c) : { seguimiento: c.seguimiento, tabla: recalcular({ tabla: previo?.tabla }, c).tabla };
-    setEdicion({ tipo: 'seguimiento', alumno: student.id, inicial: { text: previo?.text ?? '', ...base } });
+    setEdicion({ tipo: 'seguimiento', alumno: student.id, periodo: period, inicial: { text: previo?.text ?? '', ...base } });
   }
 
   function guardarSeguimiento(student: Student, b: BorradorDeSeguimiento) {
+    if (!tieneContenido(b)) { toast(t('El informe está vacío: deja marcada alguna parte o escribe algo antes de guardarlo')); return; }
     const previo = reportOf(student.id);
     // «Corregido a mano» se refiere al texto: es lo que la IA pisaría si lo vuelve a redactar
     // La fecha del informe es la de la última vez que el docente lo dio por bueno
@@ -502,10 +515,10 @@ export function Reports(props: Props) {
 
   // Lo que se está escribiendo del alumno elegido. Al llegar desde su ficha sin informe en esta evaluación,
   // la hoja de seguimiento sale ya calculada, sin tener que pedirla
-  let editando: Edicion | null = edicion && edicion.alumno === current?.id ? edicion : null;
+  let editando: Edicion | null = edicion && edicion.alumno === current?.id && edicion.periodo === period ? edicion : null;
   if (!editando && alLlegar && current && !currentReport) {
     const c = componer(current);
-    if (c?.hayDatos) editando = { tipo: 'seguimiento', alumno: current.id, inicial: { text: '', seguimiento: c.seguimiento, tabla: c.tabla } };
+    if (c?.hayDatos) editando = { tipo: 'seguimiento', alumno: current.id, periodo: period, inicial: { text: '', seguimiento: c.seguimiento, tabla: c.tabla } };
   }
   const elegir = (id: string | null) => { setSelected(id); setEdicion(null); setAlLlegar(false); };
   const periodoDe = (r: Pick<CompetencyReport, 'period' | 'seguimiento'>) => textoDePeriodo(r, t, locale);
@@ -649,7 +662,7 @@ export function Reports(props: Props) {
                     <>
                       <button className="ico-btn" title={t('Editar')} aria-label={t('Editar')} onClick={() => {
                         if (currentReport.seguimiento) abrirSeguimiento(current, 'editar');
-                        else { setDraft(currentReport.text); setEdicion({ tipo: 'texto', alumno: current.id }); }
+                        else { setDraft(currentReport.text); setEdicion({ tipo: 'texto', alumno: current.id, periodo: period }); }
                       }}>
                         <Pencil size={15} />
                       </button>
@@ -667,7 +680,7 @@ export function Reports(props: Props) {
                 </div>
               ) : editando?.tipo === 'seguimiento' ? (
                 <EditorSeguimiento
-                  key={current.id}
+                  key={`${current.id}|${period}`}
                   nombre={nombreDePila(current.name)}
                   periodo={periodoAhora}
                   inicial={editando.inicial}
@@ -746,7 +759,7 @@ export function Reports(props: Props) {
                   conIA={conIA}
                   onSeguimiento={() => abrirSeguimiento(current, 'nuevo')}
                   onGenerate={() => generateFor(current)}
-                  onEscribir={() => { setDraft(''); setEdicion({ tipo: 'texto', alumno: current.id }); }}
+                  onEscribir={() => { setDraft(''); setEdicion({ tipo: 'texto', alumno: current.id, periodo: period }); }}
                   onNav={onNav}
                 />
               )}
