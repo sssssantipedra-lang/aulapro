@@ -1,13 +1,13 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
-  FileText, Sparkles, Download, FileDown, Users, ArrowRight, Check, Trash2, Pencil, AlertTriangle, Eye,
+  FileText, Sparkles, Download, FileDown, Users, ArrowRight, Check, Trash2, Pencil, AlertTriangle, Eye, ListChecks, RefreshCw, PenLine,
 } from 'lucide-react';
 import type {
   Class, Student, Evaluation, Rubric, EvalDiana, GradeCategory, GradeItem,
-  GradeMap, AttendanceMap, CompetencyReport,
+  GradeMap, AttendanceMap, CompetencyReport, ClassMark, MarksBlockConfig,
 } from '../types';
 import { callGemini, hasApiKey } from '../services/gemini';
-import { isoDate, PERIODS, LOMLOE_COMPETENCES, nombreDePila } from '../lib/utils';
+import { isoDate, LOMLOE_COMPETENCES, nombreDePila } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
 import { ClassChips } from '../components/ui/ClassChips';
 import { AiKeyNotice } from '../components/ui/AiKeyNotice';
@@ -18,11 +18,15 @@ import { lineasDeCompetencias } from '../lib/curriculum/evaluacionPorCriterios';
 import { citarNormas, type ComunidadId } from '../lib/curriculum/comunidades';
 import { compararAlumnos, compararNombres } from '../lib/alumnado';
 import { CARPETAS } from '../lib/carpetas';
-import { separarInforme, aplicarNotas, lineasDeClave, notasPorClave, MARCA_TABLA, normalizarValoracion, tablaCompetenciasHtml, NOMBRE } from '../lib/tablaCompetencias';
+import { separarInforme, aplicarNotas, lineasDeClave, notasPorClave, MARCA_TABLA } from '../lib/tablaCompetencias';
 import { DocPreview } from '../components/DocPreview';
-import { mediaDeCategoria } from '../lib/ponderacion';
 import { textoLibreParaIA, soloDatosDeSalud } from '../lib/documentoParaIA';
 import { useClaseActiva, useFijarClase } from '../hooks/useClaseActiva';
+import { useEvaluacionElegida } from '../hooks/useEvaluacionElegida';
+import { SelectorEvaluacion } from '../components/SelectorEvaluacion';
+import { asistenciaDelPeriodo, claseDelPeriodo, componerSeguimiento, notasDelPeriodo, recalcular } from '../lib/informeSeguimiento';
+import { cuerpoDeInformeHtml, informeEnTexto, informesHtml, partesDeInforme, textoDePeriodo, type ContextoDeInforme } from '../lib/informeDocumento';
+import { EditorSeguimiento, type BorradorDeSeguimiento } from '../components/informes/EditorSeguimiento';
 
 /** Las 8 competencias clave LOMLOE, en inglés, para los informes en ese idioma. */
 const LOMLOE_COMPETENCES_EN = [
@@ -46,7 +50,13 @@ interface Props {
   gradeItems: GradeItem[];
   grades: GradeMap;
   attendance: AttendanceMap;
+  /** Las anotaciones de clase y la configuración del bloque «Trabajo diario y actitud», para las notas de cada evaluación. */
+  classMarks?: ClassMark[];
+  marksConfigs?: Record<string, MarksBlockConfig>;
   reports: CompetencyReport[];
+  /** Un alumno cuyo informe de seguimiento hay que abrir al entrar (desde su ficha); después se avisa con `onAlumnoAbierto`. Solo se mira al montar: quien lo pasa cambia la `key`. */
+  alumnoInicial?: string | null;
+  onAlumnoAbierto?: () => void;
   /** La comunidad del perfil: de su currículo salen las competencias específicas que llegan al informe. */
   comunidad?: ComunidadId;
   onAddReport: (r: CompetencyReport) => void;
@@ -69,66 +79,44 @@ const SYSTEM_PROMPT_EN =
   'The report describes the student’s development of KEY COMPETENCIES, not their performance in a ' +
   'subject: the subject is only the context in which those competencies were observed.';
 
-/** Media ponderada del alumno en el cuaderno de notas. */
-function notebookAverage(
-  studentId: string, classId: string,
-  categories: GradeCategory[], items: GradeItem[], grades: GradeMap,
-): number | null {
-  const cats = categories.filter(c => c.class_id === classId);
-  let sum = 0, weight = 0;
-  for (const cat of cats) {
-    const avg = mediaDeCategoria(items.filter(i => i.category_id === cat.id), grades, studentId);
-    if (avg === null) continue;
-    sum += avg * cat.weight;
-    weight += cat.weight;
-  }
-  return weight ? sum / weight : null;
-}
+const SIN_ANOTACIONES: ClassMark[] = [];
+const SIN_BLOQUES: Record<string, MarksBlockConfig> = {};
 
-/** Estilos del informe cuando viaja solo, fuera de la aplicación. */
-const REPORT_DOC_STYLE = `
-:root { --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-* { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; background: #fff; }
-@page { size: A4 portrait; margin: 20mm 18mm; }
-.rep { font-family: Georgia, 'Times New Roman', serif; color: #111827; }
-.rep h1 { font-size: 22px; font-weight: 700; margin: 0 0 4px; }
-.rep .sub { font-family: var(--font); font-size: 12px; color: #6b7280; margin-bottom: 16px; }
-.rep .hd { border-bottom: 2px solid #111827; padding-bottom: 11px; margin-bottom: 18px; }
-.rep dl { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0;
-  border-bottom: 1px solid #d1d5db; margin: 0 0 20px; }
-.rep dl > div { padding: 10px 12px 10px 0; }
-.rep dt { font-family: var(--font); font-size: 9.5px; letter-spacing: .1em;
-  text-transform: uppercase; color: #6b7280; font-weight: 700; margin-bottom: 3px; }
-.rep dd { font-size: 13.5px; font-weight: 700; margin: 0; }
-.rep .cuerpo { font-size: 13.5px; line-height: 1.85; text-align: justify; white-space: pre-wrap; }
-.rep table.comp { width: 100%; border-collapse: collapse; margin-top: 22px; font-family: var(--font); font-size: 11.5px; line-height: 1.45; break-inside: avoid; }
-.rep table.comp th, .rep table.comp td { border: 1px solid #d1d5db; padding: 6px 8px; text-align: left; vertical-align: top; }
-.rep table.comp thead th { background: #f3f4f6; font-size: 10px; letter-spacing: .06em; text-transform: uppercase; color: #374151; }
-.rep table.comp tbody th span { display: block; font-weight: 400; color: #6b7280; font-size: 10px; }
-.rep table.comp td.val { font-weight: 700; white-space: nowrap; }
-.rep .pie { margin-top: 34px; font-family: var(--font); font-size: 10.5px;
-  color: #6b7280; border-top: 1px solid #d1d5db; padding-top: 10px; line-height: 1.5; }
-.rep .alumno { break-inside: avoid; page-break-inside: avoid; }
-.rep .salto { page-break-after: always; break-after: page; }
-`;
+const nuevoId = () => 'rep' + Date.now() + Math.random().toString(36).slice(2, 6);
+
+/** Qué se está escribiendo en el panel del alumno: la hoja de seguimiento o el texto a mano. */
+type Edicion =
+  | { tipo: 'seguimiento'; alumno: string; inicial: BorradorDeSeguimiento }
+  | { tipo: 'texto'; alumno: string };
 
 export function Reports(props: Props) {
   const {
     classes, students, evaluations, rubrics, dianas,
     gradeCategories, gradeItems, grades, attendance, reports, comunidad,
+    classMarks = SIN_ANOTACIONES, marksConfigs = SIN_BLOQUES, alumnoInicial, onAlumnoAbierto,
     onAddReport, onUpdateReport, onDeleteReport, onNav,
   } = props;
 
   const { toast } = useToast();
   const { t, lang, locale } = useI18n();
-  const [classId, setClassId]   = useClaseActiva(classes);
-  const [period, setPeriod]     = useState<string>(PERIODS[0]);
-  const [selected, setSelected] = useState<string | null>(null);
+  // Si se llega desde la ficha de un alumno, la pantalla se abre en su clase y con él elegido
+  const [inicial] = useState(() => (alumnoInicial ? students.find(x => x.id === alumnoInicial) ?? null : null));
+  const [classId, setClassId]   = useClaseActiva(classes, inicial?.class_id);
+  // La evaluación es la misma que se ve en el cuaderno y en las actas (`useEvaluacionElegida`): el informe
+  // cuenta las notas, la asistencia, las anotaciones y las evaluaciones de sus fechas
+  const ev = useEvaluacionElegida();
+  const { periodo: period, hoy, rangos } = ev;
+  const [selected, setSelected] = useState<string | null>(inicial?.id ?? null);
+  /** Al llegar desde la ficha se abre su informe de seguimiento sin más toques, hasta que el docente haga otra cosa. */
+  const [alLlegar, setAlLlegar] = useState(!!inicial);
+  useEffect(() => {
+    if (alumnoInicial) onAlumnoAbierto?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- una vez, al entrar
+  }, []);
   const [generating, setGenerating] = useState<string | null>(null);
   const [batch, setBatch]       = useState<{ done: number; total: number } | null>(null);
   const [draft, setDraft]       = useState('');
-  const [editing, setEditing]   = useState(false);
+  const [edicion, setEdicion]   = useState<Edicion | null>(null);
 
   const cls = classes.find(c => c.id === classId) ?? classes[0];
   const clsId = cls?.id ?? '';
@@ -141,19 +129,39 @@ export function Reports(props: Props) {
     [students, clsId],
   );
 
+  /** El cuaderno de la clase en la evaluación elegida, calculado una vez para todos sus informes. */
+  const clase = useMemo(
+    () => (cls ? claseDelPeriodo({ classes, students, gradeCategories, gradeItems, grades, classMarks, marksConfigs }, cls, period, hoy, rangos) : null),
+    [cls, classes, students, gradeCategories, gradeItems, grades, classMarks, marksConfigs, period, hoy, rangos],
+  );
+
   const reportOf = (studentId: string) =>
     reports.find(r => r.student_id === studentId && r.period === period);
 
+  /** Las evaluaciones con rúbricas, dianas y escalas del alumno en las fechas de la evaluación. */
+  const evaluacionesDe = (studentId: string) => evaluations.filter(e => e.student_id === studentId && ev.cuenta(e.date));
+
   /** Las competencias específicas evaluadas del alumno (rúbricas y dianas con criterios oficiales). */
   const competenciasDe = (studentId: string) =>
-    lineasDeCompetencias(materiasOficiales, evaluations.filter(e => e.student_id === studentId), lang === 'en');
+    lineasDeCompetencias(materiasOficiales, evaluacionesDe(studentId), lang === 'en');
 
-  /** Reúne todo lo que sabemos del alumno para dárselo a la IA. */
+  const etiquetaCompetencia = (clave: string) => t((lang === 'en' ? LOMLOE_COMPETENCES_EN : LOMLOE_COMPETENCES).find(c => c.key === clave)?.label ?? '');
+
+  /** Lo que el documento necesita además del informe: el grupo, el idioma y el pie de las competencias específicas. */
+  const contexto: ContextoDeInforme = {
+    grupo: cls?.name ?? '', t, locale, etiquetaCompetencia,
+    pieExtra: r => (r.origen !== 'mano' && r.origen !== 'reglas' && cita && competenciasDe(r.student_id).length ? t('Competencias específicas según {norma}.', { norma: cita }) : ''),
+  };
+
+  /** El informe de seguimiento de un alumno recién calculado con las reglas, sin guardar. */
+  const componer = (student: Student) => (clase ? componerSeguimiento({ clase, student, attendance, evaluations, t, locale }) : null);
+
+  /** Reúne todo lo que sabemos del alumno en la evaluación para dárselo a la IA. */
   function buildEvidence(student: Student): { text: string; hasData: boolean; competencias: boolean } {
     const lines: string[] = [];
     const en = lang === 'en';
 
-    const evs = evaluations.filter(e => e.student_id === student.id);
+    const evs = evaluacionesDe(student.id);
     if (evs.length) {
       lines.push(en ? 'RECORDED ASSESSMENTS:' : 'EVALUACIONES REGISTRADAS:');
       evs.slice(0, 12).forEach(ev => {
@@ -188,28 +196,22 @@ export function Reports(props: Props) {
       lines.push(...lineasDeClave(notasClave, en));
     }
 
-    const avg = notebookAverage(student.id, clsId, gradeCategories, gradeItems, grades);
-    if (avg !== null) {
+    // La nota del cuaderno en la evaluación, asignatura por asignatura (antes, una sola media de todo el curso que mezclaba las áreas)
+    const notas = clase ? notasDelPeriodo(clase, student.id) : [];
+    for (const n of notas) {
+      if (n.media === null) continue;
       lines.push(en
-        ? `\nGRADEBOOK AVERAGE: ${avg.toFixed(1)} out of 10.`
-        : `\nNOTA MEDIA DEL CUADERNO: ${avg.toFixed(1).replace('.', ',')} sobre 10.`);
+        ? `\nGRADEBOOK MARK IN ${n.asignatura}: ${n.media.toFixed(1)} out of 10.`
+        : `\nNOTA DEL CUADERNO EN ${n.asignatura}: ${n.media.toFixed(1).replace('.', ',')} sobre 10.`);
     }
 
-    const days = Object.keys(attendance[clsId] ?? {});
-    if (days.length) {
-      const counts = { present: 0, absent: 0, late: 0, justified: 0 };
-      days.forEach(d => {
-        const st = attendance[clsId]?.[d]?.[student.id];
-        if (st) counts[st]++;
-      });
-      const total = counts.present + counts.absent + counts.late + counts.justified;
-      if (total > 0) {
-        lines.push(en
-          ? `\nATTENDANCE: ${total} sessions recorded — ${counts.absent} unexcused absences, ` +
-            `${counts.justified} excused, ${counts.late} late arrivals.`
-          : `\nASISTENCIA: ${total} sesiones registradas — ${counts.absent} faltas sin justificar, ` +
-            `${counts.justified} justificadas, ${counts.late} retrasos.`);
-      }
+    const asis = asistenciaDelPeriodo(attendance, clsId, student.id, f => ev.cuenta(f));
+    if (asis) {
+      lines.push(en
+        ? `\nATTENDANCE: ${asis.dias} sessions recorded, ${asis.faltas} unexcused absences, ` +
+          `${asis.justificadas} excused, ${asis.retrasos} late arrivals.`
+        : `\nASISTENCIA: ${asis.dias} sesiones registradas, ${asis.faltas} faltas sin justificar, ` +
+          `${asis.justificadas} justificadas, ${asis.retrasos} retrasos.`);
     }
 
     if (student.notes?.trim()) lines.push(`\n${en ? 'TEACHER’S NOTES' : 'OBSERVACIONES DEL DOCENTE'}: ${textoLibreParaIA(student.notes.trim())}`);
@@ -218,7 +220,7 @@ export function Reports(props: Props) {
       lines.push(`${en ? 'ALERTS' : 'ALERTAS'}: ${avisos.join('; ')}`);
     }
 
-    return { text: lines.join('\n'), hasData: evs.length > 0 || avg !== null, competencias: porCompetencias.length > 0 };
+    return { text: lines.join('\n'), hasData: evs.length > 0 || notas.length > 0, competencias: porCompetencias.length > 0 };
   }
 
   async function generateFor(student: Student): Promise<boolean> {
@@ -287,18 +289,36 @@ export function Reports(props: Props) {
     if (!raw) return false;
 
     const { texto, tabla: deLaIA } = separarInforme(raw);
-    const tabla = aplicarNotas(deLaIA, notasPorClave(evaluations.filter(e => e.student_id === student.id)));
+    const tabla = aplicarNotas(deLaIA, notasPorClave(evaluacionesDe(student.id)));
+    const previo = reportOf(student.id);
+    if (previo?.seguimiento) {
+      // En un informe de seguimiento la IA solo pone el texto y los comentarios de las competencias que
+      // ya tienen valoración por reglas: la hoja, las frases y la observación del docente no se tocan
+      const comentario = new Map(tabla.map(f => [f.clave, f.comentario]));
+      onUpdateReport({
+        ...previo, text: texto, origen: 'ia', editado: false,
+        ...(previo.tabla ? { tabla: previo.tabla.map(f => ({ ...f, comentario: comentario.get(f.clave) ?? f.comentario })) } : {}),
+      });
+      return true;
+    }
     onAddReport({
-      id: 'rep' + Date.now() + Math.random().toString(36).slice(2, 6),
+      id: nuevoId(),
       student_id: student.id,
       student_name: student.name,
       class_id: clsId,
       period,
       date: isoDate(),
       text: texto,
+      origen: 'ia',
       ...(tabla.length ? { tabla } : {}),
     });
     return true;
+  }
+
+  /** Volver a pedir el texto a la IA lo cambia entero: si el docente lo corrigió a mano, se le pregunta antes. */
+  function regenerar(student: Student, r: CompetencyReport) {
+    if (r.editado && r.text.trim() && !window.confirm(t('Has corregido este texto a mano. Si la IA lo vuelve a redactar, se pierde lo que escribiste. ¿Continuar?'))) return;
+    void generateFor(student);
   }
 
   async function generateAll() {
@@ -317,41 +337,82 @@ export function Reports(props: Props) {
       : t('No se pudo generar ningún informe'));
   }
 
+  /* ── Informe de seguimiento: por reglas, sin IA y al instante ── */
+
+  const informeDe = (student: Student, b: BorradorDeSeguimiento, previo?: CompetencyReport): CompetencyReport => ({
+    ...(previo ?? { id: nuevoId(), student_id: student.id, student_name: student.name, class_id: clsId, period, date: isoDate() }),
+    text: b.text,
+    // El texto conserva a su autor: si lo redactó la IA y el docente no lo ha vaciado, el pie lo sigue diciendo
+    origen: !b.text ? 'reglas' : previo?.text === b.text && previo.origen !== 'reglas' ? (previo.origen ?? 'ia') : previo?.text && (previo.origen ?? 'ia') === 'ia' ? 'ia' : 'mano',
+    seguimiento: b.seguimiento,
+    tabla: b.tabla,
+  });
+
+  /** Los informes de seguimiento de quienes aún no tienen informe en esta evaluación, de una vez. */
+  function seguimientoDeTodos() {
+    const pendientes = roster.filter(s => !reportOf(s.id));
+    if (pendientes.length === 0) { toast(t('Todo el alumnado tiene ya su informe de esta evaluación')); return; }
+    let hechos = 0;
+    for (const s of pendientes) {
+      const c = componer(s);
+      if (!c?.hayDatos) continue;
+      onAddReport(informeDe(s, { text: '', seguimiento: c.seguimiento, tabla: c.tabla }));
+      hechos++;
+    }
+    const sinDatos = pendientes.length - hechos;
+    if (hechos === 0) { toast(t('No hay notas, asistencia, anotaciones ni evaluaciones de esta evaluación: no se ha creado ningún informe')); return; }
+    toast(`✅ ${t(hechos === 1 ? '{n} informe de seguimiento creado. Revísalo antes de entregarlo.' : '{n} informes de seguimiento creados. Revísalos antes de entregarlos.', { n: hechos })}`
+      + (sinDatos > 0 ? ` ${t(sinDatos === 1 ? '{n} alumno no tiene datos en esta evaluación.' : '{n} alumnos no tienen datos en esta evaluación.', { n: sinDatos })}` : ''));
+  }
+
+  /** Abre la hoja de seguimiento de un alumno para revisarla: recién calculada, o la que ya tenía guardada. */
+  function abrirSeguimiento(student: Student, modo: 'nuevo' | 'editar' | 'recalcular') {
+    const previo = reportOf(student.id);
+    if (modo === 'editar' && previo?.seguimiento) {
+      setEdicion({ tipo: 'seguimiento', alumno: student.id, inicial: { text: previo.text, seguimiento: previo.seguimiento, tabla: previo.tabla ?? [] } });
+      return;
+    }
+    const c = componer(student);
+    if (!c) return;
+    const base = previo?.seguimiento ? recalcular(previo, c) : { seguimiento: c.seguimiento, tabla: recalcular({ tabla: previo?.tabla }, c).tabla };
+    setEdicion({ tipo: 'seguimiento', alumno: student.id, inicial: { text: previo?.text ?? '', ...base } });
+  }
+
+  function guardarSeguimiento(student: Student, b: BorradorDeSeguimiento) {
+    const previo = reportOf(student.id);
+    if (previo) onUpdateReport({ ...informeDe(student, b, previo), editado: true });
+    else onAddReport(informeDe(student, b));
+    setEdicion(null); setAlLlegar(false);
+    toast(t(previo ? '✅ Informe actualizado' : '✅ Informe de seguimiento guardado'));
+  }
+
+  function guardarTexto(student: Student) {
+    const texto = draft.trim();
+    const previo = reportOf(student.id);
+    if (!texto && !previo?.seguimiento) { toast(t('Escribe el informe antes de guardarlo')); return; }
+    if (previo) {
+      onUpdateReport({ ...previo, text: texto, editado: true, ...(texto ? (previo.origen === 'reglas' ? { origen: 'mano' as const } : {}) : { origen: previo.seguimiento ? 'reglas' as const : previo.origen }) });
+      toast(t('✅ Informe actualizado'));
+    } else {
+      onAddReport({ id: nuevoId(), student_id: student.id, student_name: student.name, class_id: clsId, period, date: isoDate(), text: texto, origen: 'mano' });
+      toast(t('✅ Informe guardado'));
+    }
+    setEdicion(null);
+  }
+
   const docs = window.electronAPI?.docs;
-  const [working, setWorking] = useState<'one' | 'all' | null>(null);
+  const [working, setWorking] = useState<'one' | 'all' | 'word' | null>(null);
   const [preview, setPreview] = useState<{ html: string; title: string } | null>(null);
 
-  const esc = (t: string) =>
-    t.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c] as string));
   const slug = (t: string) => t.replace(/\s+/g, '-');
+  const buildDoc = (list: CompetencyReport[], title: string) => informesHtml(list, title, lang, contexto);
 
-  const etiquetaCompetencia = (clave: string) => t((lang === 'en' ? LOMLOE_COMPETENCES_EN : LOMLOE_COMPETENCES).find(c => c.key === clave)?.label ?? '');
-
-  /** Un informe como bloque del documento, con su cabecera y su pie. */
-  function reportBlock(r: CompetencyReport, salto: boolean): string {
-    const en = lang === 'en';
-    return `<section class="alumno${salto ? ' salto' : ''}">
-<div class="hd"><h1>${esc(r.student_name)}</h1>
-<div class="sub">${esc(t('Informe de evaluación competencial'))}</div></div>
-<dl>
-<div><dt>${esc(t('Grupo'))}</dt><dd>${esc(cls?.name ?? '')}</dd></div>
-<div><dt>${esc(t('Periodo'))}</dt><dd>${esc(t(r.period))}</dd></div>
-<div><dt>${esc(t('Fecha'))}</dt><dd>${esc(en ? new Date(r.date).toLocaleDateString(locale) : r.date)}</dd></div>
-</dl>
-<div class="cuerpo">${esc(r.text)}</div>
-${tablaCompetenciasHtml(r.tabla, t, etiquetaCompetencia)}
-<div class="pie">${esc(t('Informe redactado con asistencia de inteligencia artificial a partir de las evaluaciones, calificaciones y asistencia registradas, y revisado por el docente. Competencias clave según el currículo educativo español (LOMLOE).'))}${cita && competenciasDe(r.student_id).length ? ` ${esc(t('Competencias específicas según {norma}.', { norma: cita }))}` : ''}</div>
-</section>`;
-  }
-
-  function buildDoc(list: CompetencyReport[], title: string): string {
-    // Cada alumno en su propia página: un informe es un documento que se
-    // entrega a una familia, no una lista corrida.
-    const bloques = list.map((r, i) => reportBlock(r, i < list.length - 1)).join('\n');
-    return `<!doctype html><html lang="${lang}"><head><meta charset="utf-8">` +
-      `<title>${esc(title)}</title><style>${REPORT_DOC_STYLE}</style></head>` +
-      `<body class="rep">${bloques}</body></html>`;
-  }
+  /** Los informes de la clase en esta evaluación, en orden de lista. */
+  const delPeriodo = () => reports
+    .filter(r => r.class_id === clsId && r.period === period)
+    .sort((a, b) => compararNombres(a.student_name, b.student_name));
+  const nombreDeTodos = `informes-${slug(cls?.name ?? 'clase')}-${slug(period)}`;
+  const nombreDeUno = (r: CompetencyReport) => `informe-${slug(r.student_name)}-${slug(r.period)}`;
 
   async function savePdf(list: CompetencyReport[], nombre: string, modo: 'one' | 'all') {
     if (list.length === 0) { toast(t('No hay informes de este periodo')); return; }
@@ -367,57 +428,55 @@ ${tablaCompetenciasHtml(r.tabla, t, etiquetaCompetencia)}
     if (res.path) docs.reveal(res.path);
   }
 
-  const savePdfOne = (r: CompetencyReport) =>
-    savePdf([r], `informe-${slug(r.student_name)}-${slug(r.period)}`, 'one');
-
-  const savePdfAll = () =>
-    savePdf(
-      reports
-        .filter(r => r.class_id === clsId && r.period === period)
-        .sort((a, b) => compararNombres(a.student_name, b.student_name)),
-      `informes-${slug(cls?.name ?? 'clase')}-${slug(period)}`,
-      'all',
-    );
+  /** El Word, con las mismas partes que el PDF; la librería se pide al pulsar, no al abrir la pantalla. */
+  async function saveWord(list: CompetencyReport[], nombre: string) {
+    if (list.length === 0) { toast(t('No hay informes de este periodo')); return; }
+    setWorking('word');
+    try {
+      const { guardarInformesDocx } = await import('../services/exportInformeDocx');
+      await guardarInformesDocx(list, nombre, contexto);
+      toast(list.length === 1 ? t('✅ Informe guardado en Word') : t('✅ {n} informes guardados en Word', { n: list.length }));
+    } catch {
+      toast(t('No se pudo generar el Word'));
+    }
+    setWorking(null);
+  }
 
   function previewAll() {
-    const list = reports
-      .filter(r => r.class_id === clsId && r.period === period)
-      .sort((a, b) => compararNombres(a.student_name, b.student_name));
+    const list = delPeriodo();
     if (list.length === 0) { toast(t('No hay informes de este periodo')); return; }
-    setPreview({ html: buildDoc(list, `informes-${slug(cls?.name ?? 'clase')}-${slug(period)}`), title: `${cls?.name ?? ''} · ${t(period)}` });
+    setPreview({ html: buildDoc(list, nombreDeTodos), title: `${cls?.name ?? ''} · ${t(period)}` });
   }
 
   function previewOne(r: CompetencyReport) {
-    setPreview({ html: buildDoc([r], `informe-${slug(r.student_name)}-${slug(r.period)}`), title: `${r.student_name} · ${t(r.period)}` });
+    setPreview({ html: buildDoc([r], nombreDeUno(r)), title: `${r.student_name} · ${t(r.period)}` });
   }
 
   /** Copia en texto plano, por si quiere pegarlo en otro sitio. */
   function exportAll() {
-    const list = reports.filter(r => r.class_id === clsId && r.period === period);
+    const list = delPeriodo();
     if (list.length === 0) { toast(t('No hay informes de este periodo')); return; }
-    const text = list
-      .slice()
-      .sort((a, b) => compararNombres(a.student_name, b.student_name))
-      .map(r => `${r.student_name}\n${cls?.name ?? ''} · ${t(r.period)} · ${r.date}\n\n${r.text}${r.tabla?.length ? '\n\n' + r.tabla.map(f => `${f.clave}: ${t(NOMBRE[normalizarValoracion(f.valoracion)])}. ${f.comentario}`).join('\n') : ''}\n\n${'—'.repeat(40)}\n`)
-      .join('\n');
-    void downloadFile(new Blob([text], { type: 'text/plain;charset=utf-8' }), `informes-${cls?.name.replace(/\s+/g, '-') ?? 'clase'}-${period.replace(/\s+/g, '-')}.txt`, CARPETAS.informes);
+    const text = list.map(r => `${informeEnTexto(r, contexto)}\n\n${'-'.repeat(40)}\n`).join('\n');
+    void downloadFile(new Blob([text], { type: 'text/plain;charset=utf-8' }), `${nombreDeTodos}.txt`, CARPETAS.informes);
     toast(t('✅ Informes descargados'));
   }
+
+  const SUBTITULO = 'De seguimiento, al instante y sin IA, o redactados por la IA con tus propias evaluaciones';
 
   if (classes.length === 0) {
     return (
       <section className="sec active">
         <div className="pg-hd">
           <div>
-            <h1 className="pg-title">{t('Informes competenciales')}</h1>
-            <p className="pg-sub">{t('Redactados por la IA con tus propias evaluaciones')}</p>
+            <h1 className="pg-title">{t('Informes')}</h1>
+            <p className="pg-sub">{t(SUBTITULO)}</p>
           </div>
         </div>
         <div className="card" style={{ maxWidth: 540, margin: '40px auto', textAlign: 'center', padding: '40px 34px' }}>
           <Users size={36} color="var(--text-3)" style={{ margin: '0 auto 14px' }} />
           <h3 style={{ fontSize: 17, fontWeight: 800, color: 'var(--text)', marginBottom: 8 }}>{t('Aún no tienes clases')}</h3>
           <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 20 }}>
-            {t('Los informes se redactan a partir de las evaluaciones y notas de tus alumnos.')}
+            {t('Los informes salen de las evaluaciones, las notas y la asistencia de tus alumnos.')}
           </p>
           <button className="btn-accent" onClick={() => onNav('classes')}>
             {t('Ir a Mis Clases')} <ArrowRight size={14} />
@@ -430,62 +489,77 @@ ${tablaCompetenciasHtml(r.tabla, t, etiquetaCompetencia)}
   const current = selected ? roster.find(s => s.id === selected) : null;
   const currentReport = current ? reportOf(current.id) : null;
   const generatedCount = roster.filter(s => reportOf(s.id)).length;
+  const conIA = hasApiKey();
+
+  // Lo que se está escribiendo del alumno elegido. Al llegar desde su ficha sin informe en esta evaluación,
+  // la hoja de seguimiento sale ya calculada, sin tener que pedirla
+  let editando: Edicion | null = edicion && edicion.alumno === current?.id ? edicion : null;
+  if (!editando && alLlegar && current && !currentReport) {
+    const c = componer(current);
+    if (c?.hayDatos) editando = { tipo: 'seguimiento', alumno: current.id, inicial: { text: '', seguimiento: c.seguimiento, tabla: c.tabla } };
+  }
+  const elegir = (id: string | null) => { setSelected(id); setEdicion(null); setAlLlegar(false); };
+  const periodoDe = (r: Pick<CompetencyReport, 'period' | 'seguimiento'>) => textoDePeriodo(r, t, locale);
+  const periodoAhora = textoDePeriodo({ period, seguimiento: ev.rango ? { desde: ev.rango.desde, hasta: ev.rango.hasta, notas: [], asistencia: null, positivos: [], mejorar: [], observacion: '' } : undefined }, t, locale);
 
   return (
     <section className="sec active">
       <div className="pg-hd">
         <div>
-          <h1 className="pg-title">{t('Informes competenciales')}</h1>
+          <h1 className="pg-title">{t('Informes')}</h1>
           <p className="pg-sub">
             {generatedCount > 0
               ? t('{n}/{total} generados · {period}', { n: generatedCount, total: roster.length, period: t(period) })
-              : t('Redactados por la IA con tus propias evaluaciones')}
+              : t(SUBTITULO)}
           </p>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn-ghost" onClick={exportAll} disabled={generatedCount === 0}
-            title={t('Copia en texto plano, para pegar en otro sitio')}>
-            <Download size={14} />{t('Texto')}
+        <div className="inf-acciones">
+          <button className="btn-accent" onClick={seguimientoDeTodos} disabled={roster.length === 0 || generatedCount === roster.length}
+            title={t('Crea al instante el informe de seguimiento de quienes aún no tienen informe en esta evaluación, con reglas y sin IA')}>
+            <ListChecks size={14} />{t('Informes de seguimiento de la clase')}
           </button>
-          <button className="btn-ghost" onClick={previewAll} disabled={generatedCount === 0}>
-            <Eye size={14} />{t('Vista previa')}
-          </button>
-          <button className="btn-ghost" onClick={savePdfAll}
-            disabled={generatedCount === 0 || working !== null}>
-            {working === 'all'
-              ? <><span className="spin" />{t('Generando…')}</>
-              : <><FileDown size={14} />{t('Todos en PDF')}</>}
-          </button>
-          <button className="btn-ia" onClick={generateAll} disabled={batch !== null || roster.length === 0}>
-            {batch
-              ? <><span className="spin" />{batch.done}/{batch.total}</>
-              : <><Sparkles size={14} />{t('Generar los que faltan')}</>}
-          </button>
+          {conIA && (
+            <button className="btn-ia" onClick={generateAll} disabled={batch !== null || roster.length === 0}
+              title={t('La IA redacta el informe competencial de quienes aún no tienen informe: una petición por alumno')}>
+              {batch
+                ? <><span className="spin" />{batch.done}/{batch.total}</>
+                : <><Sparkles size={14} />{t('Redactar con IA los que faltan')}</>}
+            </button>
+          )}
         </div>
       </div>
 
-      {!hasApiKey() && (
-        <AiKeyNotice message={t('Los informes los redacta la IA. Necesitas configurar tu clave gratuita de Google.')} action={t('Configurar')} onAction={() => onNav('profile')} />
+      {!conIA && (
+        <AiKeyNotice message={t('El informe de seguimiento no necesita IA. Para que además la IA redacte el texto hace falta tu clave gratuita de Google.')} action={t('Configurar')} onAction={() => onNav('profile')} />
       )}
 
-      {/* Barra de controles: clase, periodo y progreso */}
+      {/* Barra de controles: clase, evaluación y progreso */}
       <div className="toolbar">
-        <ClassChips classes={classes} value={clsId} onChange={id => { setClassId(id); setSelected(null); }} />
+        <ClassChips classes={classes} value={clsId} onChange={id => { setClassId(id); elegir(null); }} />
         <span className="toolbar-spacer" />
         {roster.length > 0 && (
           generatedCount === roster.length
             ? <span className="seat-pill ok"><Check size={13} aria-hidden="true" />{t('Todos con informe')}</span>
             : <span className="seat-pill warn">{t('{n}/{total} con informe', { n: generatedCount, total: roster.length })}</span>
         )}
-        <select
-          className="tb-select"
-          value={period}
-          aria-label={t('Evaluación')}
-          onChange={e => { setPeriod(e.target.value); setSelected(null); }}
-        >
-          {PERIODS.map(p => <option key={p} value={p}>{t(p)}</option>)}
-        </select>
+        <SelectorEvaluacion ev={ev} queCuenta={t('El informe cuenta las notas, la asistencia, las anotaciones y las evaluaciones de estas fechas.')} />
       </div>
+
+      {generatedCount > 0 && (
+        <div className="inf-salida" role="group" aria-label={t('Los informes de la clase en esta evaluación')}>
+          <span className="toolbar-label">{t('Los {n} de la clase:', { n: generatedCount })}</span>
+          <button className="btn-ghost sm" onClick={previewAll}><Eye size={13} />{t('Vista previa')}</button>
+          <button className="btn-ghost sm" onClick={() => savePdf(delPeriodo(), nombreDeTodos, 'all')} disabled={working !== null}>
+            {working === 'all' ? <><span className="spin" />{t('Generando…')}</> : <><FileDown size={13} />{t('Todos en PDF')}</>}
+          </button>
+          <button className="btn-ghost sm" onClick={() => saveWord(delPeriodo(), nombreDeTodos)} disabled={working !== null}>
+            {working === 'word' ? <><span className="spin" />{t('Generando…')}</> : <><FileText size={13} />{t('Todos en Word')}</>}
+          </button>
+          <button className="btn-ghost sm" onClick={exportAll} title={t('Copia en texto plano, para pegar en otro sitio')}>
+            <Download size={13} />{t('Texto')}
+          </button>
+        </div>
+      )}
 
       {roster.length === 0 ? (
         <div className="card" style={{ textAlign: 'center', padding: '36px 24px' }}>
@@ -510,7 +584,8 @@ ${tablaCompetenciasHtml(r.tabla, t, etiquetaCompetencia)}
                 return (
                   <button
                     key={s.id}
-                    onClick={() => { setSelected(s.id); setEditing(false); }}
+                    onClick={() => elegir(s.id)}
+                    aria-pressed={on}
                     style={{
                       display: 'flex', alignItems: 'center', gap: 10, width: '100%',
                       padding: '11px 16px', border: 'none', cursor: 'pointer',
@@ -525,7 +600,7 @@ ${tablaCompetenciasHtml(r.tabla, t, etiquetaCompetencia)}
                       background: rep ? 'var(--ok-bg)' : 'var(--surface)',
                       color: rep ? 'var(--ok-fg)' : 'var(--text-3)',
                     }}>
-                      {rep ? <Check size={12} /> : i + 1}
+                      {rep ? <Check size={12} aria-label={t('Con informe')} /> : i + 1}
                     </span>
                     <span style={{
                       flex: 1, minWidth: 0, fontSize: 13, fontWeight: on ? 700 : 500,
@@ -546,8 +621,8 @@ ${tablaCompetenciasHtml(r.tabla, t, etiquetaCompetencia)}
               <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--text)', marginBottom: 8 }}>
                 {t('Elige un alumno')}
               </h3>
-              <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6, maxWidth: 420, margin: '0 auto' }}>
-                {t('La IA redacta el informe a partir de sus evaluaciones, sus notas del cuaderno y su asistencia, centrado en las competencias clave de la LOMLOE que ha desarrollado.')}
+              <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6, maxWidth: 460, margin: '0 auto' }}>
+                {t('El informe de seguimiento sale al instante de sus notas, su asistencia, sus anotaciones y sus evaluaciones de la evaluación elegida, con reglas fijas y sin IA. Si quieres, la IA redacta además el texto, o lo escribes tú.')}
               </p>
             </div>
           ) : (
@@ -556,17 +631,20 @@ ${tablaCompetenciasHtml(r.tabla, t, etiquetaCompetencia)}
                 <div>
                   <div style={{ fontSize: 15.5, fontWeight: 800, color: 'var(--text)' }}>{current.name}</div>
                   <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>
-                    {cls?.name} · {t(period)}
+                    {cls?.name} · {currentReport ? periodoDe(currentReport) : t(period)}
                     {currentReport && ` ${t('· generado el {date}', { date: currentReport.date })}`}
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: 6 }}>
-                  {currentReport && !editing && (
+                  {currentReport && !editando && (
                     <>
-                      <button className="ico-btn" title={t('Editar')} onClick={() => { setDraft(currentReport.text); setEditing(true); }}>
+                      <button className="ico-btn" title={t('Editar')} aria-label={t('Editar')} onClick={() => {
+                        if (currentReport.seguimiento) abrirSeguimiento(current, 'editar');
+                        else { setDraft(currentReport.text); setEdicion({ tipo: 'texto', alumno: current.id }); }
+                      }}>
                         <Pencil size={15} />
                       </button>
-                      <button className="ico-btn" title={t('Eliminar informe')} onClick={() => { onDeleteReport(currentReport.id); toast(t('Informe eliminado')); }}>
+                      <button className="ico-btn" title={t('Eliminar informe')} aria-label={t('Eliminar informe')} onClick={() => { onDeleteReport(currentReport.id); toast(t('Informe eliminado')); }}>
                         <Trash2 size={15} color="var(--danger)" />
                       </button>
                     </>
@@ -578,59 +656,79 @@ ${tablaCompetenciasHtml(r.tabla, t, etiquetaCompetencia)}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '30px 0', justifyContent: 'center', color: 'var(--text-2)', fontSize: 13.5 }}>
                   <span className="spin" />{t('Redactando el informe…')}
                 </div>
-              ) : editing && currentReport ? (
+              ) : editando?.tipo === 'seguimiento' ? (
+                <EditorSeguimiento
+                  key={current.id}
+                  nombre={nombreDePila(current.name)}
+                  periodo={periodoAhora}
+                  inicial={editando.inicial}
+                  partes={b => partesDeInforme({ id: '', student_id: current.id, student_name: current.name, class_id: clsId, period, date: isoDate(), ...b }, contexto)}
+                  etiquetaCompetencia={etiquetaCompetencia}
+                  nuevo={!currentReport}
+                  onGuardar={b => guardarSeguimiento(current, b)}
+                  onCancelar={() => { setEdicion(null); setAlLlegar(false); }}
+                />
+              ) : editando?.tipo === 'texto' ? (
                 <>
+                  <label className="flabel" htmlFor="rep-texto">{t('Texto del informe')}</label>
                   <textarea
-                    className="finput" rows={11} value={draft} onChange={e => setDraft(e.target.value)}
+                    id="rep-texto" className="finput" rows={11} value={draft} onChange={e => setDraft(e.target.value)}
+                    placeholder={t('Escribe aquí el informe para la familia.')}
                     style={{ resize: 'vertical', fontSize: 13.5, lineHeight: 1.7 }}
                   />
                   <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
-                    <button className="btn-accent" onClick={() => {
-                      onUpdateReport({ ...currentReport, text: draft.trim() });
-                      setEditing(false);
-                      toast(t('✅ Informe actualizado'));
-                    }}>
-                      {t('Guardar cambios')}
+                    <button className="btn-accent" onClick={() => guardarTexto(current)}>
+                      {t(currentReport ? 'Guardar cambios' : 'Guardar informe')}
                     </button>
-                    <button className="btn-ghost" onClick={() => setEditing(false)}>{t('Cancelar')}</button>
+                    <button className="btn-ghost" onClick={() => setEdicion(null)}>{t('Cancelar')}</button>
                   </div>
                 </>
               ) : currentReport ? (
                 <>
-                  <div style={{
-                    fontSize: 13.5, lineHeight: 1.75, color: 'var(--text)', whiteSpace: 'pre-wrap',
-                    background: 'var(--surface)', borderRadius: 11, padding: '16px 18px',
-                    border: '0.5px solid var(--border)',
-                  }}>
-                    {currentReport.text}
-                  </div>
-                  {currentReport.tabla?.length ? (
-                    <div className="rep-tabla" dangerouslySetInnerHTML={{ __html: tablaCompetenciasHtml(currentReport.tabla, t, etiquetaCompetencia) }} />
-                  ) : null}
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 14, alignItems: 'center' }}>
-                    <button className="btn-ia" onClick={() => generateFor(current)}>
-                      <Sparkles size={13} />{t('Volver a generar')}
-                    </button>
+                  <div className="inf-hoja rep-tabla" dangerouslySetInnerHTML={{ __html: cuerpoDeInformeHtml(partesDeInforme(currentReport, contexto), t) }} />
+                  <div className="inf-botones">
                     <button className="btn-ghost" onClick={() => previewOne(currentReport)}
                       disabled={working !== null}>
                       <Eye size={13} />{t('Vista previa')}
                     </button>
-                    <button className="btn-ghost" onClick={() => savePdfOne(currentReport)}
+                    <button className="btn-ghost" onClick={() => savePdf([currentReport], nombreDeUno(currentReport), 'one')}
                       disabled={working !== null}>
                       {working === 'one'
                         ? <><span className="spin" />{t('Generando…')}</>
                         : <><FileDown size={13} />{t('Guardar en PDF')}</>}
                     </button>
-                    <p style={{ fontSize: 11.5, color: 'var(--text-3)', flex: '1 1 200px', minWidth: 0, lineHeight: 1.5 }}>
-                      {t('Revísalo siempre antes de entregarlo. La IA se equivoca.')}
-                    </p>
+                    <button className="btn-ghost" onClick={() => saveWord([currentReport], nombreDeUno(currentReport))}
+                      disabled={working !== null}>
+                      <FileText size={13} />{t('Guardar en Word')}
+                    </button>
+                    <button className="btn-ghost" onClick={() => abrirSeguimiento(current, currentReport.seguimiento ? 'recalcular' : 'nuevo')}
+                      title={currentReport.seguimiento
+                        ? t('Vuelve a calcular la hoja con las notas, la asistencia y las anotaciones de ahora. Tu observación y lo que escribiste se conservan, y lo revisas antes de guardar.')
+                        : t('Añade al informe las calificaciones, la asistencia, las competencias y las frases de lo positivo y lo que hay que mejorar, con reglas y sin IA')}>
+                      {currentReport.seguimiento
+                        ? <><RefreshCw size={13} />{t('Actualizar los datos')}</>
+                        : <><ListChecks size={13} />{t('Añadir la hoja de seguimiento')}</>}
+                    </button>
+                    {conIA && (
+                      <button className="btn-ia" onClick={() => regenerar(current, currentReport)}>
+                        <Sparkles size={13} />{t(currentReport.text.trim() ? (currentReport.origen === 'mano' ? 'Redactar el texto con IA' : 'Volver a generar') : 'Redactar el texto con IA')}
+                      </button>
+                    )}
                   </div>
+                  <p className="inf-nota">
+                    {t(currentReport.origen === 'ia' || !currentReport.origen
+                      ? 'Revísalo siempre antes de entregarlo. La IA se equivoca.'
+                      : 'Revísalo siempre antes de entregarlo: las reglas solo ven lo que has anotado en AulaPro.')}
+                  </p>
                 </>
               ) : (
                 <EmptyReport
                   student={current}
-                  evidence={buildEvidence(current)}
+                  hayDatos={!!componer(current)?.hayDatos}
+                  conIA={conIA}
+                  onSeguimiento={() => abrirSeguimiento(current, 'nuevo')}
                   onGenerate={() => generateFor(current)}
+                  onEscribir={() => { setDraft(''); setEdicion({ tipo: 'texto', alumno: current.id }); }}
                   onNav={onNav}
                 />
               )}
@@ -645,26 +743,31 @@ ${tablaCompetenciasHtml(r.tabla, t, etiquetaCompetencia)}
 }
 
 function EmptyReport({
-  student, evidence, onGenerate, onNav,
+  student, hayDatos, conIA, onSeguimiento, onGenerate, onEscribir, onNav,
 }: {
   student: Student;
-  evidence: { text: string; hasData: boolean };
+  /** Si en la evaluación hay algo anotado del alumno. */
+  hayDatos: boolean;
+  conIA: boolean;
+  onSeguimiento: () => void;
   onGenerate: () => void;
+  onEscribir: () => void;
   onNav: (s: string) => void;
 }) {
   const { t } = useI18n();
   const fijarClase = useFijarClase();
-  if (!evidence.hasData) {
+  if (!hayDatos) {
     return (
       <div style={{ textAlign: 'center', padding: '34px 24px' }}>
         <AlertTriangle size={30} color="var(--warn)" style={{ margin: '0 auto 12px' }} />
         <h3 style={{ fontSize: 15.5, fontWeight: 800, color: 'var(--text)', marginBottom: 8 }}>
-          {t('Sin datos suficientes')}
+          {t('Sin datos en esta evaluación')}
         </h3>
-        <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6, maxWidth: 400, margin: '0 auto 20px' }}>
-          {t('{name} no tiene todavía evaluaciones ni notas en el cuaderno. Un informe sin datos serían solo frases genéricas, así que es mejor evaluarle antes.', { name: nombreDePila(student.name) })}
+        <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6, maxWidth: 420, margin: '0 auto 20px' }}>
+          {t('{name} no tiene notas, asistencia, anotaciones ni evaluaciones en las fechas de esta evaluación. Prueba con otra evaluación, evalúale antes o escribe tú el informe.', { name: nombreDePila(student.name) })}
         </p>
-        <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
+        <div className="inf-vacio-btns">
+          <button className="btn-accent" onClick={onEscribir}><PenLine size={14} />{t('Escribir a mano')}</button>
           <button className="btn-ghost" onClick={() => onNav('rubrics')}>{t('Ir a Evaluación')}</button>
           <button className="btn-ghost" onClick={() => { fijarClase(student.class_id); onNav('notebook'); }}>{t('Ir al Cuaderno')}</button>
         </div>
@@ -675,12 +778,14 @@ function EmptyReport({
   return (
     <div style={{ textAlign: 'center', padding: '30px 24px' }}>
       <FileText size={32} color="var(--accent-d)" style={{ margin: '0 auto 14px' }} />
-      <p style={{ fontSize: 13.5, color: 'var(--text-2)', lineHeight: 1.65, maxWidth: 430, margin: '0 auto 20px' }}>
-        {t('Se usarán sus evaluaciones, su media del cuaderno y su asistencia para redactar el informe.')}
+      <p style={{ fontSize: 13.5, color: 'var(--text-2)', lineHeight: 1.65, maxWidth: 460, margin: '0 auto 20px' }}>
+        {t('El informe de seguimiento reúne sus calificaciones, su asistencia, sus competencias y lo más relevante de esta evaluación, al instante y sin IA. Lo revisas antes de guardarlo.')}
       </p>
-      <button className="btn-ia" onClick={onGenerate} style={{ margin: '0 auto' }}>
-        <Sparkles size={14} />{t('Generar informe')}
-      </button>
+      <div className="inf-vacio-btns">
+        <button className="btn-accent" onClick={onSeguimiento}><ListChecks size={14} />{t('Informe de seguimiento')}</button>
+        {conIA && <button className="btn-ia" onClick={onGenerate}><Sparkles size={14} />{t('Generar informe')}</button>}
+        <button className="btn-ghost" onClick={onEscribir}><PenLine size={14} />{t('Escribir a mano')}</button>
+      </div>
     </div>
   );
 }
