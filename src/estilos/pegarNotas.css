@@ -99,6 +99,7 @@
   .pn-cal-cab { padding:14px 14px 8px; }
   .pn-cal-cuenta { padding:0 14px 10px; }
   .pn-cal-lista { padding:6px 6px; }
-  .pn-cal-pie { padding:10px 14px; }
+  /* El botón flotante de la ayuda (52 px a 20 px del borde) cae sobre la esquina del pie: se le deja sitio */
+  .pn-cal-pie { padding:10px 86px 10px 14px; }
   .pn-rellenar-fila { flex-wrap:wrap; }
 }

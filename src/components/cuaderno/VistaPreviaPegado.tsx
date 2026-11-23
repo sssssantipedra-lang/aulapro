@@ -7,7 +7,7 @@ import { useMemo, useState } from 'react';
 import { AlertTriangle, ClipboardPaste } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { useI18n } from '../../i18n';
-import { entenderPegado, planDePegado, type CambioDeNota, type CeldaDelPlan, type DondePegar } from '../../lib/pegarNotas';
+import { entenderPegado, leerNota, planDePegado, type CambioDeNota, type CeldaDelPlan, type DondePegar } from '../../lib/pegarNotas';
 
 interface Props {
   /** Lo que venía en el portapapeles, ya partido en filas y columnas (`leerPegado`). */
@@ -23,6 +23,7 @@ export function VistaPreviaPegado({ filas, donde, onAplicar, onClose }: Props) {
   const [cabecera, setCabecera] = useState<boolean | undefined>(undefined);
   const pegado = useMemo(() => entenderPegado(filas, { cabecera }), [filas, cabecera]);
   const plan = useMemo(() => planDePegado(pegado, donde), [pegado, donde]);
+  const primeraConTexto = useMemo(() => (filas[0] ?? []).some(x => leerNota(x).tipo === 'mal'), [filas]);
   const nota = (n: number | null) => (n === null ? '' : lang !== 'en' ? String(n).replace('.', ',') : String(n));
 
   if (!plan) return null;
@@ -60,7 +61,8 @@ export function VistaPreviaPegado({ filas, donde, onAplicar, onClose }: Props) {
 
         {!sinColumnas && (
           <ul className="pn-resumen" aria-label={t('Lo que va a pasar')}>
-            <li className="pn-nueva"><strong>{plan.nuevas}</strong> {t(plan.nuevas === 1 ? 'nota nueva' : 'notas nuevas')}</li>
+            {(plan.nuevas > 0 || plan.cambian === 0) && <li className={plan.nuevas > 0 ? 'pn-nueva' : 'pn-nada'}><strong>{plan.nuevas}</strong> {t(plan.nuevas === 1 ? 'nota nueva' : 'notas nuevas')}</li>}
+            {/* Lo que pisa se dice siempre, también cuando es cero: es lo que el docente quiere saber antes de aplicar */}
             <li className={plan.cambian > 0 ? 'pn-cambia' : 'pn-nada'}><strong>{plan.cambian}</strong> {t(plan.cambian === 1 ? 'cambia una nota que ya estaba' : 'cambian una nota que ya estaba')}</li>
             {plan.mal > 0 && <li className="pn-mal"><strong>{plan.mal}</strong> {t(plan.mal === 1 ? 'no es una nota de 0 a 10 y no entra' : 'no son notas de 0 a 10 y no entran')}</li>}
             {plan.iguales > 0 && <li className="pn-nada"><strong>{plan.iguales}</strong> {t(plan.iguales === 1 ? 'ya tenía esa nota' : 'ya tenían esa nota')}</li>}
@@ -93,7 +95,8 @@ export function VistaPreviaPegado({ filas, donde, onAplicar, onClose }: Props) {
           </ul>
         )}
 
-        {filas.length > 1 && (
+        {/* Solo se pregunta por la cabecera si la primera fila trae algo que no es una nota (o si ya se ha tocado la casilla) */}
+        {filas.length > 1 && (cabecera !== undefined || pegado.pareceCabecera || primeraConTexto) && (
           <label className="pn-cabecera">
             <input type="checkbox" checked={pegado.cabecera} onChange={e => setCabecera(e.target.checked)} />
             <span>

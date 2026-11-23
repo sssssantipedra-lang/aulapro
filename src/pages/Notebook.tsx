@@ -952,11 +952,8 @@ function GradesTab({
           onCalificar={() => { setMenuDe(null); setCalificando(actividadDelMenu.id); }}
           onEditar={() => { setMenuDe(null); openItemModal(actividadDelMenu); }}
           onRellenar={valor => {
-            const cambios = cambiosDeRelleno(actividadDelMenu.id, myStudents, grades[actividadDelMenu.id], valor);
-            ponerNotas(cambios, 'rellenar');
+            ponerNotas(cambiosDeRelleno(actividadDelMenu.id, myStudents, grades[actividadDelMenu.id], valor), 'rellenar');
             setMenuDe(null);
-            // Sin el «Deshacer» común (que ya lo dice), se avisa aquí
-            if (!onSetGrades) toast(t(cambios.length === 1 ? '✅ Nota puesta a 1 alumno' : '✅ Nota puesta a {n} alumnos', { n: cambios.length }));
           }}
         />
       )}
@@ -990,7 +987,6 @@ function GradesTab({
             ponerNotas(cambios, 'pegar');
             setPegado(null);
             focoEn(actividadId, alumnoId);
-            if (!onSetGrades) toast(t(cambios.length === 1 ? '✅ 1 nota pegada' : '✅ {n} notas pegadas', { n: cambios.length }));
           }}
         />
       )}
