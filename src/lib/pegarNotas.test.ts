@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   cambiosDeRelleno, cambiosReales, conCambios, entenderPegado, esBloque, leerNota, leerPegado, nombresParecidos,
-  esMarcaSinNota, pareceCabecera, planDePegado, sinNota, MAX_FILAS,
+  esMarcaSinNota, pareceCabecera, planDePegado, puedeSerTitulo, sinNota, MAX_FILAS,
 } from './pegarNotas';
 import type { GradeMap } from '../types';
 
@@ -131,6 +131,35 @@ describe('entenderPegado', () => {
     expect(pareceCabecera(leerPegado('1\tAlumno 1\tNP\n2\tAlumno 2\t7'))).toBe(false);
   });
 
+  it('una nota mal escrita en la primera fila no es la cabecera: es la del primer alumno y se señala', () => {
+    // Antes «11» o «7'5» se tomaban por el título: desaparecían sin aviso y las demás notas subían una fila
+    for (const mala of ['11', "7'5", '7+', '5-6', '7/10', '85', '7,5 (rec)', '-3', '10,5']) {
+      const filas = leerPegado(`${mala}\n7\n8\n6`);
+      expect(pareceCabecera(filas), mala).toBe(false);
+      expect(entenderPegado(filas).celdas, mala).toEqual([[mala], ['7'], ['8'], ['6']]);
+      expect(puedeSerTitulo(mala), mala).toBe(false);
+    }
+    // Con los nombres al lado, igual
+    expect(entenderPegado(leerPegado('Alumno 1\t11\nAlumno 2\t7\nAlumno 3\t8'))).toMatchObject({
+      cabecera: false, etiquetas: ['Alumno 1', 'Alumno 2', 'Alumno 3'], celdas: [['11'], ['7'], ['8']],
+    });
+    // Y el plan la señala en su alumno, sin mover a nadie
+    const plan = planDePegado(entenderPegado(leerPegado('11\n7\n8')), {
+      alumnado: [{ id: 'a', name: 'Alumno 1' }, { id: 'b', name: 'Alumno 2' }, { id: 'c', name: 'Alumno 3' }],
+      actividades: [{ id: 'x', name: 'Examen' }], alumnoId: 'a', actividadId: 'x', notas: {},
+    });
+    expect(plan?.filas.map(f => f.celdas[0].estado)).toEqual(['mal', 'nueva', 'nueva']);
+    expect(plan?.cambios).toEqual([{ itemId: 'x', studentId: 'b', value: 7 }, { itemId: 'x', studentId: 'c', value: 8 }]);
+  });
+
+  it('un título lleva letras o es una fecha', () => {
+    for (const titulo of ['Examen T3', 'T1', '1.ª ev.', '2º examen', 'Nº', '12/11/2026', '12-11-26', '12.11.2026', '15/10', '3/12']) {
+      expect(puedeSerTitulo(titulo), titulo).toBe(true);
+      expect(pareceCabecera(leerPegado(`${titulo}\n7\n8`)), titulo).toBe(true);
+    }
+    for (const no of ['', '7', '7,5', 'NP', '-', '32/11', '5/13']) expect(puedeSerTitulo(no), no).toBe(false);
+  });
+
   it('una cabecera de verdad se sigue reconociendo, aunque debajo haya alumnos sin nota', () => {
     expect(pareceCabecera(leerPegado('Nota\nNP\n7\n8'))).toBe(true);
     expect(pareceCabecera(leerPegado('Nombre\tExamen\nAlumno 1\tNP\nAlumno 2\t7'))).toBe(true);
@@ -175,6 +204,18 @@ describe('entenderPegado', () => {
     const p = entenderPegado(leerPegado('7\tNP\t8\n6\tNP\t5'));
     expect(p.celdas).toEqual([['7', 'NP', '8'], ['6', 'NP', '5']]);
     expect(p.etiquetas).toBeNull();
+  });
+
+  it('una columna entera de «NP» al principio es una actividad, no los nombres: no desplaza a la siguiente', () => {
+    // Antes se apartaba como si fueran los nombres y las notas de la segunda actividad caían en la primera
+    const p = entenderPegado(leerPegado('NP\t7\nNP\t8\n-\t9'));
+    expect(p.etiquetas).toBeNull();
+    expect(p.celdas).toEqual([['NP', '7'], ['NP', '8'], ['-', '9']]);
+    // Con los nombres delante, los nombres se apartan y la columna de «NP» se queda en su sitio
+    const con = entenderPegado(leerPegado('Alumno 1\tNP\t7\nAlumno 2\tNP\t8'));
+    expect(con).toMatchObject({ etiquetas: ['Alumno 1', 'Alumno 2'], celdas: [['NP', '7'], ['NP', '8']] });
+    // Y el número de lista con una columna de «NP» detrás no pasa por número de lista con nombres
+    expect(entenderPegado(leerPegado('5\tNP\n6\tNP\n7\tNP')).numeroDeLista).toBe(false);
   });
 
   it('si todo es texto no queda ninguna columna de notas', () => {

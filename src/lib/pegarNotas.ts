@@ -11,7 +11,8 @@
  *  - Una nota es un número de 0 a 10, con coma o punto decimal. Lo demás («NP», «11», «7/10») se señala y no entra.
  *  - Una celda vacía de lo pegado no cambia nada: nunca borra una nota que ya estaba.
  *  - Si la primera fila trae títulos donde las demás traen notas, es la cabecera de la hoja y no se cuenta
- *    (el docente puede decir lo contrario). «NP», «-» o «Falta» no son un título: son un alumno sin nota.
+ *    (el docente puede decir lo contrario). «NP», «-» o «Falta» no son un título: son un alumno sin nota. Tampoco
+ *    lo es una nota mal escrita («11», «7'5», «7+», «7,5 (rec)»): es la del primer alumno, y se señala.
  *  - Las columnas de texto del principio (los nombres) y el número de lista que va delante no ocupan columna del cuaderno: se
  *    enseñan al lado de cada alumno para comprobar el orden, y se avisa si un nombre no se parece al de su fila.
  *  - Lo que no cabe (más filas que alumnado, más columnas que actividades) se dice y no entra.
@@ -137,12 +138,41 @@ export function esMarcaSinNota(x: string): boolean {
   return c !== '' && (SIN_NOTA.has(c) || !/[\p{L}\p{N}]/u.test(c));
 }
 
+/** Una fecha con su año («12/11/2026», «12-11-26», «12.11.2026»): una hoja titula así las columnas del día a día. */
+const FECHA_CON_ANO = /^\d{1,2}([/.-])\d{1,2}\1\d{2,4}$/;
+/** Un día y un mes con barra («12/11»). */
+const DIA_Y_MES = /^(\d{1,2})\/(\d{1,2})$/;
+
+function pareceFecha(x: string): boolean {
+  const s = x.replace(/\s+/g, '');
+  if (FECHA_CON_ANO.test(s)) return true;
+  const m = DIA_Y_MES.exec(s);
+  if (!m) return false;
+  const dia = Number(m[1]);
+  const mes = Number(m[2]);
+  // «7/10» es también «un 7 sobre 10»: ante la duda no es un título
+  return dia >= 1 && dia <= 31 && mes >= 1 && mes <= 12 && !(mes === 10 && dia <= 10);
+}
+
+/** Una nota con una aclaración entre paréntesis detrás («7,5 (rec)»): es de un alumno, no un título. */
+const esNotaAnotada = (x: string) => x.includes('(') && esNota(x.slice(0, x.indexOf('(')));
+
+/**
+ * Si un texto puede ser el título de una columna: lleva alguna letra («Examen T3», «1.ª ev.») o es una fecha, y no
+ * es de lo que se escribe en vez de una nota. Una nota mal escrita («11», «7'5», «7+», «5-6», «7,5 (rec)») no es un
+ * título: es la del primer alumno, que no entra y se señala. Tomarla por la cabecera se la llevaría sin decir nada y
+ * correría una fila hacia arriba todas las demás (23-11-2026).
+ */
+export function puedeSerTitulo(x: string): boolean {
+  return hayTexto(x) && !esMarcaSinNota(x) && !esNotaAnotada(x) && (/\p{L}/u.test(x) || pareceFecha(x));
+}
+
 /**
  * La primera fila parece la cabecera de la hoja: en las columnas que debajo traen notas no trae ninguna nota y
- * sí algún título. Un título no es lo que se escribe en vez de una nota («NP», «-», «Falta») ni un texto que se
- * repite más abajo en su columna: eso es la fila del primer alumno, que no tiene nota, y tomarla por cabecera
- * correría una fila todas las notas (23-11-2026). Las columnas de nombres no cuentan: «Alumno 1» con la casilla
- * vacía es un alumno sin nota, no una cabecera.
+ * sí algún título (`puedeSerTitulo`). Un título no es lo que se escribe en vez de una nota («NP», «-», «Falta»),
+ * ni una nota mal escrita, ni un texto que se repite más abajo en su columna: eso es la fila del primer alumno,
+ * y tomarla por cabecera correría una fila todas las notas (23-11-2026). Las columnas de nombres no cuentan:
+ * «Alumno 1» con la casilla vacía es un alumno sin nota, no una cabecera.
  */
 export function pareceCabecera(filas: string[][]): boolean {
   if (filas.length < 2) return false;
@@ -154,7 +184,7 @@ export function pareceCabecera(filas: string[][]): boolean {
     if (!columna.some(esNota)) continue; // una columna de nombres, o vacía
     const x = primera[k] ?? '';
     if (esNota(x)) return false;
-    if (!hayTexto(x) || esMarcaSinNota(x)) continue;
+    if (!puedeSerTitulo(x)) continue;
     const c = comparable(x);
     if (!columna.some(y => comparable(y) === c)) hayTitulo = true;
   }
@@ -173,8 +203,11 @@ function esNumeroDeLista(columna: string[]): boolean {
   return columna.length >= 5 && esCorrelativa(columna) && Number(columna[0].replace('.', '')) === 1;
 }
 
-/** Una columna de texto sin ninguna nota: los nombres. */
-const esDeNombres = (columna: string[]) => !columna.some(esNota) && columna.some(hayTexto);
+/**
+ * Una columna de texto sin ninguna nota: los nombres. Una columna entera de «NP» o de «-» no lo es: es una
+ * actividad que nadie tiene calificada, y apartarla llevaría las notas de la siguiente a la actividad de antes.
+ */
+const esDeNombres = (columna: string[]) => !columna.some(esNota) && columna.some(x => hayTexto(x) && !esMarcaSinNota(x));
 
 /**
  * Entiende lo pegado: aparta la cabecera y las columnas del principio que no son notas (el número de lista y los
