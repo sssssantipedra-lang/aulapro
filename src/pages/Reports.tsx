@@ -387,7 +387,8 @@ export function Reports(props: Props) {
 
   function guardarSeguimiento(student: Student, b: BorradorDeSeguimiento) {
     const previo = reportOf(student.id);
-    if (previo) onUpdateReport({ ...informeDe(student, b, previo), editado: true });
+    // «Corregido a mano» se refiere al texto: es lo que la IA pisaría si lo vuelve a redactar
+    if (previo) onUpdateReport({ ...informeDe(student, b, previo), editado: !!previo.editado || b.text !== previo.text.trim() });
     else onAddReport(informeDe(student, b));
     setEdicion(null); setAlLlegar(false);
     toast(t(previo ? '✅ Informe actualizado' : '✅ Informe de seguimiento guardado'));

@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react';
-import { CalendarDays, Trash2, Undo2, X } from 'lucide-react';
+import { CalendarDays, FilePlus2, Trash2, Undo2, X } from 'lucide-react';
 import { useI18n } from '../../i18n';
 import { useToast } from './Toast';
-import { DURACION_DESHACER_MS, esCambio, textoDeBorrados, type Borrado } from '../../lib/deshacer';
+import { DURACION_DESHACER_MS, esCambio, esCreado, textoDeBorrados, type Borrado } from '../../lib/deshacer';
 
 interface Props {
   /** El último borrado, mientras se puede deshacer (`useAppState`). */
@@ -97,7 +97,9 @@ export function AvisoDeshacer({ pendiente, onDeshacer, onOlvidar, duracion = DUR
       onFocus={parar}
       onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) seguir(); }}
     >
-      {esCambio(pendiente.borrados)
+      {esCreado(pendiente.borrados)
+        ? <FilePlus2 size={17} className="deshacer-ico" aria-hidden="true" />
+        : esCambio(pendiente.borrados)
         ? <CalendarDays size={17} className="deshacer-ico" aria-hidden="true" />
         : <Trash2 size={17} className="deshacer-ico" aria-hidden="true" />}
       <span className="deshacer-txt">{textoDeBorrados(pendiente.borrados, t, locale)}</span>

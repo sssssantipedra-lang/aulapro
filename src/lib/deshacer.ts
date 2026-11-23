@@ -102,6 +102,9 @@ const CAMBIOS: ReadonlySet<TipoBorrado> = new Set<TipoBorrado>(['fechas', ...CRE
 /** Si lo apuntado es un cambio y no un borrado (para el dibujo del aviso). */
 export const esCambio = (borrados: readonly Borrado[]): boolean => borrados.length > 0 && borrados.every(b => CAMBIOS.has(b.tipo));
 
+/** Si lo apuntado es algo que se creó de golpe (deshacer lo quita). */
+export const esCreado = (borrados: readonly Borrado[]): boolean => borrados.length > 0 && borrados.every(b => CREADOS.has(b.tipo));
+
 /** Todas las claves de traducción de este archivo (para la prueba que exige las tres lenguas). */
 export function clavesDeDeshacer(): string[] {
   const out = [FRASE_BORRADO, FRASE_CAMBIO, FRASE_CREADO, VARIOS_ELEMENTOS];
@@ -140,8 +143,7 @@ export function textoDeBorrados(borrados: Borrado[], t: Traducir, locale = 'es-E
       que = t(dicho.uno, { nombre, fecha: primero.fecha ? diaLegible(primero.fecha, locale) : '' });
     } else que = t(dicho.sin);
   }
-  const creados = borrados.length > 0 && borrados.every(b => CREADOS.has(b.tipo));
-  return t(creados ? FRASE_CREADO : esCambio(borrados) ? FRASE_CAMBIO : FRASE_BORRADO, { que });
+  return t(esCreado(borrados) ? FRASE_CREADO : esCambio(borrados) ? FRASE_CAMBIO : FRASE_BORRADO, { que });
 }
 
 /* ── El borrado pendiente de deshacer ── */
