@@ -156,6 +156,7 @@ Pendiente:
   - En una pantalla táctil, cada actividad nueva del cuaderno abre sola la lista de casillas grandes; y Ctrl+Z en una celda vacía deshace el último cambio común, sea cual sea.
   - El editor del informe de seguimiento no tiene borrador automático, y una frase quitada vuelve con «Actualizar los datos».
   - Conviene leer los modelos de rúbricas y escalas (`src/lib/modelosInstrumentos.ts`), sobre todo en catalán.
+  - Web (23-11-2026, `web/DISENO.md`, sección 54): los vídeos publicados son anteriores a las mejoras (el de «Crear una rúbrica» enseña la ventana antigua; para grabarlo hay que regenerar la voz de las escenas 4 y 5); en la portada siguen «25 informes competenciales» y la descripción para Google dice que AulaPro «prepara con IA… informes y fichas», las dos ciertas pero ya no toda la verdad; y conviene leer en catalán y en inglés las frases nuevas de la portada y de la demo.
 - Al eliminar una clase no se van sus bloques del horario ni su distribución de aula (visto el 20-11-2026 al repasar «Deshacer»; ya era así).
 - PT y AL:
   - Faltan el formato oficial de Cataluña y el de Madrid.
