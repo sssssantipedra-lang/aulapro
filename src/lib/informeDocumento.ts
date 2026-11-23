@@ -89,7 +89,8 @@ export function partesDeInforme(r: CompetencyReport, c: ContextoDeInforme): Part
     const v = normalizarValoracion(f.valoracion);
     return { clave: f.clave, nombre: c.etiquetaCompetencia(f.clave), valoracion: t(NOMBRE[v]), color: COLOR_VALORACION[v], comentario: f.comentario.trim() };
   });
-  const base = r.origen === 'mano' ? PIE_MANO : r.origen === 'reglas' ? PIE_DOCENTE : PIE_IA;
+  // Los informes de antes no dicen quién los redactó: fue la IA. Con la hoja de seguimiento, el pie dice de qué datos sale
+  const base = (r.origen ?? 'ia') === 'ia' ? PIE_IA : s ? PIE_DOCENTE : PIE_MANO;
   const extra = c.pieExtra?.(r) ?? '';
   return {
     alumno: r.student_name,

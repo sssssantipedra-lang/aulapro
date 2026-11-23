@@ -31,6 +31,8 @@ type T = (clave: string, vars?: Record<string, string | number>) => string;
 
 /** Cuántas frases lleva el informe como mucho a cada lado, como «Lo más relevante». */
 export const MAX_FRASES = 5;
+/** Y cuántas de ellas pueden ser de competencias clave: con siete competencias flojas, el informe sería una lista. */
+export const MAX_DE_COMPETENCIAS = 2;
 
 const NOMBRE_TIPO: Record<TipoDato, string> = {
   notas: 'Notas', asistencia: 'Asistencia', actitud: 'Actitud y trabajo diario', competencias: 'Competencias',
@@ -78,8 +80,8 @@ export const ANOTACION_PARA_FAMILIA: Record<string, string> = {
  */
 export const FRASE_FAMILIA: Record<string, string | { una: string; varias: string } | null> = {
   // Notas
-  'Media de {nota} en {asignatura}': 'En {asignatura} lleva una nota media de {nota} sobre 10, un buen resultado.',
-  'Media de {nota} en {asignatura}, por debajo del 5': 'En {asignatura} su nota media es de {nota} sobre 10: todavía no llega al 5 y conviene reforzar la materia.',
+  'Media de {nota} en {asignatura}': 'En {asignatura} su nota es de {nota} sobre 10, un buen resultado.',
+  'Media de {nota} en {asignatura}, por debajo del 5': 'En {asignatura} su nota es de {nota} sobre 10: todavía no llega al 5 y conviene reforzar la materia.',
   '{d} puntos por encima de la media de la clase en {asignatura}': null,
   '{d} puntos por debajo de la media de la clase en {asignatura}': null,
   'Ha subido {d} puntos en {asignatura} respecto al periodo anterior': {
@@ -156,9 +158,14 @@ export const origenDe = (d: DatoResumen, t: T, locale: string): string => `${t(N
 
 function frasesDe(datos: DatoResumen[], t: T, locale: string): FraseSeguimiento[] {
   const out: FraseSeguimiento[] = [];
+  let deCompetencias = 0;
   for (const d of datos) {
+    // Las competencias ya van todas en su tabla: en frases, solo las que más pesan
+    if (d.tipo === 'competencias' && deCompetencias === MAX_DE_COMPETENCIAS) continue;
     const texto = fraseParaFamilia(d, t, locale);
-    if (texto) out.push({ texto, origen: origenDe(d, t, locale) });
+    if (!texto) continue;
+    out.push({ texto, origen: origenDe(d, t, locale) });
+    if (d.tipo === 'competencias') deCompetencias++;
     if (out.length === MAX_FRASES) break;
   }
   return out;
@@ -194,6 +201,8 @@ export interface ClaseDelPeriodo {
   entrada: MarksInput;
   /** El cuaderno de la evaluación: sus actividades y el bloque de anotaciones de sus fechas. */
   vista: VistaDeCuaderno;
+  /** El cuaderno de la evaluación anterior, para decir si la nota sube o baja; `null` en la 1.ª y en «Final de curso». */
+  vistaAnterior: VistaDeCuaderno | null;
   /** En «Final de curso», las notas de cada evaluación y la final de cada asignatura. */
   deCurso: Map<string, Map<string, NotasDeCurso>> | null;
   cuentas: Cuentas;
@@ -217,7 +226,45 @@ export function claseDelPeriodo(
       deCurso.set(asignatura, notasDeCurso(entrada, cls, asignatura, regla, hoy, rangos).notas);
     }
   }
-  return { cls, periodo, hoy, rangos, entrada, vista, deCurso, cuentas: cuentasDePeriodo(periodo, hoy, rangos) };
+  const anterior = periodoAnterior(periodo);
+  const vistaAnterior = anterior ? cuadernoDe(entrada, anterior, hoy, rangos) : null;
+  return { cls, periodo, hoy, rangos, entrada, vista, vistaAnterior, deCurso, cuentas: cuentasDePeriodo(periodo, hoy, rangos) };
+}
+
+/** La nota de un alumno en una asignatura en una vista del cuaderno; `null` si solo tiene el bloque de anotaciones. */
+function notaEnVista(vista: VistaDeCuaderno, cls: Class, asignatura: string, alumno: string): number | null {
+  const cats = categoriasDe(vista, cls, asignatura);
+  const propias = new Set(cats.filter(c => !isMarksCategory(c.id)).map(c => c.id));
+  const tieneNotas = vista.gradeItems.some(i => propias.has(i.category_id) && typeof vista.grades[i.id]?.[alumno] === 'number');
+  return tieneNotas ? aUnDecimal(mediaPonderada(cats, vista.gradeItems, vista.grades, alumno)) : null;
+}
+
+/**
+ * Las reglas de `lib/resumenAlumno.ts` que hablan de la nota media de una asignatura la calculan sin el
+ * bloque «Trabajo diario y actitud» y con sus propias fechas. En el informe la frase va al lado de la tabla
+ * de calificaciones, así que tiene que decir la misma nota que ella (la del cuaderno de la evaluación, con
+ * el bloque y con la regla de la nota final): esas reglas se cambian por estas, con los mismos umbrales y
+ * los mismos pesos, hechas con la nota a un decimal que la familia lee.
+ */
+const REGLAS_DE_MEDIA = new Set([
+  'Media de {nota} en {asignatura}', 'Media de {nota} en {asignatura}, por debajo del 5',
+  'Ha subido {d} puntos en {asignatura} respecto al periodo anterior', 'Ha bajado {d} puntos en {asignatura} respecto al periodo anterior',
+  '{d} puntos por encima de la media de la clase en {asignatura}', '{d} puntos por debajo de la media de la clase en {asignatura}',
+]);
+
+export function datosDeLaNota(c: ClaseDelPeriodo, alumno: string, notas: readonly NotasSeguimiento[]): { pos: DatoResumen[]; neg: DatoResumen[] } {
+  const pos: DatoResumen[] = [], neg: DatoResumen[] = [];
+  for (const { asignatura, media } of notas) {
+    if (media === null) continue;
+    if (media >= 7) pos.push({ tipo: 'notas', clave: 'Media de {nota} en {asignatura}', vars: { nota: media, asignatura }, peso: 60 + (media - 7) * 10 });
+    if (media < 5) neg.push({ tipo: 'notas', clave: 'Media de {nota} en {asignatura}, por debajo del 5', vars: { nota: media, asignatura }, peso: 90 + (5 - media) * 10 });
+    const previa = c.vistaAnterior ? notaEnVista(c.vistaAnterior, c.cls, asignatura, alumno) : null;
+    if (previa === null) continue;
+    const dif = Math.round((media - previa) * 10) / 10;
+    if (dif >= 1) pos.push({ tipo: 'notas', clave: 'Ha subido {d} puntos en {asignatura} respecto al periodo anterior', vars: { d: dif, asignatura }, peso: 75 + dif * 2 });
+    if (dif <= -1) neg.push({ tipo: 'notas', clave: 'Ha bajado {d} puntos en {asignatura} respecto al periodo anterior', vars: { d: -dif, asignatura }, peso: 85 - dif * 2 });
+  }
+  return { pos, neg };
 }
 
 /** Las notas del alumno en cada asignatura de la clase, con sus categorías; solo las asignaturas en las que tiene alguna. */
@@ -297,14 +344,16 @@ export function componerSeguimiento({ clase, student, attendance, evaluations, t
   });
   const rango = rangoDe(periodo, hoy, rangos);
   const notas = notasDelPeriodo(clase, student.id, t);
+  const deLaNota = datosDeLaNota(clase, student.id, notas);
+  const conLaNota = (xs: DatoResumen[], suyos: DatoResumen[]) => [...xs.filter(x => !REGLAS_DE_MEDIA.has(x.clave)), ...suyos].sort((a, b) => b.peso - a.peso);
   const asistencia = asistenciaDelPeriodo(attendance, cls.id, student.id, cuentas.actual);
   const tabla = tablaPorReglas(suyas.filter(e => cuentas.actual(e.date)));
   return {
     seguimiento: {
       ...(rango ? { desde: rango.desde, hasta: rango.hasta } : {}),
       notas, asistencia,
-      positivos: frasesDe(datos.positivos, t, locale),
-      mejorar: frasesDe(datos.atencion, t, locale),
+      positivos: frasesDe(conLaNota(datos.positivos, deLaNota.pos), t, locale),
+      mejorar: frasesDe(conLaNota(datos.atencion, deLaNota.neg), t, locale),
       observacion: '',
     },
     tabla,
@@ -350,6 +399,34 @@ export function recalcular(
     },
     tabla: ahora.tabla.map(f => ({ ...f, comentario: comentario.get(f.clave) ?? '' })),
   };
+}
+
+/**
+ * Quién firma el texto de un informe al guardarlo, para el pie del documento: sin texto, nadie (`reglas`);
+ * el que la IA redactó sigue siendo suyo aunque el docente lo corrija (el pie dice «con asistencia de
+ * inteligencia artificial y revisado por el docente») y deja de serlo si el docente lo vacía y escribe otro
+ * en una edición posterior; lo demás lo ha escrito el docente.
+ */
+export function origenDelTexto(texto: string, previo?: Pick<CompetencyReport, 'text' | 'origen'>): NonNullable<CompetencyReport['origen']> {
+  if (!texto.trim()) return 'reglas';
+  const antes = previo?.text.trim() ? (previo.origen ?? 'ia') : null;
+  return antes === 'ia' ? 'ia' : 'mano';
+}
+
+/**
+ * Si los números de la hoja guardada ya no son los de ahora (se puso una nota, se pasó lista o se evaluó
+ * después de hacer el informe, o cambiaron las fechas de la evaluación): la pantalla lo avisa y ofrece
+ * «Actualizar los datos». Solo mira los datos que el docente no escribe: calificaciones, asistencia y la
+ * valoración de cada competencia.
+ */
+export function datosCambiados(guardado: Pick<CompetencyReport, 'seguimiento' | 'tabla'>, ahora: SeguimientoCompuesto): boolean {
+  const s = guardado.seguimiento;
+  if (!s) return false;
+  const notas = (xs: readonly NotasSeguimiento[]) => xs.map(n => [n.asignatura, n.media, n.evaluaciones ?? null, n.categorias.map(c => [c.peso, c.media, !!c.bloque])]);
+  const tabla = (xs: readonly FilaCompetencia[] | undefined) => (xs ?? []).map(f => [f.clave, f.valoracion === 'mal' ? 'mejorable' : f.valoracion]);
+  const de = (x: Pick<InformeSeguimiento, 'notas' | 'asistencia' | 'desde' | 'hasta'>, t: readonly FilaCompetencia[] | undefined) =>
+    JSON.stringify([notas(x.notas), x.asistencia, x.desde ?? null, x.hasta ?? null, tabla(t)]);
+  return de(s, guardado.tabla) !== de(ahora.seguimiento, ahora.tabla);
 }
 
 /** Si una parte de la hoja se entrega (el docente puede quitar las notas, la asistencia o las competencias). */

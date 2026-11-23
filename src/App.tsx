@@ -126,6 +126,9 @@ function AppInner() {
   /** El alumno cuya ficha hay que abrir al llegar a Mis clases (desde el radar del Inicio o el buscador). */
   const [fichaPedida, setFichaPedida] = useState<{ id: string | null; clase: string | null; n: number }>({ id: null, clase: null, n: 0 });
   const abrirAlumno = (id: string) => { setFichaPedida(p => ({ id, clase: null, n: p.n + 1 })); setSection('classes'); };
+  /** El alumno cuyo informe de seguimiento hay que abrir al llegar a Informes (desde su ficha). Va en el estado, no en la dirección. */
+  const [informePedido, setInformePedido] = useState<{ id: string | null; n: number }>({ id: null, n: 0 });
+  const abrirInforme = (id: string) => { setInformePedido(p => ({ id, n: p.n + 1 })); setSection('reports'); };
   /**
    * El buscador general (18-11-2026): se abre con el botón «Buscar» o con Ctrl+K (⌘K). Un alumno abre su ficha, una
    * clase su alumnado, y una rúbrica o una situación de aprendizaje llevan a su pantalla con lo buscado ya escrito.
@@ -621,7 +624,8 @@ function AppInner() {
                     <Suspense fallback={null}>
                       <ResumenDeAlumno student={s} cls={cls} companeros={st.students.filter(x => x.class_id === s.class_id).map(x => x.id)}
                         gradeCategories={gradeView.gradeCategories} gradeItems={gradeView.gradeItems} grades={gradeView.grades}
-                        attendance={st.attendance} classMarks={st.classMarks} evaluations={st.evaluations} />
+                        attendance={st.attendance} classMarks={st.classMarks} evaluations={st.evaluations}
+                        onInforme={pantallaDelPerfil('reports') ? () => abrirInforme(s.id) : undefined} />
                     </Suspense>
                   );
                 }}
@@ -872,18 +876,24 @@ function AppInner() {
             )}
             {section === 'reports' && (
               <Reports
+                key={informePedido.n}
+                alumnoInicial={informePedido.id}
+                onAlumnoAbierto={() => setInformePedido(p => ({ ...p, id: null }))}
                 classes={st.classes}
                 students={st.students}
                 evaluations={st.evaluations}
                 rubrics={st.rubrics}
                 dianas={st.dianas}
-                gradeCategories={gradeView.gradeCategories}
-                gradeItems={gradeView.gradeItems}
-                grades={gradeView.grades}
+                gradeCategories={st.gradeCategories}
+                gradeItems={st.gradeItems}
+                grades={st.grades}
+                classMarks={st.classMarks}
+                marksConfigs={st.marksConfigs}
                 attendance={st.attendance}
                 reports={st.reports}
                 comunidad={st.currentUser.community}
                 onAddReport={st.addReport}
+                onAddReports={st.addReports}
                 onUpdateReport={st.updateReport}
                 onDeleteReport={st.deleteReport}
                 onNav={s => setSection(s as Section)}

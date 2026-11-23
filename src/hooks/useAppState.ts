@@ -848,6 +848,15 @@ export function useAppState() {
     setReports(prev => [r, ...prev.filter(x => !(x.student_id === r.student_id && x.period === r.period))]);
     log('create', 'report', r.id, `Informe de ${r.student_name}`, r.period);
   }, [log]);
+  /** Varios informes de una vez (los de seguimiento de toda la clase): un solo apunte en el registro y un «Deshacer» para todos. */
+  const addReports = useCallback((nuevos: CompetencyReport[]) => {
+    if (nuevos.length === 0) return;
+    apuntarBorrado({ tipo: 'informesCreados', cuantos: nuevos.length });
+    const clave = (r: CompetencyReport) => `${r.student_id}|${r.period}`;
+    const suyos = new Set(nuevos.map(clave));
+    setReports(prev => [...nuevos, ...prev.filter(x => !suyos.has(clave(x)))]);
+    log('create', 'report', nuevos[0].id, `${nuevos.length} informes de seguimiento`, nuevos[0].period);
+  }, [log, apuntarBorrado]);
   const updateReport = useCallback((r: CompetencyReport) => {
     setReports(prev => prev.map(x => x.id === r.id ? r : x));
     log('update', 'report', r.id, `Informe de ${r.student_name}`, 'editado a mano');
@@ -1251,7 +1260,7 @@ export function useAppState() {
     setGrade,
     dianaProfiles, saveDianaProfile,
     setAttendanceFor, setAttendanceDay, deleteAttendanceDay,
-    addReport, updateReport, deleteReport,
+    addReport, addReports, updateReport, deleteReport,
     selfAssessments, saveSelfAssessment, deleteSelfAssessment, includeSelfAssessment,
     learningSituations, saveLearningSituation, deleteLearningSituation,
     fichas, saveFicha, deleteFicha,

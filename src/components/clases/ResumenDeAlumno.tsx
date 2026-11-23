@@ -4,7 +4,7 @@
  * del periodo elegido. Lo calculan las reglas de `lib/resumenAlumno.ts`, sin IA.
  */
 import { useMemo, useState } from 'react';
-import { BookOpen, CalendarCheck, Sparkles, Target, ThumbsUp, TriangleAlert } from 'lucide-react';
+import { BookOpen, CalendarCheck, ListChecks, Sparkles, Target, ThumbsUp, TriangleAlert } from 'lucide-react';
 import { useI18n } from '../../i18n';
 import { isoDate } from '../../lib/utils';
 import { PERIODOS, resumenAlumno, textoDeDato, type DatoResumen, type DatosParaResumen, type PeriodoResumen, type TipoDato } from '../../lib/resumenAlumno';
@@ -20,7 +20,10 @@ function periodoGuardado(): PeriodoResumen {
   } catch { return 'semanas'; }
 }
 
-type Props = Omit<DatosParaResumen, 'hoy' | 'periodo'>;
+type Props = Omit<DatosParaResumen, 'hoy' | 'periodo'> & {
+  /** Abre el informe de seguimiento del alumno para su familia (Informes), hecho con estas mismas reglas. */
+  onInforme?: () => void;
+};
 
 export function ResumenDeAlumno(props: Props) {
   const { t, locale } = useI18n();
@@ -71,6 +74,14 @@ export function ResumenDeAlumno(props: Props) {
             <h4><TriangleAlert size={14} aria-hidden="true" />{t('Necesita atención')}</h4>
             {lista(r.atencion, 'Nada que necesite atención en este periodo.')}
           </div>
+        </div>
+      )}
+      {props.onInforme && (
+        <div className="ra-informe">
+          <button type="button" className="btn-ghost sm" onClick={props.onInforme}>
+            <ListChecks size={13} aria-hidden="true" />{t('Informe de seguimiento')}
+          </button>
+          <span>{t('Para la familia: sus notas, su asistencia y lo más relevante de la evaluación, sin IA. Lo revisas antes de guardarlo.')}</span>
         </div>
       )}
     </section>

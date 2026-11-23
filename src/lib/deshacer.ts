@@ -25,7 +25,9 @@ export type TipoBorrado =
   | 'grupo' | 'programa' | 'documento' | 'coordinacion' | 'adaptacion' | 'agenda' | 'foto'
   | 'exento' | 'apoyoEF' | 'prueba' | 'baremo' | 'actividad' | 'sesion' | 'material' | 'instalacion' | 'circuito' | 'pizarra'
   /** No es un borrado sino un cambio que también se deshace: las fechas de varias sesiones puestas o corridas de una vez. */
-  | 'fechas';
+  | 'fechas'
+  /** Tampoco es un borrado: los informes de seguimiento de toda una clase, creados de una vez (deshacer los quita). */
+  | 'informesCreados';
 
 /** Una cosa borrada, para decirla en el aviso. */
 export interface Borrado {
@@ -82,6 +84,7 @@ export const DICHO: Record<TipoBorrado, { uno?: string; sin: string; varios?: st
   circuito: { uno: 'el circuito «{nombre}»', sin: 'un circuito', varios: '{n} circuitos' },
   pizarra: { uno: 'la pizarra «{nombre}»', sin: 'una pizarra', varios: '{n} pizarras' },
   fechas: { sin: 'la fecha de una sesión', varios: 'la fecha de {n} sesiones' },
+  informesCreados: { sin: 'un informe de seguimiento', varios: '{n} informes de seguimiento' },
 };
 
 /** La frase del aviso y la de varios tipos mezclados. */
@@ -92,13 +95,16 @@ export const VARIOS_ELEMENTOS = '{n} elementos';
  * hacerlo, con `apuntarCambio` de `useAppState`): el aviso dice «Has cambiado…» en vez de «Has eliminado…».
  */
 export const FRASE_CAMBIO = 'Has cambiado {que}.';
-const CAMBIOS: ReadonlySet<TipoBorrado> = new Set<TipoBorrado>(['fechas']);
+/** Y lo que se crea de golpe (los informes de seguimiento de una clase): «Has creado…». */
+export const FRASE_CREADO = 'Has creado {que}.';
+const CREADOS: ReadonlySet<TipoBorrado> = new Set<TipoBorrado>(['informesCreados']);
+const CAMBIOS: ReadonlySet<TipoBorrado> = new Set<TipoBorrado>(['fechas', ...CREADOS]);
 /** Si lo apuntado es un cambio y no un borrado (para el dibujo del aviso). */
 export const esCambio = (borrados: readonly Borrado[]): boolean => borrados.length > 0 && borrados.every(b => CAMBIOS.has(b.tipo));
 
 /** Todas las claves de traducción de este archivo (para la prueba que exige las tres lenguas). */
 export function clavesDeDeshacer(): string[] {
-  const out = [FRASE_BORRADO, FRASE_CAMBIO, VARIOS_ELEMENTOS];
+  const out = [FRASE_BORRADO, FRASE_CAMBIO, FRASE_CREADO, VARIOS_ELEMENTOS];
   for (const d of Object.values(DICHO)) out.push(...[d.uno, d.sin, d.varios].filter((x): x is string => !!x));
   return out;
 }
@@ -134,7 +140,8 @@ export function textoDeBorrados(borrados: Borrado[], t: Traducir, locale = 'es-E
       que = t(dicho.uno, { nombre, fecha: primero.fecha ? diaLegible(primero.fecha, locale) : '' });
     } else que = t(dicho.sin);
   }
-  return t(esCambio(borrados) ? FRASE_CAMBIO : FRASE_BORRADO, { que });
+  const creados = borrados.length > 0 && borrados.every(b => CREADOS.has(b.tipo));
+  return t(creados ? FRASE_CREADO : esCambio(borrados) ? FRASE_CAMBIO : FRASE_BORRADO, { que });
 }
 
 /* ── El borrado pendiente de deshacer ── */

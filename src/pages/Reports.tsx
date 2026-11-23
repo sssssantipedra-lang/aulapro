@@ -24,7 +24,7 @@ import { textoLibreParaIA, soloDatosDeSalud } from '../lib/documentoParaIA';
 import { useClaseActiva, useFijarClase } from '../hooks/useClaseActiva';
 import { useEvaluacionElegida } from '../hooks/useEvaluacionElegida';
 import { SelectorEvaluacion } from '../components/SelectorEvaluacion';
-import { asistenciaDelPeriodo, claseDelPeriodo, componerSeguimiento, notasDelPeriodo, recalcular } from '../lib/informeSeguimiento';
+import { asistenciaDelPeriodo, claseDelPeriodo, componerSeguimiento, datosCambiados, notasDelPeriodo, origenDelTexto, recalcular } from '../lib/informeSeguimiento';
 import { cuerpoDeInformeHtml, informeEnTexto, informesHtml, partesDeInforme, textoDePeriodo, type ContextoDeInforme } from '../lib/informeDocumento';
 import { EditorSeguimiento, type BorradorDeSeguimiento } from '../components/informes/EditorSeguimiento';
 
@@ -60,6 +60,8 @@ interface Props {
   /** La comunidad del perfil: de su currículo salen las competencias específicas que llegan al informe. */
   comunidad?: ComunidadId;
   onAddReport: (r: CompetencyReport) => void;
+  /** Varios de una vez (los de seguimiento de la clase), con un solo «Deshacer»; sin él, se añaden de uno en uno. */
+  onAddReports?: (rs: CompetencyReport[]) => void;
   onUpdateReport: (r: CompetencyReport) => void;
   onDeleteReport: (id: string) => void;
   onNav: (s: string) => void;
@@ -94,7 +96,7 @@ export function Reports(props: Props) {
     classes, students, evaluations, rubrics, dianas,
     gradeCategories, gradeItems, grades, attendance, reports, comunidad,
     classMarks = SIN_ANOTACIONES, marksConfigs = SIN_BLOQUES, alumnoInicial, onAlumnoAbierto,
-    onAddReport, onUpdateReport, onDeleteReport, onNav,
+    onAddReport, onAddReports, onUpdateReport, onDeleteReport, onNav,
   } = props;
 
   const { toast } = useToast();
@@ -342,8 +344,7 @@ export function Reports(props: Props) {
   const informeDe = (student: Student, b: BorradorDeSeguimiento, previo?: CompetencyReport): CompetencyReport => ({
     ...(previo ?? { id: nuevoId(), student_id: student.id, student_name: student.name, class_id: clsId, period, date: isoDate() }),
     text: b.text,
-    // El texto conserva a su autor: si lo redactó la IA y el docente no lo ha vaciado, el pie lo sigue diciendo
-    origen: !b.text ? 'reglas' : previo?.text === b.text && previo.origen !== 'reglas' ? (previo.origen ?? 'ia') : previo?.text && (previo.origen ?? 'ia') === 'ia' ? 'ia' : 'mano',
+    origen: origenDelTexto(b.text, previo),
     seguimiento: b.seguimiento,
     tabla: b.tabla,
   });
@@ -352,13 +353,13 @@ export function Reports(props: Props) {
   function seguimientoDeTodos() {
     const pendientes = roster.filter(s => !reportOf(s.id));
     if (pendientes.length === 0) { toast(t('Todo el alumnado tiene ya su informe de esta evaluación')); return; }
-    let hechos = 0;
+    const nuevos: CompetencyReport[] = [];
     for (const s of pendientes) {
       const c = componer(s);
-      if (!c?.hayDatos) continue;
-      onAddReport(informeDe(s, { text: '', seguimiento: c.seguimiento, tabla: c.tabla }));
-      hechos++;
+      if (c?.hayDatos) nuevos.push(informeDe(s, { text: '', seguimiento: c.seguimiento, tabla: c.tabla }));
     }
+    const hechos = nuevos.length;
+    if (onAddReports) onAddReports(nuevos); else nuevos.forEach(onAddReport);
     const sinDatos = pendientes.length - hechos;
     if (hechos === 0) { toast(t('No hay notas, asistencia, anotaciones ni evaluaciones de esta evaluación: no se ha creado ningún informe')); return; }
     toast(`✅ ${t(hechos === 1 ? '{n} informe de seguimiento creado. Revísalo antes de entregarlo.' : '{n} informes de seguimiento creados. Revísalos antes de entregarlos.', { n: hechos })}`
@@ -391,7 +392,7 @@ export function Reports(props: Props) {
     const previo = reportOf(student.id);
     if (!texto && !previo?.seguimiento) { toast(t('Escribe el informe antes de guardarlo')); return; }
     if (previo) {
-      onUpdateReport({ ...previo, text: texto, editado: true, ...(texto ? (previo.origen === 'reglas' ? { origen: 'mano' as const } : {}) : { origen: previo.seguimiento ? 'reglas' as const : previo.origen }) });
+      onUpdateReport({ ...previo, text: texto, editado: true, origen: origenDelTexto(texto, previo) });
       toast(t('✅ Informe actualizado'));
     } else {
       onAddReport({ id: nuevoId(), student_id: student.id, student_name: student.name, class_id: clsId, period, date: isoDate(), text: texto, origen: 'mano' });
@@ -685,7 +686,13 @@ export function Reports(props: Props) {
                 </>
               ) : currentReport ? (
                 <>
-                  <div className="inf-hoja rep-tabla" dangerouslySetInnerHTML={{ __html: cuerpoDeInformeHtml(partesDeInforme(currentReport, contexto), t) }} />
+                  {currentReport.seguimiento && datosCambiados(currentReport, componer(current) ?? { seguimiento: currentReport.seguimiento, tabla: currentReport.tabla ?? [], hayDatos: true }) && (
+                    <p className="inf-aviso" role="status">
+                      <AlertTriangle size={14} aria-hidden="true" />
+                      {t('Los datos de esta evaluación han cambiado desde que se hizo el informe. Con «Actualizar los datos» lo pones al día sin perder lo que escribiste.')}
+                    </p>
+                  )}
+                  <div className="inf-hoja" dangerouslySetInnerHTML={{ __html: cuerpoDeInformeHtml(partesDeInforme(currentReport, contexto), t) }} />
                   <div className="inf-botones">
                     <button className="btn-ghost" onClick={() => previewOne(currentReport)}
                       disabled={working !== null}>
