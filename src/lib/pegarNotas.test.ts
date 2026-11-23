@@ -153,6 +153,18 @@ describe('entenderPegado', () => {
     expect(p.celdas.map(f => f[0])).toEqual(['7', '8', '9', '5', '6']);
   });
 
+  it('con los nombres detrás, el número de lista lo es aunque sean pocas filas o no empiece en 1', () => {
+    // Un grupo pequeño: antes el 1, 2, 3 entraba como notas de la primera actividad
+    const pocos = entenderPegado(leerPegado('1\tAlumno 1\t7\n2\tAlumno 2\t8\n3\tAlumno 3\t9'));
+    expect(pocos).toMatchObject({ numeroDeLista: true, etiquetas: ['Alumno 1', 'Alumno 2', 'Alumno 3'], celdas: [['7'], ['8'], ['9']] });
+    // La segunda mitad de la lista, con su cabecera
+    const mitad = entenderPegado(leerPegado('Nº\tNombre\tExamen\n7\tAlumno 7\t5\n8\tAlumno 8\tNP\n9\tAlumno 9\t6,5'));
+    expect(mitad).toMatchObject({ numeroDeLista: true, cabecera: true, titulos: ['Examen'], celdas: [['5'], ['NP'], ['6,5']] });
+    // Sin nombres detrás y con pocas filas, dos columnas de números son dos columnas de notas
+    const notas = entenderPegado(leerPegado('5\t7\n6\t8\n7\t9'));
+    expect(notas).toMatchObject({ numeroDeLista: false, celdas: [['5', '7'], ['6', '8'], ['7', '9']] });
+  });
+
   it('una sola columna de 1 a 5 son notas, no el número de lista', () => {
     const p = entenderPegado(leerPegado('1\n2\n3\n4\n5'));
     expect(p.numeroDeLista).toBe(false);

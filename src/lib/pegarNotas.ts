@@ -12,7 +12,7 @@
  *  - Una celda vacía de lo pegado no cambia nada: nunca borra una nota que ya estaba.
  *  - Si la primera fila trae títulos donde las demás traen notas, es la cabecera de la hoja y no se cuenta
  *    (el docente puede decir lo contrario). «NP», «-» o «Falta» no son un título: son un alumno sin nota.
- *  - Las columnas de texto del principio (los nombres) y el número de lista no ocupan columna del cuaderno: se
+ *  - Las columnas de texto del principio (los nombres) y el número de lista que va delante no ocupan columna del cuaderno: se
  *    enseñan al lado de cada alumno para comprobar el orden, y se avisa si un nombre no se parece al de su fila.
  *  - Lo que no cabe (más filas que alumnado, más columnas que actividades) se dice y no entra.
  */
@@ -161,10 +161,20 @@ export function pareceCabecera(filas: string[][]): boolean {
   return hayTitulo;
 }
 
+/** Una columna de números enteros seguidos (3, 4, 5…), de dos filas o más. */
+function esCorrelativa(columna: string[]): boolean {
+  if (columna.length < 2 || !columna.every(x => /^\d+\.?$/.test(x))) return false;
+  const primero = Number(columna[0].replace('.', ''));
+  return primero >= 1 && columna.every((x, k) => Number(x.replace('.', '')) === primero + k);
+}
+
 /** Una columna que cuenta 1, 2, 3… desde arriba (cinco filas o más): el número de lista, no una nota. */
 function esNumeroDeLista(columna: string[]): boolean {
-  return columna.length >= 5 && columna.every((x, k) => /^\d+\.?$/.test(x) && Number(x.replace('.', '')) === k + 1);
+  return columna.length >= 5 && esCorrelativa(columna) && Number(columna[0].replace('.', '')) === 1;
 }
+
+/** Una columna de texto sin ninguna nota: los nombres. */
+const esDeNombres = (columna: string[]) => !columna.some(esNota) && columna.some(hayTexto);
 
 /**
  * Entiende lo pegado: aparta la cabecera y las columnas del principio que no son notas (el número de lista y los
@@ -183,9 +193,12 @@ export function entenderPegado(filas: string[][], opciones: { cabecera?: boolean
   const deNombre: number[] = [];
   while (primera < ancho) {
     const col = columna(primera);
-    // El número de lista solo si detrás queda algo: una sola columna de 1 a 5 son notas
-    if (!numeroDeLista && deNombre.length === 0 && primera < ancho - 1 && esNumeroDeLista(col)) { numeroDeLista = true; primera++; continue; }
-    if (!col.some(esNota) && col.some(hayTexto)) { deNombre.push(primera); primera++; continue; }
+    // El número de lista solo si detrás queda algo: una sola columna de 1 a 5 son notas. Con los nombres justo
+    // detrás lo es aunque sean pocas filas o no empiece en 1 (un grupo pequeño, la mitad de la lista): si no,
+    // esos números entrarían como notas de la primera actividad y las notas irían dos columnas más allá
+    if (!numeroDeLista && deNombre.length === 0 && primera < ancho - 1
+      && (esNumeroDeLista(col) || (esCorrelativa(col) && esDeNombres(columna(primera + 1))))) { numeroDeLista = true; primera++; continue; }
+    if (esDeNombres(col)) { deNombre.push(primera); primera++; continue; }
     break;
   }
   const etiquetas = deNombre.length ? cuerpo.map(f => deNombre.map(k => f[k] ?? '').filter(Boolean).join(' ')) : null;
