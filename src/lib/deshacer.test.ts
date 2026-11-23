@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  anotarBorrado, borradoAlPintar, borradoDeApoyo, borradoDeEF, clavesDeDeshacer, coleccionesTocadas, loQueVuelve,
+  anotarBorrado, borradoAlPintar, borradoDeApoyo, borradoDeEF, clavesDeDeshacer, coleccionesTocadas, esCambio, loQueVuelve,
   mismoContenido, textoDeBorrados, DICHO, type BorradoPendiente,
 } from './deshacer';
 import { translate, EN_DICT } from '../i18n';
@@ -59,6 +59,14 @@ describe('lo que dice el aviso', () => {
     expect(faltan).toEqual([]);
     const malas = clavesDeDeshacer().filter(k => vars(EN_DICT[k]) !== vars(k) || vars(CA[k]) !== vars(k));
     expect(malas).toEqual([]);
+  });
+
+  it('los informes de seguimiento creados de una vez se dicen como creados, no como borrados', () => {
+    expect(textoDeBorrados([{ tipo: 'informesCreados', cuantos: 24 }], es)).toBe('Has creado 24 informes de seguimiento.');
+    expect(textoDeBorrados([{ tipo: 'informesCreados', cuantos: 1 }], es)).toBe('Has creado un informe de seguimiento.');
+    expect(textoDeBorrados([{ tipo: 'informesCreados', cuantos: 3 }], ca)).toBe('Has creat 3 informes de seguiment.');
+    expect(textoDeBorrados([{ tipo: 'informesCreados', cuantos: 3 }], en)).toBe('You have created 3 progress reports.');
+    expect(esCambio([{ tipo: 'informesCreados', cuantos: 3 }])).toBe(true);
   });
 
   it('ninguna lleva raya larga ni dice «profes»', () => {

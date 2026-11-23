@@ -34,3 +34,23 @@ describe('valoración por código', () => {
     expect(t.map(f => f.valoracion)).toEqual(['mejorable', 'bien']);
   });
 });
+
+describe('la escala y la tabla sin comentarios (informe de seguimiento, 20-11-2026)', () => {
+  it('una rúbrica de tres o de cinco niveles se pasa a la escala de 4, como en el acta', () => {
+    // 3 de 3 es el máximo: sin pasarlo a 4, nadie llegaba a «Excelente» con una rúbrica de tres niveles
+    expect(notasPorClave([{ competencyScores: { CCL: 3 }, max_level: 3 }])).toEqual({ CCL: 4 });
+    expect(notasPorClave([{ competencyScores: { CCL: 4 }, max_level: 5 }, { competencyScores: { CCL: 4 } }])).toEqual({ CCL: 3.6 });
+    expect(valoracionDeNota(notasPorClave([{ competencyScores: { CD: 3 }, max_level: 3 }]).CD)).toBe('excelente');
+  });
+
+  it('sin ningún comentario, la tabla no lleva esa columna', async () => {
+    const { tablaCompetenciasHtml } = await import('./tablaCompetencias');
+    const t = (k: string) => k;
+    const sin = tablaCompetenciasHtml([{ clave: 'CCL', valoracion: 'bien', comentario: '' }], t, () => 'Comunicación lingüística');
+    expect(sin).not.toContain('Comentario');
+    expect(sin.match(/<td/g)).toHaveLength(1);
+    const con = tablaCompetenciasHtml([{ clave: 'CCL', valoracion: 'bien', comentario: 'Lee con soltura.' }, { clave: 'CD', valoracion: 'bien', comentario: '' }], t, () => '');
+    expect(con).toContain('<th>Comentario</th>');
+    expect(con.match(/<td/g)).toHaveLength(4);
+  });
+});

@@ -3,7 +3,7 @@
  * asistencia, las anotaciones y las competencias del periodo elegido.
  */
 import { describe, it, expect } from 'vitest';
-import { rangoDe, resumenAlumno, MAX_POR_LADO, type DatosParaResumen } from './resumenAlumno';
+import { datosDelAlumno, rangoDe, resumenAlumno, MAX_POR_LADO, type DatosParaResumen } from './resumenAlumno';
 import type { AttendanceMap, Class, ClassMark, Evaluation, GradeItem, Student } from '../types';
 
 const HOY = '2026-11-18';
@@ -202,5 +202,52 @@ describe('el resumen entero', () => {
     }));
     expect(r.atencion).toHaveLength(MAX_POR_LADO);
     expect(r.atencion.map(x => x.peso)).toEqual([...r.atencion.map(x => x.peso)].sort((a, b) => b - a));
+  });
+});
+
+describe('con las fechas de una evaluación (el informe de seguimiento)', () => {
+  const enOctubre = (f: string | undefined) => !!f && f >= '2026-10-01' && f <= '2026-10-31';
+  const enNoviembre = (f: string | undefined) => !f || (f >= '2026-11-01' && f <= '2026-11-30');
+
+  it('cuenta lo que diga `cuenta`, no las fechas del periodo de la ficha', () => {
+    const r = resumenAlumno(base({
+      periodo: 'curso',
+      cuenta: { actual: enOctubre, anterior: null },
+      gradeItems: [item('oct', '2026-10-05'), item('nov', '2026-11-10')],
+      grades: { oct: { a: 9, b: 6, c: 6, d: 6 }, nov: { a: 2, b: 6, c: 6, d: 6 } },
+      attendance: { c1: { '2026-10-06': { a: 'absent' }, '2026-11-03': { a: 'absent' }, '2026-11-04': { a: 'absent' } } },
+    }));
+    expect(claves(r.positivos)).toContain('Media de {nota} en {asignatura}');
+    expect(r.positivos.find(x => x.clave === 'Media de {nota} en {asignatura}')?.vars?.nota).toBe(9);
+    expect(claves(r.atencion)).toContain('1 falta sin justificar');
+    expect(claves(r.atencion)).not.toContain('{n} faltas sin justificar');
+  });
+
+  it('compara con la evaluación anterior si la hay', () => {
+    const r = resumenAlumno(base({
+      cuenta: { actual: enNoviembre, anterior: enOctubre },
+      gradeItems: [item('oct', '2026-10-05'), item('nov', '2026-11-10')],
+      grades: { oct: { a: 5 }, nov: { a: 8 } },
+    }));
+    expect(r.positivos.find(x => x.clave.startsWith('Ha subido'))?.vars?.d).toBe(3);
+  });
+
+  it('la racha de buena actitud solo se dice si la evaluación llega hasta hoy', () => {
+    const marcas: ClassMark[] = ['2026-11-16', '2026-11-17', '2026-11-18'].map((date, i) => ({ id: `m${i}`, class_id: 'c1', student_id: 'a', type: 'participation' as ClassMark['type'], date }));
+    const conRacha = (cuenta: DatosParaResumen['cuenta']) => claves(resumenAlumno(base({ classMarks: marcas, cuenta })).positivos).some(k => k.startsWith('Racha'));
+    expect(conRacha({ actual: enNoviembre, anterior: null })).toBe(conRacha(undefined));
+    expect(conRacha({ actual: enOctubre, anterior: null })).toBe(false);
+  });
+
+  it('`datosDelAlumno` da todos los datos, sin recortar a cinco', () => {
+    const marcas: ClassMark[] = Array.from({ length: 6 }, (_, i) => ({ id: `m${i}`, class_id: 'c1', student_id: 'a', type: 'homework' as const, date: '2026-11-0' + (i + 2) }));
+    const d = base({
+      gradeItems: [item('i1', '2026-11-03'), item('i2', '2026-11-10'), item('i3', '2026-11-11'), item('viejo', '2026-10-05')],
+      grades: { i1: { a: 2, b: 8, c: 8, d: 8 }, i2: { a: 3, b: 8, c: 8, d: 8 }, i3: { b: 8, c: 8, d: 8 }, viejo: { a: 8 } },
+      attendance: { c1: { '2026-11-02': { a: 'absent' }, '2026-11-03': { a: 'absent' }, '2026-11-04': { a: 'late' }, '2026-11-05': { a: 'late' } } },
+      classMarks: marcas,
+    });
+    expect(datosDelAlumno(d).atencion.length).toBeGreaterThan(MAX_POR_LADO);
+    expect(resumenAlumno(d).atencion).toEqual(datosDelAlumno(d).atencion.slice(0, MAX_POR_LADO));
   });
 });
