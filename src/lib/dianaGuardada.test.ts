@@ -1,6 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { conDianaGuardada, dianaGuardada, otrasDianasGuardadas } from './dianaGuardada';
 import type { DianaProfile } from '../types';
+import { buildDemoData } from './demoData';
+import { CURSO_ENTERO, periodoDeHoy } from './periodos';
+import { isoDate } from './utils';
 
 const HOY = '2027-02-15';
 const [PRIMERA, SEGUNDA, TERCERA, CURSO] = ['1ª evaluación', '2ª evaluación', '3ª evaluación', 'Final de curso'];
@@ -47,5 +50,18 @@ describe('la Diana competencial guardada, por evaluación', () => {
     const perfil = conDianaGuardada(undefined, PRIMERA, '2026-10-10', diana(2, '2026-10-10'));
     expect(dianaGuardada(perfil, PRIMERA, '2027-06-01')?.scores.ds1).toBe(2);
     expect(dianaGuardada(perfil, PRIMERA, '2027-10-01')).toBeNull();
+  });
+});
+
+describe('la Diana de los datos de ejemplo', () => {
+  it('está guardada también en la evaluación de hoy, que es la que se abre: quien explora la app no ve una Diana vacía', () => {
+    const hoy = isoDate();
+    const perfiles = buildDemoData('es').dianaProfiles;
+    expect(Object.keys(perfiles).length).toBeGreaterThan(0);
+    for (const perfil of Object.values(perfiles)) {
+      const deHoy = dianaGuardada(perfil, periodoDeHoy(hoy), hoy);
+      expect(deHoy).not.toBeNull();
+      expect(deHoy).toEqual(dianaGuardada(perfil, CURSO_ENTERO, hoy));
+    }
   });
 });

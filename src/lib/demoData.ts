@@ -1,7 +1,7 @@
 import type { User, Class, Student, ScheduleBlock, CalEvent, Task, Rubric, Evaluation, EvalDiana, DianaProfile, GradeCategory, GradeItem, GradeMap, ClassMark, MarksBlockConfig, OfficialCriterionRef } from '../types';
 import { gradeFromLevels, levelsOf, competencyScoresFor } from '../types';
 import { isoDate, LOMLOE_TO_DIANA } from './utils';
-import { diaDeEjemplo } from './periodos';
+import { diaDeEjemplo, evaluacionDe } from './periodos';
 import type { ComunidadId } from './curriculum/comunidades';
 import { translate, type Lang } from '../i18n/core';
 import { nombreDeAlumnoDeEjemplo } from '../i18n/demo';
@@ -295,11 +295,15 @@ function demoDianaProfiles(tr: Tr, evaluations: Evaluation[]): Record<string, Di
       }
     }
     const sectores = Object.keys(valores);
-    out[n] = {
+    const diana = {
       scores: Object.fromEntries(sectores.map(k => [k, Math.max(1, Math.min(4, Math.round(valores[k].reduce((a, b) => a + b, 0) / valores[k].length)))])),
       descriptors: Object.fromEntries(sectores.map(k => [k, tr('Calculado a partir de: {resumen}', { resumen: [...fuentes[k]].join(', ') })])),
       updated: daysFromNow(-1),
     };
+    // La Diana va por evaluación y se abre en la de hoy (20-11-2026): la de ejemplo se guarda también en ella, o
+    // quien explora la app (y las capturas de la web) vería una Diana vacía al elegir a un alumno. Es la misma
+    // que la del curso porque todas las evaluaciones de ejemplo caen en la evaluación en curso (`diaDelCuaderno`)
+    out[n] = { ...diana, porEvaluacion: { [evaluacionDe(isoDate())]: diana } };
   }
   return out;
 }

@@ -477,7 +477,8 @@ export function Diana({ classes, students, evaluations, rubrics, dianas, lawDocu
           const lines = Object.entries(e.scores)
             .map(([k, v]) => (dianas.find(d => d.id === e.rubric_id)?.tipo === 'registro'
               ? `  - ${resolveItemName(e, k, rubrics, dianas)}: ${v === 2 ? (lang === 'en' ? 'done well' : 'bien hecho') : (lang === 'en' ? 'needs improvement' : 'mejorable')}`
-              : `  - ${resolveItemName(e, k, rubrics, dianas)}: ${lang === 'en' ? 'level' : 'nivel'} ${v}/4`))
+              // Sobre el nivel más alto de su instrumento, como las evidencias de arriba: un 3 de una rúbrica de tres niveles no es un «3/4»
+              : `  - ${resolveItemName(e, k, rubrics, dianas)}: ${lang === 'en' ? 'level' : 'nivel'} ${v}/${e.max_level && e.max_level > 0 ? e.max_level : 4}`))
             .join('\n');
           const kind = e.instrument === 'diana' ? (dianas.find(d => d.id === e.rubric_id)?.tipo === 'registro' ? (lang === 'en' ? 'Checklist scale' : 'Escala de registro') : (lang === 'en' ? 'Target' : 'Diana')) : (lang === 'en' ? 'Rubric' : 'Rúbrica');
           return lang === 'en'
