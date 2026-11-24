@@ -32,6 +32,7 @@ import { PALETTE } from '../lib/demoData';
 import { isDesktop } from '../services/storage';
 import { useToast } from '../components/ui/Toast';
 import { Modal } from '../components/ui/Modal';
+import { CampoNumero } from '../components/ui/CampoNumero';
 import { useI18n } from '../i18n';
 import { ClassMarksModal } from '../components/seating/ClassMarksModal';
 import { markTypeInfo } from '../services/classMarks';
@@ -656,18 +657,18 @@ export function SeatingPlan({
         <div className="frow">
           <div className="fgroup">
             <label className="flabel" htmlFor="seatingplan-f2">{t('Nº de mesas')}</label>
-            <input
+            <CampoNumero
               id="seatingplan-f2"
-              className="finput" type="number" min={1} max={12} value={plan.numGroups}
-              onChange={e => applyStructure(Number(e.target.value), plan.groupSize)}
+              className="finput" min={1} max={12} value={plan.numGroups}
+              onChange={n => applyStructure(n, plan.groupSize)}
             />
           </div>
           <div className="fgroup">
             <label className="flabel" htmlFor="seatingplan-f3">{t('Alumnos por mesa')}</label>
-            <input
+            <CampoNumero
               id="seatingplan-f3"
-              className="finput" type="number" min={1} max={8} value={plan.groupSize}
-              onChange={e => applyStructure(plan.numGroups, Number(e.target.value))}
+              className="finput" min={1} max={8} value={plan.groupSize}
+              onChange={n => applyStructure(plan.numGroups, n)}
             />
           </div>
         </div>

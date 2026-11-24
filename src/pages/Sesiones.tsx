@@ -19,6 +19,7 @@ import type { AcsApoyo } from '../types/apoyo';
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { Plus, Sparkles, Trash2, FileDown, CalendarDays, MapPin, Bandage, Copy, Circle, CheckCircle2, Eye, Check, ChevronUp, ChevronDown, GripVertical, CalendarX2 } from 'lucide-react';
 import { Modal } from '../components/ui/Modal';
+import { CampoNumero } from '../components/ui/CampoNumero';
 import { DocPreview } from '../components/DocPreview';
 import { CopiarAClases } from '../components/CopiarAClases';
 import { clonarSesionEF } from '../lib/clonar';
@@ -601,8 +602,8 @@ export function Sesiones({
             </div>
             <div className="fgroup">
               <label className="flabel" htmlFor="ef-si-min">{t('Minutos')}</label>
-              <input id="ef-si-min" type="number" min={20} max={120} className="finput" value={ia.minutos}
-                onChange={e => setIa({ ...ia, minutos: Math.max(20, Math.min(120, Math.round(Number(e.target.value) || 55))) })} />
+              <CampoNumero id="ef-si-min" min={20} max={120} className="finput" value={ia.minutos}
+                onChange={n => setIa({ ...ia, minutos: n })} />
             </div>
             <div className="fgroup" style={{ gridColumn: '1 / -1' }}>
               <label className="flabel" htmlFor="ef-si-modalidad">{t('Modalidad del juego o deporte')}</label>

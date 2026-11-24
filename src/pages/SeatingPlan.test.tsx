@@ -135,4 +135,18 @@ describe('Distribución de aula', () => {
     expect(last?.forma).toBe('cuadrada');
     expect(mesa(1).querySelector('.seat-svg path')).toBeNull();
   });
+  it('al borrar «Alumnos por mesa» el cuadro se queda en blanco y se puede escribir otro número', async () => {
+    const user = userEvent.setup();
+    let last: Plan | undefined;
+    render(<Harness onPlan={p => { last = p; }} />);
+    const campo = screen.getByLabelText('Alumnos por mesa') as HTMLInputElement;
+    const antes = campo.value;
+    await user.clear(campo);
+    expect(campo.value).toBe('');
+    // Borrar no guarda un 1: la estructura no cambia
+    expect(last?.groupSize ?? Number(antes)).toBe(Number(antes));
+    await user.type(campo, '6');
+    expect(campo.value).toBe('6');
+    expect(last?.groupSize).toBe(6);
+  });
 });

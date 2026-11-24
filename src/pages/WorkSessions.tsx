@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '../components/ui/Toast';
 import { Modal } from '../components/ui/Modal';
+import { CampoNumero } from '../components/ui/CampoNumero';
 import { DocPreview } from '../components/DocPreview';
 import { useI18n } from '../i18n';
 import { isoDate } from '../lib/utils';
@@ -269,10 +270,11 @@ export function WorkSessions({ kind, sessions, onSave, onDelete }: Props) {
               {!esReunion && (
                 <div className="fgroup">
                   <label className="flabel" htmlFor="worksessions-f5">{t('Horas certificadas')}</label>
-                  <input
+                  <CampoNumero
                     id="worksessions-f5"
-                    className="finput" type="number" min={0} step={1} value={draft.hours ?? ''}
-                    onChange={e => patch({ hours: e.target.value === '' ? undefined : Number(e.target.value) })}
+                    className="finput" min={0} step={1} decimales value={draft.hours}
+                    onChange={n => patch({ hours: n })}
+                    onVaciar={() => patch({ hours: undefined })}
                   />
                 </div>
               )}
