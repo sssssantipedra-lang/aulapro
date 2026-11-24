@@ -124,10 +124,10 @@ describe('formatos de los listados', () => {
 });
 
 describe('nombres parecidos', () => {
-  it('«Martín» con todo lo suyo le gana a «Martina» con una letra de más', () => {
+  it('«Martín» con todo lo suyo le gana a «Martina» con una letra de más, y como «Sanz» es de ella, se confirma', () => {
     const r = pega(['Martín Gil', 'Martina Gil Sanz', 'Pau Roca'], 'Gil Sanz, Martín\t7\nRoca Puig, Pau\t5');
     expect(r.notaDe('Martina Gil Sanz')).toBeNull();
-    expect(r.recibe['Martín Gil']).toEqual({ nota: 7, parecido: 'seguro' });
+    expect(r.recibe['Martín Gil']).toEqual({ nota: 7, parecido: 'aproximado' });
   });
 
   it('mellizos Daniel y Daniela: cada uno a su sitio', () => {
@@ -200,7 +200,8 @@ describe('segunda vuelta: hojas sin coma y nombres que también son apellidos', 
 
   it('sin títulos ni coma, la fila que se puede leer de dos maneras no se da por segura a nadie', () => {
     const r = pega(['Martín Ruiz', 'Pablo Martín', 'Ana López', 'Hugo Sanz'], 'LÓPEZ GIL ANA\t6\nMARTÍN RUIZ PABLO\t9\nRUIZ GÓMEZ MARTÍN\t4\nSANZ MORA HUGO\t7');
-    expect(r.recibe['Martín Ruiz']).toEqual({ nota: 4, parecido: 'seguro' });
+    // Sin ninguna fila exacta que diga el orden de la hoja, lo leído al revés se confirma
+    expect(r.recibe['Martín Ruiz']?.nota).toBe(4);
     expect(r.recibe['Pablo Martín']?.parecido).not.toBe('seguro');
     const dos = pega(['Lucía Martín', 'Martín López', 'Hugo Sanz', 'Ana Ruiz'], 'MARTÍN LÓPEZ LUCÍA\t4\nLÓPEZ GARCÍA MARTÍN\t9\nSANZ MORA HUGO\t6\nRUIZ GIL ANA\t7');
     expect(dos.notaDe('Martín López')).not.toBe(4);
@@ -380,5 +381,85 @@ describe('tercera vuelta', () => {
     expect(['Ana Ruiz Gil', 'Luis Gil Mora', 'Pau Soler Puig'].map(n => r.recibe[n]?.parecido)).toEqual(['seguro', 'seguro', 'seguro']);
     const ca = pega(['Anna Vidal Roca', 'Anna Vidal', 'Pau Puig'], 'Vidal Roca, Anna\tDona\t7\nPuig, Pau\tHome\t5');
     expect(ca.recibe['Anna Vidal Roca']).toEqual({ nota: 7, parecido: 'seguro' });
+  });
+});
+
+/* ── Cuarta vuelta del ataque (24-11-2026) ── */
+describe('cuarta vuelta', () => {
+  it('un listado «APELLIDOS NOMBRE» sin coma: el orden de toda la hoja decide, y la fila del propio alumno no se pierde', () => {
+    const r = pega(['Martín López', 'Ana Ruiz Gil', 'Hugo Sanz Mora', 'Lucía Pérez'], 'Alumno\tExamen\nLÓPEZ GIL MARTÍN\t9\nMARTÍN LÓPEZ ANA\t3\nPÉREZ NAVARRO LUCÍA\t8\nRUIZ GIL ANA\t7\nSANZ MORA HUGO\t6');
+    expect(r.notaDe('Martín López')).toBe(9);
+    const marcos = pega(['Marcos Ruiz', 'Hugo Sanz Mora', 'Eva Gil Roca'], 'Alumno\tExamen\nMARCOS RUIZ LUCÍA\t2\nRUIZ PÉREZ MARCOS\t8\nSANZ MORA HUGO\t6\nGIL ROCA EVA\t7');
+    expect(marcos.notaDe('Marcos Ruiz')).toBe(8);
+  });
+
+  it('en una hoja «Nombre Apellidos», el primer nombre de un compuesto no se convierte en apellido', () => {
+    const r = pega(['Manuel Pérez Gil', 'Ana Ruiz', 'Hugo Sanz'], 'Nombre\tNota\nJosé Manuel Pérez Gil\t3\nAna Ruiz\t6\nHugo Sanz\t5');
+    expect(r.recibe['Manuel Pérez Gil']?.parecido).not.toBe('seguro');
+    expect(pega(['José Sanz Gil', 'Ana Ruiz', 'Hugo Mora'], 'María José Sanz Gil\t4\nAna Ruiz\t6\nHugo Mora\t5').recibe['José Sanz Gil']?.parecido).not.toBe('seguro');
+  });
+
+  it('una errata que da el apellido de otro, o un apellido abreviado, no da por seguro al homónimo corto', () => {
+    expect(pega(['Pablo Martín', 'Pablo Martí Soler', 'Ana Ruiz Gil'], 'Martín Soler, Pablo\t4\nRuiz Gil, Ana\t6').recibe['Pablo Martín']?.parecido).not.toBe('seguro');
+    expect(pega(['Pau Ferré', 'Pau Ferrer Roca', 'Ana Ruiz Gil'], 'Ferré Roca, Pau\t4\nRuiz Gil, Ana\t6').recibe['Pau Ferré']?.parecido).not.toBe('seguro');
+    for (const [largo, corto] of [['Fernández', 'Fdz.'], ['Hernández', 'Hdz.'], ['Jiménez', 'Jmnez.'], ['Domínguez', 'Dguez.'], ['Martín', 'Matrín']]) {
+      const r = pega(['Pablo García', `Pablo García ${largo}`, 'Ana Ruiz Gil'], `García ${corto}, Pablo\t4\nRuiz Gil, Ana\t6`);
+      expect(r.recibe['Pablo García']?.parecido).not.toBe('seguro');
+    }
+  });
+
+  it('la inicial sin punto del segundo nombre («ANA I», «JOSÉ E») no es una conjunción', () => {
+    expect(pega(['Ana Martín', 'Ana Isabel Martín', 'Pablo Sanz'], 'MARTÍN, ANA I\t4\nSANZ, PABLO\t6').notaDe('Ana Martín')).toBeNull();
+    expect(pega(['Ana Gil Martín', 'Ana Isabel Gil Martín', 'Pablo Sanz'], 'GIL MARTÍN, ANA I\t4\nSANZ, PABLO\t6').notaDe('Ana Gil Martín')).toBeNull();
+    expect(pega(['José García', 'José Enrique García', 'Pablo Sanz'], 'GARCÍA, JOSÉ E\t4\nSANZ, PABLO\t6').notaDe('José García')).toBeNull();
+    // La conjunción entre apellidos sí se quita, también en mayúsculas
+    expect(pega(['Jordi Puig Soler', 'Ana Ruiz'], 'PUIG I SOLER, JORDI\t4\nRUIZ, ANA\t6').recibe['Jordi Puig Soler']).toEqual({ nota: 4, parecido: 'seguro' });
+  });
+
+  it('diminutivos y formas cortas: Montse, Maribel, Rodri, Valen, Sebas, Merche', () => {
+    const r = pega(['Montserrat Puig Soler', 'Jordi Vidal', 'Núria Roca'], 'Puig Soler, Montse\t7\nVidal, Jordi\t5\nRoca, Núria\t6');
+    expect(r.notaDe('Montserrat Puig Soler')).toBe(7);
+    for (const [nombre, corto] of [['María Isabel', 'Maribel'], ['Rodrigo', 'Rodri'], ['Valentina', 'Valen'], ['Sebastián', 'Sebas'], ['Mercedes', 'Merche']]) {
+      expect(pega([`${nombre} López Gil`, 'Ana Ruiz', 'Hugo Sanz'], `López Gil, ${corto}\t7\nRuiz, Ana\t5\nSanz, Hugo\t6`).notaDe(`${nombre} López Gil`)).toBe(7);
+    }
+  });
+
+  it('el número de lista delante en cualquier forma («13.-», «Nº 13», «13º», «#13») no da nada por seguro', () => {
+    for (const delante of ['13.- ', 'Nº 13 ', '13º ', '13)', '#13 ']) {
+      const r = pega(['12 Marta', '13 Marta', '14 Pedro'], `Alumno\tNota\n${delante}García Ruiz, Marta\t5\n14.- López Gil, Marta\t9`);
+      expect(r.recibe['13 Marta']?.parecido).not.toBe('seguro');
+    }
+  });
+
+  it('el grupo en la misma celda que el nombre no hace de número', () => {
+    const r = pega(['3 Lucía', '12 Lucía', '5 Pau'], 'Pérez Gil, Lucía 3ºA\t7\nRoca, Pau 3ºA\t5');
+    expect(r.recibe['3 Lucía']?.parecido).not.toBe('seguro');
+    expect(r.notaDe('5 Pau')).toBe(5);
+  });
+
+  it('«Nº alumnos: 25» no es el alumno 25', () => {
+    const r = pega(['1', '2', '25'], 'Alumno 1\t5\nAlumno 2\t7\nNº alumnos: 25\t6,4');
+    expect(r.notaDe('25')).toBeNull();
+  });
+
+  it('una columna de nombres titulada «Lista de clase» o «Tutoría 4º B» sigue siendo la de los nombres', () => {
+    const r = pega(['Lucía Pérez', 'Hugo Sanz', 'Ana Ruiz'], 'Lista de clase\tExamen\nRuiz, Ana\t7\nPérez, Lucía\t4\nSanz, Hugo\t6');
+    expect(r.plan.modo).toBe('nombre');
+    expect([r.notaDe('Ana Ruiz'), r.notaDe('Lucía Pérez'), r.notaDe('Hugo Sanz')]).toEqual([7, 4, 6]);
+    expect(pega(['Lucía Pérez', 'Hugo Sanz', 'Ana Ruiz'], 'Tutoría 4º B\tExamen\nSanz, Hugo\t4').notaDe('Hugo Sanz')).toBe(4);
+  });
+
+  it('una lista renumerada no impide colocar por el nombre', () => {
+    const r = pega(['11 Pedro', '12 Marta', '13 Luis'], 'Nº\tNombre\tNota\n11\tMarta García\t5\n12\tLuis Ruiz\t9\n13\tPedro Sanz\t6');
+    expect(r.plan.modo).toBe('nombre');
+    expect([r.notaDe('12 Marta'), r.notaDe('13 Luis'), r.notaDe('11 Pedro')]).toEqual([5, 9, 6]);
+    expect(r.plan.filas.every(f => f.parecido === 'aproximado')).toBe(true);
+  });
+
+  it('«Alumna 7», «Alumne 7» y «Alumno7» son el «Alumno 7»', () => {
+    for (const hoja of ['Alumna 7\t4\nAlumna 3\t6', 'Alumne 7\t4\nAlumne 3\t6', 'Alumno7\t4\nAlumno3\t6']) {
+      const r = pega(['Alumno 1', 'Alumno 7', 'Alumno 3'], hoja);
+      expect([r.notaDe('Alumno 7'), r.notaDe('Alumno 3'), r.notaDe('Alumno 1')]).toEqual([4, 6, null]);
+    }
   });
 });

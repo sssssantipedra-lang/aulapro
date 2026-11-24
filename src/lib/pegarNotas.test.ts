@@ -394,7 +394,7 @@ describe('colocar por nombre', () => {
   });
 
   it('en mayúsculas, sin tildes, sin el segundo apellido y con una errata: entra, y la errata se marca como aproximada', () => {
-    const plan = pega([['RUIZ MORA, ANA', 9], ['FERER IBAÑEZ, CARLA', 8.25], ['albert vidal jorge', 6], ['Lucia Perez', 7.5], ['Marcos Gil', 4], ['MARTI ROIG PAU', 5]]);
+    const plan = pega([['RUIZ MORA, ANA', 9], ['FERER IBAÑEZ, CARLA', 8.25], ['albert vidal, jorge', 6], ['Perez, Lucia', 7.5], ['Gil, Marcos', 4], ['MARTI ROIG, PAU', 5]]);
     expect(recibe(plan)).toEqual(nota);
     expect(plan.filas.filter(f => f.parecido === 'aproximado').map(f => f.alumnoId)).toEqual(['a1']);
     expect(plan.aproximadas).toBe(1);
