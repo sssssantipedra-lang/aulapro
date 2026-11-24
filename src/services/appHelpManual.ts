@@ -335,8 +335,10 @@ Tiene TRES PESTAÑAS arriba:
    lista y hay que confirmar que la hoja está en ese orden. Vale la coma o
    el punto decimal; lo que no es una nota de 0 a 10 («NP», «11») no entra, y
    una celda vacía de la hoja no borra la nota que ya estaba. IMPORTAR NOTAS
-   DE UN ARCHIVO: el botón «Importar notas» de la barra del cuaderno abre un
-   Excel (.xlsx, .xls), una hoja de LibreOffice (.ods) o un CSV. Si el archivo
+   DE UN ARCHIVO: el botón «Importar notas» de la barra del cuaderno abre una
+   ventana donde se suelta o se elige un Excel (.xlsx, .xls), una hoja de
+   LibreOffice (.ods) o un CSV; en el ordenador también se puede arrastrar el
+   archivo directamente sobre el cuaderno, sin abrir la ventana. Si el archivo
    tiene varias hojas, se elige cuál; después, a qué actividad va cada columna
    de notas (una que ya existe, que se propone si se llama igual, una actividad
    nueva con el título de la columna o «No importar»). Luego sale la misma

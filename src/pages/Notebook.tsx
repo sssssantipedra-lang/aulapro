@@ -39,7 +39,10 @@ import { explicacionDePropuestas, propuestasDeCategorias, tiposDeAsignatura } fr
 import { cambiosDeRelleno, esBloque, leerNota, leerPegado, pantallaTactil, type CambioDeNota } from '../lib/pegarNotas';
 import { VistaPreviaPegado } from '../components/cuaderno/VistaPreviaPegado';
 import { ImportarNotas } from '../components/cuaderno/ImportarNotas';
-import { EXTENSIONES_NOTAS, leerArchivoDeNotas, MAX_BYTES_NOTAS, type HojaDeNotas } from '../lib/importarNotas';
+import { leerArchivoDeNotas, MAX_BYTES_NOTAS, type HojaDeNotas } from '../lib/importarNotas';
+import { ElegirArchivoNotas } from '../components/cuaderno/ElegirArchivoNotas';
+import { useSoltarArchivo } from '../hooks/useSoltarArchivo';
+import { loAbierto } from '../lib/loAbierto';
 import { MenuDeColumna } from '../components/cuaderno/MenuDeColumna';
 import { CalificarActividad } from '../components/cuaderno/CalificarActividad';
 
@@ -247,7 +250,9 @@ function GradesTab({
   const [pegado, setPegado] = useState<{ filas: string[][]; alumnoId: string; actividadId: string } | null>(null);
   /** Un archivo de notas abierto (`ImportarNotas`), con sus hojas ya leídas. */
   const [importando, setImportando] = useState<{ archivo: string; hojas: HojaDeNotas[] } | null>(null);
-  const archivoNotas = useRef<HTMLInputElement>(null);
+  // La ventana «Importar notas» (zona para soltar y «Elegir archivo») y si se está leyendo un archivo
+  const [eligiendoArchivo, setEligiendoArchivo] = useState(false);
+  const [leyendoArchivo, setLeyendoArchivo] = useState(false);
   /** La actividad recién creada: en cuanto sale en la tabla, el foco va a su primera celda. */
   const focoPendiente = useRef<string | null>(null);
 
@@ -378,6 +383,39 @@ function GradesTab({
   /** Las actividades donde se escribe, en el orden en que se ven (sin el bloque de anotaciones, que sale solo). */
   const editables = useMemo(() => grouped.filter(g => !isMarksCategory(g.cat.id)), [grouped]);
   const columnasEditables = useMemo(() => editables.flatMap(g => g.items), [editables]);
+
+  /**
+   * Importar notas de un archivo (24-11-2026): con el botón (la ventana `ElegirArchivoNotas`) o soltando el archivo en
+   * cualquier sitio del cuaderno (`useSoltarArchivo`). Las dos entradas acaban aquí, y después en `ImportarNotas`.
+   */
+  const noSePuedeImportar = myStudents.length === 0
+    ? t('Para importar notas, añade antes el alumnado de la clase.')
+    : ownCategories.length === 0
+      ? t('Para importar notas, elige antes cómo evalúas en esta clase: las categorías del cuaderno.')
+      : null;
+  const abrirArchivoDeNotas = async (file: File) => {
+    if (file.size > MAX_BYTES_NOTAS) { toast(t('El archivo es demasiado grande (más de 10 MB).')); return; }
+    setLeyendoArchivo(true);
+    try {
+      const hojas = await leerArchivoDeNotas(file);
+      setEligiendoArchivo(false);
+      setImportando({ archivo: file.name, hojas });
+    } catch (err) {
+      const m = err instanceof Error ? err.message : '';
+      toast(m === 'formato' ? t('Ese archivo no es una hoja de cálculo: elige un Excel (.xlsx, .xls, .ods) o un CSV.')
+        : m === 'vacio' ? t('El archivo no trae ninguna tabla.') : t('No se ha podido leer el archivo.'));
+    } finally {
+      setLeyendoArchivo(false);
+    }
+  };
+  const { arrastrando: arrastrandoArchivo } = useSoltarArchivo(archivos => {
+    if (noSePuedeImportar) { toast(noSePuedeImportar); return; }
+    if (importando || leyendoArchivo) { toast(t('Ya hay un archivo abierto: termina o cierra esa ventana para importar otro.')); return; }
+    // Con otra ventana abierta encima (editar una actividad, pegar…), el archivo no se mezcla con ella
+    if (!eligiendoArchivo && loAbierto(document)) { toast(t('Cierra la ventana que tienes abierta para importar el archivo.')); return; }
+    if (archivos.length > 1) toast(t('Se importa un archivo cada vez: se abre «{archivo}».', { archivo: archivos[0].name }));
+    void abrirArchivoDeNotas(archivos[0]);
+  });
   const actividadDelMenu = menuDe ? columnasEditables.find(i => i.id === menuDe) ?? null : null;
   const actividadEnLista = calificando ? columnasEditables.find(i => i.id === calificando) ?? null : null;
   const detalleDe = (item: GradeItem) => [myCategories.find(c => c.id === item.category_id)?.name, item.date ? diaCorto(item.date) : '']
@@ -606,23 +644,10 @@ function GradesTab({
         <span className="toolbar-sep ev-sel-sep" aria-hidden="true" />
         <SelectorEvaluacion ev={ev} queCuenta={t('El cuaderno enseña y cuenta las actividades y las anotaciones de estas fechas.')} />
         <span className="toolbar-spacer" />
-        <button className="tb-btn" onClick={() => archivoNotas.current?.click()} disabled={myStudents.length === 0}
-          title={t('Trae las notas de un Excel o un CSV: cada nota va al alumno que se llama así')}>
+        <button className="tb-btn tb-importar" onClick={() => setEligiendoArchivo(true)} disabled={noSePuedeImportar !== null}
+          title={noSePuedeImportar ?? t('Trae las notas de un Excel o un CSV, o arrastra el archivo sobre el cuaderno: cada nota va al alumno que se llama así')}>
           <FileSpreadsheet size={14} />{t('Importar notas')}
         </button>
-        <input ref={archivoNotas} type="file" accept={EXTENSIONES_NOTAS} hidden onChange={async e => {
-          const file = e.target.files?.[0];
-          e.target.value = '';
-          if (!file) return;
-          if (file.size > MAX_BYTES_NOTAS) { toast(t('El archivo es demasiado grande (más de 10 MB).')); return; }
-          try {
-            setImportando({ archivo: file.name, hojas: await leerArchivoDeNotas(file) });
-          } catch (err) {
-            const m = err instanceof Error ? err.message : '';
-            toast(m === 'formato' ? t('Ese archivo no es una hoja de cálculo: elige un Excel (.xlsx, .xls, .ods) o un CSV.')
-              : m === 'vacio' ? t('El archivo no trae ninguna tabla.') : t('No se ha podido leer el archivo.'));
-          }
-        }} />
         <button className="tb-btn" onClick={exportCsv} disabled={myItems.length === 0}>
           <Download size={14} />{t('Exportar a Excel')}
         </button>
@@ -958,7 +983,7 @@ function GradesTab({
             </div>
             {columnasEditables.length > 0 && (
               <p className="sda-note pn-pista">
-                <span className="pn-pista-teclado">{t('Intro y las flechas pasan de una celda a otra. Para traer notas de una hoja de cálculo, copia allí los nombres con sus notas y pégalos en la columna de la actividad: cada nota irá a su alumno, y antes de poner nada verás lo que cambia.')} </span>
+                <span className="pn-pista-teclado">{t('Intro y las flechas pasan de una celda a otra. Para traer notas de una hoja de cálculo, copia allí los nombres con sus notas y pégalos en la columna de la actividad, o arrastra el archivo sobre el cuaderno: cada nota irá a su alumno, y antes de poner nada verás lo que cambia.')} </span>
                 <span>{t('Pulsa el nombre de una actividad para calificarla en una lista o poner una nota a quien no tiene.')}</span>
               </p>
             )}
@@ -1013,6 +1038,25 @@ function GradesTab({
             focoEn(actividadId, alumnoId);
           }}
         />
+      )}
+
+      {/* Importar notas: la ventana para soltar o elegir el archivo, y la marca de soltar sobre todo el cuaderno */}
+      <ElegirArchivoNotas
+        open={eligiendoArchivo}
+        clase={cls?.name ?? ''}
+        arrastrando={arrastrandoArchivo}
+        leyendo={leyendoArchivo}
+        onArchivo={f => void abrirArchivoDeNotas(f)}
+        onClose={() => setEligiendoArchivo(false)}
+      />
+      {arrastrandoArchivo && !eligiendoArchivo && !importando && (
+        <div className={`pn-arrastre${noSePuedeImportar ? ' pn-arrastre-no' : ''}`} aria-hidden="true">
+          <div>
+            <FileSpreadsheet size={34} />
+            <strong>{noSePuedeImportar ?? t('Suelta el archivo para importar las notas de {clase}', { clase: cls?.name ?? '' })}</strong>
+            {!noSePuedeImportar && <span>{t('Excel (.xlsx, .xls), LibreOffice (.ods) o CSV')}</span>}
+          </div>
+        </div>
       )}
 
       {/* Un archivo de notas: elegir columnas y, después, la misma vista previa que al pegar */}

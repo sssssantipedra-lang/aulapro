@@ -23,9 +23,9 @@ const actividades: GradeItem[] = [{ id: 'i2', class_id: 'c1', category_id: 'k1',
 const notas: GradeMap = { i2: { s0: 5 } };
 const sinBloque: Record<string, MarksBlockConfig> = { 'c1|Lengua': { ...DEFAULT_BLOCK, enabled: false } };
 
-function pinta() {
+function pinta(extra: { gradeCategories?: GradeCategory[] } = {}) {
   const props = {
-    classes: [clase], students: alumnos, gradeCategories: categorias, gradeItems: actividades, grades: notas, classMarks: [], marksConfigs: sinBloque,
+    classes: [clase], students: alumnos, gradeCategories: extra.gradeCategories ?? categorias, gradeItems: actividades, grades: notas, classMarks: [], marksConfigs: sinBloque,
     onSaveMarksConfig: vi.fn(), onAddCategory: vi.fn(), onUpdateCategory: vi.fn(), onDeleteCategory: vi.fn(),
     onAddItem: vi.fn(), onUpdateItem: vi.fn(), onDeleteItem: vi.fn(), onSetGrade: vi.fn(), onSetGrades: vi.fn(),
     lawDocument: null, onLawDocumentChange: vi.fn(), onNav: vi.fn(), evaluations: [], aiData: {} as never, chat: [], onChatChange: vi.fn(),
@@ -38,6 +38,15 @@ const subir = (texto: string, nombre = 'notas.csv') => {
   const input = document.querySelector<HTMLInputElement>('input[type="file"]')!;
   fireEvent.change(input, { target: { files: [new File([texto], nombre)] } });
 };
+
+/** Arrastra un archivo sobre la ventana y lo suelta, como el navegador: con `types` que dice que trae archivos. */
+const soltar = (archivos: File[], donde: Element | Window = window) => {
+  const dataTransfer = { types: ['Files'], files: archivos, dropEffect: 'none' };
+  fireEvent.dragEnter(donde, { dataTransfer });
+  fireEvent.dragOver(donde, { dataTransfer });
+  fireEvent.drop(donde, { dataTransfer });
+};
+const csv = 'Alumno;Examen de invierno\nRuiz Mora, Ana;9\n';
 
 describe('importar notas de un archivo', () => {
   it('lleva cada columna a su actividad (la que existe y una nueva) y cada nota a su alumno por el nombre', async () => {
@@ -73,5 +82,59 @@ describe('importar notas de un archivo', () => {
     expect(p.onAddItem).not.toHaveBeenCalled();
     subir('hola', 'notas.pdf');
     await waitFor(() => expect(screen.getByText(/no es una hoja de cálculo/)).toBeTruthy());
+  });
+
+  it('el botón abre su propia ventana, con la zona para soltar y «Elegir archivo»', () => {
+    pinta();
+    fireEvent.click(screen.getByRole('button', { name: /Importar notas/ }));
+    const v = ventana();
+    expect(within(v).getByText('Importar notas de 5.º A')).toBeTruthy();
+    expect(within(v).getByRole('button', { name: /Arrastra aquí tu archivo/ })).toBeTruthy();
+    expect(within(v).getByRole('button', { name: /Elegir archivo/ })).toBeTruthy();
+  });
+
+  it('soltar el archivo en cualquier sitio del cuaderno lo abre, sin la ventana del botón', async () => {
+    const p = pinta();
+    const dataTransfer = { types: ['Files'], files: [], dropEffect: 'none' };
+    fireEvent.dragEnter(window, { dataTransfer });
+    expect(screen.getByText('Suelta el archivo para importar las notas de 5.º A')).toBeTruthy();
+    soltar([new File([csv], 'notas.csv')], document.querySelector('.gb-cell') ?? window);
+    await waitFor(() => expect(within(ventana()).getByText('Importar notas de un archivo')).toBeTruthy());
+    expect(screen.queryByText('Suelta el archivo para importar las notas de 5.º A')).toBeNull();
+    expect(p.onSetGrades).not.toHaveBeenCalled();
+  });
+
+  it('soltarlo sobre la ventana de importar también lo abre', async () => {
+    pinta();
+    fireEvent.click(screen.getByRole('button', { name: /Importar notas/ }));
+    soltar([new File([csv], 'notas.csv')], within(ventana()).getByRole('button', { name: /Arrastra aquí/ }));
+    await waitFor(() => expect(within(ventana()).getByText('Importar notas de un archivo')).toBeTruthy());
+  });
+
+  it('un texto arrastrado no hace nada, y con otra ventana abierta el archivo no se mezcla con ella', async () => {
+    pinta();
+    const texto = { types: ['text/plain'], files: [], dropEffect: 'none' };
+    fireEvent.dragEnter(window, { dataTransfer: texto });
+    expect(screen.queryByText(/Suelta el archivo/)).toBeNull();
+    // El menú de una actividad abierto encima
+    fireEvent.click(screen.getByRole('button', { name: /Examen de invierno/ }));
+    soltar([new File([csv], 'notas.csv')]);
+    await waitFor(() => expect(screen.getByText(/Cierra la ventana que tienes abierta/)).toBeTruthy());
+    expect(screen.queryByText('Importar notas de un archivo')).toBeNull();
+  });
+
+  it('sin categorías no se puede importar, y se dice por qué', async () => {
+    pinta({ gradeCategories: [] });
+    expect((screen.getByRole('button', { name: /Importar notas/ }) as HTMLButtonElement).disabled).toBe(true);
+    soltar([new File([csv], 'notas.csv')]);
+    await waitFor(() => expect(screen.getAllByText(/elige antes cómo evalúas en esta clase/).length).toBeGreaterThan(0));
+    expect(screen.queryByText('Importar notas de un archivo')).toBeNull();
+  });
+
+  it('con varios archivos se abre el primero y se avisa', async () => {
+    pinta();
+    soltar([new File([csv], 'primero.csv'), new File([csv], 'segundo.csv')]);
+    await waitFor(() => expect(screen.getByText(/se abre «primero.csv»/)).toBeTruthy());
+    await waitFor(() => expect(within(ventana()).getByText(/«primero.csv»/)).toBeTruthy());
   });
 });
