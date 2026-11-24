@@ -158,3 +158,35 @@ describe('privacidad de los agrupamientos (auditoría del 5-11-2026)', () => {
     expect(userPrompt).toContain('nota del docente: Toma [dato de salud] a mediodía');
   });
 });
+
+describe('el reparto tiene en cuenta todo lo que el docente ha elegido (24-11-2026)', () => {
+  it('reparte en capacidades distintas por mesa y lleva a quien falta a la mesa con más sitio', () => {
+    const r = repararGrupos([{ estudiantes: ['a'] }, { estudiantes: [] }], ['a', 'b', 'c'], 2, [1, 3]);
+    expect(r.grupos[0].estudiantes).toEqual(['a']);
+    expect(r.grupos[1].estudiantes).toEqual(['b', 'c']);
+    expect(r.sinAsignar).toEqual([]);
+  });
+
+  it('el prompt dice las mesas, sus asientos libres, la forma, los roles en orden y quién se queda', async () => {
+    const gemini = await import('./gemini');
+    const spy = vi.mocked(gemini.callGemini);
+    spy.mockClear();
+    const alumno = (id: string): StudentForGrouping => ({ id, name: id, media: 6, asistenciaPct: 90, avisos: [], notas: '' });
+    await generateBalancedGroups({
+      students: [alumno('s1'), alumno('s2')], numGroups: 2, groupSize: 2,
+      mesas: [{ label: 'Mesa 1', sentados: ['s9'], rolesLibres: ['Secretario/a'] }, { label: 'Mesa 2', sentados: [], rolesLibres: ['Portavoz', 'Secretario/a'] }],
+      yaSentados: [alumno('s9')],
+      roles: [{ name: 'Portavoz', description: 'Habla en nombre del grupo' }, { name: 'Secretario/a', description: 'Anota' }],
+      forma: 'Mesas cuadradas: pupitres juntos',
+    }, 'es');
+    const [sistema, usuario] = spy.mock.calls[0] as unknown as [string, string];
+    expect(sistema).toMatch(/TODOS los alumnos de la lista tienen que quedar sentados/);
+    expect(sistema).toMatch(/orden de sus asientos libres/);
+    expect(usuario).toMatch(/2 mesas de 2 asientos\. Mesas cuadradas: pupitres juntos/);
+    expect(usuario).toMatch(/Asientos libres en total: 3/);
+    expect(usuario).toMatch(/1\. Portavoz \(Habla en nombre del grupo\); 2\. Secretario\/a \(Anota\)/);
+    expect(usuario).toMatch(/Mesa 1 \(«Mesa 1»\): 1 asientos libres, en este orden: Secretario\/a; ya sentados y se quedan: s9/);
+    expect(usuario).toMatch(/YA SENTADOS, QUE SE QUEDAN/);
+  });
+});
+

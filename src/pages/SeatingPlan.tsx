@@ -20,6 +20,7 @@ import type { Class, Student, GradeCategory, GradeItem, GradeMap, AttendanceMap,
 import { seatStudentId } from '../types';
 import { weightedAverage, attendanceRate } from '../services/aiContext';
 import { generateBalancedGroups, type StudentForGrouping } from '../services/classGroups';
+import { aplicarReparto, estructuraParaTodos, huecosDelPlan, mesasConEstructura } from '../lib/repartoMesas';
 import { hasApiKey } from '../services/gemini';
 import { buildTableSvg, type FormaMesa } from '../lib/seatingLayout';
 
@@ -106,6 +107,8 @@ export function SeatingPlan({
   const [generating, setGenerating] = useState(false);
   const [configOpen, setConfigOpen] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
+  /** Con gente ya sentada y gente sin mesa: repartir a toda la clase de nuevo o solo a quien falta. */
+  const [soloFaltan, setSoloFaltan] = useState(false);
   /** Asiento (`groupId:índice`) o bandeja (`'tray'`) sobre el que se arrastra ahora mismo. */
   const [dropTarget, setDropTarget] = useState<string | null>(null);
   /** Alumno elegido en la bandeja de «sin mesa», a la espera de un asiento. */
@@ -293,11 +296,28 @@ export function SeatingPlan({
   }
 
   /* ── Generar grupos equilibrados con la IA ── */
+  /**
+   * Cómo va a quedar el reparto antes de pedirlo (24-11-2026): a quién se sienta, en cuántas mesas de cuántos asientos
+   * y si hay que añadir mesas para que quepan todos. Lo enseña la ventana y lo usa `handleGenerate`.
+   */
+  const reparto = useMemo(() => {
+    const enClase = new Set(roster.map(s => s.id));
+    const modoFaltan = soloFaltan && roster.length > sinAsignar.length && sinAsignar.length > 0;
+    const aSentar = modoFaltan ? sinAsignar : roster;
+    const libresAhora = huecosDelPlan(plan, enClase, !modoFaltan).reduce((n, h) => n + h.libres.length, 0);
+    // Lo que falta: más mesas del mismo tamaño y, si no basta, un asiento más por mesa
+    const ocupados = modoFaltan ? roster.length - sinAsignar.length : 0;
+    let { numGroups, groupSize } = estructuraParaTodos(aSentar.length + ocupados, plan.numGroups, plan.groupSize);
+    if (modoFaltan && libresAhora >= aSentar.length) ({ numGroups, groupSize } = plan);
+    const asientos = numGroups * groupSize;
+    return { modoFaltan, aSentar, numGroups, groupSize, cambia: numGroups !== plan.numGroups || groupSize !== plan.groupSize, noCaben: Math.max(0, aSentar.length + ocupados - asientos) };
+  }, [roster, sinAsignar, soloFaltan, plan]);
+
   async function handleGenerate() {
     if (roster.length === 0) { toast(t('Esta clase todavía no tiene alumnos')); return; }
     const cats = gradeCategories.filter(c => c.class_id === clsId);
     const items = gradeItems.filter(i => i.class_id === clsId);
-    const studentsForAI: StudentForGrouping[] = roster.map(s => {
+    const paraIA = (s: Student): StudentForGrouping => {
       const asis = attendanceRate(clsId, s.id, attendance);
       return {
         id: s.id, name: s.name,
@@ -306,27 +326,49 @@ export function SeatingPlan({
         avisos: s.alerts.map(a => a.text),
         notas: s.notes,
       };
-    });
+    };
+    const { modoFaltan, aSentar, numGroups, groupSize } = reparto;
+    // Las mesas con la estructura que hace falta para que quepan todos, y sus asientos libres con su rol
+    const roles = resizeRoles(plan.roles, groupSize, t);
+    const base: SeatingPlan = {
+      ...plan, numGroups, groupSize, roles,
+      groups: mesasConEstructura(plan.groups, numGroups, groupSize, n => t('Mesa {n}', { n }), () => crypto.randomUUID()),
+      weekOffset: modoFaltan ? plan.weekOffset % groupSize : 0,
+    };
+    const enClase = new Set(roster.map(s => s.id));
+    const huecos = huecosDelPlan(base, enClase, !modoFaltan);
+    const forma = FORMAS.find(f => f.id === (plan.forma ?? 'cooperativa'));
+    const sentadosQueSeQuedan = huecos.flatMap(h => h.sentados.map(x => x.id));
 
     const res = await generateBalancedGroups(
-      { students: studentsForAI, numGroups: plan.numGroups, groupSize: plan.groupSize, notasDocente },
+      {
+        students: aSentar.map(paraIA), numGroups, groupSize, notasDocente,
+        mesas: huecos.map(h => ({ label: h.label, sentados: h.sentados.map(x => x.id), rolesLibres: h.libres.map(i => roleForSeat(base, i)?.name ?? null) })),
+        yaSentados: roster.filter(s => sentadosQueSeQuedan.includes(s.id)).map(paraIA),
+        roles: roles.map(r => ({ name: r.name, description: r.description })),
+        forma: forma ? `${t(forma.label)}: ${t(forma.texto)}` : undefined,
+      },
       lang,
       { onStart: () => setGenerating(true), onEnd: () => setGenerating(false), onError: m => toast(m) },
     );
     if (!res) return;
     setAiOpen(false);
 
-    const groups = plan.groups.map((g, i) => ({
-      ...g,
-      studentIds: res.grupos[i]?.estudiantes ?? [],
-      justificacion: res.grupos[i]?.justificacion,
-    }));
-    guardar({ ...plan, groups, weekOffset: 0, lastNotes: notasDocente.trim() || undefined });
+    guardar({
+      ...base,
+      groups: aplicarReparto(base.groups, huecos, res.grupos, groupSize, !modoFaltan),
+      lastNotes: notasDocente.trim() || undefined,
+    });
 
+    const añadidas = numGroups - plan.numGroups;
     if (res.sinAsignar.length) {
       toast(t('{n} alumnos se han quedado sin mesa: no caben todos en {groups} mesas de {size}', {
-        n: res.sinAsignar.length, groups: plan.numGroups, size: plan.groupSize,
+        n: res.sinAsignar.length, groups: numGroups, size: groupSize,
       }));
+    } else if (groupSize !== plan.groupSize) {
+      toast(t('✅ Todos sentados: para que cupieran, ahora hay {groups} mesas de {size}.', { groups: numGroups, size: groupSize }));
+    } else if (añadidas > 0) {
+      toast(t('✅ Todos sentados: se han añadido {n} mesas para que cupieran.', { n: añadidas }));
     } else {
       toast(t('✅ Grupos generados'));
     }
@@ -609,7 +651,44 @@ export function SeatingPlan({
             <p className="seat-modal-p">
               {t('La IA reparte al alumnado real de esta clase en mesas multinivel: mezcla niveles según la media ponderada, la asistencia y los avisos de cada alumno, sin inventar ninguno.')}
             </p>
-            {sentados > 0 && (
+            {/* Con gente sentada y gente sin mesa: repartir a todos de nuevo o solo a quien falta */}
+            {sentados > 0 && sinAsignar.length > 0 && (
+              <div className="seat-modo" role="radiogroup" aria-label={t('A quién reparte la IA')}>
+                <label>
+                  <input type="radio" name="seat-modo" checked={!soloFaltan} onChange={() => setSoloFaltan(false)} />
+                  <span>{t('Repartir a toda la clase de nuevo')}</span>
+                </label>
+                <label>
+                  <input type="radio" name="seat-modo" checked={soloFaltan} onChange={() => setSoloFaltan(true)} />
+                  <span>{t('Dejar en su sitio a quien ya tiene mesa y sentar solo a los {n} que faltan', { n: sinAsignar.length })}</span>
+                </label>
+              </div>
+            )}
+            {/* Lo que va a tener en cuenta: todo lo que el docente ha elegido */}
+            <div className="seat-parametros">
+              <strong>{t('La IA tendrá en cuenta')}</strong>
+              <ul>
+                <li>{reparto.modoFaltan
+                  ? t('{n} alumnos por sentar, en los asientos libres de cada mesa', { n: reparto.aSentar.length })
+                  : t('Toda la clase: {n} alumnos', { n: reparto.aSentar.length })}</li>
+                <li>{t('{groups} mesas de {size} asientos', { groups: reparto.numGroups, size: reparto.groupSize })} · {t(FORMAS.find(f => f.id === (plan.forma ?? 'cooperativa'))?.label ?? 'Mesas cooperativas')}</li>
+                <li>{t('Roles de cada mesa: {roles}', { roles: resizeRoles(plan.roles, reparto.groupSize, t).map(r => r.name).join(', ') })}</li>
+                <li>{t('La media, la asistencia, los avisos y las anotaciones de cada alumno')}</li>
+                <li>{t('Lo que escribas abajo, que va por encima de todo lo demás')}</li>
+              </ul>
+              <button type="button" className="mk-link" onClick={() => { setAiOpen(false); setConfigOpen(true); }}>{t('Cambiar mesas y roles')}</button>
+            </div>
+            {reparto.cambia && (
+              <p className="seat-modal-warn">
+                {reparto.groupSize !== plan.groupSize
+                  ? t('No caben todos en {groups} mesas de {size}: se pasará a {g2} mesas de {s2} para que nadie se quede sin mesa.', { groups: plan.numGroups, size: plan.groupSize, g2: reparto.numGroups, s2: reparto.groupSize })
+                  : t('No caben todos en {groups} mesas de {size}: se añadirán {n} mesas para que nadie se quede sin mesa.', { groups: plan.numGroups, size: plan.groupSize, n: reparto.numGroups - plan.numGroups })}
+              </p>
+            )}
+            {reparto.noCaben > 0 && (
+              <p className="seat-modal-warn">{t('Aun así no caben {n} alumnos: como mucho hay {groups} mesas de {size}.', { n: reparto.noCaben, groups: reparto.numGroups, size: reparto.groupSize })}</p>
+            )}
+            {sentados > 0 && !reparto.modoFaltan && (
               <p className="seat-modal-warn">{t('Se sustituirá la distribución actual de {clase}.', { clase: cls?.name ?? '' })}</p>
             )}
             <label className="flabel" htmlFor="seatingplan-f1">{t('Aspectos a tener en cuenta (opcional)')}</label>
