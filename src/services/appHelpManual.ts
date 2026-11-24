@@ -22,7 +22,9 @@ desde el navegador de cualquier ordenador, tableta o móvil. Se entra con la cue
 de Google o de Microsoft. El trabajo se guarda en el navegador de ese dispositivo y,
 si el docente lo elige, también en su Google Drive u OneDrive o en una carpeta de su
 ordenador: nunca en un servidor de AulaPro. Hay una copia automática cada 10 minutos
-en el dispositivo.
+en el dispositivo: se conservan las cinco más recientes y, de los días y las
+semanas anteriores, la primera de cada uno (12 como mucho), así que se puede
+volver a cómo estaba el trabajo hace días o un par de semanas.
 
 COMUNIDAD AUTÓNOMA: cada perfil tiene la suya (se elige al crearlo y se cambia
 en Configuración → Perfil; aparece bajo el nombre del docente en el menú). De
@@ -57,8 +59,16 @@ quinto y sexto. En la ESO, curso a curso, con sus materias optativas propias
 Clásica, Filosofía y Argumentación…) y una sola Lengua Extranjera para la
 primera y la segunda. El resto de comunidades siguen el estatal.
 
-Las funciones de IA usan una clave gratuita de Google Gemini que el docente pega
-en Configuración. Sin clave, la aplicación funciona entera menos lo que redacta la IA.
+Las funciones de IA usan una clave gratuita de Google Gemini. Se pone sin salir
+de la pantalla: cualquier aviso «Configurar la IA» abre una ventana con los tres
+pasos (abrir Google AI Studio, crear y copiar la clave, pegarla); al quedar
+comprobada se cierra sola y lo que se estaba escribiendo sigue igual, con el
+botón de generar activo. También se pone en Configuración › Clave de la IA. La
+primera vez hay que marcar la casilla de aceptación del uso de la IA. Si se
+entra en Google con la cuenta del centro y no deja crear la clave, vale una
+cuenta personal de Google, que no tiene que ser la de AulaPro. Sin clave, la
+aplicación funciona entera menos lo que redacta la IA: hay rúbricas y escalas
+modelo, fichas en blanco y al instante e informes de seguimiento sin IA.
 PRIVACIDAD: los nombres del alumnado NUNCA se envían a Google. Antes de cada
 petición a la IA se cambian por códigos, nuevos y al azar en cada petición (un
 mismo alumno no lleva el mismo código dos veces), se quitan los correos y, de lo
@@ -114,7 +124,46 @@ menú. No sale nada del dispositivo.
 En las pantallas que trabajan clase a clase (Cuaderno, Asistencia, Informes,
 Actas…) la clase se elige arriba: con pocas clases, botones con su color; con
 más de seis, un desplegable agrupado en Primaria, ESO y otras clases, con
-flechas a los lados para pasar a la anterior o la siguiente. La versión de la aplicación y los créditos están al pie de Configuración.
+flechas a los lados para pasar a la anterior o la siguiente.
+LA CLASE QUE SE ABRE EN CADA PANTALLA: Cuaderno, Asistencia, Anotar actitud,
+Actas, Informes, Distribución de aula, Diana competencial, la pizarra y, en
+Educación Física, En la pista, Equipos y Pruebas físicas se abren en la clase
+que toca según el horario de la Agenda: la que está en marcha o la que empieza
+en los próximos 10 minutos. Si no hay clase en ese momento, se abre la última
+con la que se trabajó en cualquier pantalla. En los festivos y las vacaciones
+del calendario escolar el horario no cuenta. En el selector, la clase de ahora
+lleva un punto y la palabra «Ahora» (o «A las 11:00» si está a punto de
+empezar); si se está mirando otra, el botón «Ahora: …» devuelve a ella con un
+toque. Las tarjetas de clase del Inicio y los botones de la franja de En clase
+abren la clase que nombran, y los enlaces de una pantalla a otra («Ajustar en
+el cuaderno», «Ir al Cuaderno») conservan la clase que se estaba viendo. Hace
+falta tener el horario en la Agenda. La clase recordada se guarda solo en el
+dispositivo.
+MOVERSE CON EL NAVEGADOR: cada pantalla tiene su propia dirección, así que el
+botón de atrás del navegador, y el gesto de atrás en el móvil y la tableta,
+devuelven a la pantalla anterior, y el de adelante, a la siguiente. Al recargar
+la página se sigue en la misma pantalla. Cualquier pantalla se puede guardar en
+los marcadores o favoritos del navegador (por ejemplo Asistencia o el Cuaderno)
+y abrirla directamente; si hace falta, primero pide entrar. Con una ventana
+abierta, atrás la cierra y deja en la pantalla en la que se estaba. La
+dirección de una pantalla que el perfil no tiene lleva al Inicio, y al cambiar
+de perfil se empieza siempre por el Inicio. En la dirección no va nunca nada
+del alumnado.
+DESHACER UN BORRADO: al eliminar algo (una clase, un alumno, una columna o una
+categoría del cuaderno, una rúbrica, una diana, una escala de registro, una
+evaluación, un informe, una situación de aprendizaje, una ficha, una sesión,
+un evento, el horario, y lo equivalente en PT y AL y en Educación Física) sale
+abajo, durante unos diez segundos, un aviso que dice qué se ha eliminado, con
+el botón «Deshacer». Al pulsarlo vuelve tal como estaba, con todo lo que se fue
+con ello (una clase vuelve con su alumnado y sus notas). También vale Ctrl+Z si
+no se está escribiendo en un campo. Solo se puede deshacer el último borrado y
+mientras el aviso está a la vista; con el ratón encima, el aviso espera. Si
+después de borrar se cambia algo de lo mismo (por ejemplo, una nota tras borrar
+una columna), el aviso se retira. No cubre «Vaciar el curso» (que hace su
+propia copia), borrar un perfil, ni lo que se quita dentro de un elemento (un
+objetivo de un programa, un criterio de una rúbrica). Pasado el aviso, la
+vuelta atrás es restaurar una copia en Configuración › Datos y copias.
+La versión de la aplicación y los créditos están al pie de Configuración.
 Así, por ejemplo, las Actas están en «Documentos → Actas» y la Distribución de
 aula en «En clase → Distribución de aula». Cada grupo se pliega y despliega
 pulsando su cabecera, y la barra entera se estrecha con la flecha de arriba. En
@@ -169,7 +218,10 @@ El punto de partida de todo. Con varias clases, se entra por una PORTADA de
 tarjetas agrupadas en Primaria, ESO y otras clases: cada tarjeta lleva el
 color, la asignatura, cuántos alumnos tiene, cuántos tienen avisos y la media
 de la clase. Al pulsar una se ve su alumnado; «Todas las clases» vuelve a la
-portada. Con una sola clase se entra directamente en ella. Se crea una clase con nombre, aula y color; se
+portada. Con una sola clase se entra directamente en ella. En «Nueva clase» hay también «Crear varios
+grupos», para quien da la misma asignatura a muchos grupos: se eligen la etapa, los cursos, las letras
+(«A, B, C» o «A-D») y una asignatura, se ve la lista antes de crear y los grupos que ya existen no se
+duplican; después se entra en cada clase para pegar su listado. Se crea una clase con nombre, aula y color; se
 puede marcar como tutoría. Se eligen ETAPA Y CURSO (Primaria 1º-6º o ESO 1º-4º,
 obligatorios) y aparecen las asignaturas de ese curso tal y como las llama el
 currículo de la comunidad del perfil: se marcan las que se dan (una o varias).
@@ -245,6 +297,19 @@ provincia, con su Día de la Comunidad Educativa, sus días no lectivos
 provinciales y, en Málaga, la Semana Blanca; sin provincia, la Agenda la pide.
 El de Jaén todavía no está. Para el resto de comunidades todavía no hay
 calendario.
+TODO LO QUE TIENE FECHA: en «Mensual» y «Semanal», la fila «También se ve:»
+enciende o apaga las capas Sesiones, Cuaderno (las columnas con fecha),
+Reuniones y formaciones y, en Educación Física, Pruebas físicas. En el mes,
+cada día lleva una marca cuadrada por capa (los eventos son redondos) y, al
+tocar el día, la lista de sus apuntes con su clase; en la semana salen en la
+cabecera de cada día. Son de solo lectura: cada apunte abre su pantalla, ya en
+su clase, y lo apagado se recuerda en el dispositivo. El desplegable «Clase»
+deja ver solo lo de una clase (lo que no es de ninguna clase, como un
+claustro, tampoco se ve entonces; el calendario escolar sí). Al crear o editar
+un evento se puede elegir «Clase (opcional)»: el evento toma el color de la
+clase. Al crear un evento de tipo «Entrega» con clase se puede marcar «Crear
+también la columna en el cuaderno» y elegir la categoría: la columna nace con
+el nombre y la fecha del evento. Nada de esto usa IA ni sale del dispositivo.
 
 [notebook] CUADERNO DE NOTAS
 Tiene TRES PESTAÑAS arriba:
@@ -254,6 +319,56 @@ Tiene TRES PESTAÑAS arriba:
    pruebas («Examen T1», «Cuaderno»). Se escriben notas de 0 a 10 en la rejilla
    y la media ponderada se calcula sola, con la media del grupo abajo. Se
    exporta a Excel.
+   COMO UNA HOJA DE CÁLCULO: Intro y flecha abajo pasan al alumno siguiente,
+   flecha arriba al anterior y las flechas a los lados, a la actividad vecina;
+   al añadir una actividad el cursor queda en su primera celda. PEGAR NOTAS: en
+   Excel, Google Sheets o LibreOffice se copian los nombres con su columna de
+   notas (o varias seguidas) y se pegan en la columna de la actividad. Cada nota
+   va al alumno que se llama así, aunque la hoja esté en otro orden o escrita de
+   otra forma («Apellidos, Nombre», sin tildes, en mayúsculas, sin el segundo
+   apellido; también el número de lista con «12 Marta»). Antes de poner nada
+   sale una vista previa con lo que es nuevo, lo que cambia una nota que ya
+   estaba y lo que no entra. Una fila que no se parece a nadie de la clase, o
+   que se parece igual a dos, no se coloca: sale aparte y se elige a quién va;
+   un nombre que solo se parece (una errata, el nombre de pila) se marca con ≈
+   y hay que confirmarlo. Sin nombres, las notas se colocan en el orden de la
+   lista y hay que confirmar que la hoja está en ese orden. Vale la coma o
+   el punto decimal; lo que no es una nota de 0 a 10 («NP», «11») no entra, y
+   una celda vacía de la hoja no borra la nota que ya estaba. Al pulsar el
+   NOMBRE DE UNA ACTIVIDAD se abre su menú: «Calificar esta actividad» (la
+   lista del alumnado con una casilla grande para cada nota, pensada para
+   tableta y móvil, donde se abre sola al añadir una actividad; «Siguiente» en
+   el teclado o el botón de flecha pasan al alumno de debajo), «Poner una nota
+   a quien no tiene» (no toca las notas que ya están) y «Editar o eliminar
+   esta actividad». Tras pegar o rellenar hay diez segundos para «Deshacer»
+   (también Ctrl+Z). Al empezar el cuaderno de una asignatura se ofrecen
+   categorías según la materia (las cuatro destrezas en una lengua
+   extranjera, interpretación, escucha y creación en Música, creaciones,
+   proceso y análisis en Plástica, los tres componentes en Educación Física),
+   además de la configuración típica y «Crear a mi manera»: son un punto de
+   partida y se cambian después.
+   POR EVALUACIONES: junto a la clase está el selector «1.ª · 2.ª · 3.ª ·
+   Curso», con las fechas al lado. De partida van de septiembre a diciembre,
+   de enero a marzo y de abril en adelante; se cambian pulsando las fechas,
+   las evaluaciones vecinas se ajustan solas y se recuerdan en el dispositivo.
+   Es el mismo selector de Actas: lo elegido en una pantalla vale en la otra,
+   y la evaluación de hoy lleva un punto. En una evaluación se ven y cuentan
+   solo las actividades de sus fechas, y «Trabajo diario y actitud» se calcula
+   con las anotaciones de esas fechas. Cada actividad cuenta en la evaluación
+   de su fecha: al añadirla se propone un día de la evaluación que se está
+   viendo y bajo la fecha se lee dónde cuenta; cambiar la fecha la cambia de
+   evaluación, y sin fecha sale en todas. «Curso» enseña la nota de cada
+   evaluación y la final de cada alumno. La final sale con una de dos reglas,
+   por clase y asignatura: «Evaluación continua» (todas las notas del curso
+   juntas; es lo que sale si no se elige nada) o «Media de las evaluaciones»,
+   con el peso de cada una (iguales de partida); «Usar esta regla en todas
+   mis clases» la copia a las demás. Una evaluación sin notas todavía no resta
+   y la final se marca como provisional. El peso de cada categoría vale para
+   todo el curso; lo que cuenta cada nota dentro de su categoría se reparte
+   entre las de su evaluación. Una rúbrica, una diana o una escala de registro
+   tiene una columna por evaluación: usarla en el segundo trimestre no cambia
+   la nota del primero. «Exportar a Excel» saca la evaluación que se ve o, en
+   «Curso», todo con la nota de cada evaluación y la final.
 2. «Por competencias»: la clase entera con el currículo de la comunidad del
    perfil. Se eligen la clase y la asignatura (solo las que tienen materia
    oficial) y sale una tabla con un alumno por fila, una columna por
@@ -262,7 +377,9 @@ Tiene TRES PESTAÑAS arriba:
    su texto y el decreto del que sale. Las notas salen de las rúbricas y dianas
    con criterios oficiales marcados, como en la Diana competencial (que tiene
    el detalle de cada alumno criterio a criterio), y no cambian la nota de
-   «Calificaciones». Se exporta a Excel. La clase necesita etapa y curso.
+   «Calificaciones». Se exporta a Excel. La clase necesita etapa y curso. Lleva
+   el mismo selector «1.ª · 2.ª · 3.ª · Curso»: la tabla y el Excel son de la
+   evaluación elegida; sin notas en ella lo dice y ofrece «Ver todo el curso».
 3. «✨ Consulta IA»: el asistente pedagógico que SÍ VE LOS DATOS del docente
    (clases, medias, asistencia, evaluaciones, agenda). Ahí es donde se pregunta
    «¿cómo va Alumno 1?», «¿quién va justo en 2ºB?» o «proponme refuerzo». Se puede
@@ -297,8 +414,8 @@ en el Cuaderno, si a una actividad que casi toda la clase tiene calificada le
 falta la nota de alguien (dice de quién); y al guardar una situación de
 aprendizaje, pasar sus sesiones a Sesiones.
 Pasar lista por clase y día. Al entrar se abre la clase que toca según el
-horario (la que está en marcha o, si no, la siguiente de hoy); se cambia
-arriba. Cuatro botones con su nombre escrito: Presente, Falta, Retraso y
+horario (la que está en marcha o la que empieza en los próximos 10 minutos;
+si no, la última con la que se trabajó); se cambia arriba. Cuatro botones con su nombre escrito: Presente, Falta, Retraso y
 Justificada (en el móvil, solo el icono); pulsar el nombre del alumno va
 cambiando el estado; volver a pulsar el botón del estado marcado lo quita (el alumno
 queda sin marcar). Hay botón de «Todos presentes» para marcar la clase entera de
@@ -350,8 +467,9 @@ botones de arriba a la derecha.
 
 [enclase] EN CLASE (RESUMEN)
 La portada del apartado En clase. Arriba, si el horario lo dice, la clase que
-toca ahora (o la siguiente de hoy) con dos botones: «Pasar lista» y «Anotar
-actitud». Debajo, cuatro tarjetas grandes: Anotar actitud, Distribución de
+toca ahora (o la siguiente de hoy) con sus botones: «Pasar lista», «Anotar
+actitud» y, si esa clase tiene una sesión preparada para hoy, «Dar la clase»
+(ver Pizarra y herramientas). Debajo, cuatro tarjetas grandes: Anotar actitud, Distribución de
 aula, Pizarra y herramientas (Aula Live) y Actividades con móviles.
 
 [actitud] ANOTAR ACTITUD
@@ -359,7 +477,8 @@ La forma rápida de anotar el trabajo diario y la actitud: toda la clase en
 una lista y, en cada fila, un botón por anotación: «Participa», «Buen
 comportamiento», «Mal comportamiento», «Sin tarea» y «Sin material» (en
 Educación Física, las de la pista). Un toque, una anotación; no hace falta
-sentar antes a nadie. Se abre en la clase que toca según el horario.
+sentar antes a nadie. Se abre en la clase que toca según el horario o, sin
+clase en ese momento, en la última con la que se trabajó.
 - Arriba, el selector de clase y, si la clase tiene varias asignaturas, cuál.
 - El número sobre cada botón es lo anotado ese día; la flecha de la fila
   deshace la última anotación de ese alumno ese día. A la derecha, la nota del
@@ -402,7 +521,11 @@ Al final, «COBERTURA DEL CURRÍCULO»: una fila por clase y asignatura con mate
 oficial, con una barra y «12 de 20»: cuántos criterios de evaluación oficiales
 tienen ya nota de alguna rúbrica o diana que los lleve marcados. Al pulsar la
 fila salen los que faltan, con su texto. Solo salen las clases con etapa y
-curso. Al crear una situación de aprendizaje para una clase que ya tiene
+curso. Lleva el selector de evaluación «1.ª · 2.ª · 3.ª · Curso»: con una
+evaluación elegida, cada fila dice cuántos criterios se han evaluado en ella y
+«+N en otras», y al abrirla salen los evaluados en esta evaluación, los
+evaluados solo en otra (con cuál) y los que no se han evaluado en todo el
+curso, que son los que quedan por repartir; en «Curso», evaluados y pendientes. Al crear una situación de aprendizaje para una clase que ya tiene
 criterios evaluados y otros sin evaluar, sale la casilla «Dar prioridad a lo
 que aún no has evaluado en esta clase» (marcada): a la IA le llegan solo los
 números de las competencias específicas pendientes, y las elige si encajan con
@@ -410,7 +533,21 @@ la idea.
 
 [rubrics] RÚBRICAS
 Rúbricas con criterios y niveles de logro (el nivel más alto equivale a un 10 y
-el resto reparte proporcionalmente); se pueden crear a mano o con la IA. Aquí se
+el resto reparte proporcionalmente). «Nueva rúbrica» tiene tres pestañas:
+«Desde un modelo», «IA» y «Manual». «Desde un modelo» ofrece diez rúbricas ya
+escritas, sin IA: exposición oral, expresión escrita, resolución de problemas,
+trabajo en equipo, cuaderno del alumno, lectura en voz alta, proyecto,
+práctica de laboratorio y, para Educación Física, juego colectivo y expresión
+corporal; varias tienen versión de Primaria y de ESO (interruptor arriba).
+«Ver los descriptores» las enseña enteras y «Usar y adaptar» abre el editor
+relleno para cambiar lo que se quiera, elegir las clases y guardar. Sin clave
+de la IA la ventana se abre en «Desde un modelo»; con clave, en «IA».
+GUARDAR COMO ARCHIVO Y ABRIR ARCHIVO (rúbricas, dianas y escalas): el icono de
+guardar de cada tarjeta descarga el instrumento solo, sin alumnado, clases ni
+notas, para pasarlo a otro docente o conservarlo; «Abrir archivo», junto a
+«Nueva rúbrica», «Nueva diana» o «Nueva escala», lo abre en el editor para
+elegir las clases y guardarlo. No es una copia de los datos ni «Trabajo
+compartido», que manda clases enteras con contraseña. Aquí se
 evalúa a cada alumno. IMPORTANTE: si la rúbrica declara clase y categoría del
 cuaderno, la nota entra sola en el cuaderno en una columna propia; si no las
 declara, la evaluación se queda solo en el Historial. Cada criterio de rúbrica
@@ -431,6 +568,24 @@ que se llama así). Cada clase tiene su propia columna en su cuaderno (la de la
 primera conserva la de siempre). Al evaluar solo salen las clases de la rúbrica,
 y su tarjeta enseña en cuáles se usa. Quitar una clase no borra la columna que ya
 tenía.
+EVALUAR A LA CLASE: en la tarjeta de la rúbrica (o de la diana), «Evaluar a la
+clase» abre una ventana con la clase que toca ya puesta (se cambia arriba) y el
+primer alumno que falta elegido. A la izquierda, la lista de la clase en orden
+de lista con quién está evaluado («12 de 25 evaluados»; en el móvil, arriba,
+como una tira que se desliza): en verde con su nota quien se evaluó hoy, en
+gris con la fecha quien se evaluó otro día y en naranja «sin guardar» quien
+tiene niveles marcados y aún no guardados. Se marca el nivel de cada criterio
+(pulsar el que ya está marcado lo quita) y «Guardar y siguiente» guarda y pasa
+al siguiente sin cerrar la ventana. Si casi toda la clase está en el mismo
+nivel, «Poner a todos este nivel» lo deja marcado a quienes faltan, sin guardar
+nada; se cambia solo a quien sea una excepción y se pulsa «Guardar todo». Nada
+se guarda hasta pulsar Guardar, y lo marcado a un alumno no se pierde al pasar
+a otro. Al volver a un alumno evaluado hoy se ve lo que se le marcó y lo que se
+cambie corrige esa evaluación; si es otro trabajo distinto, «Es otro trabajo»
+guarda una segunda. Si toda la clase ya se evaluó otro día con ese instrumento,
+es una vuelta nueva: cuentan las de hoy («0 de 25 evaluados hoy») y lo que se
+guarde son evaluaciones nuevas. En las sesiones de Educación Física, «Evaluar»
+abre la misma ventana con la clase de la sesión.
 DESCARGAR EN PDF: el icono de PDF de cada tarjeta guarda la rúbrica en blanco, en
 horizontal, con sus niveles y descriptores y las líneas de alumno, clase, fecha y
 nota, para imprimirla y evaluar en papel (abre la ventana de imprimir del navegador).
@@ -438,7 +593,10 @@ nota, para imprimirla y evaluar en papel (abre la ventana de imprimir del navega
 [dianas] DIANAS
 El otro instrumento de evaluación, en su propia pestaña de Evaluar (antes iba
 dentro de Rúbricas). Una diana tiene ítems con peso y niveles de logro, y se
-evalúa marcando el nivel de cada ítem sobre la diana. Se crea a mano o con la
+evalúa marcando el nivel de cada ítem sobre la diana (sin clave de la IA,
+«Nueva diana» se abre en «Manual»), con la misma ventana
+«Evaluar a la clase» de las rúbricas (lista de la clase, «Guardar y siguiente»
+y «Poner a todos este nivel»). Se crea a mano o con la
 IA y, como las rúbricas, lleva competencias clave y criterios oficiales, y su
 nota entra en el cuaderno si declara clase y categoría. El icono de PDF de cada
 tarjeta guarda la diana en blanco (un sector numerado por ítem, un anillo por
@@ -449,7 +607,10 @@ Un instrumento rápido, en su pestaña de Evaluar: se elige un concepto concreto
 varios: «Golpea con la palma», «Entrega a tiempo»…) y, por cada alumno, un PULGAR
 ARRIBA (bien hecho) o un PULGAR ABAJO (mejorable); pulsar otra vez el mismo pulgar
 lo quita y el pulgar de la cabecera marca «bien hecho» a toda la clase. «Nueva
-escala» pide el nombre, los conceptos y las clases donde se usa (una o varias, con
+escala» tiene «Desde un modelo», con seis escalas ya escritas (hábitos de trabajo
+en clase, entrega de una tarea, trabajo cooperativo, participación en un debate o
+una asamblea, hábitos en la sesión de Educación Física y trabajo con dispositivos):
+«Usar y adaptar» rellena el editor. A mano, pide el nombre, los conceptos y las clases donde se usa (una o varias, con
 su categoría del cuaderno, como las rúbricas). «Valorar a la clase» enseña a toda la
 clase en una tabla, con lo que se valoró la última vez; «Guardar valoración» guarda
 una evaluación por alumno. La nota sobre 10 es la proporción de pulgares arriba
@@ -469,8 +630,16 @@ inteligencia artificial. Para evaluar están las rúbricas, las dianas y las
 escalas de registro, y la nota la pone siempre el docente.
 
 [diana] DIANA COMPETENCIAL
-Perfil visual de competencias clave de un alumno, en forma de diana. Se elige
-clase y alumno. Debajo, «Competencias específicas»: por asignatura con currículo
+Perfil visual de competencias clave de un alumno, en forma de diana. La clase
+viene puesta (la que toca o la última usada) y se elige al alumno. Lleva el
+selector «1.ª · 2.ª · 3.ª · Curso», el mismo del cuaderno y las actas: se abre
+en la evaluación de hoy, «Rellenar desde evaluaciones» cuenta las rúbricas,
+dianas y escalas de las fechas de esa evaluación y cada evaluación guarda su
+propia Diana; «Curso» es la de todo el curso (las guardadas antes del
+23-11-2026 están ahí). Si la de una evaluación está sin guardar, la pantalla
+dice en cuáles hay una guardada, con un enlace. Las competencias específicas
+y su PDF son de la evaluación elegida, y dicen lo mismo que la segunda página
+del acta de ese periodo. Debajo, «Competencias específicas»: por asignatura con currículo
 oficial, la nota de cada criterio de evaluación (media de las veces que se ha
 evaluado), de cada competencia específica (media de sus criterios) y del área
 (media de sus competencias). Sale de las evaluaciones con criterios oficiales
@@ -496,16 +665,39 @@ dónde sale; la IA no propone ni cambia ningún nivel, y los sectores sin datos
 los marca el docente.
 
 [reports] INFORMES
-Informes de evaluación competencial redactados por la IA a partir de las
-evaluaciones, las notas del cuaderno y la asistencia REALES del alumno, citando
-las competencias clave LOMLOE. Se generan por periodo (1ª, 2ª, 3ª evaluación o
-final) y en lote. Si un alumno no tiene datos, la IA se niega a inventarlo. Si
-la clase tiene currículo oficial y hay rúbricas o dianas con criterios oficiales
-evaluados, a la IA le llegan también las competencias específicas del alumno,
-con su texto del decreto de la comunidad y su nota, y se apoya en ellas para
-decir qué tiene consolidado y qué en proceso, con palabras sencillas para las
-familias, sin códigos. El pie del informe cita entonces ese decreto. Se
-exportan a PDF y se pueden editar a mano.
+Informes para las familias, con o sin IA. No hace falta la clave. Al elegir un
+alumno sin informe salen «Informe de seguimiento», «Escribir a mano» y, con
+clave, «Generar informe».
+«INFORME DE SEGUIMIENTO»: crea al instante, con reglas fijas y sin IA, una
+hoja con las calificaciones de cada asignatura por categoría, la asistencia,
+las competencias clave (su valoración la fija la media de las evaluaciones con
+rúbricas y dianas) y hasta cinco frases a cada lado de «Lo positivo» y «A
+mejorar», escritas para la familia, sin siglas y sin comparar con el resto de
+la clase, más «Observaciones del docente» y un texto de presentación opcional.
+Se revisa y se cambia antes de guardar: se editan o quitan frases, se añaden
+otras, se escribe un comentario por competencia y se desmarcan las partes que
+no se quieran entregar. Debajo de cada frase se ve de qué dato sale; eso no se
+entrega nunca. «Informes de seguimiento de la clase» los crea de una vez para
+todo el alumnado que aún no tiene informe en esa evaluación, sin pisar los que
+ya había, con «Deshacer». También se abre desde la ficha del alumno, debajo de
+«Lo más relevante». Nada del informe de seguimiento sale del dispositivo.
+«ESCRIBIR A MANO»: para redactar uno sin IA ni reglas.
+CON IA (opcional): «Generar informe» redacta el informe competencial a partir
+de las evaluaciones, las notas del cuaderno y la asistencia REALES del alumno,
+citando las competencias clave LOMLOE; si no tiene datos, la IA se niega a
+inventarlo. En un informe de seguimiento, «Redactar el texto con IA» añade
+solo el párrafo y los comentarios de las competencias. La IA no valora al
+alumno: la valoración de cada competencia la fija su nota, y una competencia
+sin nota no sale en la tabla. Si la clase tiene currículo oficial y hay
+rúbricas o dianas con criterios oficiales evaluados, a la IA le llegan también
+las competencias específicas del alumno, con su texto del decreto y su nota,
+y el pie del informe cita ese decreto.
+POR EVALUACIÓN: el informe cuenta las notas, la asistencia, las anotaciones y
+las evaluaciones de la evaluación elegida con el selector «1.ª · 2.ª · 3.ª ·
+Curso», el mismo del cuaderno y del acta; en «Final de curso» lleva la nota de
+cada evaluación y la final. Si los datos cambian después de guardar, avisa y
+«Actualizar los datos» lo pone al día sin perder lo escrito. Sale en PDF, Word
+y texto, de un alumno o de toda la clase.
 
 [records] ACTAS
 El acta oficial de calificaciones de una clase, con una columna por categoría y
@@ -516,8 +708,12 @@ pueden cambiar si el centro cierra la evaluación otro día (de partida, de
 septiembre a diciembre, de enero a marzo y de abril en adelante; al cambiar
 las de una, las vecinas se ajustan para no dejar días en medio); «Final de
 curso» cuenta todo el curso. El bloque de trabajo diario y actitud también va
-por esas fechas. La columna de una rúbrica o una diana cuenta en la evaluación
-en que se usó por primera vez.
+por esas fechas. El selector de evaluación es el mismo del Cuaderno: lo
+elegido en una pantalla vale en la otra. El acta de «Final de curso» usa la
+regla de la nota final elegida en «Curso» del cuaderno (evaluación continua o
+media de las evaluaciones) y lo dice en el documento; con la media de las
+evaluaciones enseña una columna por evaluación con su peso. Una rúbrica, una
+diana o una escala usada en dos trimestres tiene una columna en cada uno.
 
 [selfassess] AUTOEVALUACIONES
 Lo que han respondido los alumnos desde el móvil en Actividades con móviles (en la versión web, próximamente). El
@@ -531,9 +727,15 @@ alumno e instrumento, y buscador. Al abrir una fila, «Eliminar esta evaluación
 quita una equivocada: deja de contar en las medias y en las competencias, y en
 el cuaderno su nota pasa a ser la de la evaluación anterior con ese instrumento
 o se queda vacía (el cuaderno solo cambia si la eliminada era la más reciente).
-Al volver a evaluar a un alumno con el mismo instrumento el mismo día, la app
-pregunta si es una corrección (sustituye a la de ese día) o es otro trabajo
-(se guardan las dos); en otro día es siempre otra evaluación. Si al guardar
+Tras eliminarla, el aviso «Deshacer» la devuelve durante diez segundos.
+«Corregir», al lado, abre la ventana del instrumento con lo marcado: al guardar
+se actualiza esa misma evaluación (misma fecha, no se crea otra) y, si es la
+más reciente del alumno con ese instrumento, cambia también su nota en el
+cuaderno. Vale para rúbricas, dianas y escalas de registro; no para las
+autoevaluaciones ni si el instrumento se eliminó. Al volver a evaluar el mismo
+día a un alumno desde «Evaluar a la clase», lo que se cambie corrige la
+evaluación de ese día (o «Es otro trabajo» guarda otra); en otro día es
+siempre otra evaluación, salvo con «Corregir la del…». Si al guardar
 quedan criterios o ítems sin marcar, la app avisa: no cuentan como 0, la nota
 se calcula solo con lo marcado.
 
@@ -613,7 +815,7 @@ recibe su propia copia, que se puede retocar sin cambiar las demás.
 
 [resources] RECURSOS
 Fichas de trabajo con historia, generadas con la IA a partir de un tema, el
-área y el nivel. Para el profesorado de PT y AL, en vez de «Clase» sale
+área y el nivel, o hechas sin IA (ver SIN LA CLAVE DE LA IA, más abajo). Para el profesorado de PT y AL, en vez de «Clase» sale
 «Adaptada a»: al elegir a un alumno de apoyo se rellenan su nivel y, en «Más
 opciones», lo que se le cuenta a la IA (sus apoyos, sus barreras, cómo
 aprende y sus objetivos de este trimestre, sin su nombre ni su diagnóstico),
@@ -626,11 +828,39 @@ Tipos de ejercicio: respuesta abierta, completar, opción múltiple, problema,
 tabla, relacionar, colorear, sopa de letras, verdadero o falso, ordenar,
 crucigrama y cómic (la sopa, el crucigrama y las figuras los dibuja la propia
 aplicación).
-CREAR, EN DOS PASOS: 1) «¿Qué quieres crear?», cuatro tarjetas grandes (con su icono de color, una explicación y la elegida marcada):
-«Ficha de ejercicios», «Comprensión lectora», «Escape room» y «Tarjetas»; 2)
+CREAR, EN DOS PASOS: 1) «¿Qué quieres crear?», cinco tarjetas grandes (con su icono de color, una explicación y la elegida marcada):
+«Ficha de ejercicios», «Comprensión lectora», «Escape room», «Tarjetas» y «Al
+instante (sin IA)»; 2)
 «¿De qué trata?», con la clase, el área y el curso. Debajo, dos casillas:
 «Lectura fácil» (para dislexia) y «Con pictogramas». Lo demás está recogido en
 «Personalizar»: número de ejercicios, aspecto, dibujos y cómo es el grupo.
+SIN LA CLAVE DE LA IA: Recursos se puede usar sin clave y sin cupo, por dos
+caminos. 1) «Empezar en blanco», junto a «Crear ficha»: abre el editor con la
+estructura vacía de lo elegido (una ficha con sus tres bloques de menos a
+más, un escape room con tres salas y su candado, una comprensión lectora con
+el texto por escribir o un mazo de tarjetas); lo escrito en «¿De qué trata?»
+queda como título. En el editor, cada bloque tiene «Añadir ejercicio»: se
+elige el tipo en el desplegable y entra vacío para escribirlo. En un
+ejercicio abierto se le cambia el tipo con el desplegable de su cabecera
+(conserva el enunciado, la solución y las líneas que encajan, y pregunta
+antes si se va a perder algo), se duplica con «Duplicar», y en las tablas y
+los cómics se añaden o se quitan filas, columnas y viñetas. Al final está
+«Añadir bloque». Un ejercicio recién añadido y sin escribir no se imprime ni
+se proyecta. 2) La tarjeta «Al instante (sin IA)»: cuatro hojas que monta la
+aplicación en el dispositivo, sin espera: sopa de letras (de 3 a 16 palabras,
+una por línea o separadas por comas), crucigrama (de 2 a 14 palabras, cada
+una con su pista detrás de dos puntos), hoja de operaciones (sumas, restas,
+multiplicaciones y divisiones; entre qué números, de 6 a 60 operaciones, con
+o sin llevadas; en las multiplicaciones el segundo número va del 2 al 10 y
+las divisiones son siempre exactas) y fracciones con pizzas (leer, colorear y
+unir). Si una palabra no cabe o no tiene pista, la aplicación dice cuál se
+queda fuera. La hoja se abre en el editor y se retoca, se guarda y se imprime
+como cualquier ficha. «Imprimir el solucionario en una página aparte» (en el
+editor; en «Al instante» viene marcada) añade al final del PDF y del Word una
+página para el docente con la solución de cada ejercicio; sin marcarla, las
+soluciones solo se ven en el editor. Siguen necesitando la clave «Crear
+ficha», «Añadir ejercicio con IA», «Rehacer», «Adaptar» y «4 tarjetas más con
+IA».
 Al crearla se abre el EDITOR: a la izquierda los bloques (título, historia,
 explicación, instrucciones, cada misión y sus ejercicios, final); a la derecha
 la vista previa A4, igual que se imprime. Cada ejercicio sale en una línea
@@ -748,6 +978,25 @@ de un nivel. La pizarra sigue viva al pasar a otra pantalla (pasar lista, anotar
 actitud): al volver están el temporizador en marcha, los grupos y lo dibujado;
 se cierra sola a los veinte minutos de salir de ella, salvo que haya un
 temporizador en marcha.
+DAR LA CLASE: con la sesión preparada en Sesiones no hace falta volver a
+escribir el plan del día. «Dar la clase» está en la franja de la clase de
+ahora de En clase, en la sesión de hoy de «Tu jornada» o «Tu semana» del
+Inicio, en la fila de la sesión en Sesiones y en cada sesión sin dar de una
+situación de aprendizaje guardada. Abre la pizarra con esa clase y la ventana
+«Plan del día» con los tres momentos de la sesión y cada actividad como
+casilla para ir tachando. Las imágenes de la sesión y, en Educación Física,
+su circuito salen como miniaturas: un toque las enseña a toda la pizarra. Lo
+que se proyecta lo ve la clase: solo el título de la sesión y el título y la
+descripción de cada actividad; el objetivo, el material, las medidas de
+inclusión y el plan B no salen. Si se abre «Plan del día» vacío, ofrece
+«Traer la sesión de hoy» de la clase elegida (o la siguiente sin dar) y dice
+por qué la propone. Al tachar la última actividad sugiere marcar la sesión
+como dada: se marca solo si se pulsa, y queda completada en Sesiones. Si la
+pizarra ya estaba abierta no se pierde nada: el temporizador sigue, lo
+dibujado se queda y lo escrito a mano en el plan se conserva; para que el plan
+se lea, alguna ventana puede pasar a su icono y vuelve con un toque. Funciona
+sin IA y nada sale del dispositivo. En PT y AL el plan del día se escribe a
+mano, como siempre.
 Tiene una pizarra para dibujar encima: el botón «Dibujar» la activa y sale la
 barra con cuatro herramientas, «Lápiz» (fino, responde a la presión si el
 dispositivo la da), «Rotulador», «Subrayador» (translúcido, con sus propios
@@ -1011,6 +1260,20 @@ asociada a ella. Al contrario que en EF, la IA no las prepara una a una: la IA
 trabaja en la situación de aprendizaje.
 Las sesiones también pueden llevar imágenes (se pegan con Ctrl+V, se arrastran o se
 eligen de un archivo); ver Sesiones de EF.
+PONER FECHAS (también en las sesiones de Educación Física): dentro de una clase,
+cada situación de aprendizaje y el grupo «Sin situación de aprendizaje» tienen
+el botón «Poner fechas». Se elige el primer día y AulaPro reparte las sesiones
+pendientes, en su orden, en las horas de esa clase en el horario semanal,
+saltando los festivos y las vacaciones del calendario escolar. Antes de cambiar
+nada se ve el día de cada sesión y por qué se salta cada día; con la X se quita
+un día sin clase que el calendario no conoce (un festivo local, una excursión).
+Si la clase tiene varias asignaturas en el horario, se marcan en cuáles se dan
+esas sesiones. Sin horario para esa clase, se elige cada cuántos días lectivos
+hay sesión. Las sesiones completadas no se mueven. En cada sesión con fecha,
+«No se dio: correr esta y las siguientes» la pasa a la clase siguiente y corre
+las de detrás solo si se pisan. Tras aplicar hay diez segundos para «Deshacer»
+(o Ctrl+Z). Solo se miran las sesiones de ese grupo: si otra situación de
+aprendizaje de la misma clase tiene sesión ese día, no se avisa.
 
 [ef-actividades] ACTIVIDADES
 Se abre en SEIS TARJETAS, una por tipo (juegos motrices, deportes, para días de
@@ -1410,6 +1673,15 @@ tarjeta «Clave de la IA».
   servidor de AulaPro.
 - «¿Cómo hago copia de seguridad?»: Configuración → Datos y copias → «Descargar mis datos». Da un archivo que se
   guarda donde se quiera y se puede volver a importar.
+- «¿Cómo paso al curso siguiente?»: Configuración → Datos y copias → «Final de curso» → «Empezar curso nuevo».
+  Guía paso a paso sin rehacerlo todo: primero se descarga la copia del curso que acaba (obligatoria);
+  después se dice qué clases suben de curso con su alumnado, cuáles se quedan vacías para un grupo nuevo y
+  cuáles se van, y si se conservan el horario y las categorías y los pesos del cuaderno. Se conservan las
+  rúbricas, las dianas, las escalas, las situaciones de aprendizaje, las fichas y las sesiones (sin fecha), y
+  empiezan limpias las notas, las evaluaciones, la asistencia, las anotaciones, los informes y las mesas;
+  antes de aplicar se ve el resumen. Para consultar o recuperar el curso anterior se carga su copia con
+  «Cargar desde archivo», que devuelve también el curso escolar al perfil. «Vaciar el curso» sigue en la
+  misma tarjeta para empezar de cero.
 - «No me funciona la IA»: casi siempre es la clave API. Revisar en Configuración →
   Clave de la IA que esté pegada (con «Pegar mi clave» se comprueba sola), y probar de nuevo con cualquier función de IA:
   el error que salga (clave inválida, sin permiso, límite alcanzado…) dice

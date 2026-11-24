@@ -4,7 +4,7 @@ import {
 } from 'lucide-react';
 import type { Class, Student, Evaluation, DianaProfile, Rubric, EvalDiana } from '../types';
 import type { InlineFile } from '../services/gemini';
-import { DIANA_SECTORS, isoDate } from '../lib/utils';
+import { DIANA_SECTORS, fromIsoDate, isoDate } from '../lib/utils';
 import { callGemini, parseGeminiJson } from '../services/gemini';
 import { useToast } from '../components/ui/Toast';
 import { useI18n } from '../i18n';
@@ -14,6 +14,11 @@ import { CompetenciasEspecificas } from '../components/curriculum/CompetenciasEs
 import type { ComunidadId } from '../lib/curriculum/comunidades';
 import { useNotasPorCompetencias } from '../hooks/useNotasPorCompetencias';
 import { evidenciasPorSector, nivelDelSector, type SectorId } from '../lib/dianaSectores';
+import { useClaseActiva } from '../hooks/useClaseActiva';
+import { useEvaluacionElegida } from '../hooks/useEvaluacionElegida';
+import { SelectorEvaluacion } from '../components/SelectorEvaluacion';
+import { CURSO_ENTERO, EN_FRASE } from '../lib/periodos';
+import { conDianaGuardada, dianaGuardada, otrasDianasGuardadas } from '../lib/dianaGuardada';
 
 interface Props {
   classes: Class[];
@@ -308,14 +313,42 @@ function DianaChart({ scores, onSetScore, selectedSector, onSelectSector }: Dian
 
 export function Diana({ classes, students, evaluations, rubrics, dianas, lawDocument, dianaProfiles, onSaveDiana, comunidad }: Props) {
   const { toast } = useToast();
-  const { t, lang } = useI18n();
-  const [classId, setClassId] = useState('');
+  const { t, lang, locale } = useI18n();
+  // Se abre en la clase activa (la de ahora o la última con la que se trabajó): solo queda elegir al alumno
+  const [classId, setClassId] = useClaseActiva(classes);
   const [studentId, setStudentId] = useState('');
   const [scores, setScores] = useState<ScoreMap>(emptyScores());
   const [descriptors, setDescriptors] = useState<DescriptorMap>(emptyDescriptors());
   const [selectedSector, setSelectedSector] = useState<SectorId | null>(null);
   const [generating, setGenerating] = useState(false);
   const [saved, setSaved] = useState(false);
+  /**
+   * La Diana va por evaluación (20-11-2026), con la misma evaluación elegida que el cuaderno y las actas:
+   * cuentan las evaluaciones con rúbricas, dianas y escalas de sus fechas, y cada evaluación guarda su
+   * propia Diana (`lib/dianaGuardada.ts`). «Curso» es lo de siempre: todo, y la Diana que ya había.
+   */
+  const ev = useEvaluacionElegida();
+  const esCurso = ev.periodo === CURSO_ENTERO;
+  const enFrase = t(EN_FRASE[ev.periodo] ?? ev.periodo);
+  /** Si lo que se ve tiene cambios que no están guardados. */
+  const [sucio, setSucio] = useState(false);
+  /** Lo que se dejó a medias en otro alumno u otra evaluación: al volver, sigue ahí en vez de perderse. */
+  const [aMedias, setAMedias] = useState<Record<string, { scores: ScoreMap; descriptors: DescriptorMap }>>({});
+
+  // Al cambiar de alumno o de evaluación se enseña su Diana: lo que quedó a medias o, si no, la guardada
+  const aLaVista = `${studentId}|${ev.periodo}`;
+  const [cargada, setCargada] = useState(aLaVista);
+  if (cargada !== aLaVista) {
+    if (sucio) setAMedias(prev => ({ ...prev, [cargada]: { scores, descriptors } }));
+    const pendiente = aMedias[aLaVista];
+    const suya = dianaGuardada(dianaProfiles[studentId], ev.periodo, ev.hoy);
+    setCargada(aLaVista);
+    setScores(pendiente?.scores ?? (suya ? { ...emptyScores(), ...suya.scores } as ScoreMap : emptyScores()));
+    setDescriptors(pendiente?.descriptors ?? (suya ? { ...emptyDescriptors(), ...suya.descriptors } as DescriptorMap : emptyDescriptors()));
+    setSucio(!!pendiente);
+    setSelectedSector(null);
+    setSaved(false);
+  }
 
   const classStudents = useMemo(
     () => students.filter(s => s.class_id === classId),
@@ -327,9 +360,15 @@ export function Diana({ classes, students, evaluations, rubrics, dianas, lawDocu
     [students, studentId]
   );
 
-  const studentEvals = useMemo(
+  /** Todas las del alumno en el curso, para decir cuántas quedan fuera de la evaluación elegida. */
+  const todasLasSuyas = useMemo(
     () => evaluations.filter(e => e.student_id === studentId),
     [evaluations, studentId]
+  );
+  /** Las de la evaluación elegida, por su fecha, como en el acta; en «Curso», todas. */
+  const studentEvals = useMemo(
+    () => todasLasSuyas.filter(e => ev.cuenta(e.date)),
+    [todasLasSuyas, ev]
   );
 
   /**
@@ -365,27 +404,17 @@ export function Diana({ classes, students, evaluations, rubrics, dianas, lawDocu
   );
   const hayEvidencias = SECTOR_IDS.some(sid => porSector[sid].length > 0);
 
+  // La Diana del alumno elegido se carga arriba, al pintar: aquí solo se dice quién es
   const handleClassChange = useCallback((id: string) => {
     setClassId(id);
     setStudentId('');
-    setScores(emptyScores());
-    setDescriptors(emptyDescriptors());
-    setSelectedSector(null);
-    setSaved(false);
-  }, []);
+  }, [setClassId]);
 
-  const handleStudentChange = useCallback((id: string) => {
-    setStudentId(id);
-    // Restaura la diana guardada del alumno, si existe
-    const saved = dianaProfiles[id];
-    setScores(saved ? { ...emptyScores(), ...saved.scores } as ScoreMap : emptyScores());
-    setDescriptors(saved ? { ...emptyDescriptors(), ...saved.descriptors } as DescriptorMap : emptyDescriptors());
-    setSelectedSector(null);
-    setSaved(false);
-  }, [dianaProfiles]);
+  const handleStudentChange = useCallback((id: string) => setStudentId(id), []);
 
   const handleSetScore = useCallback((sectorId: SectorId, level: number) => {
     setScores(prev => ({ ...prev, [sectorId]: level }));
+    setSucio(true);
     setSaved(false);
   }, []);
 
@@ -393,16 +422,23 @@ export function Diana({ classes, students, evaluations, rubrics, dianas, lawDocu
     setScores(emptyScores());
     setDescriptors(emptyDescriptors());
     setSelectedSector(null);
+    setSucio(true);
     setSaved(false);
   }, []);
 
+  /** Guarda la Diana de la evaluación elegida: las de las demás evaluaciones y la del curso no se tocan. */
   const handleSave = useCallback(() => {
     if (!studentId) return;
-    onSaveDiana(studentId, { scores, descriptors, updated: isoDate() });
+    onSaveDiana(studentId, conDianaGuardada(dianaProfiles[studentId], ev.periodo, ev.hoy, { scores, descriptors, updated: isoDate() }));
+    setAMedias(prev => {
+      if (!(aLaVista in prev)) return prev;
+      const n = { ...prev }; delete n[aLaVista]; return n;
+    });
+    setSucio(false);
     setSaved(true);
-    toast(t('✅ Diana guardada'));
+    toast(esCurso ? t('✅ Diana guardada') : t('✅ Diana de {evaluacion} guardada', { evaluacion: enFrase }));
     setTimeout(() => setSaved(false), 2000);
-  }, [studentId, scores, descriptors, onSaveDiana, toast, t]);
+  }, [studentId, scores, descriptors, onSaveDiana, dianaProfiles, ev.periodo, ev.hoy, aLaVista, esCurso, enFrase, toast, t]);
 
   /**
    * La IA redacta, no puntúa (19-11-2026; antes infería un nivel de 1 a 4 en
@@ -441,7 +477,8 @@ export function Diana({ classes, students, evaluations, rubrics, dianas, lawDocu
           const lines = Object.entries(e.scores)
             .map(([k, v]) => (dianas.find(d => d.id === e.rubric_id)?.tipo === 'registro'
               ? `  - ${resolveItemName(e, k, rubrics, dianas)}: ${v === 2 ? (lang === 'en' ? 'done well' : 'bien hecho') : (lang === 'en' ? 'needs improvement' : 'mejorable')}`
-              : `  - ${resolveItemName(e, k, rubrics, dianas)}: ${lang === 'en' ? 'level' : 'nivel'} ${v}/4`))
+              // Sobre el nivel más alto de su instrumento, como las evidencias de arriba: un 3 de una rúbrica de tres niveles no es un «3/4»
+              : `  - ${resolveItemName(e, k, rubrics, dianas)}: ${lang === 'en' ? 'level' : 'nivel'} ${v}/${e.max_level && e.max_level > 0 ? e.max_level : 4}`))
             .join('\n');
           const kind = e.instrument === 'diana' ? (dianas.find(d => d.id === e.rubric_id)?.tipo === 'registro' ? (lang === 'en' ? 'Checklist scale' : 'Escala de registro') : (lang === 'en' ? 'Target' : 'Diana')) : (lang === 'en' ? 'Rubric' : 'Rúbrica');
           return lang === 'en'
@@ -457,6 +494,7 @@ export function Diana({ classes, students, evaluations, rubrics, dianas, lawDocu
     const userPrompt = lang === 'en' ? `Student: ${student.name}
 Class: ${cls?.name ?? 'N/A'}, ${cls?.subject ?? ''}
 Teacher's notes: ${textoLibreParaIA(student.notes || '') || 'None'}
+Period: ${esCurso ? 'the whole school year' : `${enFrase} (only the assessments of its dates are listed)`}
 
 Levels already calculated, per sector:
 ${objectiveBlock}
@@ -467,6 +505,7 @@ ${evalSummary}
 Write a descriptor, in English, only for these sectors: ${listaSectores}.` : `Alumno: ${student.name}
 Clase: ${cls?.name ?? 'N/A'}, ${cls?.subject ?? ''}
 Notas del profesor: ${textoLibreParaIA(student.notes || '') || 'Ninguna'}
+Periodo: ${esCurso ? 'todo el curso' : `${enFrase} (solo se listan las evaluaciones de sus fechas)`}
 
 Niveles ya calculados, por sector:
 ${objectiveBlock}
@@ -520,8 +559,9 @@ Redacta un descriptor, en español de España, solo para estos sectores: ${lista
       return next;
     });
 
+    setSucio(true);
     setSaved(false);
-  }, [student, studentEvals, porSector, dianas, rubrics, classes, classId, lawDocument, toast, lang, t]);
+  }, [student, studentEvals, porSector, dianas, rubrics, classes, classId, lawDocument, toast, lang, t, esCurso, enFrase]);
 
   /**
    * Rellena desde las evaluaciones con competencias asociadas, en vez de
@@ -534,7 +574,9 @@ Redacta un descriptor, en español de España, solo para estos sectores: ${lista
    */
   const handleFillFromEvaluations = useCallback(() => {
     if (!hayEvidencias) {
-      toast(t('Este alumno aún no tiene evaluaciones con competencias clave ni con criterios oficiales. Se generan al evaluar con rúbricas y dianas que los tienen marcados.'));
+      toast(esCurso
+        ? t('Este alumno aún no tiene evaluaciones con competencias clave ni con criterios oficiales. Se generan al evaluar con rúbricas y dianas que los tienen marcados.')
+        : t('Este alumno no tiene en {evaluacion} evaluaciones con competencias clave ni con criterios oficiales. Mira en otra evaluación o en «Curso», o evalúa con rúbricas y dianas que los tengan marcados.', { evaluacion: enFrase }));
       return;
     }
 
@@ -552,9 +594,16 @@ Redacta un descriptor, en español de España, solo para estos sectores: ${lista
 
     setScores(newScores);
     setDescriptors(newDescriptors);
+    setSucio(true);
     setSaved(false);
     toast(t(evaluacionesConDatos === 1 ? '{n} competencias rellenadas desde 1 evaluación' : '{n} competencias rellenadas desde {m} evaluaciones', { n: filled, m: evaluacionesConDatos }));
-  }, [hayEvidencias, porSector, evaluacionesConDatos, scores, descriptors, toast, t]);
+  }, [hayEvidencias, porSector, evaluacionesConDatos, scores, descriptors, toast, t, esCurso, enFrase]);
+
+  /** La Diana guardada de la evaluación elegida y, si no la hay, las que el alumno tiene en otras. */
+  const guardada = useMemo(() => dianaGuardada(dianaProfiles[studentId], ev.periodo, ev.hoy), [dianaProfiles, studentId, ev.periodo, ev.hoy]);
+  const otras = useMemo(() => otrasDianasGuardadas(dianaProfiles[studentId], ev.periodo, ev.hoy), [dianaProfiles, studentId, ev.periodo, ev.hoy]);
+  const diaCorto = (f: string) => (f ? fromIsoDate(f).toLocaleDateString(locale, { day: 'numeric', month: 'short' }) : '');
+  const unaSola = studentEvals.length === 1;
 
   const totalScore = SECTOR_IDS.reduce((acc, id) => acc + (scores[id] ?? 0), 0);
   const maxScore = SECTOR_IDS.length * RINGS;
@@ -594,7 +643,7 @@ Redacta un descriptor, en español de España, solo para estos sectores: ${lista
       {/* Barra: clase y alumno */}
       <div className="toolbar">
         <select id="diana-clase" className="tb-select" value={classId} aria-label={t('Clase')} onChange={e => handleClassChange(e.target.value)}>
-          <option value="">{t('— Selecciona una clase —')}</option>
+          {classes.length === 0 && <option value="">{t('— Selecciona una clase —')}</option>}
           {classes.map(c => (
             <option key={c.id} value={c.id}>{c.name} · {c.subject}</option>
           ))}
@@ -608,6 +657,8 @@ Redacta un descriptor, en español de España, solo para estos sectores: ${lista
             <option key={s.id} value={s.id}>{s.name}</option>
           ))}
         </select>
+        <span className="toolbar-sep ev-sel-sep" aria-hidden="true" />
+        <SelectorEvaluacion ev={ev} queCuenta={t('La Diana de una evaluación se rellena con las rúbricas, dianas y escalas evaluadas en estas fechas.')} />
       </div>
 
       {!studentId ? (
@@ -651,7 +702,9 @@ Redacta un descriptor, en español de España, solo para estos sectores: ${lista
                     disabled={generating}
                     title={hayEvidencias
                       ? t('{n} evaluaciones con competencias asociadas', { n: evaluacionesConDatos })
-                      : t('Este alumno aún no tiene evaluaciones con competencias clave ni con criterios oficiales. Se generan al evaluar con rúbricas y dianas que los tienen marcados.')}
+                      : esCurso
+                        ? t('Este alumno aún no tiene evaluaciones con competencias clave ni con criterios oficiales. Se generan al evaluar con rúbricas y dianas que los tienen marcados.')
+                        : t('Este alumno no tiene en {evaluacion} evaluaciones con competencias clave ni con criterios oficiales. Mira en otra evaluación o en «Curso», o evalúa con rúbricas y dianas que los tengan marcados.', { evaluacion: enFrase })}
                   >
                     <ListChecks size={14} />{t('Rellenar desde evaluaciones')}
                   </button>
@@ -671,11 +724,35 @@ Redacta un descriptor, en español de España, solo para estos sectores: ${lista
                   </button>
                 </div>
               </div>
-              {studentEvals.length > 0 && (
-                <div style={{ marginTop: 10, paddingTop: 10, borderTop: '0.5px solid var(--border)', fontSize: 12, color: 'var(--text-3)' }}>
-                  {t(studentEvals.length === 1 ? '{n} evaluación disponible' : '{n} evaluaciones disponibles', { n: studentEvals.length })} {t('para análisis')}
-                </div>
-              )}
+              {/* De qué evaluación es la Diana que se ve, si está guardada y con qué se puede rellenar */}
+              <div className="dn-estado">
+                <p className="dn-cual" role="status">
+                  <strong>{esCurso ? t('Diana de todo el curso') : t('Diana de {evaluacion}', { evaluacion: enFrase })}</strong>
+                  <span className={`dn-marca${sucio ? ' sucio' : ''}`}>
+                    {sucio ? t('Con cambios sin guardar') : guardada ? t('Guardada el {fecha}', { fecha: diaCorto(guardada.updated) }) : t('Sin guardar todavía')}
+                  </span>
+                </p>
+                {esCurso ? studentEvals.length > 0 && (
+                  <p>{t(unaSola ? '{n} evaluación disponible' : '{n} evaluaciones disponibles', { n: studentEvals.length })} {t('para análisis')}</p>
+                ) : studentEvals.length > 0 ? (
+                  <p>{t(unaSola ? 'Cuenta 1 evaluación de este alumno hecha en {evaluacion}.' : 'Cuentan {n} evaluaciones de este alumno hechas en {evaluacion}.', { n: studentEvals.length, evaluacion: enFrase })}</p>
+                ) : (
+                  <p>
+                    {t('No hay evaluaciones de este alumno en {evaluacion}.', { evaluacion: enFrase })}
+                    {todasLasSuyas.length > 0 && <> {t('En todo el curso tiene {n}.', { n: todasLasSuyas.length })}</>}
+                  </p>
+                )}
+                {!guardada && !sucio && otras.length > 0 && (
+                  <p className="dn-otras">
+                    {t('Tiene guardada la Diana de:')}
+                    {otras.map(o => (
+                      <button key={o.periodo} type="button" className="ev-enlace" onClick={() => ev.elegir(o.periodo)}>
+                        {t(EN_FRASE[o.periodo] ?? o.periodo)}{o.updated ? ` (${diaCorto(o.updated)})` : ''}
+                      </button>
+                    ))}
+                  </p>
+                )}
+              </div>
             </div>
 
             {/* SVG Radar Chart */}
@@ -826,7 +903,7 @@ Redacta un descriptor, en español de España, solo para estos sectores: ${lista
                           <p style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.55, margin: 0 }}>{desc}</p>
                         ) : (
                           <p style={{ fontSize: 11.5, color: 'var(--text-3)', margin: 0, fontStyle: 'italic' }}>
-                            {t('Sin descriptor. Usa "Sugerir con IA" para generarlo.')}
+                            {t('Sin descriptor. Tócalo para escribirlo, o usa «Rellenar desde evaluaciones».')}
                           </p>
                         )}
                         {/* Editable descriptor textarea */}
@@ -835,7 +912,7 @@ Redacta un descriptor, en español de España, solo para estos sectores: ${lista
                             className="finput"
                             value={desc}
                             placeholder={t('Escribe un descriptor para esta competencia...')}
-                            onChange={e => setDescriptors(prev => ({ ...prev, [sid]: e.target.value }))}
+                            onChange={e => { setDescriptors(prev => ({ ...prev, [sid]: e.target.value })); setSucio(true); }}
                             onClick={e => e.stopPropagation()}
                             rows={3}
                             style={{ marginTop: 8, resize: 'vertical', fontSize: 12.5, lineHeight: 1.5 }}
@@ -894,6 +971,8 @@ Redacta un descriptor, en español de España, solo para estos sectores: ${lista
             comunidad={comunidad}
             alumno={student?.name ?? ''}
             evaluaciones={studentEvals}
+            periodo={esCurso ? undefined : ev.periodo}
+            rango={ev.rango}
           />
         </div>
       )}

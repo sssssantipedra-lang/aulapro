@@ -84,3 +84,7 @@ Las situaciones de aprendizaje y las fichas viajan completas (`LearningSituation
 - Los campos `owner` y `owner_name` de clases y alumnos se siguen usando al importar; el dueño manda sobre lo suyo.
 - Sin comprobar en un dispositivo real: guardar y abrir el archivo en Android (MediaStore, selector de archivos) y el tiempo de cifrado en un móvil lento (600.000 vueltas; en un ordenador, menos de un segundo).
 - Posible mejora: un aviso de que la contraseña es débil si es escrita a mano, y cifrar también las copias de seguridad normales.
+
+## Un instrumento suelto, como archivo (23-11-2026)
+
+Aparte de «Trabajo compartido», cada rúbrica, diana y escala de registro tiene «Guardar como archivo» en su tarjeta, y junto a «Nueva rúbrica», «Nueva diana» y «Nueva escala» está «Abrir archivo» (`src/lib/archivoInstrumento.ts`, `src/components/evaluar/ArchivoDeInstrumento.tsx`). Es un JSON sin cifrar con el instrumento solo (nombre, niveles, criterios, descriptores, competencias clave y criterios oficiales): no lleva alumnado, clases, cuaderno, evaluaciones ni el «contexto» que el docente escribió para la IA, así que no hay nada que proteger con contraseña. Al abrirlo se valida la forma entera, con topes (40 criterios, 8 niveles, 512 KB), se rehacen los identificadores para no pisar un instrumento que ya exista y se rellena el editor sin clase marcada; no se guarda nada hasta que el docente lo crea. Un archivo de otro tipo de instrumento dice en qué pantalla se abre, y una copia de datos se rechaza. Sin comprobar en un iPhone real ni en la versión publicada.

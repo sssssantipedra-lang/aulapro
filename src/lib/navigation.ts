@@ -257,6 +257,35 @@ const DENTRO_DE: Partial<Record<Section, Section>> = {
   'apoyo-alumno': 'apoyo-alumnado',
 };
 
+/** La pantalla del menú de la que cuelga una que no está en él (la página de un alumno de apoyo, de «Mi alumnado»). */
+export function madreDe(section: Section): Section | undefined {
+  return DENTRO_DE[section];
+}
+
+/**
+ * Si ese perfil tiene la pantalla: está en su menú o cuelga de una que lo está. Lo usa la dirección de cada
+ * pantalla (`lib/ruta.ts`): un marcador del Cuaderno abierto con un perfil de PT y AL lleva al Inicio.
+ */
+export function enMenu(section: Section, tipo: TipoDocente): boolean {
+  return reachableSections(tipo).includes(DENTRO_DE[section] ?? section);
+}
+
+/**
+ * El nombre de una pantalla tal como lo ve ese perfil (en castellano: quien lo enseña lo traduce). El de la
+ * portada de un apartado es el del apartado; el de una pantalla que cuelga de otra, el de esa.
+ */
+export function nombreDePantalla(section: Section, tipo: TipoDocente): string | undefined {
+  const s = DENTRO_DE[section] ?? section;
+  for (const g of navGroupsFor(tipo)) {
+    for (const e of g.items) {
+      if (e.kind === 'link') { if (e.id === s) return e.label; continue; }
+      const i = e.tabs.findIndex(x => x.id === s);
+      if (i >= 0) return i === 0 && e.portada ? e.label : e.tabs[i].label;
+    }
+  }
+  return undefined;
+}
+
 /** Si la entrada del menú corresponde a la pantalla abierta. */
 export function isCurrent(entry: NavEntry, section: Section): boolean {
   const s = DENTRO_DE[section] ?? section;

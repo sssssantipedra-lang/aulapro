@@ -4,16 +4,22 @@
  * triple densidad, para que se vean nítidas en cualquier pantalla. La portada las
  * mueve con el scroll (web/DISENO.md, sección 49):
  *
- * - en el portátil: Inicio, una situación de aprendizaje, una rúbrica e informes;
+ * - en el portátil: Inicio, una situación de aprendizaje, «Evaluar a la clase» con una rúbrica
+ *   (el primero de la lista ya guardado y el segundo a medias) y un informe de seguimiento;
  * - en la tableta: Evaluar;
  * - en el móvil: Anotar actitud.
  *
- * Como la app de ejemplo no trae nada de lo que crea la IA, se le suman la situación
- * de aprendizaje y el informe de `ejemplos.mjs` (los mismos que la demo).
+ * Como la app de ejemplo no trae nada de lo que crea la IA, se le suma la situación de
+ * aprendizaje de `ejemplos.mjs` (la misma que la demo). El informe es el de seguimiento, que
+ * la app compone al instante y sin IA: se crean los de toda la clase, como en la demo.
+ * Desde el 20-11-2026 la clase de cada pantalla la decide la app (la clase activa): con ese
+ * reloj es la que está en marcha, 5º Primaria A.
  *
  * Uso, con la app arrancada en modo desarrollo (`npm run dev`):
  *
  *   node scripts/web/capturar-portada.mjs [http://localhost:5173/]
+ *
+ * Mientras se ejecuta no hay que guardar ningún archivo del repositorio: el servidor de desarrollo recarga la página.
  */
 import { chromium } from 'playwright';
 import sharp from 'sharp';
@@ -27,13 +33,23 @@ const BASE = process.argv[2] || 'http://localhost:5173/';
 const OUT = path.join(RAIZ, 'web/sitio/assets/portada');
 fs.mkdirSync(OUT, { recursive: true });
 
-const browser = await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
+// `LANG`: el formato de los campos de fecha nativos sale del idioma del navegador, no del de la página
+const browser = await chromium.launch({ ...(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {}), env: { ...process.env, LANG: 'es_ES.UTF-8', LANGUAGE: 'es' } });
 
 /** Abre la app de ejemplo de docente de aula en una ventana de ese tamaño, con los ejemplos de la IA sumados. */
 async function abrir({ w, h, dpr, movil = false }) {
   const ctx = await browser.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: dpr, locale: 'es-ES', isMobile: movil, hasTouch: movil });
   const page = await ctx.newPage();
   page.on('pageerror', e => console.log('Error en la app:', e.message));
+  // Sin cursor parpadeando ni avisos pasajeros (el de «Deshacer» dura diez segundos), en cada carga de la página
+  await ctx.addInitScript(() => {
+    const poner = () => {
+      const st = document.createElement('style');
+      st.textContent = '*{caret-color:transparent!important} .toast,.toast-wrap,.deshacer{display:none!important}';
+      document.head.append(st);
+    };
+    if (document.head) poner(); else document.addEventListener('DOMContentLoaded', poner);
+  });
   await ctx.clock.install({ time: new Date('2026-10-14T09:45:00') });
   await page.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 90000 });
   await page.waitForTimeout(2500);
@@ -42,22 +58,21 @@ async function abrir({ w, h, dpr, movil = false }) {
   return { ctx, page };
 }
 
-/** Suma a los datos de la app la situación de aprendizaje y el informe de ejemplo, y recarga. */
+/** Suma a los datos de la app la situación de aprendizaje de ejemplo, y recarga. */
 async function sumarEjemplos(page) {
   const data = await page.evaluate(() => {
     const id = localStorage.getItem('aulapro_active_profile');
     return JSON.parse(localStorage.getItem('aulapro_web_data_' + id) || '{}');
   });
-  const { reports, learningSituations } = ejemplosAula({ clases: data.classes, alumnos: data.students });
+  const { learningSituations } = ejemplosAula({ clases: data.classes, alumnos: data.students });
   await page.evaluate(patch => {
     const id = localStorage.getItem('aulapro_active_profile');
     const k = 'aulapro_web_data_' + id;
     localStorage.setItem(k, JSON.stringify({ ...JSON.parse(localStorage.getItem(k)), ...patch }));
     localStorage.setItem('aulapro_gemini_key', 'clave-de-ejemplo-no-valida');   // para que la app no pida la clave: no se conecta a nada
-  }, { reports, learningSituations });
+  }, { learningSituations });
   await page.reload({ waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(4500);
-  await page.addStyleTag({ content: '*{caret-color:transparent!important} .toast,.toast-wrap{display:none!important}' });
 }
 
 async function guardar(page, nombre, ancho) {
@@ -72,11 +87,6 @@ async function guardar(page, nombre, ancho) {
 
 const menu = (page, nombre) => page.locator('.sidebar .nav-item', { hasText: new RegExp(`^${nombre}$`) }).click().then(() => page.waitForTimeout(1300));
 const pestana = (page, nombre) => page.locator('.hub-tab', { hasText: new RegExp(`^${nombre}$`) }).click().then(() => page.waitForTimeout(1300));
-async function elegir(page, select, texto) {
-  const v = await select.locator('option').evaluateAll((os, t) => (os.find(o => o.textContent.trim().startsWith(t)) ?? os.find(o => o.value))?.value, texto);
-  await select.selectOption(v);
-  await page.waitForTimeout(400);
-}
 
 /* ── El portátil: 1440 x 900 a doble densidad ── */
 {
@@ -91,26 +101,26 @@ async function elegir(page, select, texto) {
   await page.waitForTimeout(1500);
   await guardar(page, 'sda', 2000);
 
+  // Los informes de seguimiento de toda la clase, creados de una vez y sin IA; a la vista, el de un alumno que tiene de todo
   await menu(page, 'Documentos');
   await pestana(page, 'Informes');
-  await page.locator('main').getByText('Alumno 1', { exact: true }).first().click();
+  await page.locator('main').getByRole('button', { name: 'Informes de seguimiento de la clase' }).click();
+  await page.waitForTimeout(1500);
+  await page.locator('main').getByRole('button', { name: /Alumno 52$/ }).first().click();
   await page.waitForTimeout(900);
   await guardar(page, 'informes', 2000);
 
-  // La rúbrica, al evaluar a un alumno: los niveles y sus descriptores
+  // «Evaluar a la clase» con una rúbrica, a mitad de evaluar: el primero de la lista ya guardado y, en el segundo, dos niveles marcados
   await menu(page, 'Evaluar');
   await pestana(page, 'Rúbricas');
-  await page.locator('main').getByRole('button', { name: 'Evaluar alumno' }).first().click();
+  await page.locator('main').getByRole('button', { name: 'Evaluar a la clase' }).first().click();
   await page.waitForTimeout(900);
-  const dlg = page.locator('.modal-overlay').filter({ has: page.locator('table') }).last();
-  const selects = dlg.locator('select');
-  await elegir(page, selects.nth(0), '4º Primaria A');
-  const alumnos = await selects.nth(1).locator('option').evaluateAll(os => os.map(o => o.value).filter(Boolean));
-  await selects.nth(1).selectOption(alumnos[2]);
-  await page.waitForTimeout(400);
-  // Unos niveles ya marcados, como a mitad de evaluar
-  const filas = dlg.locator('tbody tr');
-  for (const [fila, nivel] of [[0, 3], [1, 2]]) await filas.nth(fila).locator('td').nth(nivel + 1).click().catch(() => {});
+  const dlg = page.locator('.modal-overlay.open').last();
+  const filas = dlg.locator('table tbody tr');
+  for (const [fila, nivel] of [[0, 3], [1, 4], [2, 3]]) await filas.nth(fila).locator('td').nth(nivel).click();
+  await dlg.getByRole('button', { name: 'Guardar y siguiente' }).click();
+  await page.waitForTimeout(500);
+  for (const [fila, nivel] of [[0, 4], [1, 3]]) await filas.nth(fila).locator('td').nth(nivel).click();
   await page.waitForTimeout(500);
   await guardar(page, 'rubrica', 2000);
   await ctx.close();

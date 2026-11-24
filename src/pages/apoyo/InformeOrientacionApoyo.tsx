@@ -33,7 +33,7 @@ interface Props {
   onNav: (s: Section) => void;
 }
 
-export function InformeOrientacionApoyo({ alumno, data, onChange, especialidades, comunidad, onNav }: Props) {
+export function InformeOrientacionApoyo({ alumno, data, onChange, especialidades, comunidad }: Props) {
   const { t, lang, locale } = useI18n();
   const { toast } = useToast();
   const nombreCurso = useNombreCurso();
@@ -201,7 +201,7 @@ export function InformeOrientacionApoyo({ alumno, data, onChange, especialidades
 
       <Modal open={crearAbierto} onClose={() => !creando && setCrearAbierto(false)} wide title={t('Sus programas y objetivos')}>
         <div className="ap-form">
-          {sinClave && <div style={{ gridColumn: '1 / -1' }}><AiKeyNotice message={t('Para que la IA proponga objetivos necesitas una clave gratuita de Google (se configura en 2 minutos).')} action={t('Configurar ahora')} onAction={() => onNav('profile')} /></div>}
+          {sinClave && <div style={{ gridColumn: '1 / -1' }}><AiKeyNotice message={t('Para que la IA proponga objetivos necesitas una clave gratuita de Google (se configura en 2 minutos).')} action={t('Configurar ahora')} /></div>}
           <p className="ap-aviso" style={{ gridColumn: '1 / -1' }}>{t('Primero entran los objetivos de la orientación que van a cada programa; después la IA propone otros además, repartidos por trimestres y enlazados con los criterios de su nivel. Los revisas después en la pestaña «Programa».')}</p>
           <fieldset className="fgroup ap-fs" style={{ gridColumn: '1 / -1' }}>
             <legend className="flabel">{t('Programas que se crean')}</legend>

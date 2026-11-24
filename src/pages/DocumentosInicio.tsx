@@ -32,7 +32,7 @@ export function DocumentosInicio({ classes, reports, gradeItems, learningSituati
     {
       id: 'reports', color: '#6366f1', icono: <FileText size={26} />,
       titulo: 'Informes',
-      texto: 'Informes competenciales para las familias, redactados por la IA con tus propias evaluaciones.',
+      texto: 'Informes para las familias: de seguimiento, al instante y sin IA, o redactados por la IA con tus propias evaluaciones.',
       dato: cuenta(reports.length, '{n} informe redactado', '{n} informes redactados'),
     },
     {

@@ -2,12 +2,12 @@ import { esDeAsignatura, modeloAcs } from '../lib/acsModelos';
 import { AyudaVideo } from '../components/AyudaVideo';
 import type { AcsApoyo } from '../types/apoyo';
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
-import { Paperclip, X, BookOpen, FileText, Brain, Plus, Download, Pencil, Settings2, Users, ArrowRight, Sparkles, Send, Trash2, Database, Flag, Check, Hand } from 'lucide-react';
+import { Paperclip, X, BookOpen, FileText, Brain, Plus, Download, Pencil, Settings2, Users, ArrowRight, Sparkles, Send, Trash2, Database, Flag, Check, Hand, ChevronDown, ChevronUp } from 'lucide-react';
 import { callGemini, hasApiKey, type InlineFile, type ChatTurn } from '../services/gemini';
 import { ACEPTA_ADJUNTO, useAdjuntoParaIA } from '../hooks/useAdjuntoParaIA';
 import { preguntaParaIA } from '../lib/preguntaParaIA';
 import { buildTeacherContext, chatSystemPrompt, type TeacherData, type ChatMessage } from '../services/aiContext';
-import { fileToBase64, isoDate, nombreDePila } from '../lib/utils';
+import { fileToBase64, fromIsoDate, isoDate, nombreDePila, PERIODS } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
 import { Modal } from '../components/ui/Modal';
 import { RichText } from '../components/ui/RichText';
@@ -19,16 +19,27 @@ import { ClassChips } from '../components/ui/ClassChips';
 import type { Class, Student, GradeCategory, GradeItem, GradeMap, ClassMark, MarksBlockConfig, Evaluation } from '../types';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
 import {
-  isMarksCategory, blockConfig, sumaDePesos, blockActive, marksFor, studentBlock,
+  isMarksCategory, blockConfig, blockKey, sumaDePesos, blockActive, marksFor, studentBlock, BLOCK_ITEM_PREFIX,
   TARGETS, targetLabel, esAsignaturaEF, nombreDelBloque, BLOCK_NAME, MAX_BLOCK_POINTS, type MarkTarget,
 } from '../services/classMarks';
-import { requestSettingsPanel } from '../lib/settingsNav';
+import { abrirClaveIA } from '../lib/claveIA';
 import { requestActitud } from '../lib/actitudNav';
 import { downloadFile } from '../lib/download';
 import { compararAlumnos } from '../lib/alumnado';
 import { CARPETAS } from '../lib/carpetas';
-import { mediaDeCategoria, pesoEnLaNotaFinal, porcentajesEnCategoria, hayPesosElegidos } from '../lib/ponderacion';
+import { mediaPonderada, pesoEnLaNotaFinal, porcentajesEnCategoria, hayPesosElegidos } from '../lib/ponderacion';
 import { PesosDeNotas } from '../components/PesosDeNotas';
+import { useClaseActiva } from '../hooks/useClaseActiva';
+import { CURSO_ENTERO, diaParaNueva, EN_FRASE, periodoDeFecha } from '../lib/periodos';
+import { categoriasDe, cuadernoDe, notasDeCurso, reglaFinal, type ReglaFinal } from '../lib/cuadernoEvaluacion';
+import { useEvaluacionElegida, type EvaluacionElegida } from '../hooks/useEvaluacionElegida';
+import { SelectorEvaluacion } from '../components/SelectorEvaluacion';
+import { NotasDeCurso } from '../components/cuaderno/NotasDeCurso';
+import { explicacionDePropuestas, propuestasDeCategorias, tiposDeAsignatura } from '../lib/categoriasCuaderno';
+import { cambiosDeRelleno, esBloque, leerNota, leerPegado, pantallaTactil, type CambioDeNota } from '../lib/pegarNotas';
+import { VistaPreviaPegado } from '../components/cuaderno/VistaPreviaPegado';
+import { MenuDeColumna } from '../components/cuaderno/MenuDeColumna';
+import { CalificarActividad } from '../components/cuaderno/CalificarActividad';
 
 // El currículo (unos 650 KB) se abre con la pestaña «Por competencias», no con el cuaderno
 const CompetenciasDeLaClase = lazy(() => import('../components/curriculum/CompetenciasDeLaClase')
@@ -49,7 +60,8 @@ interface Props {
   /** Anotaciones del aula, para el desglose del bloque por alumno. */
   classMarks: ClassMark[];
   marksConfigs: Record<string, MarksBlockConfig>;
-  onSaveMarksConfig: (classId: string, subject: string, cfg: MarksBlockConfig) => void;
+  /** `motivo` «regla»: lo que cambia es la regla de la nota final de curso, no el bloque (para el registro de cambios). */
+  onSaveMarksConfig: (classId: string, subject: string, cfg: MarksBlockConfig, motivo?: 'regla') => void;
   onAddCategory: (c: GradeCategory) => void;
   onUpdateCategory: (c: GradeCategory) => void;
   onDeleteCategory: (id: string) => void;
@@ -57,6 +69,11 @@ interface Props {
   onUpdateItem: (i: GradeItem) => void;
   onDeleteItem: (id: string) => void;
   onSetGrade: (itemId: string, studentId: string, value: number | null) => void;
+  /**
+   * Varias notas de una vez (pegar un bloque, rellenar los vacíos): un solo cambio, con «Deshacer»
+   * (`setManyGrades` de `useAppState`). Sin él se ponen una a una.
+   */
+  onSetGrades?: (cambios: CambioDeNota[], como: 'pegar' | 'rellenar') => void;
   lawDocument: InlineFile | null;
   onLawDocumentChange: (doc: InlineFile | null) => void;
   onNav: (s: string) => void;
@@ -71,25 +88,6 @@ interface Props {
 
 /* ══════════════════ Utilidades de cálculo ══════════════════ */
 
-/** Media ponderada de un alumno: media de cada categoría × su peso. */
-function weightedAverage(
-  studentId: string,
-  categories: GradeCategory[],
-  items: GradeItem[],
-  grades: GradeMap,
-): number | null {
-  let sum = 0;
-  let weightUsed = 0;
-  for (const cat of categories) {
-    const avg = mediaDeCategoria(items.filter(i => i.category_id === cat.id), grades, studentId);
-    if (avg === null) continue;
-    sum += avg * cat.weight;
-    weightUsed += cat.weight;
-  }
-  if (weightUsed === 0) return null;
-  return sum / weightUsed;
-}
-
 function fmtNota(n: number | null, locale = 'es-ES'): string {
   if (n === null) return '—';
   return n.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
@@ -101,6 +99,9 @@ function notaColor(n: number | null): string {
   if (n < 7) return 'var(--grade-mid)';
   return 'var(--grade-good)';
 }
+
+/** Dónde se recuerda, en el dispositivo, si en «Curso» se ve la tabla de todas las actividades. */
+const CLAVE_VER_TODAS = 'aulapro_cuaderno_curso_actividades';
 
 /* ══════════════════ Celda de nota editable ══════════════════ */
 
@@ -119,7 +120,24 @@ function celdaVecina(desde: HTMLInputElement, paso: 1 | -1): HTMLInputElement | 
   return null;
 }
 
-function GradeCell({ value, onCommit }: { value: number | null; onCommit: (v: number | null) => void }) {
+/** La celda de la actividad de al lado en la misma fila (se salta el bloque de anotaciones, que no se escribe). */
+function celdaAlLado(desde: HTMLInputElement, paso: 1 | -1): HTMLInputElement | null {
+  let td = desde.closest('td');
+  while (td) {
+    td = (paso > 0 ? td.nextElementSibling : td.previousElementSibling) as HTMLTableCellElement | null;
+    const celda = td?.querySelector<HTMLInputElement>('input.gb-cell');
+    if (celda) return celda;
+  }
+  return null;
+}
+
+function GradeCell({ value, onCommit, itemId, alumnoId, onPegar }: {
+  value: number | null; onCommit: (v: number | null) => void;
+  /** La actividad y el alumno de la celda: para llevarle el foco y saber dónde se pega. */
+  itemId: string; alumnoId: string;
+  /** Un bloque de más de una celda pegado aquí: en vez de escribirse, pasa a la vista previa. */
+  onPegar?: (filas: string[][]) => void;
+}) {
   const { lang, t } = useI18n();
   const { toast } = useToast();
   const [text, setText] = useState<string | null>(null); // null = sin editar
@@ -129,16 +147,12 @@ function GradeCell({ value, onCommit }: { value: number | null; onCommit: (v: nu
 
   function commit() {
     if (text === null) return;
-    const trimmed = text.trim().replace(',', '.');
-    if (trimmed === '') {
-      onCommit(null);
-    } else {
-      const n = Number(trimmed);
-      // Lo que no es una nota entre 0 y 10 no se guarda, y se dice (19-11-2026; antes un 11 o un 85
-      // se guardaban como 10 y las letras se descartaban, las dos cosas sin avisar)
-      if (Number.isNaN(n) || n < 0 || n > 10) toast(t('«{texto}» no es una nota entre 0 y 10: no se ha guardado.', { texto: text.trim() }));
-      else onCommit(Math.round(n * 100) / 100);
-    }
+    const leida = leerNota(text);
+    if (leida.tipo === 'vacia') onCommit(null);
+    // Lo que no es una nota entre 0 y 10 no se guarda, y se dice (19-11-2026; antes un 11 o un 85
+    // se guardaban como 10 y las letras se descartaban, las dos cosas sin avisar)
+    else if (leida.tipo === 'mal') toast(t('«{texto}» no es una nota entre 0 y 10: no se ha guardado.', { texto: text.trim() }));
+    else onCommit(leida.valor);
     setText(null);
   }
 
@@ -147,19 +161,45 @@ function GradeCell({ value, onCommit }: { value: number | null; onCommit: (v: nu
       className="gb-cell"
       type="text"
       inputMode="decimal"
+      autoComplete="off"
       value={shown}
       placeholder="·"
+      data-item={itemId}
+      data-alumno={alumnoId}
+      // Sin nada a medio escribir, Ctrl+Z es el «Deshacer» común (el de pegar notas), no el del campo
+      data-deshacer={text === null ? 'comun' : undefined}
       onChange={e => setText(e.target.value)}
       onBlur={commit}
       onFocus={e => e.target.select()}
+      onPaste={e => {
+        if (!onPegar) return;
+        // Una sola celda se pega como siempre; un bloque copiado de una hoja de cálculo pasa por la vista previa
+        const filas = leerPegado(e.clipboardData.getData('text/plain'));
+        if (!esBloque(filas)) return;
+        e.preventDefault();
+        setText(null);
+        onPegar(filas);
+      }}
       onKeyDown={e => {
+        const celda = e.currentTarget;
         // Intro y la flecha abajo pasan al alumno siguiente y la flecha arriba, al anterior (19-11-2026; antes
         // Intro soltaba el foco y lo que se tecleaba después se perdía). Al salir de la celda se guarda sola.
         if (e.key === 'Enter' || e.key === 'ArrowDown' || e.key === 'ArrowUp') {
           e.preventDefault();
-          const celda = e.target as HTMLInputElement;
           const vecina = celdaVecina(celda, e.key === 'ArrowUp' ? -1 : 1);
           if (vecina) vecina.focus(); else if (e.key === 'Enter') celda.blur();
+        }
+        // Las flechas a los lados pasan a la actividad de al lado cuando ya no pueden moverse dentro de la celda:
+        // con todo seleccionado (como queda al entrar) o con el cursor en ese borde (22-11-2026)
+        if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && !e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey) {
+          const ini = celda.selectionStart ?? 0;
+          const fin = celda.selectionEnd ?? 0;
+          const todo = ini === 0 && fin === celda.value.length;
+          const enElBorde = ini === fin && (e.key === 'ArrowLeft' ? fin === 0 : ini === celda.value.length);
+          if (todo || enElBorde) {
+            const otra = celdaAlLado(celda, e.key === 'ArrowLeft' ? -1 : 1);
+            if (otra) { e.preventDefault(); otra.focus(); }
+          }
         }
         if (e.key === 'Escape') setText(null);
       }}
@@ -170,51 +210,16 @@ function GradeCell({ value, onCommit }: { value: number | null; onCommit: (v: nu
 
 /* ══════════════════ Pestaña de calificaciones ══════════════════ */
 
-const DEFAULT_CATEGORIES_ES: { name: string; weight: number }[] = [
-  { name: 'Exámenes', weight: 60 },
-  { name: 'Tareas', weight: 30 },
-  { name: 'Participación', weight: 10 },
-];
-const DEFAULT_CATEGORIES_CA: { name: string; weight: number }[] = [
-  { name: 'Exàmens', weight: 60 },
-  { name: 'Tasques', weight: 30 },
-  { name: 'Participació', weight: 10 },
-];
-const DEFAULT_CATEGORIES_EN: { name: string; weight: number }[] = [
-  { name: 'Tests', weight: 60 },
-  { name: 'Homework', weight: 30 },
-  { name: 'Participation', weight: 10 },
-];
-
-/**
- * La estructura de Educación Física (petición del dueño, 20-10-2026): tres
- * componentes. Es solo el punto de partida: nombre y peso se editan después,
- * para ajustarlos a la ponderación del centro o a los criterios LOMLOE.
- */
-const EF_CATEGORIES_ES: { name: string; weight: number }[] = [
-  { name: 'Componente motriz', weight: 40 },
-  { name: 'Componente cognitivo', weight: 30 },
-  { name: 'Componente social y relacional', weight: 30 },
-];
-const EF_CATEGORIES_CA: { name: string; weight: number }[] = [
-  { name: 'Component motriu', weight: 40 },
-  { name: 'Component cognitiu', weight: 30 },
-  { name: 'Component social i relacional', weight: 30 },
-];
-const EF_CATEGORIES_EN: { name: string; weight: number }[] = [
-  { name: 'Motor component', weight: 40 },
-  { name: 'Cognitive component', weight: 30 },
-  { name: 'Social and relational component', weight: 30 },
-];
-
 function GradesTab({
-  classes, students, gradeCategories, gradeItems, grades, classMarks, marksConfigs, onSaveMarksConfig,
+  classes, students, gradeCategories: todasLasCategorias, gradeItems: todasLasActividades, grades: notasGuardadas,
+  classMarks, marksConfigs, onSaveMarksConfig,
   onAddCategory, onUpdateCategory, onDeleteCategory,
-  onAddItem, onUpdateItem, onDeleteItem, onSetGrade, onNav, acsAula = [], comunidad,
-}: Omit<Props, 'lawDocument' | 'onLawDocumentChange'>) {
+  onAddItem, onUpdateItem, onDeleteItem, onSetGrade, onSetGrades, onNav, acsAula = [], comunidad, clase, ev,
+}: Omit<Props, 'lawDocument' | 'onLawDocumentChange'> & { clase: ReturnType<typeof useClaseActiva>; ev: EvaluacionElegida }) {
   const { toast } = useToast();
   const { t, locale, lang } = useI18n();
-  const [classId, setClassId] = useState(classes[0]?.id ?? '');
+  // La clase la lleva la página: es la misma en «Calificaciones» y en «Por competencias»
+  const [classId, setClassId, llevarClase] = clase;
   const [catModal, setCatModal]   = useState<GradeCategory | 'new' | null>(null);
   const [itemModal, setItemModal] = useState<GradeItem | 'new' | null>(null);
 
@@ -233,6 +238,13 @@ function GradesTab({
   /** Lo mismo para todas las notas de la categoría que se está editando. */
   const [catItemWeights, setCatItemWeights] = useState<Record<string, string>>({});
   const [confirmDel, setConfirmDel] = useState(false);
+  /** La actividad cuyo menú está abierto y la que se está calificando en lista (por su id: si deja de verse, se cierran). */
+  const [menuDe, setMenuDe] = useState<string | null>(null);
+  const [calificando, setCalificando] = useState<string | null>(null);
+  /** Un bloque pegado sobre una celda, a la espera de la vista previa. */
+  const [pegado, setPegado] = useState<{ filas: string[][]; alumnoId: string; actividadId: string } | null>(null);
+  /** La actividad recién creada: en cuanto sale en la tabla, el foco va a su primera celda. */
+  const focoPendiente = useRef<string | null>(null);
 
   const cls = classes.find(c => c.id === classId) ?? classes[0];
   const clsId = cls?.id ?? '';
@@ -250,18 +262,55 @@ function GradesTab({
     () => students.filter(s => s.class_id === clsId).sort(compararAlumnos),
     [students, clsId],
   );
-  const myCategories = useMemo(
-    () => gradeCategories.filter(c =>
-      c.class_id === clsId &&
-      // Las categorías creadas antes de que hubiera varias asignaturas no
-      // llevan ninguna: son de la principal, la primera de la lista.
-      (c.subject ?? subjects[0] ?? '') === activeSubject),
-    [gradeCategories, clsId, activeSubject, subjects],
+  /**
+   * El cuaderno de la evaluación que se está viendo (20-11-2026, `lib/cuadernoEvaluacion.ts`): solo las
+   * actividades de sus fechas y el bloque de anotaciones calculado con las de esas fechas, la misma cuenta
+   * que el acta. En «Curso», todas, con la nota de cada evaluación y la final al lado.
+   */
+  const esCurso = ev.periodo === CURSO_ENTERO;
+  const entrada = useMemo(() => ({
+    classes: cls ? [cls] : [], students: myStudents,
+    gradeCategories: todasLasCategorias.filter(c => c.class_id === clsId),
+    gradeItems: todasLasActividades.filter(i => i.class_id === clsId),
+    grades: notasGuardadas, classMarks: classMarks.filter(m => m.class_id === clsId), marksConfigs,
+  }), [cls, clsId, myStudents, todasLasCategorias, todasLasActividades, notasGuardadas, classMarks, marksConfigs]);
+  /** Cómo sale la nota final de curso de esta clase y asignatura: evaluación continua si no se ha elegido otra cosa. */
+  const regla = useMemo(() => reglaFinal(marksConfigs[blockKey(clsId, activeSubject)]), [marksConfigs, clsId, activeSubject]);
+  const deCurso = useMemo(
+    () => (esCurso && cls ? notasDeCurso(entrada, cls, activeSubject, regla, ev.hoy, ev.rangos) : null),
+    [esCurso, entrada, cls, activeSubject, regla, ev.hoy, ev.rangos],
   );
+  const vista = useMemo(
+    () => deCurso?.curso ?? cuadernoDe(entrada, ev.periodo, ev.hoy, ev.rangos),
+    [deCurso, entrada, ev.periodo, ev.hoy, ev.rangos],
+  );
+  const { gradeItems, grades } = vista;
+  const myCategories = useMemo(() => (cls ? categoriasDe(vista, cls, activeSubject) : []), [vista, cls, activeSubject]);
   const myItems = useMemo(() => {
     const mine = new Set(myCategories.map(c => c.id));
     return gradeItems.filter(i => i.class_id === clsId && mine.has(i.category_id));
   }, [gradeItems, clsId, myCategories]);
+  /** Todas las actividades de la asignatura, de cualquier evaluación (sin la columna del bloque de anotaciones). */
+  const deTodoElCurso = useMemo(() => {
+    const principal = subjects[0] ?? '';
+    const suyas = new Set(todasLasCategorias.filter(c => c.class_id === clsId && !isMarksCategory(c.id) && (c.subject ?? principal) === activeSubject).map(c => c.id));
+    return todasLasActividades.filter(i => i.class_id === clsId && suyas.has(i.category_id) && !i.id.startsWith(BLOCK_ITEM_PREFIX));
+  }, [todasLasCategorias, todasLasActividades, clsId, activeSubject, subjects]);
+  /** La nota de un alumno en lo que se está viendo: la de la evaluación o, en «Curso», la final con la regla elegida. */
+  const notaDe = (studentId: string): number | null =>
+    (deCurso ? deCurso.notas.get(studentId)?.final ?? null : mediaPonderada(myCategories, myItems, grades, studentId));
+  /** En «Curso» la tabla de todas las actividades va plegada: lo primero son las notas de cada evaluación y la final. */
+  const [verTodas, setVerTodas] = useState(() => { try { return localStorage.getItem(CLAVE_VER_TODAS) === '1'; } catch { return false; } });
+  const cambiarVerTodas = (v: boolean) => { setVerTodas(v); try { localStorage.setItem(CLAVE_VER_TODAS, v ? '1' : '0'); } catch { /* sin almacenamiento */ } };
+  const nombreCorto = (p: string) => t(EN_FRASE[p] ?? p);
+  const diaCorto = (f: string) => fromIsoDate(f).toLocaleDateString(locale, { day: 'numeric', month: 'long' });
+  /** Las actividades que cuentan juntas con una de esa fecha: las de su evaluación o, con evaluación continua y viendo el curso, todas. */
+  const cuentanCon = (fecha: string) => {
+    if (esCurso && regla.modo === 'continua') return () => true;
+    const suya = periodoDeFecha(fecha, ev.hoy, ev.rangos);
+    return (i: GradeItem) => !i.date || periodoDeFecha(i.date, ev.hoy, ev.rangos) === suya;
+  };
+
   /**
    * Las categorías del docente, sin el bloque de anotaciones: ese no se edita
    * como las demás. Su peso interno se calcula para que valga su % de la nota
@@ -290,10 +339,11 @@ function GradesTab({
   const block = useMemo(() => {
     if (!cls) return null;
     const cfg = blockConfig(marksConfigs, cls.id, activeSubject);
-    const marks = marksFor(classMarks, cls, activeSubject);
+    // Las anotaciones de las fechas de la evaluación que se está viendo
+    const marks = marksFor(classMarks, cls, activeSubject).filter(m => ev.cuenta(m.date));
     const perStudent = new Map(myStudents.map(s => [s.id, studentBlock(marks.filter(m => m.student_id === s.id), cfg)]));
     return { cfg, active: blockActive(cfg, marks.length), count: marks.length, perStudent };
-  }, [cls, activeSubject, marksConfigs, classMarks, myStudents]);
+  }, [cls, activeSubject, marksConfigs, classMarks, myStudents, ev]);
   /** Lo que pesa el bloque en la nota final, en % (0 si no cuenta). */
   const blockPct = block?.active ? Math.round(block.cfg.points * 100) / 10 : 0;
   const pesos = sumaDePesos(weightSum, blockPct);
@@ -319,6 +369,36 @@ function GradesTab({
       .filter(g => g.items.length > 0),
     [myCategories, myItems],
   );
+
+  /** Las actividades donde se escribe, en el orden en que se ven (sin el bloque de anotaciones, que sale solo). */
+  const editables = useMemo(() => grouped.filter(g => !isMarksCategory(g.cat.id)), [grouped]);
+  const columnasEditables = useMemo(() => editables.flatMap(g => g.items), [editables]);
+  const actividadDelMenu = menuDe ? columnasEditables.find(i => i.id === menuDe) ?? null : null;
+  const actividadEnLista = calificando ? columnasEditables.find(i => i.id === calificando) ?? null : null;
+  const detalleDe = (item: GradeItem) => [myCategories.find(c => c.id === item.category_id)?.name, item.date ? diaCorto(item.date) : '']
+    .filter(Boolean).join(' · ');
+
+  /** Varias notas de una vez: un solo cambio con «Deshacer» si la app lo ofrece; si no, una a una. */
+  function ponerNotas(cambios: CambioDeNota[], como: 'pegar' | 'rellenar') {
+    if (onSetGrades) onSetGrades(cambios, como);
+    else cambios.forEach(c => onSetGrade(c.itemId, c.studentId, c.value));
+  }
+  /** Devuelve el foco a la celda (o a la casilla de la lista) de un alumno en una actividad. */
+  function focoEn(itemId: string, alumnoId: string) {
+    const sel = `[data-item="${CSS.escape(itemId)}"][data-alumno="${CSS.escape(alumnoId)}"]`;
+    (document.querySelector<HTMLInputElement>(`input.pn-cal-nota${sel}`) ?? document.querySelector<HTMLInputElement>(`input.gb-cell${sel}`))?.focus();
+  }
+
+  // Al crear una actividad, el foco va a su primera celda en cuanto sale en la tabla (22-11-2026)
+  useEffect(() => {
+    const id = focoPendiente.current;
+    if (!id || !columnasEditables.some(i => i.id === id)) return;
+    focoPendiente.current = null;
+    const celda = document.querySelector<HTMLInputElement>(`input.gb-cell[data-item="${CSS.escape(id)}"]`);
+    if (!celda) return;
+    celda.focus();
+    celda.scrollIntoView?.({ block: 'nearest', inline: 'center' });
+  }, [columnasEditables]);
 
   const dec = (n: number) => (lang !== 'en' ? String(n).replace('.', ',') : String(n));
   const parseDec = (v: string) => Number(v.trim().replace(',', '.'));
@@ -350,9 +430,25 @@ function GradesTab({
     if (TARGETS.some(tg => !(bases[tg] >= 0 && bases[tg] <= 10))) { toast(t('La nota de partida debe estar entre 0 y 10')); return; }
     const wSum = TARGETS.reduce((a, tg) => a + weights[tg], 0);
     if (Math.abs(wSum - 100) > 0.05) { toast(t('Los pesos del bloque deben sumar 100% (ahora suman {n}%)', { n: dec(Math.round(wSum * 100) / 100) })); return; }
-    onSaveMarksConfig(cls.id, activeSubject, { ...(bf.name.trim() ? { name: bf.name.trim() } : {}), enabled: bf.enabled, points, step, weights, bases });
+    // La regla de la nota final de curso va guardada con el bloque: se conserva
+    const final = block?.cfg.final;
+    onSaveMarksConfig(cls.id, activeSubject, { ...(bf.name.trim() ? { name: bf.name.trim() } : {}), enabled: bf.enabled, points, step, weights, bases, ...(final ? { final } : {}) });
     setBlockOpen(false);
     toast(t('✅ Bloque actualizado'));
+  }
+
+  /** Guarda la regla de la nota final en una clase y asignatura (con el resto de su configuración como estaba). */
+  function guardarRegla(nueva: ReglaFinal, classId: string, subject: string) {
+    const { final: _f, ...cfg } = blockConfig(marksConfigs, classId, subject); void _f;
+    onSaveMarksConfig(classId, subject, nueva.modo === 'media' ? { ...cfg, final: { modo: 'media', pesos: [...nueva.pesos] } } : cfg, 'regla');
+  }
+  const otrasAsignaturas = classes.flatMap(c => (c.subjects?.length ? c.subjects : [c.subject]).map(s2 => ({ c, s: s2 })))
+    .filter(x => !(x.c.id === clsId && x.s === activeSubject));
+  function reglaParaTodas() {
+    // Solo donde cambia: la que ya la tiene no se vuelve a guardar ni se anota en el registro
+    const igual = (r: ReglaFinal) => r.modo === regla.modo && (r.modo === 'continua' || r.pesos.every((p, k) => p === regla.pesos[k]));
+    otrasAsignaturas.filter(x => !igual(reglaFinal(marksConfigs[blockKey(x.c.id, x.s)]))).forEach(x => guardarRegla(regla, x.c.id, x.s));
+    toast(t(regla.modo === 'media' ? '✅ Todas tus clases calculan la nota final con la media de las evaluaciones' : '✅ Todas tus clases calculan la nota final con evaluación continua'));
   }
 
   /* ── Modales: abrir ── */
@@ -360,7 +456,7 @@ function GradesTab({
     setCatName(cat === 'new' ? '' : cat.name);
     setCatWeight(cat === 'new' ? '' : String(cat.weight));
     setCatItemWeights(cat === 'new' ? {} : Object.fromEntries(
-      gradeItems.filter(i => i.category_id === cat.id && typeof i.weight === 'number').map(i => [i.id, dec(i.weight!)])));
+      myItems.filter(i => i.category_id === cat.id && typeof i.weight === 'number').map(i => [i.id, dec(i.weight!)])));
     setConfirmDel(false);
     setCatModal(cat);
   }
@@ -368,7 +464,8 @@ function GradesTab({
   function openItemModal(item: GradeItem | 'new') {
     setItemName(item === 'new' ? '' : item.name);
     setItemCat(item === 'new' ? (ownCategories[0]?.id ?? '') : item.category_id);
-    setItemDate(item === 'new' ? isoDate() : item.date);
+    // Una actividad nueva cae en la evaluación que se está viendo (la fecha se puede cambiar)
+    setItemDate(item === 'new' ? diaParaNueva(ev.periodo, ev.hoy, ev.rangos) : item.date);
     setItemWeight(item !== 'new' && typeof item.weight === 'number' ? dec(item.weight) : '');
     setConfirmDel(false);
     setItemModal(item);
@@ -385,7 +482,8 @@ function GradesTab({
       toast(t('✅ Categoría creada'));
     } else if (catModal) {
       const nuevos: GradeItem[] = [];
-      for (const i of gradeItems.filter(x => x.category_id === catModal.id)) {
+      // Solo las que se ven y se han podido editar: las de otras evaluaciones conservan su peso
+      for (const i of (pesosEditables ? myItems.filter(x => x.category_id === catModal.id) : [])) {
         const txt = (catItemWeights[i.id] ?? '').trim();
         const w = txt === '' ? undefined : parseDec(txt);
         if (w !== undefined && !(w >= 0 && w <= 100)) { toast(t('Lo que cuenta cada nota debe estar entre 0 y 100')); return; }
@@ -405,12 +503,24 @@ function GradesTab({
     const w = itemWeight.trim() === '' ? undefined : parseDec(itemWeight);
     if (w !== undefined && !(w >= 0 && w <= 100)) { toast(t('Lo que cuenta cada nota debe estar entre 0 y 100')); return; }
     if (itemModal === 'new') {
-      onAddItem({ id: 'gi' + Date.now(), class_id: clsId, category_id: itemCat, name, date: itemDate, ...(w !== undefined ? { weight: w } : {}) });
-      toast(t('✅ Columna de nota añadida'));
+      const id = 'gi' + Date.now();
+      onAddItem({ id, class_id: clsId, category_id: itemCat, name, date: itemDate, ...(w !== undefined ? { weight: w } : {}) });
+      // Lista para poner las notas, si se ve en la evaluación que se está mirando: con el dedo, en la lista de
+      // casillas grandes; con teclado, el foco en la primera celda de su columna
+      if (myStudents.length > 0 && ev.cuenta(itemDate) && !(esCurso && !verTodas)) {
+        if (pantallaTactil()) setCalificando(id); else focoPendiente.current = id;
+      }
+      // Si por su fecha no cae en la evaluación que se está viendo, se dice dónde ha ido: si no, parecería que no se ha guardado
+      const suya = periodoDeFecha(itemDate, ev.hoy, ev.rangos);
+      toast(ev.cuenta(itemDate) ? t('✅ Columna de nota añadida')
+        : suya ? t('✅ Añadida. Por su fecha cuenta en {evaluacion}: cambia de evaluación para verla.', { evaluacion: nombreCorto(suya) })
+        : t('✅ Añadida. Su fecha es de otro curso: solo sale en «Curso».'));
     } else if (itemModal) {
       const { weight: _w, ...resto } = itemModal; void _w;
       onUpdateItem({ ...resto, name, category_id: itemCat, date: itemDate, ...(w !== undefined ? { weight: w } : {}) });
-      toast(t('✅ Actualizada'));
+      const suya = periodoDeFecha(itemDate, ev.hoy, ev.rangos);
+      toast(ev.cuenta(itemDate) || !suya ? t('✅ Actualizada')
+        : t('✅ Actualizada. Por su fecha ahora cuenta en {evaluacion}.', { evaluacion: nombreCorto(suya) }));
     }
     setItemModal(null);
   }
@@ -419,22 +529,36 @@ function GradesTab({
   function exportCsv() {
     if (myStudents.length === 0) { toast(t('No hay alumnos en esta clase')); return; }
     const cols = myCategories.flatMap(cat => myItems.filter(i => i.category_id === cat.id).map(i => ({ cat, item: i })));
-    const header = [t('Alumno'), ...cols.map(c => `${c.cat.name} - ${c.item.name}`), t('Media ponderada')];
+    const num = (v: number | null | undefined) => (typeof v === 'number' ? v.toFixed(2).replace('.', ',') : '');
+    // En una evaluación, sus actividades y su nota; en «Curso», todas, con la nota de cada evaluación y la final
+    const header = [t('Alumno'), ...cols.map(c => `${c.cat.name} - ${c.item.name}`),
+      ...(deCurso ? [...PERIODS.slice(0, 3).map(p => t(p)), t('Nota final')] : [`${t('Media ponderada')} (${t(ev.periodo)})`])];
     const rows = myStudents.map(s => {
       const cells = cols.map(({ item }) => {
         const v = grades[item.id]?.[s.id];
         return typeof v === 'number' ? String(v).replace('.', ',') : '';
       });
-      const avg = weightedAverage(s.id, myCategories, myItems, grades);
-      return [s.name, ...cells, avg !== null ? avg.toFixed(2).replace('.', ',') : ''];
+      const n = deCurso?.notas.get(s.id);
+      return [s.name, ...cells, ...(n ? [...n.evaluaciones.map(num), num(n.final)] : [num(notaDe(s.id))])];
     });
     const csv = '\uFEFF' + [header, ...rows]
       .map(r => r.map(c => `"${c.replace(/"/g, '""')}"`).join(';'))
       .join('\r\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
-    void downloadFile(blob, `notas-${cls?.name.replace(/\s+/g, '-') ?? 'clase'}-${isoDate()}.csv`, CARPETAS.cuaderno);
+    const slug = (x: string) => x.replace(/\s+/g, '-');
+    void downloadFile(blob, `notas-${slug(cls?.name ?? 'clase')}-${slug(ev.periodo)}-${isoDate()}.csv`, CARPETAS.cuaderno);
     toast(t('✅ Notas exportadas (ábrelas con Excel)'));
   }
+
+  /** Los pesos de cada nota dentro de la categoría se cuentan entre las de una misma evaluación: con la media de las evaluaciones, no se editan viendo todo el curso. */
+  const pesosEditables = !(esCurso && regla.modo === 'media');
+
+  /** La marca de quien tiene una adaptación curricular significativa en esta materia. */
+  const marcaAcs = (s: Student) => (acsAula.some(a => a.alumnoId === s.id && esDeAsignatura(a, activeSubject)) ? (
+    <span className="sda-chip gb-acs" title={t('Tiene una adaptación curricular significativa en esta materia: califícalo con sus criterios.')}>
+      {modeloAcs(comunidad).sigla}
+    </span>
+  ) : null);
 
   /* ── Estados vacíos ── */
   if (classes.length === 0) {
@@ -474,6 +598,8 @@ function GradesTab({
             </div>
           </>
         )}
+        <span className="toolbar-sep ev-sel-sep" aria-hidden="true" />
+        <SelectorEvaluacion ev={ev} queCuenta={t('El cuaderno enseña y cuenta las actividades y las anotaciones de estas fechas.')} />
         <span className="toolbar-spacer" />
         <button className="tb-btn" onClick={exportCsv} disabled={myItems.length === 0}>
           <Download size={14} />{t('Exportar a Excel')}
@@ -497,31 +623,23 @@ function GradesTab({
             {t('¿Cómo evalúas en {name}?', { name: cls?.name ?? '' })}
           </h3>
           <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6, maxWidth: 440, margin: '0 auto 22px' }}>
-            {t(esAsignaturaEF(activeSubject) ? 'Define las categorías de nota y cuánto pesa cada una en la media. En Educación Física puedes empezar con sus tres componentes, motriz, cognitivo y social y relacional, y renombrarlos o cambiar su peso después.' : 'Define las categorías de nota y cuánto pesa cada una en la media. Puedes empezar con la configuración más habitual y ajustarla después.')}
+            {t(explicacionDePropuestas(tiposDeAsignatura(activeSubject, cls?.materiasOficiales?.[activeSubject])), { asignatura: activeSubject })}
           </p>
           <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-            {(() => {
-              const esEF = esAsignaturaEF(activeSubject);
-              const crear = (defaults: { name: string; weight: number }[]) => {
-                defaults.forEach((c, i) =>
-                  onAddCategory({ id: 'gc' + Date.now() + '_' + i, class_id: clsId, name: c.name, weight: c.weight, subject: activeSubject }));
-                toast(`✅ ${lang === 'en' ? 'Categories created' : lang === 'ca' ? 'Categories creades' : 'Categorías creadas'}: ${defaults.map(c => `${c.name} ${c.weight}%`).join(' · ')}`);
-              };
-              const tipica = lang === 'en' ? DEFAULT_CATEGORIES_EN : lang === 'ca' ? DEFAULT_CATEGORIES_CA : DEFAULT_CATEGORIES_ES;
-              const deEF = lang === 'en' ? EF_CATEGORIES_EN : lang === 'ca' ? EF_CATEGORIES_CA : EF_CATEGORIES_ES;
-              return (
-                <>
-                  {esEF && (
-                    <button className="btn-accent" onClick={() => crear(deEF)}>
-                      {t('Usar los 3 componentes de Educación Física (40/30/30)')}
-                    </button>
-                  )}
-                  <button className={esEF ? 'btn-ghost' : 'btn-accent'} onClick={() => crear(tipica)}>
-                    {t('Usar configuración típica (60/30/10)')}
-                  </button>
-                </>
-              );
-            })()}
+            {/* Una propuesta por lo que la asignatura es (lib/categoriasCuaderno.ts) y, al final, la típica: se ofrecen, no se imponen */}
+            {propuestasDeCategorias(activeSubject, lang, cls?.materiasOficiales?.[activeSubject]).map((p, k) => (
+              <button
+                key={p.id} className={k === 0 ? 'btn-accent' : 'btn-ghost'}
+                title={p.categorias.map(c => `${c.name} ${c.weight}%`).join(' · ')}
+                onClick={() => {
+                  p.categorias.forEach((c, i) =>
+                    onAddCategory({ id: 'gc' + Date.now() + '_' + i, class_id: clsId, name: c.name, weight: c.weight, subject: activeSubject }));
+                  toast(`✅ ${lang === 'en' ? 'Categories created' : lang === 'ca' ? 'Categories creades' : 'Categorías creadas'}: ${p.categorias.map(c => `${c.name} ${c.weight}%`).join(' · ')}`);
+                }}
+              >
+                {t(p.boton)}
+              </button>
+            ))}
             <button className="btn-ghost" onClick={() => openCatModal('new')}>
               <Plus size={14} />{t('Crear a mi manera')}
             </button>
@@ -562,7 +680,7 @@ function GradesTab({
                   <button
                     type="button" className="gb-formula-go"
                     onClick={() => {
-                      if (esAsignaturaEF(activeSubject)) { onNav('ef-pista'); return; }
+                      if (esAsignaturaEF(activeSubject)) { llevarClase(); onNav('ef-pista'); return; }
                       requestActitud({ classId: cls!.id, subject: activeSubject });
                       onNav('actitud');
                     }}
@@ -593,18 +711,46 @@ function GradesTab({
             </button>
           </div>
 
+          {deCurso && myItems.length > 0 && (
+            <NotasDeCurso
+              alumnado={myStudents} notas={deCurso.notas} regla={regla}
+              onRegla={r => guardarRegla(r, clsId, activeSubject)}
+              onParaTodas={otrasAsignaturas.length > 0 ? reglaParaTodas : undefined}
+              onVerEvaluacion={ev.elegir}
+              marca={marcaAcs}
+            />
+          )}
+
           {aCompletar && (
             <Sugerencia
               titulo={aCompletar.faltan.length === 1
                 ? t('En «{actividad}» falta 1 alumno por calificar', { actividad: aCompletar.item.name })
                 : t('En «{actividad}» faltan {n} alumnos por calificar', { actividad: aCompletar.item.name, n: aCompletar.faltan.length })}
               porque={t('El resto de la clase ya tiene nota: {nombres}.', { nombres: nombresDe(aCompletar.faltan) })}
+              // Abre la lista de casillas grandes, con el foco en el primero que falta
+              accion={t('Calificar esta actividad')} onAccion={() => setCalificando(aCompletar.item.id)}
               onCerrar={() => sugerencias.marcar(aCompletar.clave)}
             />
           )}
 
           {/* Tabla de notas */}
-          {myItems.length === 0 ? (
+          {myItems.length === 0 && deTodoElCurso.length > 0 && ev.rango ? (
+            /* La evaluación que se mira no tiene nada, pero el cuaderno sí: se dice, para que no parezca vacío */
+            <div className="card" style={{ textAlign: 'center', padding: '32px 24px' }}>
+              <p style={{ fontSize: 13.5, color: 'var(--text-2)', marginBottom: 6 }}>
+                {t('No hay actividades en {evaluacion}.', { evaluacion: nombreCorto(ev.periodo) })}
+              </p>
+              <p style={{ fontSize: 12.5, color: 'var(--text-3)', marginBottom: 18 }}>
+                {t('Va del {desde} al {hasta}. Lo que añadas ahora caerá en ella, y lo de las demás evaluaciones sigue en su sitio.', { desde: diaCorto(ev.rango.desde), hasta: diaCorto(ev.rango.hasta) })}
+              </p>
+              <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+                <button className="btn-accent" onClick={() => openItemModal('new')}>
+                  <Plus size={14} />{t('Añadir nota')}
+                </button>
+                <button className="btn-ghost" onClick={() => ev.elegir(CURSO_ENTERO)}>{t('Ver todo el curso')}</button>
+              </div>
+            </div>
+          ) : myItems.length === 0 ? (
             <div className="card" style={{ textAlign: 'center', padding: '32px 24px' }}>
               <p style={{ fontSize: 13.5, color: 'var(--text-2)', marginBottom: 6 }}>
                 {t('Ya casi está. Añade tu primera columna de notas.')}
@@ -616,7 +762,17 @@ function GradesTab({
                 <Plus size={14} />{t('Añadir nota')}
               </button>
             </div>
+          ) : esCurso && !verTodas ? (
+            <button type="button" className="nc-ver" aria-expanded={false} onClick={() => cambiarVerTodas(true)}>
+              <ChevronDown size={15} aria-hidden="true" />{t('Ver todas las actividades del curso ({n})', { n: deTodoElCurso.length })}
+            </button>
           ) : (
+            <>
+            {esCurso && (
+              <button type="button" className="nc-ver" aria-expanded onClick={() => cambiarVerTodas(false)}>
+                <ChevronUp size={15} aria-hidden="true" />{t('Ocultar las actividades del curso')}
+              </button>
+            )}
             <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
               <div style={{ overflowX: 'auto' }}>
                 <table className="gb-table">
@@ -642,7 +798,10 @@ function GradesTab({
                             : `${cat.name} · ${cat.weight}%`}
                         </th>
                       ))}
-                      <th className="gb-sticky-r" style={{ minWidth: 76, borderLeft: '2px solid var(--border)' }} rowSpan={2}>{t('Media')}</th>
+                      <th className="gb-sticky-r" style={{ minWidth: 76, borderLeft: '2px solid var(--border)' }} rowSpan={2}
+                        title={esCurso ? t('La nota final de curso, con la regla elegida arriba') : t('La nota de {evaluacion}', { evaluacion: nombreCorto(ev.periodo) })}>
+                        {t(esCurso ? 'Final@@nota' : 'Media')}
+                      </th>
                     </tr>
                     <tr>
                       {grouped.map(({ cat, items }) =>
@@ -667,7 +826,7 @@ function GradesTab({
                           </th>]
                         ) : items.map((item, k) => (
                           <th key={item.id} style={k === 0 ? { borderLeft: '2px solid var(--border)' } : undefined}>
-                            <button className="gb-item-hd" onClick={() => openItemModal(item)} title={`${cat.name} · ${item.date} — ${t('clic para editar')}`}>
+                            <button className="gb-item-hd" aria-haspopup="dialog" onClick={() => setMenuDe(item.id)} title={`${cat.name} · ${item.date} — ${t('clic para calificarla, rellenarla o editarla')}`}>
                               <span className="gb-item-name">{item.name}</span>
                               <span className="gb-item-cat">{item.date}{hayPesosElegidos(items) && ` · ${(Math.round((porcentajesEnCategoria(items).get(item.id) ?? 0) * 10) / 10).toLocaleString(locale)}%`}</span>
                             </button>
@@ -678,16 +837,12 @@ function GradesTab({
                   </thead>
                   <tbody>
                     {myStudents.map(s => {
-                      const avg = weightedAverage(s.id, myCategories, myItems, grades);
+                      const avg = notaDe(s.id);
                       return (
                         <tr key={s.id}>
                           <td className="gb-sticky gb-student">
                             {s.name}
-                            {acsAula.some(a => a.alumnoId === s.id && esDeAsignatura(a, activeSubject)) && (
-                              <span className="sda-chip gb-acs" title={t('Tiene una adaptación curricular significativa en esta materia: califícalo con sus criterios.')}>
-                                {modeloAcs(comunidad).sigla}
-                              </span>
-                            )}
+                            {marcaAcs(s)}
                           </td>
                           {grouped.map(({ cat, items }) => {
                             const sb = isMarksCategory(cat.id) ? block?.perStudent.get(s.id) : undefined;
@@ -727,6 +882,8 @@ function GradesTab({
                                 <GradeCell
                                   value={grades[item.id]?.[s.id] ?? null}
                                   onCommit={v => onSetGrade(item.id, s.id, v)}
+                                  itemId={item.id} alumnoId={s.id}
+                                  onPegar={filas => setPegado({ filas, alumnoId: s.id, actividadId: item.id })}
                                 />
                               </td>
                             ));
@@ -766,7 +923,7 @@ function GradesTab({
                       <td className="gb-sticky-r" style={{ textAlign: 'center', fontSize: 12.5, fontWeight: 800, color: 'var(--text-2)', borderLeft: '2px solid var(--border)' }}>
                         {(() => {
                           const avgs = myStudents
-                            .map(s => weightedAverage(s.id, myCategories, myItems, grades))
+                            .map(s => notaDe(s.id))
                             .filter((v): v is number => v !== null);
                           const m = avgs.length ? avgs.reduce((a, b) => a + b, 0) / avgs.length : null;
                           return fmtNota(m, locale);
@@ -777,8 +934,63 @@ function GradesTab({
                 </table>
               </div>
             </div>
+            {columnasEditables.length > 0 && (
+              <p className="sda-note pn-pista">
+                <span className="pn-pista-teclado">{t('Intro y las flechas pasan de una celda a otra. Para traer notas de una hoja de cálculo, copia allí los nombres con sus notas y pégalos en la columna de la actividad: cada nota irá a su alumno, y antes de poner nada verás lo que cambia.')} </span>
+                <span>{t('Pulsa el nombre de una actividad para calificarla en una lista o poner una nota a quien no tiene.')}</span>
+              </p>
+            )}
+            </>
           )}
         </>
+      )}
+
+      {/* El menú de la columna: calificar en lista, poner una nota a quien no tiene y editar */}
+      {actividadDelMenu && (
+        <MenuDeColumna
+          key={actividadDelMenu.id}
+          item={actividadDelMenu} detalle={detalleDe(actividadDelMenu)} alumnado={myStudents} notas={grades[actividadDelMenu.id]}
+          onClose={() => setMenuDe(null)}
+          onCalificar={() => { setMenuDe(null); setCalificando(actividadDelMenu.id); }}
+          onEditar={() => { setMenuDe(null); openItemModal(actividadDelMenu); }}
+          onRellenar={valor => {
+            ponerNotas(cambiosDeRelleno(actividadDelMenu.id, myStudents, grades[actividadDelMenu.id], valor), 'rellenar');
+            setMenuDe(null);
+          }}
+        />
+      )}
+
+      {/* «Calificar esta actividad»: el alumnado en lista, con una casilla grande por nota */}
+      {actividadEnLista && (
+        <CalificarActividad
+          item={actividadEnLista} detalle={detalleDe(actividadEnLista)}
+          grupos={editables.map(g => ({ categoria: g.cat.name, items: g.items }))}
+          alumnado={myStudents} notas={grades[actividadEnLista.id]} marca={marcaAcs}
+          onNota={(studentId, v) => onSetGrade(actividadEnLista.id, studentId, v)}
+          onCambiar={setCalificando}
+          onPegar={(filas, alumnoId) => setPegado({ filas, alumnoId, actividadId: actividadEnLista.id })}
+          onClose={() => setCalificando(null)}
+        />
+      )}
+
+      {/* Lo pegado de una hoja de cálculo: nada se escribe hasta que el docente lo ha visto */}
+      {pegado && (
+        <VistaPreviaPegado
+          filas={pegado.filas}
+          donde={{
+            alumnado: myStudents,
+            // En la lista se pega en esa actividad y hacia abajo; en la tabla, también hacia la derecha
+            actividades: actividadEnLista ? [actividadEnLista] : columnasEditables,
+            alumnoId: pegado.alumnoId, actividadId: pegado.actividadId, notas: grades,
+          }}
+          onClose={() => { const { actividadId, alumnoId } = pegado; setPegado(null); focoEn(actividadId, alumnoId); }}
+          onAplicar={cambios => {
+            const { actividadId, alumnoId } = pegado;
+            ponerNotas(cambios, 'pegar');
+            setPegado(null);
+            focoEn(actividadId, alumnoId);
+          }}
+        />
       )}
 
       {/* Modal del bloque de anotaciones del aula */}
@@ -868,9 +1080,23 @@ function GradesTab({
           <input id="notebook-f2" className="finput" value={catWeight} onChange={e => setCatWeight(e.target.value)} placeholder={t('Ej: 60')} inputMode="numeric" />
         </div>
         {catModal !== 'new' && catModal !== null && (() => {
-          const suyas = gradeItems.filter(i => i.category_id === catModal.id)
+          // Las de la evaluación que se está viendo: los pesos de cada nota se reparten entre las que cuentan juntas
+          const suyas = myItems.filter(i => i.category_id === catModal.id)
             .sort((a, b) => (a.date || '').localeCompare(b.date || '') || a.name.localeCompare(b.name, 'es'));
+          if (!pesosEditables) return suyas.length > 1 ? <p className="sda-note">{t('Lo que cuenta cada nota dentro de la categoría se cambia en su evaluación (1.ª, 2.ª o 3.ª): con la media de las evaluaciones, las notas se reparten el peso dentro de cada una.')}</p> : null;
           return suyas.length > 1 ? <PesosDeNotas items={suyas} valores={catItemWeights} onChange={setCatItemWeights} /> : null;
+        })()}
+        {/* La categoría y su peso son de todo el curso: se dice cuando se mira una sola evaluación, y antes de eliminarla */}
+        {!esCurso && <p className="sda-note">{t('La categoría y su peso valen para todo el curso: las tres evaluaciones usan los mismos.')}</p>}
+        {confirmDel && catModal !== 'new' && catModal !== null && (() => {
+          const fuera = deTodoElCurso.filter(i => i.category_id === catModal.id).length - myItems.filter(i => i.category_id === catModal.id).length;
+          return fuera > 0 ? (
+            <p className="sda-note nc-aviso" role="alert">
+              {fuera === 1
+                ? t('Tiene 1 actividad en otra evaluación, que ahora no ves: también se eliminará, con sus notas.')
+                : t('Tiene {n} actividades en otras evaluaciones, que ahora no ves: también se eliminarán, con sus notas.', { n: fuera })}
+            </p>
+          ) : null;
         })()}
         <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
           <button className="btn-accent" style={{ flex: 1, justifyContent: 'center' }} onClick={saveCategory}>{t('Guardar')}</button>
@@ -912,10 +1138,21 @@ function GradesTab({
             <input id="notebook-f5" className="finput" type="date" value={itemDate} onChange={e => setItemDate(e.target.value)} />
           </div>
         </div>
+        {/* La fecha decide en qué evaluación cuenta: se dice siempre, para que no haya sorpresas al cambiarla */}
+        <p className="sda-note nc-donde" role="status">
+          {(() => {
+            const suya = periodoDeFecha(itemDate, ev.hoy, ev.rangos);
+            if (!itemDate) return t('Sin fecha, sale en todas las evaluaciones.');
+            if (!suya) return t('Esa fecha es de otro curso: no cuenta en ninguna evaluación de este, solo sale en «Curso».');
+            return t('Por su fecha, cuenta en {evaluacion}.', { evaluacion: nombreCorto(suya) });
+          })()}
+        </p>
         {(() => {
           const cat = ownCategories.find(c => c.id === itemCat);
           if (!cat) return null;
-          const hermanas = gradeItems.filter(i => i.category_id === itemCat && (itemModal === 'new' || itemModal === null || i.id !== itemModal.id));
+          // Las que cuentan con ella: las de su misma evaluación (o todas, con evaluación continua y viendo el curso)
+          const hermanas = deTodoElCurso.filter(i => i.category_id === itemCat && (itemModal === 'new' || itemModal === null || i.id !== itemModal.id))
+            .filter(cuentanCon(itemDate));
           const w = itemWeight.trim() === '' ? NaN : parseDec(itemWeight);
           const yo: GradeItem = { id: '__yo', class_id: clsId, category_id: itemCat, name: '', date: '', ...(w >= 0 ? { weight: w } : {}) };
           const lista = [...hermanas, yo];
@@ -927,7 +1164,10 @@ function GradesTab({
               <input id="notebook-f6" className="finput" inputMode="decimal" value={itemWeight} onChange={e => setItemWeight(e.target.value)}
                 placeholder={t('Igual que las demás ({n}%)', { n: fmt(100 / lista.length) })} />
               <p className="sda-note">
-                {t('Cuenta un {pct}% de «{cat}», un {final}% de la nota final.', { pct: fmt(pct), cat: cat.name, final: fmt(pesoEnLaNotaFinal(yo, lista, cat.weight)) })}
+                {t(esCurso && regla.modo === 'continua'
+                  ? 'Cuenta un {pct}% de «{cat}», un {final}% de la nota final.'
+                  : 'Cuenta un {pct}% de «{cat}» en su evaluación, un {final}% de la nota de esa evaluación.',
+                { pct: fmt(pct), cat: cat.name, final: fmt(pesoEnLaNotaFinal(yo, lista, cat.weight)) })}
               </p>
             </div>
           );
@@ -977,10 +1217,9 @@ interface AiTabProps {
   onChatChange: (next: ChatMessage[]) => void;
   lawDocument: InlineFile | null;
   onLawDocumentChange: (doc: InlineFile | null) => void;
-  onNav: (s: string) => void;
 }
 
-function AiTab({ data, chat, onChatChange, lawDocument, onLawDocumentChange, onNav }: AiTabProps) {
+function AiTab({ data, chat, onChatChange, lawDocument, onLawDocumentChange }: AiTabProps) {
   const { toast } = useToast();
   const { t, lang, locale } = useI18n();
   const [question, setQuestion] = useState('');
@@ -1085,7 +1324,7 @@ function AiTab({ data, chat, onChatChange, lawDocument, onLawDocumentChange, onN
             <span style={{ flex: 1, lineHeight: 1.5 }}>
               {t('Para usar la IA necesitas una clave gratuita de Google (se configura en 2 minutos).')}
             </span>
-            <button className="btn-accent" style={{ fontSize: 12.5, padding: '7px 14px', flexShrink: 0 }} onClick={() => { requestSettingsPanel('ia'); onNav('profile'); }}>
+            <button className="btn-accent" style={{ fontSize: 12.5, padding: '7px 14px', flexShrink: 0 }} onClick={abrirClaveIA}>
               {t('Configurar ahora')}
             </button>
           </div>
@@ -1276,6 +1515,11 @@ function AiTab({ data, chat, onChatChange, lawDocument, onLawDocumentChange, onN
 export function Notebook(props: Props) {
   const [tab, setTab] = useState<'grades' | 'competencias' | 'ai'>('grades');
   const { t } = useI18n();
+  // La clase se elige una vez para todo el cuaderno: al pasar de «Calificaciones» a «Por competencias» y al
+  // volver se sigue viendo la misma, aunque el horario diga que ahora toca otra
+  const clase = useClaseActiva(props.classes);
+  // La evaluación que se ve («1.ª · 2.ª · 3.ª · Curso») es la misma que en las actas (`useEvaluacionElegida`)
+  const ev = useEvaluacionElegida();
 
   return (
     <section className="sec active">
@@ -1297,9 +1541,9 @@ export function Notebook(props: Props) {
         </div>
       </div>
 
-      {tab === 'grades' ? <GradesTab {...props} /> : tab === 'competencias' ? (
+      {tab === 'grades' ? <GradesTab {...props} clase={clase} ev={ev} /> : tab === 'competencias' ? (
         <Suspense fallback={<div className="card"><p className="ce-aviso">{t('Cargando…')}</p></div>}>
-          <CompetenciasDeLaClase classes={props.classes} students={props.students} evaluations={props.evaluations} comunidad={props.comunidad} onNav={props.onNav} />
+          <CompetenciasDeLaClase classes={props.classes} students={props.students} evaluations={props.evaluations} comunidad={props.comunidad} onNav={props.onNav} clase={clase[0]} onClase={clase[1]} />
         </Suspense>
       ) : (
         <AiTab
@@ -1308,7 +1552,6 @@ export function Notebook(props: Props) {
           onChatChange={props.onChatChange}
           lawDocument={props.lawDocument}
           onLawDocumentChange={props.onLawDocumentChange}
-          onNav={props.onNav}
         />
       )}
     </section>

@@ -44,7 +44,7 @@ const OTRO = '__otro__';
 /** De dónde viene un objetivo: claves del diccionario. */
 const ORIGEN = { informe: 'Informe', orientacion: 'Orientación', ia: 'IA', acs: 'ACS' } as const;
 
-export function ProgramasApoyo({ alumno, data, onChange, especialidades, comunidad, onNav }: Props) {
+export function ProgramasApoyo({ alumno, data, onChange, especialidades, comunidad }: Props) {
   const { t, lang } = useI18n();
   const { toast } = useToast();
   const nombreCurso = useNombreCurso();
@@ -132,7 +132,7 @@ export function ProgramasApoyo({ alumno, data, onChange, especialidades, comunid
       </div>
 
       {!hasApiKey() && (
-        <AiKeyNotice message={t('Para que la IA proponga objetivos necesitas una clave gratuita de Google (se configura en 2 minutos).')} action={t('Configurar ahora')} onAction={() => onNav('profile')} />
+        <AiKeyNotice message={t('Para que la IA proponga objetivos necesitas una clave gratuita de Google (se configura en 2 minutos).')} action={t('Configurar ahora')} />
       )}
 
       <CasillaAcs texto={textoAcs} checked={conAcs} onChange={setConAcs}

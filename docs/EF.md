@@ -27,6 +27,8 @@ Para el profesorado de Educación Física, con o sin tutoría. Decisiones del du
 - Aspectos: participa, se esfuerza, no participa, juego limpio, mala actitud, sin equipación, sin aseo.
 - Son anotaciones del cuaderno (`EF_MARK_TYPES` en `src/services/classMarks.ts`) y cuentan en el bloque «Trabajo diario y actitud». En EF sus partes se llaman «Vestimenta e higiene», «Actitud y juego limpio» y «Participación y esfuerzo».
 - La asignatura de EF de una clase se reconoce por el nombre (`esAsignaturaEF`).
+- Desde el 20-11-2026, «Evaluar» desde una sesión abre la ventana de evaluar a la clase (lista del alumnado, «Guardar y siguiente», «Poner a todos este nivel») con la clase de la sesión, y volver a un alumno evaluado hoy corrige su evaluación sin preguntar. Pendiente de decidir: una rúbrica atada solo a otra clase abre esa otra clase, y el recuento de la sesión no sube.
+- Desde el 20-11-2026, En la pista, Equipos y Pruebas físicas usan el selector de clase común (`ClassChips`) y se abren en la clase activa (la de ahora según el horario o la última usada, `useClaseActiva`); Exentos, Actividades y Sesiones la toman como clase de partida. «Cuaderno» de En la pista lleva la clase que se veía.
 
 ## Exentos y lesiones
 
@@ -116,6 +118,16 @@ Para el profesorado de Educación Física, con o sin tutoría. Decisiones del du
   - Granero-Gallegos y Baena-Extremera (medio natural).
 - Qué recibe la IA de quien está exento o lesionado: solo qué no puede hacer, una línea por alumno, sin nombre ni motivo (`limitacionesParaIA`). Contado en la política de privacidad y en las condiciones de la web.
 - El marco pide texto sin formato pero con la ortografía completa. Con «texto llano», a secas, 3.5 Flash-Lite escribía sin tildes ni eñes (prueba con la IA real del 6-10-2026).
+
+### Poner fechas y «No se dio» (20-11-2026)
+
+- En una clase de Sesiones (EF y docente de aula), cada grupo lleva «Poner fechas»: se elige el primer día y la app reparte las sesiones pendientes, en su orden, en las horas de esa clase en el horario semanal, saltando festivos y vacaciones del calendario escolar y los días que el docente quite con la X. Antes de aplicar se ve el día de cada sesión, la fecha que tenía y el porqué de cada salto. En el perfil de EF, con varias asignaturas en el horario, sale marcada «Educación Física».
+- «No se dio: correr esta y las siguientes», en cada sesión con fecha sin completar: pasa a la clase siguiente y las de detrás se corren solo mientras se pisan.
+- La cuenta está en `src/lib/repartoSesiones.ts` (con pruebas) y la ventana en `src/components/sesiones/PonerFechas.tsx`. Se deshace con el «Deshacer» común (`apuntarCambio`, tipo `fechas`).
+- En la Agenda, las sesiones con fecha y las pruebas físicas con marcas salen como capas de solo lectura (`src/lib/capasAgenda.ts`).
+- «Dar la clase», en cada fila de Sesiones, abre la pizarra con la sesión montada en «Plan del día»; el circuito y las imágenes se ven ahí a un toque (`docs/PIZARRA.md`).
+- «Empezar curso nuevo» (Configuración › Datos y copias) conserva las sesiones sin fecha ni «hecha» y siguiendo a su curso, y en EF usa `efParaOtroCurso` más el nivel y las separaciones del alumnado que sigue (`src/lib/cursoNuevo.ts`).
+- Pendiente: solo se miran las sesiones del grupo (no avisa si otra situación de aprendizaje de la clase tiene sesión ese día); el texto del salto cuenta días y dice «clases»; en julio y agosto hay que elegir un primer día de septiembre.
 
 ## Pizarra de circuitos
 

@@ -1,0 +1,42 @@
+/* Estilos de la mejora «periodoCompetencias» (tanda del 20-11-2026). Los comunes siguen en index.css. */
+
+/* «Por competencias»: de qué evaluación son las notas de la tabla */
+.pc-periodo { margin:0 0 10px; font-size:12.5px; color:var(--text-3); }
+
+/* Cobertura del currículo por evaluación: lo de esta evaluación, lo de otra y lo que queda por repartir */
+.cob-hd { flex-wrap:wrap; gap:8px 12px; }
+.cob-barra-ev { display:flex; }
+.cob-barra-ev i { border-radius:0; flex-shrink:0; }
+.cob-barra-ev i.cob-otra { background:color-mix(in srgb, var(--ok) 38%, var(--border)); }
+.cob-cuenta small { display:block; font-size:10.5px; font-weight:600; color:var(--text-3); text-align:right; }
+.cob-leyenda { display:flex; flex-wrap:wrap; gap:4px 14px; margin:-6px 0 12px; font-size:11.5px; color:var(--text-3); }
+.cob-leyenda span { display:inline-flex; align-items:center; gap:6px; }
+.cob-muestra { display:inline-block; width:14px; height:8px; border-radius:99px; background:var(--ok); }
+.cob-muestra.otra { background:color-mix(in srgb, var(--ok) 38%, var(--border)); }
+.cob-muestra.nada { background:var(--border); }
+.cob-fila > p.cob-grupo { display:flex; flex-wrap:wrap; align-items:center; gap:4px 6px; }
+.cob-grupo strong { color:var(--text); font-weight:700; }
+.cob-cod { display:inline-flex; align-items:baseline; gap:4px; padding:1px 7px; border-radius:99px; background:var(--ok-bg); color:var(--ok-fg); font-size:11.5px; font-weight:700; font-variant-numeric:tabular-nums; }
+.cob-cod.otra { background:var(--card); color:var(--text-2); box-shadow:inset 0 0 0 1px var(--border); }
+.cob-cod small { font-size:10.5px; font-weight:600; color:var(--text-3); }
+
+/* Diana competencial: de qué evaluación es la que se ve, si está guardada y con qué se rellena */
+.dn-estado { margin-top:10px; padding-top:10px; border-top:0.5px solid var(--border); display:flex; flex-direction:column; gap:4px; font-size:12px; color:var(--text-3); }
+.dn-estado p { margin:0; line-height:1.5; }
+.dn-cual { display:flex; flex-wrap:wrap; align-items:center; gap:4px 8px; }
+.dn-cual strong { font-size:12.5px; color:var(--text); }
+.dn-marca { padding:1px 8px; border-radius:99px; background:var(--surface); box-shadow:inset 0 0 0 1px var(--border); font-size:11px; font-weight:700; color:var(--text-2); }
+.dn-marca.sucio { background:var(--warn-bg, #fef3c7); color:var(--warn-fg, #92400e); box-shadow:none; }
+.dn-otras { display:flex; flex-wrap:wrap; align-items:baseline; gap:2px 10px; }
+.dn-otras .ev-enlace { font-size:12px; }
+@media (pointer: coarse) {
+  .dn-otras .ev-enlace { padding:6px 0; }
+}
+/* La cuenta, con «+3 en otras» debajo o sin ello, ocupa lo mismo: las barras de todas las filas empiezan y acaban a la par */
+.cob-barra-ev + .cob-cuenta { min-width:74px; text-align:right; }
+
+/* «Competencias específicas» con la evaluación al lado: en el móvil, el título y el botón de exportar bajan de línea sin partirse */
+.ce-titulo { display:flex; flex-wrap:wrap; align-items:center; gap:4px 8px; }
+.ce-periodo { white-space:nowrap; }
+.card-hd:has(> .ce-titulo) { flex-wrap:wrap; gap:8px 12px; }
+.card-hd:has(> .ce-titulo) > .btn-ghost { white-space:nowrap; }

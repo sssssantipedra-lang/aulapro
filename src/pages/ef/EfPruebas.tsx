@@ -19,6 +19,8 @@ import {
 import type { Class, GradeCategory, GradeItem, Section, Student } from '../../types';
 import type { BaremoEF, CategoriaPrueba, EfData, MarcaPrueba, PruebaFisica, SexoEF } from '../../types/ef';
 import { compararAlumnos } from '../../lib/alumnado';
+import { ClassChips } from '../../components/ui/ClassChips';
+import { useClaseActiva, useFijarClase } from '../../hooks/useClaseActiva';
 
 interface Props {
   classes: Class[];
@@ -47,7 +49,7 @@ export function EfPruebas({ classes, students, ef, onChangeEf, gradeCategories, 
   const hoy = isoDate();
   const pruebas = pruebasDe(ef);
   const visibles = pruebas.filter(p => !p.oculta);
-  const [claseId, setClaseId] = useState<string | null>(null);
+  const [claseId, setClaseId] = useClaseActiva(classes);
   const clase = classes.find(c => c.id === claseId) ?? classes[0] ?? null;
   const [pruebaId, setPruebaId] = useState<string>(visibles[0]?.id ?? '');
   const prueba = visibles.find(p => p.id === pruebaId) ?? visibles[0];
@@ -113,11 +115,8 @@ export function EfPruebas({ classes, students, ef, onChangeEf, gradeCategories, 
         </div>
       </div>
 
-      <div className="chip-row ap-alumnos" role="tablist" aria-label={t('Clase')}>
-        {classes.map(c => (
-          <button key={c.id} type="button" role="tab" aria-selected={c.id === clase.id}
-            className={`chip sm accent${c.id === clase.id ? ' on' : ''}`} onClick={() => { setClaseId(c.id); setValores({}); }}>{c.name}</button>
-        ))}
+      <div className="ap-alumnos">
+        <ClassChips classes={classes} value={clase.id} onChange={id => { setClaseId(id); setValores({}); }} />
       </div>
       <div className="ef-pruebas-sel">
         {CATEGORIAS_PRUEBA.filter(cat => visibles.some(p => p.categoria === cat.id)).map(cat => (
@@ -452,6 +451,7 @@ function AlCuaderno({ open, onClose, clase, prueba, categorias, onConfirmar, onN
   onConfirmar: (categoriaId: string) => void; onNav: (s: Section) => void;
 }) {
   const { t } = useI18n();
+  const fijarClase = useFijarClase();
   const [cat, setCat] = useState('');
   const elegida = categorias.find(c => c.id === cat) ?? categorias[0];
   return (
@@ -459,7 +459,7 @@ function AlCuaderno({ open, onClose, clase, prueba, categorias, onConfirmar, onN
       {categorias.length === 0 ? (
         <>
           <p className="ap-vacio">{t('{clase} todavía no tiene categorías en el cuaderno. Crea una (por ejemplo, «Condición física y salud») y vuelve.', { clase: clase.name })}</p>
-          <div className="ap-acciones"><button className="btn-accent" onClick={() => onNav('notebook')}>{t('Ir al Cuaderno')}</button></div>
+          <div className="ap-acciones"><button className="btn-accent" onClick={() => { fijarClase(clase.id); onNav('notebook'); }}>{t('Ir al Cuaderno')}</button></div>
         </>
       ) : (
         <>

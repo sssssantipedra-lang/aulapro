@@ -33,7 +33,7 @@ export const nombreDe = (ruta: string) => (ruta.startsWith(RAIZ) ? ruta.slice(RA
 export const rutaDe = (nombre: string) => RAIZ + nombre.split('~').join('/');
 
 /** Lo que no va a Drive: las copias con fecha (salvo las de antes de vaciar, cargar o restaurar) y los temporales. */
-export const vaADrive = (ruta: string) => (!/\/copias\//.test(ruta) || /-antes-de-(vaciar|cargar|restaurar)\.json$/.test(ruta)) && !ruta.endsWith('.tmp');
+export const vaADrive = (ruta: string) => (!/\/copias\//.test(ruta) || /-antes-de-(vaciar|cargar|restaurar|curso-nuevo)\.json$/.test(ruta)) && !ruta.endsWith('.tmp');
 
 /**
  * Las versiones de cada archivo que se conservan en Drive y en OneDrive (auditoría del 1-11-2026): la actual y las dos

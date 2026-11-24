@@ -7,7 +7,8 @@
  * Ver `lib/registro.ts`.
  */
 import { useMemo, useState } from 'react';
-import { Plus, Trash2, Pencil, Copy, ThumbsUp, ThumbsDown, FileDown } from 'lucide-react';
+import { AyudaVideo } from '../components/AyudaVideo';
+import { Plus, Trash2, Pencil, Copy, ThumbsUp, ThumbsDown, FileDown, LayoutTemplate } from 'lucide-react';
 import type { Class, EvalDiana, Evaluation, GradeCategory, GradeTarget, Student } from '../types';
 import { GradeTargetsPicker } from '../components/GradeTargetPicker';
 import { Modal } from '../components/ui/Modal';
@@ -17,6 +18,9 @@ import { useToast } from '../components/ui/Toast';
 import { useI18n } from '../i18n';
 import { clasesDe, conObjetivos } from '../lib/objetivos';
 import { NIVELES_REGISTRO, esRegistro } from '../lib/registro';
+import { ModelosDeInstrumento } from '../components/evaluar/ModelosDeInstrumento';
+import { AbrirArchivoDeInstrumento, GuardarInstrumentoComoArchivo } from '../components/evaluar/ArchivoDeInstrumento';
+import { MODELOS_ESCALA, enOrden, escalaDeModelo, resumenDeEscala } from '../lib/modelosInstrumentos';
 
 interface Props {
   dianas: EvalDiana[];
@@ -28,12 +32,14 @@ interface Props {
   onUpdateDiana: (d: EvalDiana) => void;
   onDeleteDiana: (id: string) => void;
   onAddEvaluation: (ev: Evaluation) => void;
+  /** El perfil es de Educación Física: sus escalas modelo salen las primeras. */
+  ef?: boolean;
 }
 
 const uid = () => Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-4);
 
 export function EscalasRegistro({
-  dianas, evaluations, classes, students, gradeCategories, onAddDiana, onUpdateDiana, onDeleteDiana, onAddEvaluation,
+  dianas, evaluations, classes, students, gradeCategories, onAddDiana, onUpdateDiana, onDeleteDiana, onAddEvaluation, ef = false,
 }: Props) {
   const { t, lang } = useI18n();
   const { toast } = useToast();
@@ -44,10 +50,37 @@ export function EscalasRegistro({
   const [esNueva, setEsNueva] = useState(false);
   const [aBorrar, setABorrar] = useState<EvalDiana | null>(null);
 
-  function nueva() {
+  /** Una escala nueva se puede empezar por un modelo ya escrito (`lib/modelosInstrumentos.ts`) o en blanco. */
+  const [modo, setModo] = useState<'modelo' | 'manual'>('manual');
+  /** Los conceptos que dejó el último modelo usado: mientras no se toquen, otro modelo los sustituye sin preguntar. */
+  const [delModelo, setDelModelo] = useState<string | null>(null);
+  const loEscrito = (e: EvalDiana) => JSON.stringify([e.name.trim(), e.items.map(i => i.name.trim())]);
+
+  function nueva(empezarPor: 'modelo' | 'manual') {
     setEsNueva(true);
+    setModo(empezarPor);
+    setDelModelo(null);
     setEditando({ id: 'reg' + uid(), tipo: 'registro', name: '', items: [{ id: 'it' + uid(), name: '', weight: 1 }], levels: NIVELES_REGISTRO });
   }
+
+  /** Rellena el editor con el modelo y lo abre: el docente cambia lo que quiera antes de crearla. Las clases elegidas se conservan. */
+  function usarModelo(id: string) {
+    const modelo = MODELOS_ESCALA.find(m => m.id === id);
+    if (!modelo || !editando) return;
+    const m = escalaDeModelo(modelo, lang);
+    const rellena = { ...editando, name: m.name, items: m.items.map(name => ({ id: 'it' + uid(), name, weight: 1 })) };
+    setEditando(rellena);
+    setDelModelo(loEscrito(rellena));
+    setModo('manual');
+  }
+  /** Una escala guardada como archivo (`lib/archivoInstrumento.ts`) se abre en el editor, sin clase: el docente elige las suyas y la crea. */
+  function abrirArchivo(d: Pick<EvalDiana, 'name' | 'items'>) {
+    setEsNueva(true);
+    setModo('manual');
+    setDelModelo(null);
+    setEditando({ id: 'reg' + uid(), tipo: 'registro', name: d.name, items: d.items.map(i => ({ id: i.id, name: i.name, weight: 1 })), levels: NIVELES_REGISTRO });
+  }
+  const hayAlgoEscrito = !!editando && (!!editando.name.trim() || editando.items.some(i => i.name.trim()));
 
   function guardar() {
     if (!editando) return;
@@ -80,10 +113,14 @@ export function EscalasRegistro({
     <section className="sec active">
       <div className="pg-hd">
         <div>
-          <h1 className="pg-title">{t('Escalas de registro')}</h1>
+          <h1 className="pg-title">{t('Escalas de registro')}<AyudaVideo id="dianas-escalas" /></h1>
           <p className="pg-sub">{t('Un concepto concreto y, por cada alumno, un pulgar arriba (bien hecho) o abajo (mejorable)')}</p>
         </div>
-        <button className="btn-accent" onClick={nueva}><Plus size={15} />{t('Nueva escala')}</button>
+        <div className="ai-cabecera">
+          <AbrirArchivoDeInstrumento tipo="registro" onDiana={abrirArchivo} />
+          {/* Quien ya tiene escalas sabe lo que quiere escribir: el editor; los modelos quedan a un clic */}
+          <button className="btn-accent" onClick={() => nueva(escalas.length === 0 ? 'modelo' : 'manual')}><Plus size={15} />{t('Nueva escala')}</button>
+        </div>
       </div>
 
       {escalas.length === 0 ? (
@@ -93,7 +130,10 @@ export function EscalasRegistro({
           <p style={{ fontSize: 13.5, color: 'var(--text-2)', maxWidth: 460, margin: '0 auto 16px', lineHeight: 1.5 }}>
             {t('Sirve para anotar de un vistazo si cada alumno ha hecho bien un concepto concreto: el saque, la entrega a tiempo, el trabajo en equipo…')}
           </p>
-          <button className="btn-accent" onClick={nueva}><Plus size={15} />{t('Crear la primera')}</button>
+          <div className="mi-vacio">
+            <button className="btn-accent" onClick={() => nueva('modelo')}><LayoutTemplate size={15} />{t('Empezar desde un modelo')}</button>
+            <button className="btn-ghost" onClick={() => nueva('manual')}><Plus size={15} />{t('Crear la primera')}</button>
+          </div>
         </div>
       ) : (
         <div className="reg-cards">
@@ -107,6 +147,7 @@ export function EscalasRegistro({
                   <span className="reg-card-acc">
                     <button className="ico-btn" onClick={() => { setEsNueva(false); setEditando(d); }} title={t('Editar')} aria-label={t('Editar «{nombre}»', { nombre: d.name })}><Pencil size={14} /></button>
                     <button className="ico-btn" onClick={() => descargarPdf(d)} title={t('Descargar en PDF')} aria-label={t('Descargar «{nombre}» en PDF', { nombre: d.name })}><FileDown size={14} /></button>
+                    <GuardarInstrumentoComoArchivo diana={d} />
                     <button className="ico-btn" onClick={() => duplicar(d)} title={t('Duplicar')} aria-label={t('Duplicar «{nombre}»', { nombre: d.name })}><Copy size={14} /></button>
                     <button className="ico-btn" onClick={() => setABorrar(d)} title={t('Eliminar')} aria-label={t('Eliminar «{nombre}»', { nombre: d.name })}><Trash2 size={14} color="var(--danger)" /></button>
                   </span>
@@ -132,7 +173,31 @@ export function EscalasRegistro({
 
       {/* ── Crear o editar ── */}
       <Modal open={!!editando} onClose={() => setEditando(null)} wide title={esNueva ? t('Nueva escala de registro') : t('Editar escala de registro')}>
-        {editando && (
+        {editando && esNueva && (
+          <div className="mi-modos">
+            <button className={modo === 'modelo' ? 'btn-accent' : 'btn-ghost'} aria-pressed={modo === 'modelo'} onClick={() => setModo('modelo')}>
+              <LayoutTemplate size={13} />{t('Desde un modelo')}
+            </button>
+            <button className={modo === 'manual' ? 'btn-accent' : 'btn-ghost'} aria-pressed={modo === 'manual'} onClick={() => setModo('manual')}>
+              {t('Manual')}
+            </button>
+          </div>
+        )}
+        {editando && esNueva && modo === 'modelo' && (
+          <div className="mi">
+            <div className="mi-cab">
+              <p className="mi-intro">
+                {t('Escalas ya escritas, sin IA. Elige una y pulsa «Usar y adaptar»: se abre el editor con sus conceptos y cambias lo que quieras antes de crearla.')}
+              </p>
+            </div>
+            <ModelosDeInstrumento
+              modelos={enOrden(MODELOS_ESCALA, ef).map(m => resumenDeEscala(m, lang))}
+              avisar={hayAlgoEscrito && loEscrito(editando) !== delModelo}
+              onUsar={usarModelo}
+            />
+          </div>
+        )}
+        {editando && (!esNueva || modo === 'manual') && (
           <>
             <div className="fgroup">
               <label className="flabel" htmlFor="reg-nombre">{t('Nombre *')}</label>

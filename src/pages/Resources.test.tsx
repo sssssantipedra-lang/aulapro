@@ -10,7 +10,7 @@ import userEvent from '@testing-library/user-event';
 import { Resources } from './Resources';
 import { I18nProvider } from '../i18n';
 import { ToastProvider } from '../components/ui/Toast';
-import type { Ficha } from '../types';
+import type { Class, Ficha } from '../types';
 
 // La IA, simulada: lo que se prueba aquí es que el editor añade lo que devuelve
 const generar = vi.hoisted(() => vi.fn());
@@ -354,10 +354,10 @@ describe('Recursos · crear en dos pasos', () => {
     actividades: [{ titulo: 'Buscamos', dificultad: 1, ejercicios: [{ tipo: 'en_texto', enunciado: 'Rodea al dragón.', lineasRespuesta: 1, solucion: 'dragón' }] }],
   };
 
-  it('el primer paso son cuatro tarjetas grandes; la comprensión lectora pide el tipo de texto y quita lo que no le sirve', async () => {
+  it('el primer paso son cinco tarjetas grandes; la comprensión lectora pide el tipo de texto y quita lo que no le sirve', async () => {
     setup(vi.fn(), []);
     const tipos = screen.getAllByRole('radio').filter(r => r.classList.contains('fe-tipo'));
-    expect(tipos.map(t => t.querySelector('.ev-card-ttl')?.textContent)).toEqual(['Ficha de ejercicios', 'Comprensión lectora', 'Escape room', 'Tarjetas']);
+    expect(tipos.map(t => t.querySelector('.ev-card-ttl')?.textContent)).toEqual(['Ficha de ejercicios', 'Comprensión lectora', 'Escape room', 'Tarjetas', 'Al instante (sin IA)']);
     expect(tipos[0].getAttribute('aria-checked')).toBe('true');
     expect(screen.getByRole('checkbox', { name: /Con pictogramas/ })).toBeTruthy();
     expect(screen.queryByRole('radio', { name: 'Poema' })).toBeNull();
@@ -444,5 +444,230 @@ describe('Recursos · crear en dos pasos', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Editar' }));
     expect(screen.getByText('Aspecto')).toBeTruthy();
     expect((document.querySelector('.fe-look') as HTMLDetailsElement).open).toBe(false);
+  });
+});
+
+describe('Recursos · sin IA', () => {
+  type Guardada = { content: Ficha['content'] };
+  const guardada = (onSave: ReturnType<typeof vi.fn>, n = 0) => (onSave.mock.calls[n][0] as Guardada).content;
+
+  it('sin clave no hay muro: se puede empezar en blanco y el editor abre los tres bloques de la escalera', async () => {
+    localStorage.clear();
+    const onSave = setup(vi.fn(), []);
+    expect(screen.getByRole('button', { name: /Crear ficha/ })).toHaveProperty('disabled', true);
+    await userEvent.type(screen.getByLabelText('¿De qué va la ficha?'), 'Los animales de la granja');
+    await userEvent.click(screen.getByRole('button', { name: 'Empezar en blanco' }));
+    expect(screen.getByDisplayValue('Los animales de la granja')).toBeTruthy();
+    expect(screen.getAllByText('Este bloque aún no tiene ejercicios. Añade el primero aquí abajo.')).toHaveLength(3);
+    // Recién abierta no tiene nada que perder: ni «Sin guardar» ni borrador
+    expect(screen.queryByText('Sin guardar')).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: /^Guardar$/ }));
+    const c = guardada(onSave);
+    expect(c.estilo).toBe('cuaderno');
+    expect(c.actividades.map(a => a.dificultad)).toEqual([1, 2, 3]);
+    expect(c.hilo).toBeTruthy();
+  });
+
+  it('añade a mano un ejercicio del tipo elegido, le cambia el tipo conservando sus líneas y lo duplica', async () => {
+    localStorage.clear();
+    const onSave = setup(vi.fn(), []);
+    await userEvent.click(screen.getByRole('button', { name: 'Empezar en blanco' }));
+    const tipoNuevo = screen.getAllByLabelText('Tipo del ejercicio nuevo')[0] as HTMLSelectElement;
+    // Sin clave no se ofrece «Que elija la IA»: lo primero es «Respuesta abierta»
+    expect([...tipoNuevo.options].map(o => o.value)).not.toContain('');
+    await userEvent.selectOptions(tipoNuevo, 'verdadero_falso');
+    await userEvent.click(screen.getAllByRole('button', { name: 'Añadir ejercicio' })[0]);
+    // Se abre para escribirlo
+    await userEvent.type(screen.getByLabelText('Enunciado'), 'Marca V o F.');
+    const afirmaciones = screen.getByLabelText(/Afirmaciones/);
+    await userEvent.type(afirmaciones, 'La vaca da leche{enter}El gallo pone huevos');
+    fireEvent.blur(afirmaciones);
+    await userEvent.selectOptions(screen.getByLabelText('Cambiar tipo'), 'opcion_multiple');
+    expect((screen.getByLabelText(/Opciones/) as HTMLTextAreaElement).value).toBe('La vaca da leche\nEl gallo pone huevos');
+    await userEvent.click(screen.getByRole('button', { name: 'Duplicar' }));
+    await userEvent.click(screen.getByRole('button', { name: /^Guardar$/ }));
+    const ejercicios = guardada(onSave).actividades[0].ejercicios;
+    expect(ejercicios).toHaveLength(2);
+    expect(ejercicios[0]).toMatchObject({ tipo: 'opcion_multiple', enunciado: 'Marca V o F.', opciones: ['La vaca da leche', 'El gallo pone huevos'] });
+    expect(ejercicios[1]).toEqual(ejercicios[0]);
+  });
+
+  it('una sopa añadida a mano monta su rejilla al escribir las palabras, y se añaden bloques', async () => {
+    localStorage.clear();
+    const onSave = setup(vi.fn(), []);
+    await userEvent.click(screen.getByRole('button', { name: 'Empezar en blanco' }));
+    await userEvent.selectOptions(screen.getAllByLabelText('Tipo del ejercicio nuevo')[0], 'sopa_letras');
+    await userEvent.click(screen.getAllByRole('button', { name: 'Añadir ejercicio' })[0]);
+    const palabras = screen.getByLabelText(/Palabras/);
+    await userEvent.type(palabras, 'vaca{enter}oveja{enter}cerdo');
+    fireEvent.blur(palabras);
+    await userEvent.click(screen.getByRole('button', { name: 'Añadir bloque' }));
+    await userEvent.click(screen.getByRole('button', { name: /^Guardar$/ }));
+    const c = guardada(onSave);
+    expect(c.actividades).toHaveLength(4);
+    expect(c.actividades[3].dificultad).toBe(3);
+    const sopa = c.actividades[0].ejercicios[0];
+    expect(sopa.palabras).toEqual(['VACA', 'OVEJA', 'CERDO']);
+    expect(sopa.rejilla!.length).toBeGreaterThanOrEqual(10);
+  });
+
+  it('cambiar de tipo una tabla con contenido pregunta antes, y si no se acepta se queda como estaba', async () => {
+    localStorage.clear();
+    const confirmar = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    setup(vi.fn(), []);
+    await userEvent.click(screen.getByRole('button', { name: 'Empezar en blanco' }));
+    await userEvent.selectOptions(screen.getAllByLabelText('Tipo del ejercicio nuevo')[0], 'tabla_rellenar');
+    await userEvent.click(screen.getAllByRole('button', { name: 'Añadir ejercicio' })[0]);
+    await userEvent.click(screen.getByRole('button', { name: 'Añadir fila' }));
+    expect(screen.getAllByLabelText(/^Fila \d, columna 1$/)).toHaveLength(4);
+    await userEvent.type(screen.getByLabelText('Columna 1'), 'Animal');
+    await userEvent.selectOptions(screen.getByLabelText('Cambiar tipo'), 'abierta');
+    expect(confirmar).toHaveBeenCalledTimes(1);
+    expect((screen.getByLabelText('Cambiar tipo') as HTMLSelectElement).value).toBe('tabla_rellenar');
+    // Quitar la última columna (vacía) no pregunta; la última fila, con texto, sí, y sin aceptar se queda
+    await userEvent.click(screen.getByRole('button', { name: 'Quitar la última columna' }));
+    expect(confirmar).toHaveBeenCalledTimes(1);
+    expect(screen.queryByLabelText('Columna 3')).toBeNull();
+    await userEvent.type(screen.getByLabelText('Fila 4, columna 1'), 'vaca');
+    await userEvent.click(screen.getByRole('button', { name: 'Quitar la última fila' }));
+    expect(confirmar).toHaveBeenLastCalledWith('La última fila tiene texto escrito. ¿Quitarla?');
+    expect(screen.getAllByLabelText(/^Fila \d, columna 1$/)).toHaveLength(4);
+    confirmar.mockRestore();
+  });
+
+  it('cambiar un verdadero o falso escrito a un tipo sin lista dice lo que se pierde, y sin aceptar no se pierde nada', async () => {
+    localStorage.clear();
+    const confirmar = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    setup(vi.fn(), []);
+    await userEvent.click(screen.getByRole('button', { name: 'Empezar en blanco' }));
+    await userEvent.selectOptions(screen.getAllByLabelText('Tipo del ejercicio nuevo')[0], 'verdadero_falso');
+    await userEvent.click(screen.getAllByRole('button', { name: 'Añadir ejercicio' })[0]);
+    const afirmaciones = screen.getByLabelText(/Afirmaciones/);
+    await userEvent.type(afirmaciones, 'La vaca da leche{enter}El gallo pone huevos');
+    fireEvent.blur(afirmaciones);
+    // Con las flechas del teclado se pasa por «Cómic» de camino a otro tipo: antes se llevaba las frases sin avisar
+    await userEvent.selectOptions(screen.getByLabelText('Cambiar tipo'), 'comic');
+    expect(confirmar).toHaveBeenCalledTimes(1);
+    expect(confirmar.mock.calls[0][0]).toBe('Al cambiar a «Cómic» se pierde lo que no encaja: las líneas de la lista que no caben en el tipo nuevo. ¿Cambiar el tipo?');
+    expect((screen.getByLabelText('Cambiar tipo') as HTMLSelectElement).value).toBe('verdadero_falso');
+    expect((screen.getByLabelText(/Afirmaciones/) as HTMLTextAreaElement).value).toBe('La vaca da leche\nEl gallo pone huevos');
+    // Entre listas no hay nada que perder: no pregunta
+    await userEvent.selectOptions(screen.getByLabelText('Cambiar tipo'), 'ordenar');
+    expect(confirmar).toHaveBeenCalledTimes(1);
+    expect((screen.getByLabelText('Cambiar tipo') as HTMLSelectElement).value).toBe('ordenar');
+    confirmar.mockRestore();
+  });
+
+  it('empezar en blanco con Tarjetas abre un mazo con una tarjeta por escribir; con Escape room, tres salas con candado', async () => {
+    localStorage.clear();
+    const onSave = setup(vi.fn(), []);
+    const tipos = screen.getAllByRole('radio').filter(r => r.classList.contains('fe-tipo'));
+    await userEvent.click(tipos[3]);
+    await userEvent.click(screen.getByRole('button', { name: 'Empezar en blanco' }));
+    expect(screen.getByLabelText('Pregunta 1')).toBeTruthy();
+    await userEvent.type(screen.getByLabelText('Pregunta 1'), '7 x 8');
+    await userEvent.click(screen.getByRole('button', { name: /^Guardar$/ }));
+    expect(guardada(onSave)).toMatchObject({ formato: 'tarjetas', tarjetas: [{ pregunta: '7 x 8', respuesta: '' }] });
+    cleanup();
+    localStorage.clear();
+    const onSave2 = setup(vi.fn(), []);
+    await userEvent.click(screen.getAllByRole('radio').filter(r => r.classList.contains('fe-tipo'))[2]);
+    await userEvent.click(screen.getByRole('button', { name: 'Empezar en blanco' }));
+    expect(screen.getAllByText('Código')).toHaveLength(3);
+    await userEvent.click(screen.getByRole('button', { name: 'Añadir sala' }));
+    await userEvent.click(screen.getByRole('button', { name: /^Guardar$/ }));
+    const escape = guardada(onSave2);
+    expect(escape.formato).toBe('escape');
+    expect(escape.actividades).toHaveLength(4);
+    expect(escape.actividades.every(a => a.candado)).toBe(true);
+  });
+
+  it('«Al instante» crea una hoja de operaciones sin clave: tres bloques de menos a más, soluciones exactas y solucionario', async () => {
+    localStorage.clear();
+    const onSave = setup(vi.fn(), []);
+    await userEvent.click(screen.getByRole('radio', { name: /Al instante/ }));
+    // El formulario de la IA desaparece y sale el de los generadores, con las operaciones elegidas de entrada
+    expect(screen.queryByLabelText('¿De qué va la ficha?')).toBeNull();
+    expect(screen.getByRole('radio', { name: /Hoja de operaciones/, checked: true })).toBeTruthy();
+    await userEvent.click(screen.getByRole('button', { name: /Restas/ }));
+    await userEvent.clear(screen.getByLabelText('Cuántas operaciones'));
+    await userEvent.type(screen.getByLabelText('Cuántas operaciones'), '12');
+    await userEvent.click(screen.getByRole('button', { name: 'Crear al instante' }));
+    expect(screen.getByDisplayValue('Sumas')).toBeTruthy();
+    expect(screen.getByText('Sin guardar')).toBeTruthy();
+    await userEvent.click(screen.getByRole('button', { name: /^Guardar$/ }));
+    const c = guardada(onSave);
+    expect(c.solucionario).toBe(true);
+    expect(c.actividades.map(a => a.dificultad)).toEqual([1, 2, 3]);
+    const lineas = c.actividades.flatMap(a => a.ejercicios[0].lineas!);
+    expect(lineas).toHaveLength(12);
+    for (const a of c.actividades) {
+      a.ejercicios[0].lineas!.forEach((l, i) => {
+        const [x, y] = l.split(' + ').map(Number);
+        expect(a.ejercicios[0].solucion.split('; ')[i]).toBe(`${i + 1}. ${l} = ${x + y}`);
+      });
+    }
+  });
+
+  it('«Al instante» monta una sopa de letras desde la lista de palabras y avisa de lo que falta', async () => {
+    localStorage.clear();
+    const onSave = setup(vi.fn(), []);
+    await userEvent.click(screen.getByRole('radio', { name: /Al instante/ }));
+    await userEvent.click(screen.getByRole('radio', { name: /Escribes las palabras/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'Crear al instante' }));
+    expect(await screen.findByText('Escribe al menos 3 palabras para la sopa de letras.')).toBeTruthy();
+    // Dos de las tres no caben en la rejilla: no sale una sopa de una sola palabra
+    await userEvent.type(screen.getByLabelText(/Palabras/), 'sol, electroencefalografista, otorrinolaringologia');
+    expect(screen.getByText(/Demasiado largas para la rejilla/)).toBeTruthy();
+    await userEvent.click(screen.getByRole('button', { name: 'Crear al instante' }));
+    expect(screen.getByRole('button', { name: 'Crear al instante' })).toBeTruthy();
+    expect(onSave).not.toHaveBeenCalled();
+    await userEvent.clear(screen.getByLabelText(/Palabras/));
+    await userEvent.type(screen.getByLabelText(/Palabras/), 'sol, luna, mar, cometa');
+    await userEvent.click(screen.getByRole('button', { name: 'Crear al instante' }));
+    await userEvent.click(screen.getByRole('button', { name: /^Guardar$/ }));
+    const ex = guardada(onSave).actividades[0].ejercicios[0];
+    expect(ex.tipo).toBe('sopa_letras');
+    expect(ex.palabras).toEqual(['SOL', 'LUNA', 'MAR', 'COMETA']);
+    expect(ex.posiciones).toHaveLength(4);
+  });
+
+  it('en una hoja de operaciones para una clase con otra asignatura principal, el área que se enseña y se guarda es la de matemáticas', async () => {
+    localStorage.clear();
+    const onSave = vi.fn();
+    const clase = { id: 'c2', name: '2º Primaria A', subject: 'Lengua Castellana y Literatura', subjects: ['Lengua Castellana y Literatura'] } as Class;
+    render(
+      <I18nProvider>
+        <ToastProvider>
+          <Resources classes={[clase]} fichas={[]} onSave={onSave} onDelete={() => {}} onNav={() => {}} />
+        </ToastProvider>
+      </I18nProvider>,
+    );
+    await userEvent.click(screen.getByRole('radio', { name: /Al instante/ }));
+    await userEvent.selectOptions(screen.getByLabelText('Clase'), 'c2');
+    const area = screen.getByLabelText('Área o asignatura') as HTMLInputElement;
+    expect(area.value).toBe('Matemáticas');
+    // El rango sigue al curso de la clase
+    expect((screen.getByLabelText('al') as HTMLInputElement).value).toBe('50');
+    // En una sopa de letras vale la de la clase
+    await userEvent.click(screen.getByRole('radio', { name: /Escribes las palabras/ }));
+    expect((screen.getByLabelText('Área o asignatura') as HTMLInputElement).value).toBe('Lengua Castellana y Literatura');
+    await userEvent.click(screen.getByRole('radio', { name: /Hoja de operaciones/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'Crear al instante' }));
+    await userEvent.click(screen.getByRole('button', { name: /^Guardar$/ }));
+    expect((onSave.mock.calls[0][0] as Ficha).request.area).toBe('Matemáticas');
+    expect((onSave.mock.calls[0][0] as Ficha).class_id).toBe('c2');
+  });
+
+  it('el solucionario se marca en el editor y sale en la hoja en una página aparte', async () => {
+    setup(vi.fn(), [{ ...ficha, content: { ...ficha.content, estilo: 'cuaderno', historia: undefined } }]);
+    await userEvent.click(screen.getByText('Rescate en el planeta Fracción'));
+    await userEvent.click(screen.getByRole('button', { name: 'Editar' }));
+    const frame = document.querySelector('iframe.fe-preview-frame') as HTMLIFrameElement;
+    await waitFor(() => expect(frame.contentDocument?.querySelector('.ficha-doc')).toBeTruthy());
+    expect(frame.contentDocument?.querySelector('.ficha-solucionario')).toBeNull();
+    await userEvent.click(screen.getByLabelText('Imprimir el solucionario en una página aparte'));
+    await waitFor(() => expect(frame.contentDocument?.querySelector('.ficha-solucionario')).toBeTruthy());
+    expect(frame.contentDocument?.querySelector('.ficha-solucionario')?.textContent).toContain('Solucionario');
   });
 });

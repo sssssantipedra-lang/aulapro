@@ -17,6 +17,7 @@ import { mediaDeCategoria } from './ponderacion';
 import { EF_MARK_TYPES, esAsignaturaEF, isMarksCategory, MARK_TYPES, markTypeInfo } from '../services/classMarks';
 import { racha } from './racha';
 import { LOMLOE_COMPETENCES } from './utils';
+import { EVALUACIONES, inicioDeCurso, periodoDeHoy, rangoDe as rangoDeEvaluacion, rangosGuardados, type RangoDeFechas } from './periodos';
 
 export type PeriodoResumen = 'semanas' | 'trimestre' | 'curso';
 export const PERIODOS: readonly { id: PeriodoResumen; label: string }[] = [
@@ -61,7 +62,17 @@ export interface DatosParaResumen {
   /** Hoy, YYYY-MM-DD. */
   hoy: string;
   periodo: PeriodoResumen;
+  /**
+   * Qué fechas cuentan, cuando el periodo no es uno de los tres de la ficha sino una evaluación del curso
+   * (el informe de seguimiento, `lib/informeSeguimiento.ts`): la que se mira y la anterior, para ver si
+   * sube o baja. Con esto no se usan las fechas de `periodo`.
+   */
+  cuenta?: Cuentas;
 }
+
+/** Si algo con esa fecha entra en el periodo; lo que no tiene fecha llega como `undefined`. */
+export type Cuenta = (fecha: string | undefined) => boolean;
+export interface Cuentas { actual: Cuenta; anterior: Cuenta | null }
 
 /** Cuántos datos se enseñan como mucho a cada lado. */
 export const MAX_POR_LADO = 5;
@@ -78,28 +89,36 @@ export interface Rango { desde: string; hasta: string }
 
 /**
  * Las fechas del periodo y las del anterior, para ver si sube o baja. El
- * trimestre va sin calendario escolar, como en PT y AL: de septiembre a
- * diciembre, de enero a marzo y de abril en adelante. El curso empieza el 1 de
- * septiembre y no tiene periodo anterior.
+ * trimestre es la evaluación en la que cae hoy, con las mismas fechas que el
+ * cuaderno y las actas (`lib/periodos.ts`, 20-11-2026): de partida, de
+ * septiembre a diciembre, de enero a marzo y de abril en adelante, o las que
+ * el docente haya puesto si su centro cierra la evaluación otro día. El curso
+ * empieza el 1 de septiembre y no tiene periodo anterior.
  */
-export function rangoDe(periodo: PeriodoResumen, hoy: string): { actual: Rango; anterior: Rango | null } {
-  const anio = Number(hoy.slice(0, 4));
-  const mes = Number(hoy.slice(5, 7));
-  const inicio = mes >= 9 ? anio : anio - 1;   // el año en que empezó el curso
+export function rangoDe(
+  periodo: PeriodoResumen, hoy: string, guardados: Record<string, RangoDeFechas> = rangosGuardados(hoy),
+): { actual: Rango; anterior: Rango | null } {
+  const inicio = inicioDeCurso(hoy);   // el año en que empezó el curso
   if (periodo === 'semanas') {
     const desde = sumarDias(hoy, -27);
     return { actual: { desde, hasta: hoy }, anterior: { desde: sumarDias(desde, -28), hasta: sumarDias(desde, -1) } };
   }
   if (periodo === 'curso') return { actual: { desde: `${inicio}-09-01`, hasta: `${inicio + 1}-08-31` }, anterior: null };
-  const t1 = { desde: `${inicio}-09-01`, hasta: `${inicio}-12-31` };
-  const t2 = { desde: `${inicio + 1}-01-01`, hasta: `${inicio + 1}-03-31` };
-  const t3 = { desde: `${inicio + 1}-04-01`, hasta: `${inicio + 1}-08-31` };
-  if (mes >= 9) return { actual: t1, anterior: null };
-  if (mes <= 3) return { actual: t2, anterior: t1 };
-  return { actual: t3, anterior: t2 };
+  const n = EVALUACIONES.indexOf(periodoDeHoy(hoy, guardados));
+  const de = (k: number) => rangoDeEvaluacion(EVALUACIONES[k], hoy, guardados) as Rango;
+  return { actual: de(n), anterior: n > 0 ? de(n - 1) : null };
 }
 
 const dentro = (fecha: string, r: Rango) => fecha >= r.desde && fecha <= r.hasta;
+
+/** Las cuentas de un periodo de la ficha: una nota sin fecha solo cuenta al mirar todo el curso. */
+function cuentasDe(periodo: PeriodoResumen, hoy: string): Cuentas {
+  const { actual, anterior } = rangoDe(periodo, hoy);
+  return {
+    actual: f => (f ? dentro(f, actual) : periodo === 'curso'),
+    anterior: anterior ? (f => (f ? dentro(f, anterior) : false)) : null,
+  };
+}
 const r1 = (n: number) => Math.round(n * 10) / 10;
 
 /* ── Notas ── */
@@ -125,13 +144,12 @@ function mediaDeAsignatura(
   return pesos > 0 ? suma / pesos : medias.reduce((a, b) => a + b, 0) / medias.length;
 }
 
-function datosDeNotas(d: DatosParaResumen, actual: Rango, anterior: Rango | null): { pos: DatoResumen[]; neg: DatoResumen[]; hay: boolean } {
+function datosDeNotas(d: DatosParaResumen, actual: Cuenta, anterior: Cuenta | null): { pos: DatoResumen[]; neg: DatoResumen[]; hay: boolean } {
   const pos: DatoResumen[] = [], neg: DatoResumen[] = [];
   const alumno = d.student.id;
   const cats = new Set(d.gradeCategories.filter(c => c.class_id === d.cls.id && !isMarksCategory(c.id)).map(c => c.id));
   const deLaClase = d.gradeItems.filter(i => i.class_id === d.cls.id && cats.has(i.category_id));
-  // Una nota sin fecha solo cuenta al mirar todo el curso
-  const enRango = (r: Rango) => deLaClase.filter(i => (i.date ? dentro(i.date, r) : d.periodo === 'curso'));
+  const enRango = (cuenta: Cuenta) => deLaClase.filter(i => cuenta(i.date || undefined));
   const items = enRango(actual);
   const antes = anterior ? enRango(anterior) : [];
 
@@ -187,12 +205,12 @@ function datosDeNotas(d: DatosParaResumen, actual: Rango, anterior: Rango | null
 
 /* ── Asistencia ── */
 
-function datosDeAsistencia(d: DatosParaResumen, actual: Rango): { pos: DatoResumen[]; neg: DatoResumen[]; hay: boolean } {
+function datosDeAsistencia(d: DatosParaResumen, actual: Cuenta): { pos: DatoResumen[]; neg: DatoResumen[]; hay: boolean } {
   const pos: DatoResumen[] = [], neg: DatoResumen[] = [];
   let dias = 0, faltas = 0, retrasos = 0, justificadas = 0;
   for (const [fecha, porAlumno] of Object.entries(d.attendance[d.cls.id] ?? {})) {
     const estado = porAlumno[d.student.id];
-    if (!estado || !dentro(fecha, actual)) continue;
+    if (!estado || !actual(fecha)) continue;
     dias++;
     if (estado === 'absent') faltas++;
     else if (estado === 'late') retrasos++;
@@ -212,11 +230,11 @@ function datosDeAsistencia(d: DatosParaResumen, actual: Rango): { pos: DatoResum
 
 const suma = (tipo: ClassMarkType) => markTypeInfo(tipo)?.positive ?? false;
 
-function datosDeActitud(d: DatosParaResumen, actual: Rango): { pos: DatoResumen[]; neg: DatoResumen[]; hay: boolean } {
+function datosDeActitud(d: DatosParaResumen, actual: Cuenta): { pos: DatoResumen[]; neg: DatoResumen[]; hay: boolean } {
   const pos: DatoResumen[] = [], neg: DatoResumen[] = [];
   const principal = asignaturasDe(d.cls)[0] ?? '';
   const deLaClase = d.classMarks.filter(m => m.class_id === d.cls.id);
-  const suyas = deLaClase.filter(m => m.student_id === d.student.id && dentro(m.date, actual));
+  const suyas = deLaClase.filter(m => m.student_id === d.student.id && actual(m.date));
 
   // En EF las mismas anotaciones se llaman de otra manera («Juego limpio», «Mala actitud»)
   const etiqueta = (m: ClassMark) =>
@@ -233,7 +251,8 @@ function datosDeActitud(d: DatosParaResumen, actual: Rango): { pos: DatoResumen[
   if (malas.length === 1) neg.push({ tipo: 'actitud', clave: '1 anotación negativa', detalle: desglose(malas), peso: 60 });
   if (malas.length > 1) neg.push({ tipo: 'actitud', clave: '{n} anotaciones negativas', vars: { n: malas.length }, detalle: desglose(malas), peso: Math.min(96, 60 + malas.length * 6) });
 
-  const dias = racha(deLaClase, d.student.id, d.hoy, suma);
+  // La racha llega hasta hoy: en un periodo que ya pasó (una evaluación anterior) no viene a cuento
+  const dias = actual(d.hoy) ? racha(deLaClase, d.student.id, d.hoy, suma) : 0;
   if (dias >= 3) pos.push({ tipo: 'actitud', clave: 'Racha de {n} días de clase seguidos con buena actitud', vars: { n: dias }, peso: 70 + Math.min(dias, 10) });
 
   return { pos, neg, hay: suyas.length > 0 };
@@ -241,9 +260,9 @@ function datosDeActitud(d: DatosParaResumen, actual: Rango): { pos: DatoResumen[
 
 /* ── Competencias clave ── */
 
-function datosDeCompetencias(d: DatosParaResumen, actual: Rango): { pos: DatoResumen[]; neg: DatoResumen[]; hay: boolean } {
+function datosDeCompetencias(d: DatosParaResumen, actual: Cuenta): { pos: DatoResumen[]; neg: DatoResumen[]; hay: boolean } {
   const pos: DatoResumen[] = [], neg: DatoResumen[] = [];
-  const evs = d.evaluations.filter(e => e.student_id === d.student.id && dentro(e.date, actual));
+  const evs = d.evaluations.filter(e => e.student_id === d.student.id && actual(e.date));
   // Sobre 4, como en el acta y los informes: una rúbrica de tres niveles también se pasa a esa escala
   const acum = new Map<string, { s: number; n: number }>();
   for (const ev of evs) {
@@ -267,15 +286,25 @@ function datosDeCompetencias(d: DatosParaResumen, actual: Rango): { pos: DatoRes
 
 /* ── Todo junto ── */
 
-export function resumenAlumno(d: DatosParaResumen): ResumenAlumno {
-  const { actual, anterior } = rangoDe(d.periodo, d.hoy);
+/**
+ * Todo lo que las reglas encuentran del alumno en el periodo, ordenado por peso y sin recortar. La ficha
+ * enseña los cinco primeros de cada lado (`resumenAlumno`); el informe de seguimiento parte de todos, porque
+ * no todos tienen una frase para las familias.
+ */
+export function datosDelAlumno(d: DatosParaResumen): ResumenAlumno {
+  const { actual, anterior } = d.cuenta ?? cuentasDe(d.periodo, d.hoy);
   const partes = [datosDeNotas(d, actual, anterior), datosDeAsistencia(d, actual), datosDeActitud(d, actual), datosDeCompetencias(d, actual)];
-  const ordenar = (xs: DatoResumen[]) => [...xs].sort((a, b) => b.peso - a.peso).slice(0, MAX_POR_LADO);
+  const ordenar = (xs: DatoResumen[]) => [...xs].sort((a, b) => b.peso - a.peso);
   return {
     positivos: ordenar(partes.flatMap(p => p.pos)),
     atencion: ordenar(partes.flatMap(p => p.neg)),
     hayDatos: partes.some(p => p.hay),
   };
+}
+
+export function resumenAlumno(d: DatosParaResumen): ResumenAlumno {
+  const todo = datosDelAlumno(d);
+  return { positivos: todo.positivos.slice(0, MAX_POR_LADO), atencion: todo.atencion.slice(0, MAX_POR_LADO), hayDatos: todo.hayDatos };
 }
 
 /** El texto de un dato: traducido, con los decimales como se escriben en el idioma y el desglose detrás. */

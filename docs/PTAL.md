@@ -66,6 +66,7 @@ Quien es de PT o de AL normalmente no es tutor, así que tiene su propia disposi
   - Fotos del propio docente, reducidas a 480 px y guardadas en el perfil.
   - Se muestra a pantalla completa, tachando cada paso, y se guarda en PDF para imprimir y recortar.
   - La atribución va en Configuración (pie de la cuadrícula) y al pie del PDF si lleva algún pictograma.
+  - «Empezar curso nuevo» (20-11-2026, Configuración › Datos y copias) usa el mismo `apoyoParaOtroCurso` que vaciar el curso, tras una copia obligatoria. Las evaluaciones del cuaderno tienen desde ese día fechas ajustables (`lib/periodos.ts`), pero el cierre del trimestre de PT y AL sigue con `trimestreDe` de `lib/apoyo.ts`, de fechas fijas: si el docente cambia las del cuaderno, una sesión de apoyo puede caer en un trimestre distinto en cada sitio. Pendiente de decidir.
   - Al vaciar el curso se conserva el alumnado de apoyo con sus grupos, sus programas y objetivos, sus adaptaciones y sus agendas con sus fotos; se van los registros de las sesiones, las coordinaciones, los cierres de trimestre y los documentos (19-11-2026, `apoyoParaOtroCurso`; antes solo quedaban las agendas sin alumno, y quien seguía con su alumnado tenía que darlo de alta otra vez).
   - La lista se cambia en `scripts/pictos/lista.py` y se regenera con `scripts/pictos/generar.py`. Fuera los que llevan palabras en inglés dibujadas.
   - ARASAAC, Sclera y Soy Visual no se pueden usar: su licencia no permite el uso comercial.

@@ -9,6 +9,15 @@ describe('leer una copia de seguridad antes de cargarla (auditoría del 1-11-202
     expect(r).toEqual({ ok: true, datos: { classes: [{ id: 'c1' }], students: [], grades: {} } });
   });
 
+  it('dice de qué curso escolar es la copia, si lo lleva', () => {
+    const con = (perfil: unknown) => leerCopiaDeDatos(JSON.stringify({ _app: 'AulaPro', _version: 2, _profile: perfil, data: { classes: [{ id: 'c1' }] } }));
+    expect(con({ name: 'Profesor', course: ' 2025-2026 ' })).toEqual({ ok: true, datos: { classes: [{ id: 'c1' }] }, curso: '2025-2026' });
+    // Sin perfil, sin curso o con algo que no es un texto: la copia se carga igual y no dice curso
+    for (const perfil of [null, undefined, { name: 'Profesor' }, { course: '' }, { course: 2026 }, 'texto', [1]]) {
+      expect(con(perfil)).toEqual({ ok: true, datos: { classes: [{ id: 'c1' }] } });
+    }
+  });
+
   it('lee también el formato de la versión 1, con los nombres de entonces', () => {
     const r = leerCopiaDeDatos(JSON.stringify({ _app: 'AulaPro', classes: [{ id: 'c1' }], grade_items: [{ id: 'g' }], diana_profiles: {} }));
     expect(r.ok && r.datos).toEqual({ classes: [{ id: 'c1' }], gradeItems: [{ id: 'g' }], dianaProfiles: {} });

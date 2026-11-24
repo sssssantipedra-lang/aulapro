@@ -7,19 +7,22 @@
     "jornada": [
       19.2,
       20.1
+    ],
+    "atencion": [
+      71.6,
+      58.1
     ]
   },
   "rubrica": {
     "size": [
-      760,
-      714
-    ],
-    "ia": null
+      840,
+      964
+    ]
   },
   "dianaNota": {
     "size": [
-      780,
-      784
+      840,
+      894
     ]
   },
   "dianaCompetencial": [

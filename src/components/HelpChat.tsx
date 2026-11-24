@@ -15,14 +15,15 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { MessageCircleQuestion, X, Send, Sparkles, ExternalLink, ArrowRight, Trash2 } from 'lucide-react';
-import { callGemini, hasApiKey, setApiKey, type ChatTurn } from '../services/gemini';
+import { callGemini, setApiKey, type ChatTurn } from '../services/gemini';
 import { splitJump, targetLabel } from '../services/appHelp';
 import { RichText } from './ui/RichText';
 import { useToast } from './ui/Toast';
 import { useI18n } from '../i18n';
 import { usoIaAceptado } from '../lib/usoIA';
 import { preguntaParaIA } from '../lib/preguntaParaIA';
-import { requestSettingsPanel } from '../lib/settingsNav';
+import { abrirClaveIA } from '../lib/claveIA';
+import { useHayClaveIA } from '../hooks/useClaveIA';
 
 /**
  * El manual (unos 60 KB de texto) se pide al abrir el panel, no al abrir la
@@ -47,27 +48,25 @@ interface Props {
   /** Sección abierta ahora mismo, para dar contexto a la respuesta. */
   section: string;
   onNav: (s: string) => void;
+  /** Si esa pantalla está en el menú de este perfil. Sin ella, el botón «Ir a…» sale siempre. */
+  puedeIr?: (s: string) => boolean;
 }
 
-export function HelpChat({ section, onNav }: Props) {
+export function HelpChat({ section, onNav, puedeIr }: Props) {
   const { t, lang } = useI18n();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<HelpMessage[]>([]);
   const [question, setQuestion] = useState('');
   const [loading, setLoading] = useState(false);
-  const [hasKey, setHasKey] = useState(hasApiKey());
+  // Al día: la clave también se puede poner en su ventana (`VentanaClaveIA`), con el chat cerrado
+  const hasKey = useHayClaveIA();
   const [keyDraft, setKeyDraft] = useState('');
   const endRef = useRef<HTMLDivElement>(null);
 
-  /**
-   * Al abrir se vuelve a mirar si hay clave: puede haberse puesto en Configuración
-   * mientras el panel estaba cerrado. Se hace aquí, al pulsar, y no en un
-   * efecto sobre `open`, que provocaría un render de más en cada apertura.
-   */
   function alternar() {
     const abrir = !open;
-    if (abrir) { setHasKey(hasApiKey()); void cargarManual(); }
+    if (abrir) void cargarManual();
     setOpen(abrir);
   }
 
@@ -114,7 +113,6 @@ export function HelpChat({ section, onNav }: Props) {
     if (!k) { toast(t('Pega la clave antes de guardar')); return; }
     setApiKey(k);
     setKeyDraft('');
-    setHasKey(true);
     toast(t('✅ Clave guardada en este equipo'));
   }
 
@@ -196,7 +194,7 @@ export function HelpChat({ section, onNav }: Props) {
                 </>
               ) : (
                 <button className="btn-accent" style={{ justifyContent: 'center' }} type="button"
-                  onClick={() => { requestSettingsPanel('ia'); onNav('profile'); setOpen(false); }}>
+                  onClick={() => { abrirClaveIA(); setOpen(false); }}>
                   {t('Leer y aceptar cómo se tratan los datos')}
                 </button>
               )}
@@ -204,7 +202,7 @@ export function HelpChat({ section, onNav }: Props) {
               <div style={{ display: 'flex', gap: 10, marginTop: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
                 <button
                   className="help-link"
-                  onClick={() => { requestSettingsPanel('ia'); onNav('profile'); setOpen(false); }}
+                  onClick={() => { abrirClaveIA(); setOpen(false); }}
                   type="button"
                 >
                   {t('Ver la guía paso a paso')}
@@ -237,7 +235,7 @@ export function HelpChat({ section, onNav }: Props) {
                 {messages.map(m => (
                   <div key={m.id} className={m.role === 'user' ? 'help-msg-user' : 'help-msg-ai'}>
                     {m.role === 'user' ? m.text : <RichText text={m.text} />}
-                    {m.target && (
+                    {m.target && (!puedeIr || puedeIr(m.target)) && (
                       <button
                         className="help-goto"
                         onClick={() => { onNav(m.target as string); setOpen(false); }}

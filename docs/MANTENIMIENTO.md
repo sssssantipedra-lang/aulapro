@@ -150,7 +150,7 @@ Sin el paso 2 completo, las sesiones de todo el mundo dejan de valer a la vez y 
 Esto no es del dueño, pero explica las quejas más probables:
 
 - **Safari (iPhone, iPad, Mac)** borra los datos de una página que no se abre en 7 días, salvo si está añadida a la pantalla de inicio. Por eso hay aviso y se recomienda la nube.
-- **El almacenamiento del navegador** puede vaciarse si el equipo se queda sin espacio, o con «borrar datos de navegación». Las copias automáticas de cada 10 minutos viven en el mismo navegador: no son una copia de verdad.
+- **El almacenamiento del navegador** puede vaciarse si el equipo se queda sin espacio, o con «borrar datos de navegación». Las copias automáticas de cada 10 minutos (desde el 20-11-2026, escalonadas: llegan a dos o tres semanas) viven en el mismo navegador: no son una copia de verdad.
 - **Drive**: lo que se borra va a la papelera (30 días). Desde el 30-10-2026 cada subida **borra las versiones antiguas del archivo** (queda solo la última): ya no se puede volver atrás con el historial de Drive. La poda en Drive y OneDrive **no está comprobada con una cuenta real**: mirar en «Administrar versiones» que solo queda una.
 - **Sube cada 30 minutos y al salir de la app**: con dos dispositivos, lo que uno sube tarda hasta media hora en llegar al otro.
 - **La licencia comprada con la cuenta** se vuelve a comprobar cada vez que se entra (cada 10 minutos como mucho en segundo plano). Si se devuelve la compra, se quita.

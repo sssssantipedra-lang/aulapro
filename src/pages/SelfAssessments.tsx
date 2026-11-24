@@ -39,8 +39,8 @@ export function SelfAssessments({ sessions, onInclude, onDelete, onNav }: Props)
   function remove(s: SelfAssessmentSession) {
     if (!confirm(
       t(s.rows.length === 1
-        ? 'Se borrarán las respuestas de {n} alumno de «{title}».\n\nEsto no se puede deshacer.'
-        : 'Se borrarán las respuestas de {n} alumnos de «{title}».\n\nEsto no se puede deshacer.',
+        ? 'Se borrarán las respuestas de {n} alumno de «{title}».'
+        : 'Se borrarán las respuestas de {n} alumnos de «{title}».',
         { n: s.rows.length, title: s.title }),
     )) return;
     onDelete(s.id);

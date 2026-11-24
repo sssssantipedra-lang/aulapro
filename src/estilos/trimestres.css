@@ -1,0 +1,71 @@
+/* Estilos de la mejora «trimestres» (tanda del 20-11-2026). Los comunes siguen en index.css. */
+
+/* ── El selector de evaluación («1.ª · 2.ª · 3.ª · Curso»), común al cuaderno y a las actas ── */
+.ev-sel { display:inline-flex; align-items:center; gap:8px; flex-wrap:wrap; min-width:0; }
+.ev-sel-chips { display:inline-flex; align-items:center; gap:4px; padding:3px; border-radius:99px; background:var(--surface); border:1px solid var(--border); }
+.ev-sel-chips .chip { height:28px; padding:0 12px; border-color:transparent; position:relative; }
+.ev-sel-chips .chip.accent.on { border-color:var(--accent-d); }
+/* El punto de la evaluación en la que cae hoy */
+.ev-sel-hoy { width:6px; height:6px; border-radius:50%; background:var(--accent-d); flex-shrink:0; margin-left:-2px; }
+.ev-sel-fechas { display:inline-flex; align-items:center; gap:6px; height:30px; padding:0 10px; border:1px dashed var(--border-strong); border-radius:8px; background:transparent; color:var(--text-2); font:600 12px var(--font); cursor:pointer; white-space:nowrap; }
+.ev-sel-fechas:hover, .ev-sel-fechas.on { background:var(--surface); color:var(--text); }
+.ev-sel-fechas.on { border-style:solid; }
+.ev-sel-todo { font-size:12px; font-weight:600; color:var(--text-3); white-space:nowrap; }
+.ev-sel-editar { flex-basis:100%; padding:8px 10px; border-radius:10px; background:var(--surface); }
+.ev-sel-nota { flex-basis:100%; font-size:11.5px; color:var(--text-3); line-height:1.45; }
+.ev-enlace { display:inline; padding:0; border:none; background:none; color:var(--accent-d); font:700 12.5px var(--font); text-decoration:underline; text-underline-offset:2px; cursor:pointer; }
+.ev-enlace:hover { filter:brightness(0.85); }
+
+/* ── «Curso» en el cuaderno: la regla de la nota final y la nota de cada evaluación ── */
+.nc { padding:14px 16px; margin-bottom:14px; }
+.nc-regla { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.nc-regla-lbl { font-size:12px; font-weight:800; color:var(--text); text-transform:uppercase; letter-spacing:0.04em; }
+.nc-todas { margin-left:auto; }
+.nc-porque { font-size:12.5px; color:var(--text-2); line-height:1.5; margin:10px 0 0; }
+.nc-aviso { color:var(--warn-fg); font-weight:600; }
+.nc-pesos { display:flex; align-items:center; gap:8px 18px; flex-wrap:wrap; margin-top:10px; }
+.nc-pesos .nc-porque { margin:0; flex-basis:100%; }
+.nc-peso { display:inline-flex; align-items:center; gap:6px; font-size:12.5px; font-weight:700; color:var(--text-2); }
+.nc-peso .finput { width:68px; height:34px; padding:0 8px; text-align:center; }
+.nc-tabla { margin-top:12px; border:1px solid var(--border); border-radius:10px; overflow-x:auto; }
+.nc-tabla .gb-table th { position:static; }
+.nc-tabla .gb-table th.gb-sticky, .nc-tabla .gb-table th.gb-sticky-r { position:sticky; }
+.nc-num { text-align:center; font-size:13px; font-weight:700; font-variant-numeric:tabular-nums; }
+.nc-final { min-width:70px; border-left:2px solid var(--border); font-weight:800; text-align:center; }
+td.nc-final { font-size:13.5px; }
+.nc-pie { font-weight:700; font-size:12px; color:var(--text-2); }
+.nc-ver { display:flex; align-items:center; justify-content:center; gap:6px; width:100%; min-height:40px; margin-bottom:12px; padding:8px 12px; border:1px dashed var(--border-strong); border-radius:10px; background:transparent; color:var(--text-2); font:700 12.5px var(--font); cursor:pointer; }
+.nc-ver:hover { background:var(--surface); color:var(--text); }
+.nc-donde { margin-top:-6px; margin-bottom:12px; }
+
+/* La escala de registro abierta con lo valorado en otra evaluación */
+.reg-ayuda.reg-otra { display:block; padding:8px 10px; border-radius:8px; background:var(--surface); color:var(--text-2); line-height:1.5; }
+
+.nc-corto { display:none; }
+
+/* Con el dedo, las fichas del selector son más altas */
+@media (pointer: coarse) {
+  .ev-sel-chips .chip { height:36px; min-width:44px; justify-content:center; }
+  .ev-sel-fechas { height:38px; }
+}
+
+/* Con las fechas abiertas el selector ocupa su propia línea: la raya que lo separa de la clase se quedaría suelta */
+.toolbar:has(.ev-sel-editar) .ev-sel-sep { display:none; }
+
+/* Con poco ancho el selector baja de línea y la raya que lo separa de la clase se quedaría suelta */
+@media (max-width: 1180px) {
+  .ev-sel-sep { display:none; }
+}
+
+@media (max-width: 760px) {
+  .nc-largo { display:none; }
+  .nc-corto { display:inline; }
+  .nc-tabla .gb-table th { padding:6px 4px; }
+  .ev-sel { width:100%; }
+  .ev-sel-chips { flex:1; justify-content:space-between; }
+  .ev-sel-chips .chip { flex:1; justify-content:center; height:36px; padding:0 6px; }
+  .ev-sel-fechas { height:36px; }
+  .nc { padding:12px 10px; }
+  .nc-todas { margin-left:0; }
+  .nc-final { min-width:56px; }
+}

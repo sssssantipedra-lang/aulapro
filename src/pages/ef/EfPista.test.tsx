@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { render, screen, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { EfPista } from './EfPista';
+import { ClaseActiva } from '../../components/ClaseActiva';
 import { I18nProvider } from '../../i18n';
 import { buildDemoEF } from '../../lib/demoEF';
 import type { ClassMark } from '../../types';
@@ -19,10 +20,13 @@ function Harness() {
   const cambiar = (f: (p: ClassMark[]) => ClassMark[]) => setMs(p => { marcas = f(p); return marcas; });
   return (
     <I18nProvider>
-      <EfPista
-        classes={demo.classes} students={demo.students} scheduleBlocks={demo.blocks} classMarks={ms} ef={demo.ef}
-        onAddMark={m => cambiar(p => [...p, m])} onDeleteMark={id => cambiar(p => p.filter(x => x.id !== id))} onNav={() => {}}
-      />
+      {/* El horario llega a la pantalla por el contexto de la clase activa, como en la app */}
+      <ClaseActiva perfil="pista" classes={demo.classes} blocks={demo.blocks}>
+        <EfPista
+          classes={demo.classes} students={demo.students} classMarks={ms} ef={demo.ef}
+          onAddMark={m => cambiar(p => [...p, m])} onDeleteMark={id => cambiar(p => p.filter(x => x.id !== id))} onNav={() => {}}
+        />
+      </ClaseActiva>
     </I18nProvider>
   );
 }
@@ -39,7 +43,7 @@ describe('En la pista', () => {
   it('abre la clase de ahora, anota con un toque y lo quita con otro', async () => {
     const user = userEvent.setup();
     render(<Harness />);
-    expect(screen.getByRole('tab', { name: '1º ESO A' }).getAttribute('aria-selected')).toBe('true');
+    expect(screen.getByRole('button', { name: /^1º ESO A.*Ahora, según tu horario/ }).getAttribute('aria-pressed')).toBe('true');
     // Alumno 4 está lesionado: no puede correr ni saltar
     expect(screen.getByRole('button', { name: /Alumno 4(?!\d)/ }).textContent).toContain('No puede correr');
 

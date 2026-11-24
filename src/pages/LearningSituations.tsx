@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { AyudaVideo } from '../components/AyudaVideo';
 import {
   BookMarked, Sparkles, Plus, Trash2, Paperclip, X, ClipboardList, Check, ArrowRight, FileText,
   FileDown, FileType2, Target, Layers, ArrowLeft, Pencil, ChevronDown, CalendarRange, Users, Eye,
@@ -45,7 +46,6 @@ import { clonarSda } from '../lib/clonar';
 import { AiKeyNotice } from '../components/ui/AiKeyNotice';
 import { isDesktop } from '../services/storage';
 import { groupSituations, filterSituations, sdaAreas, type SdaGroupBy } from '../lib/sdaLibrary';
-import { requestSettingsPanel } from '../lib/settingsNav';
 import { alumnosConBarreras, barrerasDeClases, palabrasDeNombres } from '../lib/barreras';
 import { CasillaAcs } from '../components/apoyo/CasillaAcs';
 import { useAcsParaIA } from '../hooks/useAcsParaIA';
@@ -54,6 +54,7 @@ import { MODELOS_EF, modeloEF } from '../lib/modelosEF';
 import { MODALIDADES_EF } from '../lib/ef';
 import { MomentosDeSesion } from '../components/MomentosDeSesion';
 import { ImagenesDeSesionSda } from '../components/sesiones/ImagenesDeSesionSda';
+import { BotonDarLaClase } from '../components/darLaClase/BotonDarLaClase';
 import { contenidoSinImagenes, conImagenesDe, mismasImagenes, sesionConImagenes } from '../lib/imagenesSesion';
 import type { ImagenSesion } from '../types/ef';
 import { sesionesDeSda } from '../lib/sesiones';
@@ -84,6 +85,8 @@ interface Props {
   onNav: (s: string) => void;
   /** Para pasar las sesiones de la SdA a Sesiones, en el aula (en EF lo hace `ef.onPasarSesiones`). */
   onPasarSesiones?: (sesiones: SesionEF[]) => void;
+  /** «Dar la clase»: abre la pizarra con la sesión número `indice` (desde 0) de la SdA guardada montada en el plan del día. */
+  onDarLaClase?: (sdaId: string, indice: number) => void;
   /**
    * Solo para el profesorado de Educación Física: lo que se añade a la SdA de
    * una clase de EF (modelo pedagógico, material, instalaciones y limitaciones
@@ -222,7 +225,7 @@ interface BorradorSda {
 
 export function LearningSituations({
   classes, students = [], gradeCategories, learningSituations, comunidad, onUpdateClass,
-  onSave, onDelete, onAddRubric, onAddDiana, onAddFicha, onNav, ef, onPasarSesiones, acsAula, evaluations = [], busquedaInicial = '', onBusquedaUsada,
+  onSave, onDelete, onAddRubric, onAddDiana, onAddFicha, onNav, ef, onPasarSesiones, onDarLaClase, acsAula, evaluations = [], busquedaInicial = '', onBusquedaUsada,
 }: Props) {
   const { toast } = useToast();
   const { t, lang, locale } = useI18n();
@@ -1054,7 +1057,7 @@ export function LearningSituations({
       </div>
 
       {sinClave && (
-        <AiKeyNotice message={t('Para redactar situaciones de aprendizaje hace falta la clave gratuita de Google que se configura en Configuración.')} action={t('Configurar la IA')} onAction={() => { requestSettingsPanel('ia'); onNav('profile'); }} />
+        <AiKeyNotice message={t('Para redactar situaciones de aprendizaje hace falta la clave gratuita de Google que se configura en Configuración.')} action={t('Configurar la IA')} />
       )}
 
       <div className="card sda-form">
@@ -1438,14 +1441,14 @@ export function LearningSituations({
     <>
       <div className="pg-hd">
         <div>
-          <h1 className="pg-title">{t('Situaciones de aprendizaje')}</h1>
+          <h1 className="pg-title">{t('Situaciones de aprendizaje')}<AyudaVideo id="situaciones-aprendizaje" /></h1>
           <p className="pg-sub">{t('Diseña una SdA competencial con ayuda de la IA')}</p>
         </div>
         <button className="btn-accent" onClick={startNew}><Plus size={15} />{t('Nueva situación de aprendizaje')}</button>
       </div>
 
       {sinClave && (
-        <AiKeyNotice message={t('Para redactar situaciones de aprendizaje hace falta la clave gratuita de Google que se configura en Configuración.')} action={t('Configurar la IA')} onAction={() => { requestSettingsPanel('ia'); onNav('profile'); }} />
+        <AiKeyNotice message={t('Para redactar situaciones de aprendizaje hace falta la clave gratuita de Google que se configura en Configuración.')} action={t('Configurar la IA')} />
       )}
 
       {borrador.encontrado && (
@@ -1717,6 +1720,10 @@ export function LearningSituations({
                         <div className="sda-session-ttl">{ses.titulo}</div>
                         <p className="sda-p">{ses.descripcion}</p>
                         {ses.momentos && <MomentosDeSesion momentos={ses.momentos} ef={!!content.ef} />}
+                        {/* La pizarra lee la situación guardada: con cambios sin guardar, primero se guarda */}
+                        {onDarLaClase && guardada && !sinGuardar && !ses.completada && (
+                          <div className="dlc-sda-fila"><BotonDarLaClase compacto titulo={ses.titulo} onClick={() => onDarLaClase(guardada.id, n - 1)} /></div>
+                        )}
                       </ImagenesDeSesionSda>
                       <button
                         type="button" className="sda-session-check" aria-pressed={!!ses.completada} onClick={() => alternarSesion(n - 1)}

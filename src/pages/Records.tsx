@@ -1,9 +1,13 @@
 import { useMemo, useState } from 'react';
 import { Printer, FileSpreadsheet, FileDown, ArrowRight, Users, Eye } from 'lucide-react';
+import { AyudaVideo } from '../components/AyudaVideo';
 import type { Class, Student, GradeCategory, GradeItem, GradeMap, Evaluation, ClassMark, MarksBlockConfig } from '../types';
-import { PERIODS, LOMLOE_COMPETENCES, isoDate, fromIsoDate } from '../lib/utils';
-import { conVecinos, enRango, guardarRangos, rangoDe, rangosGuardados, type RangoDeFechas } from '../lib/periodos';
-import { applyClassMarks, BLOCK_ITEM_PREFIX, isMarksCategory, sumaDePesos } from '../services/classMarks';
+import { PERIODS, LOMLOE_COMPETENCES, fromIsoDate } from '../lib/utils';
+import { CURSO_ENTERO } from '../lib/periodos';
+import { blockActive, blockConfig, blockKey, isMarksCategory, sumaDePesos } from '../services/classMarks';
+import { aUnDecimal, categoriasDe, cuadernoDe, notasDeCurso, porcentajesDeEvaluaciones, reglaFinal } from '../lib/cuadernoEvaluacion';
+import { useEvaluacionElegida } from '../hooks/useEvaluacionElegida';
+import { SelectorEvaluacion } from '../components/SelectorEvaluacion';
 import { useToast } from '../components/ui/Toast';
 import { ClassChips } from '../components/ui/ClassChips';
 import { useI18n, monthLabel, type Lang } from '../i18n';
@@ -12,9 +16,11 @@ import { compararAlumnos } from '../lib/alumnado';
 import { CARPETAS } from '../lib/carpetas';
 import { DocPreview } from '../components/DocPreview';
 import { useMateriasOficiales } from '../hooks/useNotasPorCompetencias';
+import { notasDeClaves } from '../lib/competenciasClave';
 import { notasDeMateria } from '../lib/curriculum/evaluacionPorCriterios';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
-import { mediaDeCategoria } from '../lib/ponderacion';
+import { mediaDeCategoria, mediaPonderada } from '../lib/ponderacion';
+import { useClaseActiva } from '../hooks/useClaseActiva';
 
 interface Props {
   classes: Class[];
@@ -67,25 +73,6 @@ const byName = compararAlumnos;
 const SIN_ANOTACIONES: ClassMark[] = [];
 const SIN_BLOQUES: Record<string, MarksBlockConfig> = {};
 
-/**
- * Una fecha de la evaluación. Mientras se teclea pasa por valores a medias («0002-…», un mes antes que el
- * año): se quedan en el campo sin guardarse, y solo cuenta la fecha cuando está entera y dentro de su tope.
- */
-function FechaDeEvaluacion({ valor, min, max, etiqueta, onCambio }: {
-  valor: string; min?: string; max?: string; etiqueta: string; onCambio: (v: string) => void;
-}) {
-  const [borrador, setBorrador] = useState<string | null>(null);
-  return (
-    <input type="date" className="tb-select" value={borrador ?? valor} min={min} max={max} aria-label={etiqueta}
-      onChange={e => {
-        const v = e.target.value;
-        const vale = /^\d{4}-\d{2}-\d{2}$/.test(v) && v >= '2020-01-01' && (!min || v >= min) && (!max || v <= max);
-        if (vale) { setBorrador(null); onCambio(v); } else setBorrador(v);
-      }}
-      onBlur={() => setBorrador(null)} />
-  );
-}
-
 export function Records({
   classes, students, gradeCategories: categoriasDelCuaderno, gradeItems: actividadesDelCuaderno, grades: notasDelCuaderno,
   classMarks = SIN_ANOTACIONES, marksConfigs = SIN_BLOQUES, evaluations, comunidad,
@@ -93,25 +80,11 @@ export function Records({
 }: Props) {
   const { toast } = useToast();
   const { t, lang, locale } = useI18n();
-  const [classId, setClassId] = useState(classes[0]?.id ?? '');
-  const [period, setPeriod]   = useState<string>(PERIODS[0]);
-  // Cada evaluación cuenta las notas de sus fechas (lib/periodos.ts); «Final de curso», todas
-  const [hoy] = useState(() => isoDate());
-  const [rangos, setRangos] = useState(() => rangosGuardados(hoy));
-  const rango = useMemo(() => rangoDe(period, hoy, rangos), [period, hoy, rangos]);
-  const cambiarRango = (r: RangoDeFechas) => {
-    if (!r.desde || !r.hasta || r.desde > r.hasta) return;
-    // Las evaluaciones vecinas se ajustan para que no quede ningún día sin evaluación (lib/periodos.ts)
-    const nuevos = conVecinos(period, r, hoy, rangos);
-    guardarRangos(nuevos, hoy);
-    setRangos(nuevos);
-  };
-  // El bloque de trabajo diario y actitud, con las anotaciones de las fechas de la evaluación: sin esto
-  // el acta de la 1.ª llevaría las de todo el curso, o ninguna si la última anotación caía fuera
-  const { gradeCategories, gradeItems, grades } = useMemo(() => applyClassMarks({
-    classes, students, gradeCategories: categoriasDelCuaderno, gradeItems: actividadesDelCuaderno, grades: notasDelCuaderno,
-    classMarks: classMarks.filter(m => enRango(m.date, rango)), marksConfigs,
-  }), [classes, students, categoriasDelCuaderno, actividadesDelCuaderno, notasDelCuaderno, classMarks, marksConfigs, rango]);
+  const [classId, setClassId] = useClaseActiva(classes);
+  // La evaluación es la misma que se ve en el cuaderno (`useEvaluacionElegida`): cada una cuenta lo de sus
+  // fechas y «Final de curso», todo el curso con la regla de la nota final de esa clase y asignatura
+  const ev = useEvaluacionElegida();
+  const { periodo: period, rango, hoy, rangos } = ev;
   const diaCorto = (f: string) => fromIsoDate(f).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' });
   const textoPeriodo = rango ? t('{periodo} (del {desde} al {hasta})', { periodo: t(period), desde: diaCorto(rango.desde), hasta: diaCorto(rango.hasta) }) : t(period);
   const [showCategories, setShowCategories] = useState(true);
@@ -144,14 +117,29 @@ export function Records({
     [materiasOficiales, activeSubject],
   );
   const evsDeClase = useMemo(
-    () => evaluations.filter(e => e.class_id === clsId && enRango(e.date, rango)),
-    [evaluations, clsId, rango],
+    () => evaluations.filter(e => e.class_id === clsId && ev.cuenta(e.date)),
+    [evaluations, clsId, ev],
   );
-  /** Las actividades del cuaderno que caen en la evaluación elegida. */
-  const itemsDelPeriodo = useMemo(
-    // La columna del bloque de anotaciones ya viene calculada con las de estas fechas: no se filtra por la suya
-    () => gradeItems.filter(i => i.id.startsWith(BLOCK_ITEM_PREFIX) || enRango(i.date, rango)),
-    [gradeItems, rango],
+  /**
+   * El cuaderno de la evaluación elegida, solo de esta clase: las actividades de sus fechas y el bloque de
+   * trabajo diario y actitud con las anotaciones de esas fechas (`lib/cuadernoEvaluacion.ts`, la misma
+   * cuenta que el cuaderno).
+   */
+  const entrada = useMemo(() => ({
+    classes: cls ? [cls] : [], students: roster,
+    gradeCategories: categoriasDelCuaderno.filter(c => c.class_id === clsId),
+    gradeItems: actividadesDelCuaderno.filter(i => i.class_id === clsId),
+    grades: notasDelCuaderno, classMarks: classMarks.filter(m => m.class_id === clsId), marksConfigs,
+  }), [cls, clsId, roster, categoriasDelCuaderno, actividadesDelCuaderno, notasDelCuaderno, classMarks, marksConfigs]);
+  const { gradeCategories, gradeItems: itemsDelPeriodo, grades } = useMemo(
+    () => cuadernoDe(entrada, period, hoy, rangos), [entrada, period, hoy, rangos]);
+  /** La regla de la nota final de curso de esta clase y asignatura: evaluación continua si no se ha elegido otra. */
+  const regla = useMemo(() => reglaFinal(marksConfigs[blockKey(clsId, activeSubject)]), [marksConfigs, clsId, activeSubject]);
+  /** «Final de curso» con la media de las evaluaciones: el acta enseña la nota de cada una en vez de las categorías. */
+  const porMedia = period === CURSO_ENTERO && regla.modo === 'media';
+  const deCurso = useMemo(
+    () => (porMedia && cls ? notasDeCurso(entrada, cls, activeSubject, regla, hoy, rangos).notas : null),
+    [porMedia, entrada, cls, activeSubject, regla, hoy, rangos],
   );
   const columnasEspecificas = useMemo(
     () => (materiaDeLaClase ? notasDeMateria(materiaDeLaClase.entry, materiaDeLaClase.grupo, []).competencias : []),
@@ -164,28 +152,36 @@ export function Records({
     && evsDeClase.some(e => e.officialCriteriaScores && Object.keys(e.officialCriteriaScores).length > 0);
 
   const cats = useMemo(
-    () => gradeCategories.filter(c =>
-      c.class_id === clsId &&
-      // Sin asignatura = creada antes de que hubiera varias: es de la principal
-      (c.subject ?? subjects[0] ?? '') === activeSubject),
-    [gradeCategories, clsId, activeSubject, subjects],
+    () => (cls ? categoriasDe({ gradeCategories }, cls, activeSubject) : []),
+    [gradeCategories, cls, activeSubject],
   );
 
-  /** Media de un alumno dentro de una categoría (con el peso de cada prueba). */
-  function categoryAverage(studentId: string, categoryId: string): number | null {
-    return mediaDeCategoria(itemsDelPeriodo.filter(i => i.category_id === categoryId), grades, studentId);
+  /** Las columnas del desglose: las categorías del cuaderno o, con la media de las evaluaciones, las tres evaluaciones. */
+  const columnas = useMemo(() => {
+    if (porMedia) {
+      const pct = porcentajesDeEvaluaciones(regla);
+      return PERIODS.slice(0, 3).map((p, k) => ({ id: p, nombre: t(p), peso: `${(Math.round(pct[k] * 10) / 10).toLocaleString(locale)}%` }));
+    }
+    const total = cats.reduce((a, c) => a + c.weight, 0);
+    // El bloque de anotaciones del aula se da en % de la nota final, como las categorías: con él, cada
+    // columna muestra lo que pesa de verdad en la nota
+    const hayBloque = cats.some(c => isMarksCategory(c.id));
+    return cats.map(c => ({
+      id: c.id, nombre: c.name,
+      peso: hayBloque ? `${(Math.round((c.weight / (total || 1)) * 1000) / 10).toLocaleString(locale)}%` : `${c.weight}%`,
+    }));
+  }, [porMedia, regla, cats, t, locale]);
+
+  /** Lo que va en cada columna del desglose para un alumno. */
+  function celdasDe(studentId: string): (number | null)[] {
+    if (deCurso) return (deCurso.get(studentId)?.evaluaciones ?? [null, null, null]).map(aUnDecimal);
+    return cats.map(c => mediaDeCategoria(itemsDelPeriodo.filter(i => i.category_id === c.id), grades, studentId));
   }
 
-  /** Nota final: media de las categorías ponderada por su peso. */
+  /** Nota final: la de la evaluación (media de las categorías por su peso) o la del curso con la regla elegida. */
   function finalGrade(studentId: string): number | null {
-    let sum = 0, weight = 0;
-    for (const cat of cats) {
-      const avg = categoryAverage(studentId, cat.id);
-      if (avg === null) continue;
-      sum += avg * cat.weight;
-      weight += cat.weight;
-    }
-    return weight ? sum / weight : null;
+    if (deCurso) return deCurso.get(studentId)?.final ?? null;
+    return mediaPonderada(cats, itemsDelPeriodo, grades, studentId);
   }
 
   /**
@@ -196,19 +192,7 @@ export function Records({
    * niveles también sale sobre 4.
    */
   function claveDe(studentId: string): Record<string, number> {
-    const sums: Record<string, number> = {};
-    const counts: Record<string, number> = {};
-    for (const ev of evsDeClase) {
-      if (ev.student_id !== studentId) continue;
-      const max = ev.max_level && ev.max_level > 0 ? ev.max_level : 4;
-      for (const [code, v] of Object.entries(ev.competencyScores ?? {})) {
-        sums[code] = (sums[code] ?? 0) + ((v / max) * (escalaClave === 'nota' ? 10 : maxNivel));
-        counts[code] = (counts[code] ?? 0) + 1;
-      }
-    }
-    const out: Record<string, number> = {};
-    for (const code of Object.keys(counts)) out[code] = Math.round((sums[code] / counts[code]) * 10) / 10;
-    return out;
+    return notasDeClaves(evsDeClase.filter(ev => ev.student_id === studentId), escalaClave === 'nota' ? 10 : maxNivel);
   }
 
   /** Nota de cada competencia específica de la materia, por su número. */
@@ -227,12 +211,12 @@ export function Records({
     return {
       n: i + 1,
       student: s,
-      cells: cats.map(c => categoryAverage(s.id, c.id)),
+      cells: celdasDe(s.id),
       final: rounded,
       label: rounded === null ? null : gradeLabel(rounded, lang),
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [roster, cats, itemsDelPeriodo, grades, lang]);
+  }), [roster, cats, itemsDelPeriodo, grades, lang, deCurso]);
 
   const stats = useMemo(() => {
     const graded = rows.filter(r => r.final !== null).map(r => r.final as number);
@@ -247,16 +231,19 @@ export function Records({
   }, [rows]);
 
   const totalWeight = cats.reduce((a, c) => a + c.weight, 0);
-  // El bloque de anotaciones del aula se da en % de la nota final, como las
-  // categorías. Con él, cada columna muestra lo que pesa de verdad en la nota.
   const ownWeight = cats.filter(c => !isMarksCategory(c.id)).reduce((a, c) => a + c.weight, 0);
   const bloque = cats.find(c => isMarksCategory(c.id));
-  const hayBloque = !!bloque;
-  // La misma comprobación que el cuaderno, con el bloque en % de la nota final
-  const pesos = sumaDePesos(ownWeight, bloque && totalWeight ? (bloque.weight / totalWeight) * 100 : 0);
-  const weightLabel = (c: GradeCategory) => hayBloque
-    ? `${(Math.round((c.weight / (totalWeight || 1)) * 1000) / 10).toLocaleString(locale)}%`
-    : `${c.weight}%`;
+  // La misma comprobación que el cuaderno, con el bloque en % de la nota final. En una evaluación que aún no
+  // tiene nada el bloque no sale en el acta (`cuadernoDe`), pero sigue siendo parte de los pesos del cuaderno:
+  // sin contarlo, el acta de una evaluación vacía avisaba de que «los pesos suman 80%»
+  const cfgBloque = blockConfig(marksConfigs, clsId, activeSubject);
+  const pctBloque = bloque && totalWeight ? (bloque.weight / totalWeight) * 100
+    : !bloque && blockActive(cfgBloque, 0) ? Math.round(cfgBloque.points * 100) / 10 : 0;
+  const pesos = sumaDePesos(ownWeight, pctBloque);
+  /** Cómo sale la nota de «Final de curso», para decirlo en el documento. */
+  const textoRegla = period !== CURSO_ENTERO ? '' : porMedia
+    ? t('Nota final: media de las evaluaciones ({pesos}).', { pesos: columnas.map(c => `${c.nombre} ${c.peso}`).join(' · ') })
+    : t('Nota final: evaluación continua, con todas las notas del curso.');
 
   const docs = window.electronAPI?.docs;
   const [working, setWorking] = useState<'pdf' | 'print' | null>(null);
@@ -315,7 +302,7 @@ export function Records({
   function downloadCsv() {
     if (rows.length === 0) { toast(t('Esta clase no tiene alumnos')); return; }
     const esc = (s: string | number) => `"${String(s ?? '').replace(/"/g, '""')}"`;
-    const header = [t('Nº'), t('Alumno/a'), ...cats.map(c => `${c.name} (${weightLabel(c)})`), t('Nota final'), t('Calificación')];
+    const header = [t('Nº'), t('Alumno/a'), ...columnas.map(c => `${c.nombre} (${c.peso})`), t('Nota final'), t('Calificación')];
     const lines = [
       header.map(esc).join(';'),
       ...rows.map(r => [
@@ -338,7 +325,7 @@ export function Records({
       <section className="sec active">
         <div className="pg-hd">
           <div>
-            <h1 className="pg-title">{t('Actas de calificaciones')}</h1>
+            <h1 className="pg-title">{t('Actas de calificaciones')}<AyudaVideo id="actas" /></h1>
             <p className="pg-sub">{t('Documento oficial listo para imprimir o firmar')}</p>
           </div>
         </div>
@@ -364,7 +351,7 @@ export function Records({
 
       <div className="pg-hd no-print">
         <div>
-          <h1 className="pg-title">{t('Actas de calificaciones')}</h1>
+          <h1 className="pg-title">{t('Actas de calificaciones')}<AyudaVideo id="actas" /></h1>
           <p className="pg-sub">
             {rows.length > 0
               ? `${cls?.name}${activeSubject ? ` · ${activeSubject}` : ''} · ${t(period)} · ${t('{n}/{total} calificados', { n: stats.graded, total: stats.total })}`
@@ -424,19 +411,15 @@ export function Records({
             </>
           )}
           <span className="toolbar-spacer" />
-          <select className="tb-select" value={period} onChange={e => setPeriod(e.target.value)} aria-label={t('Evaluación')}>
-            {PERIODS.map(p => <option key={p} value={p}>{t(p)}</option>)}
-          </select>
-          {rango && (
-            <span className="acta-fechas" title={t('El acta cuenta las notas y las evaluaciones de estas fechas. Cámbialas si tu centro cierra la evaluación otro día: se recuerdan en este dispositivo.')}>
-              <label>{t('Del')} <FechaDeEvaluacion valor={rango.desde} max={rango.hasta} etiqueta={t('Primer día de la evaluación')}
-                onCambio={v => cambiarRango({ desde: v, hasta: rango.hasta })} /></label>
-              <label>{t('al')} <FechaDeEvaluacion valor={rango.hasta} min={rango.desde} etiqueta={t('Último día de la evaluación')}
-                onCambio={v => cambiarRango({ desde: rango.desde, hasta: v })} /></label>
-            </span>
-          )}
+          <SelectorEvaluacion ev={ev} queCuenta={t('El acta cuenta las notas y las evaluaciones de estas fechas.')} />
           {rango && roster.length > 0 && stats.graded === 0 && (
             <span className="acta-fechas" role="status">{t('No hay notas entre estas fechas. Cambia las fechas o elige «Final de curso».')}</span>
+          )}
+          {textoRegla && (
+            <span className="acta-fechas">
+              {textoRegla}{' '}
+              <button type="button" className="ev-enlace" onClick={() => onNav('notebook')}>{t('Cambiar la regla en el Cuaderno')}</button>
+            </span>
           )}
         </div>
 
@@ -494,10 +477,10 @@ export function Records({
                   <tr>
                     <th className="c-n">{t('Nº')}</th>
                     <th className="c-name">{t('Alumno/a')}</th>
-                    {showCategories && cats.map(c => (
+                    {showCategories && columnas.map(c => (
                       <th key={c.id} className="c-num">
-                        {c.name}
-                        <span className="c-weight">{weightLabel(c)}</span>
+                        {c.nombre}
+                        <span className="c-weight">{c.peso}</span>
                       </th>
                     ))}
                     <th className="c-num c-final">{t('Nota')}</th>
@@ -510,7 +493,7 @@ export function Records({
                       <td className="c-n">{r.n}</td>
                       <td className="c-name">{r.student.name}</td>
                       {showCategories && r.cells.map((v, i) => (
-                        <td key={cats[i].id} className="c-num">{num(v, locale)}</td>
+                        <td key={columnas[i].id} className="c-num">{num(v, locale)}</td>
                       ))}
                       <td className={`c-num c-final${r.final !== null && r.final < 5 ? ' c-fail' : ''}`}>
                         {num(r.final, locale)}
@@ -535,6 +518,7 @@ export function Records({
               )}
               <span>{t('Media del grupo')} <b>{num(stats.average, locale)}</b></span>
             </div>
+            {textoRegla && <p className="acta-regla">{textoRegla}</p>}
 
             {showSignature && (
               <footer className="acta-foot">
@@ -679,6 +663,8 @@ const DOC_STYLE = `
 }
 .acta-sum b { color: #111827; }
 .acta-sum-warn b { color: #b45309; }
+
+.acta-regla { font-family: var(--font); font-size: 11px; color: #6b7280; margin: 8px 0 0; }
 
 .acta-foot { margin-top: 30px; }
 .acta-place { font-size: 12.5px; margin-bottom: 34px; }

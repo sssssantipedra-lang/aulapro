@@ -15,6 +15,7 @@
  * pide atención, quieto y en listas cortas.
  */
 import { useState, useEffect, useMemo } from 'react';
+import { AyudaVideo } from '../components/AyudaVideo';
 import {
   CalendarDays, AlertTriangle, CheckSquare2, Plus, ArrowRight, UserCheck, Flag, BookOpen,
   TrendingUp, Clock, Bandage, Timer, ClipboardList, ClipboardCheck, ListPlus, Hand, Sparkles, CalendarRange,
@@ -35,6 +36,9 @@ import { useCalendarioEscolar } from '../hooks/useCalendarioEscolar';
 import { textoDeDato } from '../lib/resumenAlumno';
 import type { Radar } from '../lib/radarClase';
 import { semanaConAlgo, type Semana } from '../lib/semana';
+import { BotonDarLaClase } from '../components/darLaClase/BotonDarLaClase';
+import { SesionesDeHoy, type SesionDeHoy } from '../components/darLaClase/SesionesDeHoy';
+import { useFijarClase } from '../hooks/useClaseActiva';
 
 interface Props {
   user: User | null;
@@ -60,6 +64,10 @@ interface Props {
   semana?: Semana;
   /** Lleva a Sesiones (la de EF o la de Documentos). */
   onVerSesiones?: () => void;
+  /** Las sesiones con fecha de hoy que aún no se han dado, para «Tu jornada». */
+  sesionesHoy?: SesionDeHoy[];
+  /** «Dar la clase»: abre la pizarra con esa sesión montada en el plan del día. */
+  onDarLaClase?: (sesionId: string) => void;
   /**
    * Educación Física sin tutoría: el mismo Inicio, con lo de EF (decisión del
    * dueño, 5-10-2026). Con tutoría no se pasa y queda el de tutoría tal cual.
@@ -80,7 +88,7 @@ function gradeColor(n: number | null): string {
 }
 
 export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, classes,
-  gradeCategories, gradeItems, grades, attendance, onNav, onAddTask, onToggleTask, onLoadDemo, radar, onOpenStudent, semana, onVerSesiones, ef }: Props) {
+  gradeCategories, gradeItems, grades, attendance, onNav, onAddTask, onToggleTask, onLoadDemo, radar, onOpenStudent, semana, onVerSesiones, sesionesHoy, onDarLaClase, ef }: Props) {
   const { t, locale, lang } = useI18n();
 
   // La hora manda en «ahora / siguiente»: se refresca cada medio minuto
@@ -185,12 +193,14 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
     gradeCategories: gradeCategories.filter(c => !isMarksCategory(c.id)),
   });
   const nav = (s: Section) => onNav(s);
+  // Lo que lleva a una pantalla desde una clase concreta la fija antes: esa pantalla se abre en ella
+  const fijarClase = useFijarClase();
 
   if (classes.length === 0) {
     return (
       <section className="sec active home">
         <div className="home-hd">
-          <h1 className="pg-title">{greeting}, {firstName}</h1>
+          <h1 className="pg-title">{greeting}, {firstName}<AyudaVideo id="inicio" /></h1>
           <p className="pg-sub">{dateLabel}</p>
         </div>
         <FirstSteps steps={steps} hero profileId={user?.id ?? ''} onNav={nav} onLoadDemo={onLoadDemo} />
@@ -207,7 +217,7 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
   return (
     <section className="sec active home">
       <div className="home-hd">
-        <h1 className="pg-title">{greeting}, {firstName}</h1>
+        <h1 className="pg-title">{greeting}, {firstName}<AyudaVideo id="inicio" /></h1>
         <p className="pg-sub">{dateLabel} · {summary.join(' · ')}</p>
       </div>
 
@@ -254,6 +264,9 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
             })}
           </ol>
         )}
+
+        {/* Las sesiones preparadas para hoy, cada una con «Dar la clase» */}
+        {onDarLaClase && sesionesHoy && <SesionesDeHoy sesiones={sesionesHoy} onDar={onDarLaClase} />}
 
         {/* Los atajos de lo que más se hace (elegidos por el dueño) */}
         <div className="home-quick">
@@ -308,6 +321,7 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
                         <span className="home-event-name">{s.titulo}</span>
                         <span className="home-tl-room">{[fromIsoDate(s.fecha).toLocaleDateString(locale, { weekday: 'long', day: 'numeric' }), s.clase, s.completada ? t('completada') : ''].filter(Boolean).join(' · ')}</span>
                       </span>
+                      {onDarLaClase && !s.completada && s.fecha === isoDate(now) && <BotonDarLaClase compacto titulo={s.titulo} onClick={() => onDarLaClase(s.id)} />}
                     </li>
                   ))}
                   {semana.sesiones.length > 6 && <li className="home-muted">{t('y {n} más', { n: semana.sesiones.length - 6 })}</li>}
@@ -531,7 +545,7 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
           {agruparPorEtapa(classAverages.map(a => ({ ...a, name: a.cls.name, etapa: a.cls.etapa, curso: a.cls.curso })))
             .flatMap(g => g.clases)
             .map(({ cls, avg, failing, count }) => (
-              <button key={cls.id} type="button" className="home-cls" style={{ '--j-c': cls.color } as React.CSSProperties} onClick={() => nav('notebook')}>
+              <button key={cls.id} type="button" className="home-cls" style={{ '--j-c': cls.color } as React.CSSProperties} onClick={() => { fijarClase(cls.id); nav('notebook'); }}>
                 <span className="home-cls-name">{cls.name}</span>
                 <span className="home-cls-avg" style={{ color: gradeColor(avg) }}>
                   {avg === null ? '—' : avg.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}

@@ -30,6 +30,7 @@ import { ATRIBUCION_MULBERRY } from '../lib/atribucionPictos';
 import { CARPETAS } from '../lib/carpetas';
 import { registrarCopia } from '../lib/avisoCopia';
 import { leerCopiaDeDatos } from '../lib/copiaDeDatos';
+import type { DatosDelCurso, PlanDeCurso } from '../lib/cursoNuevo';
 
 interface Props {
   user: User | null;
@@ -44,9 +45,12 @@ interface Props {
   onExportData: () => Record<string, unknown>;
   onImportData: (raw: string) => Promise<string | null>;
   onClearSchoolYear: () => Promise<void>;
+  /** «Empezar curso nuevo» (`components/CursoNuevo.tsx`): los datos de ahora y quien aplica el cambio. */
+  datosDelCurso?: DatosDelCurso;
+  onStartSchoolYear?: (plan: PlanDeCurso, cursoNuevo: string) => Promise<void>;
 }
 
-export function Profile({ user, profile, profileId, course, onUpdateUser, onUpdateSecurity, onExportData, onImportData, onClearSchoolYear }: Props) {
+export function Profile({ user, profile, profileId, course, onUpdateUser, onUpdateSecurity, onExportData, onImportData, onClearSchoolYear, datosDelCurso, onStartSchoolYear }: Props) {
   const { toast } = useToast();
   const { lang, setLang, t } = useI18n();
   const [nombre, setNombre] = useState(user?.full_name.split(' ')[0] ?? '');
@@ -54,6 +58,10 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
   const [centro, setCentro] = useState(user?.school ?? '');
   const [espec,  setEspec]  = useState(user?.subject ?? '');
   const [curso,  setCurso]  = useState(course ?? '');
+  // «Empezar curso nuevo» cambia el curso del perfil con esta pantalla abierta: el campo lo sigue (ajuste durante el
+  // pintado), o guardar después el perfil devolvería el curso anterior
+  const [cursoVisto, setCursoVisto] = useState(course);
+  if (course !== cursoVisto) { setCursoVisto(course); setCurso(course ?? ''); }
   const [comunidad, setComunidad] = useState<ComunidadId | ''>(user?.community ?? '');
   const [provincia, setProvincia] = useState<ProvinciaId | ''>(user?.provincia ?? '');
   const [especialidades, setEspecialidades] = useState<Especialidad[]>(user?.especialidades ?? []);
@@ -222,7 +230,7 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
           </div>
         ) : (
           <div>
-            <h1 className="pg-title">{t('Configuración')}</h1>
+            <h1 className="pg-title">{t('Configuración')}<AyudaVideo id="configuracion" /></h1>
             <p className="pg-sub">{t('Elige qué quieres cambiar')}</p>
           </div>
         )}
@@ -558,7 +566,10 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
       </div>
 
       {/* Carpeta de datos, copias y fin de curso */}
-      <DataFolder profileId={profileId} courseLabel={course} onClearSchoolYear={onClearSchoolYear} apoyo={tipo === 'apoyo'} />
+      <DataFolder
+        profileId={profileId} courseLabel={course} onClearSchoolYear={onClearSchoolYear} apoyo={tipo === 'apoyo'}
+        cursoNuevo={datosDelCurso && onStartSchoolYear ? { datos: datosDelCurso, onExportar: onExportData, onEmpezar: onStartSchoolYear } : undefined}
+      />
       </>)}
     </section>
   );

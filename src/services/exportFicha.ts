@@ -2,7 +2,9 @@
  * Exporta una ficha de trabajo a PDF o a Word — pensada para imprimir y
  * repartir en clase, así que sale en VERTICAL (a diferencia de la SdA o las
  * actas, que van horizontales) y sin las soluciones: el campo `solucion` de
- * cada ejercicio es solo para el profesorado y nunca se incluye aquí.
+ * cada ejercicio es solo para el profesorado y no va en la hoja del alumnado.
+ * Solo si el docente lo pide (`FichaContent.solucionario`, 20-11-2026) salen
+ * todas juntas al final, en una página aparte que empieza siempre en hoja nueva.
  *
  * El aspecto sale del tema de la ficha (`lib/fichaThemes.ts`): con historia,
  * cabecera con personaje, tarjeta de misión, bloques con emoji y cierre con
@@ -26,6 +28,8 @@ import type { Ficha } from '../types';
 import type { FichaExercise, FichaExerciseType, FichaActivity, FichaCandado, FichaRecuadro, FichaTarjeta, FichaTarjetaInteractiva, FichaVariante, FichaContent } from './resources';
 import type { FichaLectura } from '../lib/lectura';
 import { crosswordCells, type Crossword } from '../lib/crossword';
+import { normalizeLetters } from '../lib/wordSearch';
+import { ejercicioSinEscribir } from '../lib/fichaEnBlanco';
 import { fichaTheme } from '../lib/fichaThemes';
 import { loadThemeArt } from '../lib/themeArtDoc';
 import { cargarFuenteCuaderno } from '../lib/fuenteCuaderno';
@@ -338,6 +342,68 @@ function exerciseBodyHtml(
   return cuaderno ? `<div class="cq-ej${lado ? ' con-fig' : ''}">${lado}${body}</div>` : body;
 }
 
+/* ── El solucionario: una página aparte, para el docente ── */
+
+/** La sopa resuelta: la misma rejilla con las casillas de cada palabra marcadas. */
+function sopaResueltaHtml(ex: FichaExercise): string {
+  const rejilla = ex.rejilla ?? [];
+  const cols = rejilla[0]?.length ?? 0;
+  const marcadas = new Set<string>();
+  for (const p of ex.posiciones ?? []) {
+    const n = normalizeLetters(p.palabra).length;
+    for (let i = 0; i < n; i++) marcadas.add(`${p.fila + p.dir[0] * i},${p.columna + p.dir[1] * i}`);
+  }
+  return `<div class="ficha-sopa sol-sopa" style="grid-template-columns:repeat(${cols},1fr)">` +
+    rejilla.map((fila, r) => fila.map((letra, c) => `<span${marcadas.has(`${r},${c}`) ? ' class="on"' : ''}>${esc(letra)}</span>`).join('')).join('') +
+    `</div>`;
+}
+
+/** El crucigrama resuelto: la cuadrícula con sus letras. */
+function crucigramaResueltoHtml(cw: Crossword): string {
+  const cells = crosswordCells(cw).flat().map(c => c
+    ? `<span class="cw-cell">${c.numero ? `<sup>${c.numero}</sup>` : ''}<b>${esc(c.letra)}</b></span>`
+    : '<span class="cw-void"></span>').join('');
+  return `<div class="cw-grid sol-cruci" style="grid-template-columns:repeat(${cw.columnas},5.2mm);grid-auto-rows:5.2mm">${cells}</div>`;
+}
+
+/** La solución de un ejercicio en el solucionario: el dibujo resuelto si lo tiene (sopa, crucigrama) y su texto. */
+function solucionDeEjercicioHtml(ex: FichaExercise): string {
+  const txt = (ex.solucion ?? '').trim();
+  // Una lista de cálculos con una solución por línea se lee mejor en columnas
+  const partes = ex.tipo === 'calculos' ? txt.split(/;\s+/).filter(Boolean) : [];
+  const texto = !txt ? ''
+    : partes.length > 3 && partes.length === (ex.lineas?.length ?? 0)
+      ? `<div class="sol-cols">${partes.map(x => `<span>${esc(x)}</span>`).join('')}</div>`
+      : `<div class="sol-txt">${nl2br(txt)}</div>`;
+  if (ex.tipo === 'sopa_letras' && ex.rejilla?.length && ex.posiciones?.length) return sopaResueltaHtml(ex) + texto;
+  if (ex.tipo === 'crucigrama' && ex.crucigrama?.entradas.length) return crucigramaResueltoHtml(ex.crucigrama) + texto;
+  return texto || '<div class="sol-txt sol-vacia">—</div>';
+}
+
+/**
+ * La página del solucionario: bloque a bloque y ejercicio a ejercicio, con la misma numeración que la hoja.
+ * Empieza siempre en página nueva, para poder imprimir la hoja del alumnado sin ella.
+ */
+function solucionarioHtml(
+  actividades: FichaActivity[], o: { titulo: string; label: (i: number) => string; cuaderno: boolean; escape: boolean; marca: string }, t: Tr,
+): string {
+  // Como en la hoja: los ejercicios sin escribir no salen ni cuentan
+  const escritos = actividades.map(a => a.ejercicios.filter(e => !ejercicioSinEscribir(e)));
+  if (!escritos.some(l => l.length)) return '';
+  const cuerpo = actividades.map((act, a) => {
+    const lista = escritos[a];
+    if (!lista.length) return '';
+    const uno = lista.length === 1;
+    const letras = o.cuaderno && lista.some(e => e.tipo === 'calculos');
+    const items = lista.map((ex, i) =>
+      `<div class="sol-ej">${uno && o.cuaderno ? '' : `<b class="sol-n">${letras ? String.fromCharCode(65 + i) : i + 1}.</b>`}<div class="sol-cuerpo">${solucionDeEjercicioHtml(ex)}</div></div>`).join('');
+    const codigo = o.escape && act.candado?.codigo ? `<div class="sol-ej"><b class="sol-n">🔒</b><div class="sol-cuerpo"><div class="sol-txt">${esc(t('Código'))}: <b>${esc(act.candado.codigo)}</b></div></div></div>` : '';
+    return `<section class="sol-bloque"><h3>${esc(act.titulo ? `${o.label(a)}: ${act.titulo}` : o.label(a))}</h3>${items}${codigo}</section>`;
+  }).join('');
+  return `<section class="ficha-solucionario"${o.marca}><div class="sol-corte">${esc(t('El solucionario empieza en una página aparte'))}</div>` +
+    `<h2>${esc(t('Solucionario'))} <small>${esc(t('para el docente'))}</small></h2><div class="sol-de">${esc(o.titulo)}</div>${cuerpo}</section>`;
+}
+
 function crosswordHtml(cw: Crossword, t: Tr): string {
   const grid = crosswordCells(cw);
   const cells = grid.flat().map(c => c
@@ -355,6 +421,8 @@ function crosswordHtml(cw: Crossword, t: Tr): string {
 }
 
 export interface FichaHtmlOptions {
+  /** `false` deja fuera la página del solucionario aunque la ficha la pida: para medir la hoja del alumnado. */
+  solucionario?: boolean;
   /**
    * Vista previa dentro de la app: la hoja A4 con sombra sobre fondo gris, y
    * cada bloque marcado con `data-act`/`data-ex` para poder seleccionarlo
@@ -424,10 +492,12 @@ export function buildFichaHtml(f: Ficha, lang: Lang, opts: FichaHtmlOptions = {}
     const label = `${t(escape ? 'Sala' : theme.paso)} ${actIdx + 1}`;
     const header = cuaderno
       ? seccionHtml(actIdx + 1, act.titulo, color, label, '', act.dificultad ? nivelHtml(act.dificultad, color, t) : '')
-      : act.titulo
+      // Sin título, la cabecera sale igual si el bloque es un peldaño o una sala (una ficha empezada en blanco); las fichas
+      // de antes de los bloques, sin título ni nivel, siguen sin cabecera
+      : act.titulo || act.dificultad || (escape && act.candado)
       ? `<div class="act-header" style="background:#${color.bg}">` +
         (classic ? svgPencil('#fff', 14) : `<span class="act-emoji">${esc(emoji)}</span>`) +
-        `<span class="act-ttl">${esc(label)}: ${esc(act.titulo)}</span>` +
+        `<span class="act-ttl">${esc(act.titulo ? `${label}: ${act.titulo}` : label)}</span>` +
         (act.dificultad ? `<span class="act-niv" title="${esc(t('Nivel {n} de 3', { n: act.dificultad }))}">${estrellasSvg(act.dificultad, '#fff', 12)}</span>` : '') +
         (classic ? '' : `<span class="act-check" title="${esc(t('Hecho'))}"></span>`) +
         `</div>`
@@ -436,11 +506,13 @@ export function buildFichaHtml(f: Ficha, lang: Lang, opts: FichaHtmlOptions = {}
     const ejerciciosHtml = act.ejercicios.map((ex, i) => {
       const id = `${actIdx}-${i}`;
       // En «Cuaderno», un verdadero o falso largo puede partirse entre dos páginas por una fila
-      const clases = [opts.selected === id ? 'is-selected' : '', cuaderno && ex.tipo === 'verdadero_falso' ? 'largo' : ''].filter(Boolean).join(' ');
+      // Un ejercicio añadido a mano y aún sin escribir no se imprime ni gasta número
+      const clases = [opts.selected === id ? 'is-selected' : '', cuaderno && ex.tipo === 'verdadero_falso' ? 'largo' : '', ejercicioSinEscribir(ex) ? 'vacio' : ''].filter(Boolean).join(' ');
       return `<li${mark(`data-ex="${id}"`)}${clases ? ` class="${clases}"` : ''}>${exerciseBodyHtml(ex, color, t, pic, cuaderno, ilus, lang, nuevoId)}</li>`;
     }).join('');
     // «Cuaderno»: un solo ejercicio no lleva número; con listas de cálculos, letras (A., B.), para no confundirlas con las líneas 1., 2.
-    const numeracion = !cuaderno ? '' : act.ejercicios.length === 1 ? ' sin' : act.ejercicios.some(e => e.tipo === 'calculos') ? ' letras' : '';
+    const escritos = act.ejercicios.filter(e => !ejercicioSinEscribir(e));
+    const numeracion = !cuaderno ? '' : escritos.length === 1 ? ' sin' : escritos.some(e => e.tipo === 'calculos') ? ' letras' : '';
     const sel = opts.selected === String(actIdx) ? ' is-selected' : '';
     const candado = escape && act.candado ? candadoHtml(act.candado, actIdx, actividades.length, color, t) : '';
     if (pic) {
@@ -545,7 +617,7 @@ export function buildFichaHtml(f: Ficha, lang: Lang, opts: FichaHtmlOptions = {}
 
   return `<!doctype html><html lang="${lang}"><head><meta charset="utf-8">` +
     `<title>${esc(c.titulo || f.title)}</title>` +
-    `<style>${cuaderno ? opts.fontCss ?? '' : ''}${FICHA_DOC_STANDALONE}${FICHA_DOC_STYLE}${CUADERNO_STYLE}${opts.preview ? FICHA_PREVIEW_STYLE : ''}</style>` +
+    `<style>${cuaderno ? opts.fontCss ?? '' : ''}${FICHA_DOC_STANDALONE}${FICHA_DOC_STYLE}${CUADERNO_STYLE}${c.solucionario ? SOLUCIONARIO_STYLE : ''}${opts.preview ? FICHA_PREVIEW_STYLE : ''}</style>` +
     `</head><body><article class="${docCls}" style='${vars}'>` +
     headerHtml +
     (formato === 'tarjetas' ? '' : cuaderno ? datosHtml(area, marca, t) : `<div class="ficha-datos">${datos}</div>`) +
@@ -560,6 +632,12 @@ export function buildFichaHtml(f: Ficha, lang: Lang, opts: FichaHtmlOptions = {}
     body +
     (cuaderno && formato === 'ficha' ? autoevaluacionHtml(t) : '') +
     (conMulberry ? `<p class="vis-atrib">${esc(t('Pictogramas:'))} ${esc(ATRIBUCION_MULBERRY)}</p>` : '') +
+    (c.solucionario && formato !== 'tarjetas' && opts.solucionario !== false
+      ? solucionarioHtml(actividades, {
+        titulo: c.titulo || f.title, cuaderno, escape, marca: mark('data-part="solucionario"'),
+        label: i => `${t(escape ? 'Sala' : theme.paso)} ${i + 1}`,
+      }, t)
+      : '') +
     `</article></body></html>`;
 }
 
@@ -646,7 +724,7 @@ export function admiteDensidad(c: FichaContent): boolean {
  */
 export async function componerFicha(f: Ficha, lang: Lang, recursos: RecursosFicha): Promise<Composicion | null> {
   if (!admiteDensidad(f.content)) return null;
-  return componerHoja(buildFichaHtml(f, lang, { ...recursos, densidad: 'normal' }));
+  return componerHoja(buildFichaHtml(f, lang, { ...recursos, densidad: 'normal', solucionario: false }));
 }
 
 /** La densidad con la que sale la ficha: la que fijó el docente o, si no, la que elige el compositor. */
@@ -713,6 +791,7 @@ const FICHA_DOC_STYLE = `
 .ficha-ejercicios { list-style: none; counter-reset: ej; margin: 0; padding: 14px 16px 4px; border: 1.5px var(--bs); border-top: none; border-radius: 0 0 var(--r) var(--r); }
 .ficha-actividad:not(:has(.act-header)) .ficha-ejercicios { border-radius: var(--r); border-top: 1.5px var(--bs); }
 .ficha-ejercicios > li { counter-increment: ej; margin-bottom: 18px; break-inside: avoid; page-break-inside: avoid; }
+.ficha-doc .ficha-ejercicios > li.vacio { display: none; }
 .ficha-ejercicios > li:last-child { margin-bottom: 4px; }
 .ficha-ejercicios > li::before { content: counter(ej) '. '; font-weight: 800; color: var(--num, var(--c)); }
 .ficha-enunciado { display: inline; font-size: 13px; line-height: 1.6; }
@@ -861,6 +940,29 @@ const FICHA_DOC_STYLE = `
 @media print { @page { size: A4 portrait; margin: 14mm 16mm; } }
 `;
 
+/** El solucionario: sobrio, en una página propia; la línea de corte solo se ve en la vista previa. */
+const SOLUCIONARIO_STYLE = `
+.ficha-solucionario { break-before: page; page-break-before: always; padding-top: 1mm; font-family: var(--font); color: #1e293b; }
+.ficha-solucionario h2 { font-family: var(--font-t); font-size: 17px; font-weight: 800; margin: 0; color: var(--cd); display: flex; align-items: baseline; gap: 8px; }
+.ficha-solucionario h2 small { font-family: var(--font); font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: #64748b; border: 1px solid #cbd5e1; border-radius: 99px; padding: 1.5px 8px; }
+.sol-de { font-size: 12px; color: #475569; margin: 2px 0 10px; padding-bottom: 7px; border-bottom: 1.25px solid #cbd5e1; }
+.sol-corte { display: none; }
+.sol-bloque { margin: 0 0 10px; break-inside: avoid-page; }
+.sol-bloque h3 { font-size: 12.5px; font-weight: 800; margin: 0 0 4px; color: var(--cd); }
+.sol-ej { display: flex; gap: 6px; align-items: flex-start; margin: 0 0 5px; font-size: 12px; line-height: 1.5; break-inside: avoid; }
+.sol-n { flex: 0 0 auto; min-width: 16px; color: var(--cd); }
+.sol-cuerpo { flex: 1; min-width: 0; }
+.sol-txt { overflow-wrap: anywhere; }
+.sol-vacia { color: #94a3b8; }
+.sol-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2px 12px; font-variant-numeric: tabular-nums; }
+.sol-sopa { max-width: 62mm; margin: 2px 0 5px; }
+.sol-sopa span { font-size: 9.5px; color: #94a3b8; }
+.sol-sopa span.on { background: #1e293b; color: #fff; }
+.sol-cruci { margin: 2px 0 5px; }
+.sol-cruci .cw-cell { display: flex; align-items: center; justify-content: center; }
+.sol-cruci .cw-cell b { font-family: "Courier New", monospace; font-size: 10.5px; }
+`;
+
 const FICHA_DOC_STANDALONE = `
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; background: #fff; }
@@ -874,6 +976,8 @@ body { padding: 18px 0 28px; }
 [data-ex], [data-act], [data-part], [data-card] { cursor: pointer; transition: outline-color .15s; outline: 2px solid transparent; outline-offset: 3px; border-radius: 4px; }
 [data-ex]:hover, [data-part]:hover, [data-card]:hover { outline-color: rgba(99,102,241,.35); }
 .is-selected { outline: 2.5px solid #6366f1 !important; outline-offset: 3px; }
+.ficha-solucionario { margin-top: 14mm; }
+.sol-corte { display: block; margin: 0 -16mm 9mm; padding: 5px 16mm; background: #e2e8f0; color: #475569; font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; text-align: center; border-top: 2px dashed #94a3b8; border-bottom: 2px dashed #94a3b8; }
 `;
 
 /* ── Word (generado en el propio navegador, sin pasar por Electron) ── */
@@ -1836,7 +1940,8 @@ export async function buildFichaDocxBlob(f: Ficha, lang: Lang): Promise<Blob> {
 
   for (const [actIdx, act] of (formato === 'tarjetas' ? [] : actividades).entries()) {
     const color = theme.bloques[actIdx % theme.bloques.length];
-    const label = `${t(escape ? 'Sala' : theme.paso)} ${actIdx + 1}: ${act.titulo}`;
+    const paso = `${t(escape ? 'Sala' : theme.paso)} ${actIdx + 1}`;
+    const label = act.titulo ? `${paso}: ${act.titulo}` : paso;
     if (cuaderno) {
       // Número con fondo de color y título en el color del bloque, subrayado con su línea
       children.push(new Paragraph({
@@ -1849,7 +1954,7 @@ export async function buildFichaDocxBlob(f: Ficha, lang: Lang): Promise<Blob> {
         spacing: { before: 120, after: 160 },
         keepNext: true,
       }));
-    } else if (act.titulo) {
+    } else if (act.titulo || act.dificultad || (escape && act.candado)) {
       children.push(new Table({
         width: { size: 100, type: WidthType.PERCENTAGE },
         borders: CELL_BORDERS,
@@ -1877,11 +1982,13 @@ export async function buildFichaDocxBlob(f: Ficha, lang: Lang): Promise<Blob> {
       children.push(new Paragraph({ text: '', spacing: { after: 100 } }));
     }
     if (visual) pushVisualActivityDocx(children, act, color, imgs);
+    // Como en el PDF: los ejercicios añadidos a mano y aún sin escribir no salen
+    const escritos = act.ejercicios.filter(e => !ejercicioSinEscribir(e));
     // «Cuaderno»: un solo ejercicio no lleva número; con listas de cálculos, letras
     const marcador = (i: number): Marcador | undefined => !cuaderno ? undefined
-      : act.ejercicios.length === 1 ? ''
-      : act.ejercicios.some(e => e.tipo === 'calculos') ? `${String.fromCharCode(65 + i)}. ` : undefined;
-    for (const [i, ex] of act.ejercicios.entries()) await pushExerciseDocx(children, ex, i, color.bg, t, imgs, marcador(i), cuaderno, ilus, lang, fp);
+      : escritos.length === 1 ? ''
+      : escritos.some(e => e.tipo === 'calculos') ? `${String.fromCharCode(65 + i)}. ` : undefined;
+    for (const [i, ex] of escritos.entries()) await pushExerciseDocx(children, ex, i, color.bg, t, imgs, marcador(i), cuaderno, ilus, lang, fp);
     if (act.recuadro) pushRecuadroDocx(children, act.recuadro, t);
     if (visual && act.recuerda?.length) pushRecuerdaDocx(children, act, imgs, t);
     if (escape && act.candado) {
@@ -1945,6 +2052,36 @@ export async function buildFichaDocxBlob(f: Ficha, lang: Lang): Promise<Blob> {
 
   if (visual && pictosDeFicha(c).some(id => esMulberry(id) && imgs?.[id])) {
     children.push(new Paragraph({ children: [new TextRun({ text: `${t('Pictogramas:')} ${ATRIBUCION_MULBERRY}`, size: 14, color: '64748B' })], spacing: { before: 200 } }));
+  }
+
+  // El solucionario, en una página aparte: en Word, solo el texto (la sopa dice dónde está cada palabra y el crucigrama, sus palabras)
+  if (c.solucionario && formato !== 'tarjetas' && actividades.some(act => act.ejercicios.some(e => !ejercicioSinEscribir(e)))) {
+    children.push(new Paragraph({
+      pageBreakBefore: true, spacing: { after: 60 },
+      children: [
+        new TextRun({ text: t('Solucionario'), bold: true, size: 32, color: theme.oscuro }),
+        new TextRun({ text: `   ${t('para el docente').toUpperCase()}`, bold: true, size: 16, color: '64748B' }),
+      ],
+    }));
+    children.push(new Paragraph({ children: [new TextRun({ text: c.titulo || f.title, color: '475569', size: 20 })], spacing: { after: 160 } }));
+    actividades.forEach((act, a) => {
+      const lista = act.ejercicios.filter(e => !ejercicioSinEscribir(e));
+      if (!lista.length) return;
+      const label = `${t(escape ? 'Sala' : theme.paso)} ${a + 1}`;
+      children.push(new Paragraph({ children: [new TextRun({ text: act.titulo ? `${label}: ${act.titulo}` : label, bold: true, color: theme.oscuro, size: 22 })], spacing: { before: 120, after: 40 } }));
+      const uno = lista.length === 1;
+      const letras = cuaderno && lista.some(e => e.tipo === 'calculos');
+      lista.forEach((ex, i) => {
+        const n = uno && cuaderno ? '' : `${letras ? String.fromCharCode(65 + i) : i + 1}. `;
+        children.push(new Paragraph({
+          children: [new TextRun({ text: n, bold: true, size: 20 }), new TextRun({ text: quitarNegritas((ex.solucion ?? '').trim()) || '—', size: 20 })],
+          spacing: { after: 40 },
+        }));
+      });
+      if (escape && act.candado?.codigo) {
+        children.push(new Paragraph({ children: [new TextRun({ text: `${t('Código')}: `, size: 20 }), new TextRun({ text: act.candado.codigo, bold: true, size: 20 })], spacing: { after: 40 } }));
+      }
+    });
   }
 
   const doc = new Document({

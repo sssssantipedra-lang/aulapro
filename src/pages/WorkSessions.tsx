@@ -12,6 +12,7 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { AyudaVideo } from '../components/AyudaVideo';
 import {
   Plus, Users2, GraduationCap, Sparkles, FileText, Download, Eye, Trash2, Pencil,
   Calendar, MapPin, Clock, X, Save, ChevronRight, ListChecks, History,
@@ -50,7 +51,7 @@ function emptySession(kind: WorkSessionKind): WorkSession {
   };
 }
 
-export function WorkSessions({ kind, sessions, onSave, onDelete, onNav }: Props) {
+export function WorkSessions({ kind, sessions, onSave, onDelete }: Props) {
   const { t, locale } = useI18n();
   const { toast } = useToast();
   const [openId, setOpenId] = useState<string | null>(null);
@@ -140,7 +141,7 @@ export function WorkSessions({ kind, sessions, onSave, onDelete, onNav }: Props)
     <section className="sec active">
       <div className="pg-hd">
         <div>
-          <h1 className="pg-title">{esReunion ? t('Reuniones') : t('Formaciones')}</h1>
+          <h1 className="pg-title">{esReunion ? t('Reuniones') : t('Formaciones')}<AyudaVideo id="reuniones-formaciones" /></h1>
           <p className="pg-sub">
             {esReunion
               ? t('Anota lo que se dice y la IA te redacta el acta lista para exportar')
@@ -153,7 +154,7 @@ export function WorkSessions({ kind, sessions, onSave, onDelete, onNav }: Props)
       </div>
 
       {!hasApiKey() && (
-        <AiKeyNotice message={t('Para usar la IA necesitas una clave gratuita de Google (se configura en 2 minutos).')} action={t('Configurar ahora')} onAction={() => onNav('profile')} />
+        <AiKeyNotice message={t('Para usar la IA necesitas una clave gratuita de Google (se configura en 2 minutos).')} action={t('Configurar ahora')} />
       )}
 
       {recuperable && (

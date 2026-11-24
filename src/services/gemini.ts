@@ -8,6 +8,7 @@
  */
 
 import { ocupar } from '../lib/ocupado';
+import { claveCambiada } from '../lib/claveIA';
 import { codigosDePeticion, currentPseudonymizer, privacyInstruction, type Pseudonymizer } from './privacy';
 
 /** Los correos electrónicos nunca le hacen falta a la IA: se quitan de todo lo que se envía. */
@@ -226,6 +227,8 @@ export function getApiKey(): string {
 export function setApiKey(key: string) {
   const k = key.trim();
   cachedKey = k;
+  // Las pantallas abiertas se enteran (`lib/claveIA.ts`): su botón de generar se activa sin perder lo escrito
+  claveCambiada();
   const bridge = secretsBridge();
   if (!bridge) { writeLocal(k); return; }
   // Cifrada si el sistema lo permite; si no, como hasta ahora.

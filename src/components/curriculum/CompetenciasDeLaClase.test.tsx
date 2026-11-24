@@ -4,7 +4,7 @@
  * la clase entera, un alumno por fila y una columna por competencia
  * específica, con las notas de las evaluaciones con criterios oficiales.
  */
-import { describe, it, expect, afterEach, vi } from 'vitest';
+import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
 import { render, screen, cleanup, within, fireEvent } from '@testing-library/react';
 import { CompetenciasDeLaClase } from './CompetenciasDeLaClase';
 import { I18nProvider } from '../../i18n';
@@ -13,7 +13,9 @@ import type { Class, Evaluation, Student } from '../../types';
 
 vi.mock('../../lib/download', () => ({ downloadFile: vi.fn() }));
 
-afterEach(() => { cleanup(); localStorage.clear(); vi.mocked(downloadFile).mockClear(); });
+// Un día de la 1.ª evaluación: lo de octubre cuenta en ella y lo de febrero, en la 2.ª
+beforeEach(() => { localStorage.clear(); vi.useFakeTimers({ toFake: ['Date'] }); vi.setSystemTime(new Date(2026, 10, 20, 10)); });
+afterEach(() => { cleanup(); localStorage.clear(); vi.mocked(downloadFile).mockClear(); vi.useRealTimers(); });
 
 const QUINTO: Class = {
   id: 'c1', name: '5º A', subject: 'Matemáticas', subjects: ['Matemáticas', 'Lengua Castellana y Literatura', 'Religión'],
@@ -23,9 +25,9 @@ const QUINTO: Class = {
 const alumno = (id: string, name: string): Student => ({ id, class_id: 'c1', name, email: '', photo: null, alerts: [], notes: '' });
 const ALUMNOS = [alumno('s2', 'Alumno 2'), alumno('s1', 'Alumno 1')];
 
-const evaluacion = (student_id: string, notas: Record<string, number>): Evaluation => ({
+const evaluacion = (student_id: string, notas: Record<string, number>, date = '2026-10-03'): Evaluation => ({
   id: 'e' + Math.random(), rubric_id: 'r', rubric_name: 'Mercado', student_id, student_name: '',
-  class_id: 'c1', date: '2026-10-03', scores: {}, notes: '', officialCriteriaScores: notas,
+  class_id: 'c1', date, scores: {}, notes: '', officialCriteriaScores: notas,
 });
 
 function pinta(cls: Class, evaluaciones: Evaluation[], onNav = vi.fn()) {
@@ -73,13 +75,49 @@ describe('cuaderno por competencias', () => {
     await screen.findByRole('table');
     fireEvent.click(screen.getByRole('button', { name: /Exportar a Excel/ }));
     const [blob, nombre] = vi.mocked(downloadFile).mock.calls[0];
-    expect(nombre).toBe('Competencias 5º A Matemáticas.csv');
+    expect(nombre).toBe('Competencias 5º A Matemáticas 1ª evaluación.csv');
     const csv = await (blob as Blob).text();
     const [cab, fila1, fila2] = csv.replace(/^\uFEFF/, '').split('\r\n');
     expect(cab).toMatch(/^"Alumno";"CE1";"CE2";.*"Área por competencias"$/);
     expect(fila1).toMatch(/^"Alumno 1";"";"8";/);
     expect(fila2).toMatch(/^"Alumno 2";"";"";/);
-    expect(csv).toContain('"Matemáticas · Decreto 61/2022');
+    expect(csv).toContain('"Matemáticas · 1ª evaluación · Decreto 61/2022');
+  });
+
+  it('va por evaluación: cada una cuenta las evaluaciones de sus fechas y «Curso», todas', async () => {
+    pinta(QUINTO, [
+      evaluacion('s1', { 'matematicas|1.1': 4 }, '2026-10-03'),
+      evaluacion('s1', { 'matematicas|1.1': 8, 'matematicas|2.1': 6 }, '2027-02-10'),
+    ]);
+    const ce1 = async () => {
+      const fila = within(await screen.findByRole('table')).getByRole('rowheader', { name: 'Alumno 1' }).closest('tr')!;
+      return within(fila).getAllByRole('cell').slice(0, 2).map(c => c.textContent);
+    };
+    // Se abre en la evaluación de hoy, la 1.ª: solo lo de octubre
+    expect(screen.getByRole('button', { name: /1ª evaluación/, pressed: true })).toBeTruthy();
+    expect(await ce1()).toEqual(['4,0', '—']);
+    expect(screen.getByText(/Notas de la 1.ª evaluación/)).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: '2ª evaluación' }));
+    expect(await ce1()).toEqual(['8,0', '6,0']);
+    // «Curso»: como siempre, la media de todas las veces
+    fireEvent.click(screen.getByRole('button', { name: 'Final de curso' }));
+    expect(await ce1()).toEqual(['6,0', '6,0']);
+    expect(screen.queryByText(/Notas de /)).toBeNull();
+    // Y la hoja de cálculo dice de qué evaluación es
+    fireEvent.click(screen.getByRole('button', { name: /Exportar a Excel/ }));
+    expect(vi.mocked(downloadFile).mock.calls[0][1]).toBe('Competencias 5º A Matemáticas Final de curso.csv');
+  });
+
+  it('una evaluación sin nada dice que lo hecho está en otra y lleva a «Curso»', async () => {
+    pinta(QUINTO, [evaluacion('s1', { 'matematicas|1.1': 4 }, '2026-10-03')]);
+    await screen.findByRole('table');
+    fireEvent.click(screen.getByRole('button', { name: '3ª evaluación' }));
+    expect(screen.getByText(/No hay evaluaciones con criterios oficiales en la 3.ª evaluación/)).toBeTruthy();
+    expect(screen.queryByText(/Aún no hay notas/)).toBeNull();
+    expect(screen.queryByRole('table')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Ver todo el curso' }));
+    expect(await screen.findByRole('table')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Final de curso', pressed: true })).toBeTruthy();
   });
 
   it('sin notas todavía, explica cómo conseguirlas y lleva a Rúbricas', async () => {

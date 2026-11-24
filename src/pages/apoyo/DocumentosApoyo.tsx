@@ -115,7 +115,7 @@ export function DocumentosApoyo({ alumno, data, onChange, especialidades, comuni
       <p className="ap-sub al-intro">{t('La IA los prepara con su programa y el registro diario, sin inventar nada; tú los retocas y los sacas en PDF o en Word.')}</p>
 
       {!hasApiKey() && (
-        <AiKeyNotice message={t('Para que la IA prepare los documentos necesitas una clave gratuita de Google (se configura en 2 minutos).')} action={t('Configurar ahora')} onAction={() => onNav('profile')} />
+        <AiKeyNotice message={t('Para que la IA prepare los documentos necesitas una clave gratuita de Google (se configura en 2 minutos).')} action={t('Configurar ahora')} />
       )}
 
       <div className="card">

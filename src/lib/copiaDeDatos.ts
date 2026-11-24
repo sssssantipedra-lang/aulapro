@@ -13,7 +13,12 @@ const LISTAS = ['tasks', 'classes', 'students', 'blocks', 'events', 'rubrics', '
   'gradeItems', 'reports', 'selfAssessments', 'learningSituations', 'fichas', 'workSessions', 'classMarks', 'auditLog'];
 const MAPAS = ['grades', 'dianaProfiles', 'attendance', 'seatingPlans', 'marksConfigs', 'apoyo', 'ef'];
 
-export type LecturaCopia = { ok: true; datos: Record<string, unknown> } | { ok: false; error: string };
+/**
+ * `curso`: el curso escolar del perfil del que salió la copia («2026-2027»), si lo dice (`_profile.course`). Es del
+ * trabajo que se carga: quien vuelve atrás tras «Empezar curso nuevo» cargando la copia del curso anterior tiene que
+ * volver también a ese curso (`importData` en `hooks/useAppState.ts`).
+ */
+export type LecturaCopia = { ok: true; datos: Record<string, unknown>; curso?: string } | { ok: false; error: string };
 
 const esMapa = (v: unknown) => !!v && typeof v === 'object' && !Array.isArray(v);
 
@@ -37,5 +42,7 @@ export function leerCopiaDeDatos(raw: string): LecturaCopia {
   // Lo que falta se queda vacío al cargar (`hydrate`): se quitan los huecos para no pasarlos como `undefined`
   const limpio = Object.fromEntries(Object.entries(datos).filter(([, v]) => v != null));
   if (perfilVacio(limpio)) return { ok: false, error: 'Esta copia está vacía: si la cargaras, tu cuaderno se quedaría sin nada. No se ha cargado.' };
-  return { ok: true, datos: limpio };
+  const delPerfil = esMapa(parsed._profile) ? (parsed._profile as { course?: unknown }).course : undefined;
+  const curso = typeof delPerfil === 'string' ? delPerfil.trim().slice(0, 20) : '';
+  return { ok: true, datos: limpio, ...(curso ? { curso } : {}) };
 }

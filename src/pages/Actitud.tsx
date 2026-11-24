@@ -15,7 +15,7 @@ import type { AttendanceMap, Class, ClassMark, ClassMarkType, MarksBlockConfig, 
 import {
   nombreDelBloque, EF_MARK_TYPES, MARK_TYPES, blockConfig, esAsignaturaEF, markTypeInfo, marksFor, studentBlock, targetLabel,
 } from '../services/classMarks';
-import { claseQueToca } from '../lib/claseQueToca';
+import { useClaseActiva } from '../hooks/useClaseActiva';
 import { useActitudPedido } from '../lib/actitudNav';
 import { markIcon } from '../lib/markIcons';
 import { isoDate, prettyDate, shiftDate } from '../lib/utils';
@@ -23,6 +23,7 @@ import { ClassChips } from '../components/ui/ClassChips';
 import { useI18n } from '../i18n';
 import { compararAlumnos } from '../lib/alumnado';
 import { racha } from '../lib/racha';
+import { cuentaEn, EN_FRASE, periodoDeHoy } from '../lib/periodos';
 import { guardarSonido, sonar, sonidoActivo } from '../lib/sonidos';
 
 interface Props {
@@ -32,6 +33,7 @@ interface Props {
   marksConfigs: Record<string, MarksBlockConfig>;
   /** Para marcar a quien tiene falta ese día. */
   attendance: AttendanceMap;
+  /** Ya no se usa (20-11-2026): el horario llega por contexto a la regla común (`useClaseActiva`). */
   scheduleBlocks?: ScheduleBlock[];
   onAdd: (m: ClassMark, label: string) => void;
   onDelete: (id: string, label: string) => void;
@@ -47,10 +49,11 @@ const CORTO: Partial<Record<ClassMarkType, string>> = {
   'behavior-bad': 'Mal comport.',
 };
 
-export function Actitud({ classes, students, classMarks, marksConfigs, attendance, scheduleBlocks = [], onAdd, onDelete, onNav }: Props) {
+export function Actitud({ classes, students, classMarks, marksConfigs, attendance, onAdd, onDelete, onNav }: Props) {
   const { t, locale } = useI18n();
   const pedido = useActitudPedido();
-  const [classId, setClassId] = useState(() => pedido?.classId ?? claseQueToca(classes, scheduleBlocks));
+  // Desde el cuaderno llega pedida la clase que se estaba viendo; si no, la regla común
+  const [classId, setClassId, llevarClase] = useClaseActiva(classes, pedido?.classId);
   const [subjectPick, setSubject] = useState(pedido?.subject ?? '');
   const [date, setDate] = useState(isoDate());
   const [sonido, setSonido] = useState(sonidoActivo);
@@ -71,6 +74,13 @@ export function Actitud({ classes, students, classMarks, marksConfigs, attendanc
     [students, clsId],
   );
   const mine = useMemo(() => (cls ? marksFor(classMarks, cls, subject) : []), [classMarks, cls, subject]);
+  /**
+   * La nota de cada fila es la del bloque en la evaluación del día que se anota, la misma que cuenta el
+   * cuaderno en esa evaluación (20-11-2026, `lib/periodos.ts`): con todas las del curso, en febrero no
+   * coincidía con la del cuaderno de la 2.ª. La racha sigue contando todos los días.
+   */
+  const evaluacion = periodoDeHoy(date);
+  const deLaEvaluacion = useMemo(() => mine.filter(m => cuentaEn(m.date, evaluacion, date)), [mine, evaluacion, date]);
   const faltas = attendance[clsId]?.[date] ?? {};
 
   function pickClass(id: string) {
@@ -150,7 +160,7 @@ export function Actitud({ classes, students, classMarks, marksConfigs, attendanc
             ? t('En esta asignatura el bloque «{name}» está desactivado: las anotaciones se guardan, pero no cuentan en la nota.', { name: nombreDelBloque(cfg, t, subject) })
             : t('Pesa un {n}% de la nota final. Cada anotación suma o resta {step} en su parte.', { n: pct, step: cfg.step.toLocaleString(locale) })}
         </span>
-        <button type="button" className="mk-link" onClick={() => onNav('notebook')}>
+        <button type="button" className="mk-link" onClick={() => { llevarClase(); onNav('notebook'); }}>
           {t('Ajustar en el cuaderno')} <ArrowRight size={12} />
         </button>
       </p>
@@ -186,7 +196,7 @@ export function Actitud({ classes, students, classMarks, marksConfigs, attendanc
           {roster.map((s, i) => {
             const suyas = mine.filter(m => m.student_id === s.id);
             const deHoy = suyas.filter(m => m.date === date);
-            const nota = studentBlock(suyas, cfg).total;
+            const nota = studentBlock(deLaEvaluacion.filter(m => m.student_id === s.id), cfg).total;
             const falta = faltas[s.id] === 'absent';
             const ultima = deHoy[deHoy.length - 1];
             const dias = racha(mine, s.id, date, suma);
@@ -217,9 +227,9 @@ export function Actitud({ classes, students, classMarks, marksConfigs, attendanc
                         {markIcon(tp.id, 15)}
                         <span className="act-opt-lbl">{label}</span>
                         <span className="act-opt-corto" aria-hidden="true">{CORTO[tp.id] ? t(CORTO[tp.id]!) : label}</span>
-                        {n > 0 && <b key={n} className="act-count" aria-hidden="true">{n}</b>}
+                        {n > 0 && <b key={`n${n}`} className="act-count" aria-hidden="true">{n}</b>}
                         {fx?.sid === s.id && fx.type === tp.id && (
-                          <span key={fx.k} className="act-fx" aria-hidden="true">{tp.positive ? '+1' : '−1'}</span>
+                          <span key={`fx${fx.k}`} className="act-fx" aria-hidden="true">{tp.positive ? '+1' : '−1'}</span>
                         )}
                       </button>
                     );
@@ -238,7 +248,7 @@ export function Actitud({ classes, students, classMarks, marksConfigs, attendanc
                 >
                   <Undo2 size={14} />
                 </button>
-                <span key={fx?.sid === s.id ? fx.k : 0} className={`act-nota${nota >= 5 ? '' : ' baja'}${fx?.sid === s.id ? ' bump' : ''}`} title={t('Nota del bloque, sobre 10')}>
+                <span key={fx?.sid === s.id ? fx.k : 0} className={`act-nota${nota >= 5 ? '' : ' baja'}${fx?.sid === s.id ? ' bump' : ''}`} title={t('Nota del bloque en {evaluacion}, sobre 10', { evaluacion: t(EN_FRASE[evaluacion]) })}>
                   {nota.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
                 </span>
               </div>

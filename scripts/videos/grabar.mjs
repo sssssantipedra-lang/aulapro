@@ -31,14 +31,18 @@ const HD = process.env.HD === '1', OW = HD ? 1920 : 1280, OH = HD ? 1080 : 720, 
 
 const dur = f => parseFloat(execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', f]).toString());
 const audios = guion.escenas.map((_, i) => path.join(AQUI, 'audio', id, String(i + 1).padStart(2, '0') + '.mp3'));
-audios.forEach(a => { if (!fs.existsSync(a)) throw new Error('Falta el audio ' + a); });
-const duraciones = audios.map(dur);
+// ENSAYO=1: recorre el guion sin grabar ni voz (cada frase dura lo que se tarda en leerla, unos 15 caracteres por segundo)
+// y dice qué escena falla; sirve para comprobar un guion tras cambiar la app.
+const ENSAYO = process.env.ENSAYO === '1';
+if (!ENSAYO) audios.forEach(a => { if (!fs.existsSync(a)) throw new Error('Falta el audio ' + a); });
+const duraciones = ENSAYO ? guion.escenas.map(e => Math.max(1.5, e.texto.length / 15)) : audios.map(dur);
 
-const tmp = fs.mkdtempSync(path.join(AQUI, '.tmp-'));
-const browser = await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
+const tmp = ENSAYO ? null : fs.mkdtempSync(path.join(AQUI, '.tmp-'));
+// En castellano también la interfaz del navegador: con solo `locale`, los campos de fecha y hora salían como en EE. UU. («10/14/2026», «09:00 AM»)
+const browser = await chromium.launch({ args: ['--lang=es-ES'], env: { ...process.env, LANG: 'es_ES.UTF-8', LANGUAGE: 'es_ES' }, ...(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {}) });
 const ctx = await browser.newContext({
   viewport: { width: OW, height: OH }, locale: 'es-ES',
-  recordVideo: { dir: tmp, size: { width: OW, height: OH } },
+  ...(ENSAYO ? {} : { recordVideo: { dir: tmp, size: { width: OW, height: OH } } }),
   permissions: ['clipboard-read', 'clipboard-write'],
 });
 const t0Ctx = Date.now();
@@ -49,6 +53,7 @@ await ctx.addInitScript(z => {
   if (z !== 1) poner();
 }, Z);
 const page = await ctx.newPage();
+if (ENSAYO) page.setDefaultTimeout(8000);
 page.on('pageerror', e => console.log('Error en la app:', e.message));
 // La comprobación de la clave de Google: en el vídeo siempre sale bien
 await page.route('https://generativelanguage.googleapis.com/**', r => r.fulfill({ status: 200, contentType: 'application/json', body: '{"models":[]}' }));
@@ -77,11 +82,17 @@ await page.evaluate(() => {
 await page.mouse.move(OW / 2, OH / 2);
 
 const inicios = [];
+const fallos = [];
 const t0 = Date.now();
 for (const [i, e] of guion.escenas.entries()) {
   inicios.push((Date.now() - t0) / 1000);
   await page.evaluate(t => { const s = document.getElementById('v-sub'); s.textContent = t; s.style.display = t ? 'block' : 'none'; }, SIN_SUBS ? '' : e.texto);
   const fin = Date.now() + duraciones[i] * 1000 + HUECO;
+  if (ENSAYO) {
+    try { await e.hacer(page); } catch (err) { fallos.push(i + 1); console.log(`  escena ${i + 1} FALLA: ${String(err.message).split('\n')[0]}`); }
+    if (process.env.CAPTURAS) await page.screenshot({ path: path.join(process.env.CAPTURAS, `${id}-${String(i + 1).padStart(2, '0')}.png`) });
+    continue;
+  }
   await e.hacer(page);
   const resto = fin - Date.now();
   if (resto > 0) await page.waitForTimeout(resto); else console.log(`  escena ${i + 1}: la acción tarda ${(-resto / 1000).toFixed(1)} s más que la voz`);
@@ -92,6 +103,7 @@ await page.waitForTimeout(500);
 const recorte = (t0 - t0Ctx) / 1000 + 0.15;   // lo que dura la carga antes de la primera escena
 await ctx.close();
 await browser.close();
+if (ENSAYO) { console.log(`${id}: ensayo ${fallos.length ? 'con fallos en ' + fallos.join(', ') : 'sin fallos'}`); process.exit(fallos.length ? 1 : 0); }
 
 const webm = fs.readdirSync(tmp).find(f => f.endsWith('.webm'));
 // SIN_SUBS=1: sin subtítulos (para quien quiere ponerlos él); SALIDA=carpeta: dónde dejarlo (por defecto, la web)

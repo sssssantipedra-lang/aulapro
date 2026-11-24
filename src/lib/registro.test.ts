@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { BIEN, MEJORABLE, cuentaRegistro, esRegistro, notaRegistro } from './registro';
+import { BIEN, MEJORABLE, cuentaRegistro, esRegistro, notaRegistro, ultimaValoracion, yaGuardado } from './registro';
+import type { Evaluation } from '../types';
 
 const items = [{ id: 'a' }, { id: 'b' }, { id: 'c' }, { id: 'd' }];
 
@@ -25,5 +26,31 @@ describe('escala de registro', () => {
     expect(cuentaRegistro({ a: BIEN, b: MEJORABLE, c: BIEN }, ['a', 'b', 'c', 'd'])).toEqual({ bien: 2, mejorable: 1 });
     expect(esRegistro({ tipo: 'registro' })).toBe(true);
     expect(esRegistro({})).toBe(false);
+  });
+});
+
+describe('lo ya valorado con una escala y la evaluación del curso', () => {
+  const ev = (id: string, student_id: string, date: string, scores: Record<string, number>): Evaluation => ({
+    id, rubric_id: 'esc', rubric_name: 'Trae el material', student_id, student_name: '', class_id: 'c', date, scores, notes: '', instrument: 'diana',
+  }) as Evaluation;
+  const lista = [ev('e2', 's1', '2026-11-10', { a: BIEN }), ev('e1', 's1', '2026-10-01', { a: MEJORABLE }), ev('e3', 's2', '2026-11-12', { a: BIEN })];
+
+  it('la última valoración de cada alumno es la más reciente con esa escala', () => {
+    expect(ultimaValoracion(lista, 'esc', 's1')?.id).toBe('e2');
+    expect(ultimaValoracion(lista, 'esc', 's3')).toBeUndefined();
+    expect(ultimaValoracion(lista, 'otra', 's1')).toBeUndefined();
+  });
+
+  it('en la misma evaluación del curso, lo que no cambia no se guarda otra vez', () => {
+    expect(yaGuardado(lista[0], { a: BIEN }, '2026-12-01')).toBe(true);
+    expect(yaGuardado(lista[0], { a: MEJORABLE }, '2026-12-01')).toBe(false);
+    expect(yaGuardado(lista[0], { a: BIEN, b: BIEN }, '2026-12-01')).toBe(false);
+    expect(yaGuardado(undefined, { a: BIEN }, '2026-12-01')).toBe(false);
+  });
+
+  it('en otra evaluación sí se guarda aunque esté igual: su columna del cuaderno es otra', () => {
+    expect(yaGuardado(lista[0], { a: BIEN }, '2027-02-03')).toBe(false);
+    // Y de un curso a otro
+    expect(yaGuardado(lista[0], { a: BIEN }, '2027-11-10')).toBe(false);
   });
 });

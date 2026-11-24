@@ -15,11 +15,14 @@ import { asignaturaEF, exentosDelDia, LIMITACIONES, nuevoIdEF } from '../../lib/
 import type { Class, ClassMark, ClassMarkType, ScheduleBlock, Section, Student } from '../../types';
 import type { EfData } from '../../types/ef';
 import { compararAlumnos } from '../../lib/alumnado';
+import { ClassChips } from '../../components/ui/ClassChips';
+import { useClaseActiva } from '../../hooks/useClaseActiva';
 
 interface Props {
   classes: Class[];
   students: Student[];
-  scheduleBlocks: ScheduleBlock[];
+  /** Ya no se usa (20-11-2026): el horario llega por contexto a la regla común (`useClaseActiva`). */
+  scheduleBlocks?: ScheduleBlock[];
   classMarks: ClassMark[];
   ef: EfData;
   onAddMark: (m: ClassMark, label: string) => void;
@@ -27,15 +30,7 @@ interface Props {
   onNav: (s: Section) => void;
 }
 
-/** La clase que toca ahora o la siguiente de hoy, según el horario. */
-function claseDeAhora(blocks: ScheduleBlock[], ahora: Date): string | undefined {
-  const dia = ahora.getDay() === 0 ? 7 : ahora.getDay();
-  const hm = `${String(ahora.getHours()).padStart(2, '0')}:${String(ahora.getMinutes()).padStart(2, '0')}`;
-  const hoy = blocks.filter(b => b.day === dia && b.class_id).sort((a, b) => a.time_start.localeCompare(b.time_start));
-  return (hoy.find(b => b.time_start <= hm && hm < b.time_end) ?? hoy.find(b => b.time_start > hm))?.class_id;
-}
-
-export function EfPista({ classes, students, scheduleBlocks, classMarks, ef, onAddMark, onDeleteMark, onNav }: Props) {
+export function EfPista({ classes, students, classMarks, ef, onAddMark, onDeleteMark, onNav }: Props) {
   const { t } = useI18n();
   const [ahora] = useState(() => new Date());
   const hoy = isoDate(ahora);
@@ -43,7 +38,8 @@ export function EfPista({ classes, students, scheduleBlocks, classMarks, ef, onA
     () => [...classes].sort((a, b) => Number(!a.subjects.some(esAsignaturaEF)) - Number(!b.subjects.some(esAsignaturaEF)) || a.name.localeCompare(b.name)),
     [classes],
   );
-  const [claseId, setClaseId] = useState<string | null>(() => claseDeAhora(scheduleBlocks, ahora) ?? null);
+  // La clase de ahora, la última con la que se trabajó o la primera: la misma regla que el resto de la app
+  const [claseId, setClaseId, llevarClase] = useClaseActiva(ordenadas);
   const clase = ordenadas.find(c => c.id === claseId) ?? ordenadas[0] ?? null;
   const [aspecto, setAspecto] = useState<ClassMarkType>('participation');
 
@@ -83,15 +79,10 @@ export function EfPista({ classes, students, scheduleBlocks, classMarks, ef, onA
           <h1 className="pg-title">{t('En la pista')}</h1>
           <p className="pg-sub">{t('Elige qué observas y toca a cada alumno; otro toque lo quita. Cuenta en el cuaderno, en el bloque «Trabajo diario y actitud».')}</p>
         </div>
-        <button className="btn-ghost" onClick={() => onNav('notebook')}><BookOpen size={15} />{t('Cuaderno')}</button>
+        <button className="btn-ghost" onClick={() => { llevarClase(); onNav('notebook'); }}><BookOpen size={15} />{t('Cuaderno')}</button>
       </div>
 
-      <div className="chip-row ap-alumnos" role="tablist" aria-label={t('Clase')}>
-        {ordenadas.map(c => (
-          <button key={c.id} type="button" role="tab" aria-selected={c.id === clase.id}
-            className={`chip sm accent${c.id === clase.id ? ' on' : ''}`} onClick={() => setClaseId(c.id)}>{c.name}</button>
-        ))}
-      </div>
+      <div className="ap-alumnos"><ClassChips classes={ordenadas} value={clase.id} onChange={setClaseId} /></div>
 
       <div className="ef-aspectos" role="radiogroup" aria-label={t('Qué observas')}>
         {EF_MARK_TYPES.map(m => (

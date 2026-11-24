@@ -11,6 +11,7 @@
  */
 
 import { useMemo, useState } from 'react';
+import { AyudaVideo } from '../components/AyudaVideo';
 import {
   Users, Sparkles, RotateCcw, RotateCw, FileDown, FileType2, Settings2, ArrowRight, CheckCircle2, X, GripVertical, Flag,
   ChevronDown, ChevronUp,
@@ -35,8 +36,10 @@ import { useI18n } from '../i18n';
 import { ClassMarksModal } from '../components/seating/ClassMarksModal';
 import { markTypeInfo } from '../services/classMarks';
 import { isoDate } from '../lib/utils';
-import { requestSettingsPanel } from '../lib/settingsNav';
+import { abrirClaveIA } from '../lib/claveIA';
 import { compararAlumnos } from '../lib/alumnado';
+import { ClassChips } from '../components/ui/ClassChips';
+import { useClaseActiva } from '../hooks/useClaseActiva';
 
 interface Props {
   classes: Class[];
@@ -97,7 +100,7 @@ export function SeatingPlan({
 }: Props) {
   const { toast } = useToast();
   const { t, lang } = useI18n();
-  const [classId, setClassId] = useState(classes[0]?.id ?? '');
+  const [classId, setClassId, llevarClase] = useClaseActiva(classes);
   const [notasDocente, setNotasDocente] = useState('');
   const [generating, setGenerating] = useState(false);
   const [configOpen, setConfigOpen] = useState(false);
@@ -364,7 +367,7 @@ export function SeatingPlan({
       <section className="sec active">
         <div className="pg-hd">
           <div>
-            <h1 className="pg-title">{t('Distribución de aula')}</h1>
+            <h1 className="pg-title">{t('Distribución de aula')}<AyudaVideo id="distribucion-aula" /></h1>
             <p className="pg-sub">{t('Grupos cooperativos, roles y rotación semanal')}</p>
           </div>
         </div>
@@ -389,7 +392,7 @@ export function SeatingPlan({
     <section className="sec active seat-page">
       <div className="pg-hd">
         <div>
-          <h1 className="pg-title">{t('Distribución de aula')}</h1>
+          <h1 className="pg-title">{t('Distribución de aula')}<AyudaVideo id="distribucion-aula" /></h1>
           <p className="pg-sub">{t('Grupos cooperativos, roles y rotación semanal')}</p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
@@ -406,12 +409,8 @@ export function SeatingPlan({
 
       {/* ── Barra de controles: una sola fila compacta ── */}
       <div className="seat-toolbar">
-        <select
-          className="seat-select" value={classId} onChange={e => pickClass(e.target.value)}
-          aria-label={t('Clase')}
-        >
-          {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-        </select>
+        {/* El mismo selector que el cuaderno o la asistencia, con la clase de ahora marcada */}
+        <ClassChips classes={classes} value={clsId} onChange={pickClass} />
 
         <div className="seat-rotation" role="group" aria-label={t('Rotación de roles')}>
           <button type="button" onClick={() => rotar(-1)} title={t('Semana anterior')} aria-label={t('Semana anterior')}>
@@ -600,7 +599,7 @@ export function SeatingPlan({
             <p className="seat-modal-p">
               {t('Para generar grupos equilibrados con IA hace falta la clave gratuita de Google que se configura en Configuración. También puedes sentar al alumnado a mano, sin IA.')}
             </p>
-            <button className="btn-accent" onClick={() => { setAiOpen(false); requestSettingsPanel('ia'); onNav('profile'); }}>
+            <button className="btn-accent" onClick={abrirClaveIA}>
               {t('Configurar la IA')}
             </button>
           </>
@@ -700,7 +699,8 @@ export function SeatingPlan({
           onAdd={onAddMark}
           onDelete={onDeleteMark}
           onClose={() => setMarking(null)}
-          onNav={onNav}
+          // «Ir al cuaderno» abre el cuaderno de la clase que se está viendo aquí
+          onNav={s => { llevarClase(); onNav(s); }}
         />
       )}
     </section>

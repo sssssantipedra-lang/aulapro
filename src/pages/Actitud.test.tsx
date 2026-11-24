@@ -3,7 +3,7 @@
  * Anotar actitud: la clase en una lista, un toque por anotación, sin sentar a
  * nadie antes. Se comprueba lo que queda guardado y que se puede deshacer.
  */
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import { useState } from 'react';
 import { render, screen, within, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -13,7 +13,7 @@ import { requestActitud } from '../lib/actitudNav';
 import { isoDate, shiftDate } from '../lib/utils';
 import type { Class, Student, ClassMark } from '../types';
 
-afterEach(cleanup);
+afterEach(() => { cleanup(); vi.useRealTimers(); });
 
 const clases = [
   { id: 'c1', name: '1º ESO A', subject: 'Matemáticas', color: '#f00' },
@@ -96,5 +96,21 @@ describe('Anotar actitud', () => {
     render(<Con />);
     expect(within(fila('Alumno 2')).getByTitle('Racha de 2 días de clase seguidos sumando')).toBeTruthy();
     expect(within(fila('Alumno 10')).queryByTitle(/Racha/)).toBeNull();
+  });
+  it('la nota de la fila es la del bloque en la evaluación del día que se anota, como en el cuaderno', () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date(2027, 1, 10, 10));
+    localStorage.clear();
+    const m = (id: string, date: string) => ({ id, class_id: 'c1', student_id: 's2', type: 'homework', date }) as ClassMark;
+    // Cuatro «sin tarea» en otoño y una en febrero: en la 2.ª evaluación solo cuenta la de febrero
+    const marcas = [m('a', '2026-10-05'), m('b', '2026-10-06'), m('c', '2026-11-10'), m('d', '2026-11-11'), m('e', '2027-02-03')];
+    render(
+      <I18nProvider>
+        <Actitud classes={clases} students={students} classMarks={marcas} marksConfigs={{}}
+          attendance={{}} onAdd={() => {}} onDelete={() => {}} onNav={() => {}} />
+      </I18nProvider>,
+    );
+    // Tareas 9,5, comportamiento 10 y participación 5 → 8,2 (con las cinco del curso saldría 7,5)
+    expect(within(fila('Alumno 2')).getByTitle('Nota del bloque en la 2.ª evaluación, sobre 10').textContent).toBe('8,2');
   });
 });

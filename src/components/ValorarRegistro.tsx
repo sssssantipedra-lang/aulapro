@@ -11,9 +11,11 @@ import { Modal } from './ui/Modal';
 import { useToast } from './ui/Toast';
 import { useI18n } from '../i18n';
 import { clasesDe, objetivoPara } from '../lib/objetivos';
-import { BIEN, MEJORABLE, cuentaRegistro, notaRegistro } from '../lib/registro';
+import { BIEN, MEJORABLE, cuentaRegistro, notaRegistro, ultimaValoracion, yaGuardado } from '../lib/registro';
+import { EN_FRASE, mismaEvaluacion, periodoDeFecha, periodoDeHoy } from '../lib/periodos';
 import { compararAlumnos } from '../lib/alumnado';
 import { isoDate } from '../lib/utils';
+import { useClaseActiva } from '../hooks/useClaseActiva';
 
 interface Props {
   escala: EvalDiana;
@@ -36,24 +38,28 @@ export function ValorarRegistro({ escala, classes, students, evaluations, claseI
 
   const clasesEval = clasesDe(escala).length ? classes.filter(c => clasesDe(escala).includes(c.id)) : classes;
 
+  const [hoy] = useState(() => isoDate());
+
   /** Lo que ya se valoró la última vez, para seguir desde ahí. */
   function previas(alumnos: Student[]): Marcas {
     const m: Marcas = {};
     for (const s of alumnos) {
-      const ultima = evaluations.filter(e => e.rubric_id === escala.id && e.student_id === s.id).sort((a, b) => b.date.localeCompare(a.date))[0];
+      const ultima = ultimaValoracion(evaluations, escala.id, s.id);
       if (ultima) m[s.id] = { ...ultima.scores };
     }
     return m;
   }
 
-  const [claseId, setClaseId] = useState(() =>
-    (claseInicial && clasesEval.some(c => c.id === claseInicial) ? claseInicial : clasesEval[0]?.id) ?? '');
+  // La clase pedida por quien abre la ventana (la de la sesión) o, entre las de la escala, la de la regla
+  // común: la de ahora, la última con la que se trabajó o la primera (`useClaseActiva`)
+  const [claseId, setClaseId] = useClaseActiva(clasesEval, claseInicial);
   const [marcas, setMarcas] = useState<Marcas>(() => previas(students.filter(s => s.class_id === claseId)));
   const alumnado = useMemo(() => students.filter(s => s.class_id === claseId).sort(compararAlumnos), [students, claseId]);
 
   function cambiarClase(id: string) {
     setClaseId(id);
     setMarcas(previas(students.filter(s => s.class_id === id)));
+    setEnBlanco(false);
   }
 
   /** Pulsar el pulgar que ya está puesto lo quita. */
@@ -73,11 +79,24 @@ export function ValorarRegistro({ escala, classes, students, evaluations, claseI
     });
   }
 
+  /**
+   * La evaluación del curso de la que viene lo ya valorado, si no es la de hoy (20-11-2026): la columna del
+   * cuaderno y lo que cuenta el acta son por evaluación, así que al guardar se guarda también a quien no
+   * cambia, y se dice antes. Quien prefiera valorar de nuevo puede empezar en blanco.
+   */
+  const deOtra = useMemo(() => {
+    for (const s of alumnado) {
+      const ultima = ultimaValoracion(evaluations, escala.id, s.id);
+      if (ultima && !mismaEvaluacion(ultima.date, hoy)) return periodoDeFecha(ultima.date, hoy) ?? 'otro curso';
+    }
+    return null;
+  }, [alumnado, evaluations, escala.id, hoy]);
+  const [enBlanco, setEnBlanco] = useState(false);
+
   function guardarEvaluacion() {
-    const hoy = isoDate();
-    // Lo que ya estaba guardado: quien no cambia no vuelve a guardarse (19-11-2026; antes cada «Guardar»
-    // creaba otra evaluación por alumno aunque no se hubiera tocado nada, y el Historial se llenaba de copias)
-    const antes = previas(alumnado);
+    // Lo que ya estaba guardado en esta evaluación del curso: quien no cambia no vuelve a guardarse
+    // (19-11-2026; antes cada «Guardar» creaba otra evaluación por alumno aunque no se hubiera tocado nada,
+    // y el Historial se llenaba de copias). Lo de otra evaluación sí se guarda: `yaGuardado`
     let n = 0, iguales = 0;
     for (const s of alumnado) {
       const scores = marcas[s.id] ?? {};
@@ -85,8 +104,7 @@ export function ValorarRegistro({ escala, classes, students, evaluations, claseI
       if (valorados.length === 0) continue;
       const lim: Record<string, number> = {};
       valorados.forEach(i => { lim[i.id] = scores[i.id]; });
-      const previo = antes[s.id];
-      if (previo && Object.keys(previo).length === valorados.length && valorados.every(i => previo[i.id] === lim[i.id])) { iguales++; continue; }
+      if (yaGuardado(ultimaValoracion(evaluations, escala.id, s.id), lim, hoy)) { iguales++; continue; }
       onAddEvaluation({
         id: 'ev' + uid(), rubric_id: escala.id, rubric_name: escala.name,
         student_id: s.id, student_name: s.name, class_id: claseId, date: hoy,
@@ -116,6 +134,15 @@ export function ValorarRegistro({ escala, classes, students, evaluations, claseI
       <p className="reg-ayuda">
         <ThumbsUp size={13} /> {t('Bien hecho')} · <ThumbsDown size={13} /> {t('Mejorable')} · {t('pulsa otra vez para quitarlo')}
       </p>
+      {deOtra && !enBlanco && (
+        <p className="reg-ayuda reg-otra" role="status">
+          {deOtra === 'otro curso'
+            ? t('Lo marcado viene de otro curso. Lo que guardes ahora cuenta en {actual}, con su propia nota: se guardará también a quien no cambies.', { actual: t(EN_FRASE[periodoDeHoy(hoy)]) })
+            : t('Lo marcado viene de {anterior}. Lo que guardes ahora cuenta en {actual}, con su propia nota: se guardará también a quien no cambies.', { anterior: t(EN_FRASE[deOtra]), actual: t(EN_FRASE[periodoDeHoy(hoy)]) })}
+          {' '}
+          <button type="button" className="ev-enlace" onClick={() => { setMarcas({}); setEnBlanco(true); }}>{t('Empezar en blanco')}</button>
+        </p>
+      )}
       {alumnado.length === 0 ? (
         <p className="ap-vacio">{t('Esa clase todavía no tiene alumnos.')}</p>
       ) : (

@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
+import { AyudaVideo } from '../components/AyudaVideo';
 import {
   Users2, Copy, Check, Send, Inbox, ShieldCheck, AlertTriangle, KeyRound, RefreshCw, FileLock2, FolderOpen,
 } from 'lucide-react';
@@ -178,7 +179,7 @@ export function Share({ classes, source, userName, onImport }: Props) {
     <section className="sec active">
       <div className="pg-hd">
         <div>
-          <h1 className="pg-title">{t('Compartir con otro docente')}</h1>
+          <h1 className="pg-title">{t('Compartir con otro docente')}<AyudaVideo id="trabajo-compartido" /></h1>
           <p className="pg-sub">{t('Un archivo cifrado con contraseña: lo envías por el medio que quieras y solo se abre con ella')}</p>
         </div>
       </div>

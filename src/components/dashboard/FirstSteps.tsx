@@ -8,7 +8,7 @@ import { Check, ArrowRight, Sparkles, Rocket, ChevronDown, ChevronUp } from 'luc
 import type { Section } from '../../types';
 import { firstStepsComplete, type FirstStep, type FirstStepId } from '../../lib/firstSteps';
 import { useI18n } from '../../i18n';
-import { requestSettingsPanel } from '../../lib/settingsNav';
+import { abrirClaveIA } from '../../lib/claveIA';
 
 const TEXT: Record<FirstStepId, { title: string; desc: string; action: string }> = {
   classes: {
@@ -75,8 +75,8 @@ export function FirstSteps({ steps, hero, profileId, onNav, onLoadDemo }: Props)
   const doneCount = required.filter(s => s.done).length;
   const next = steps.find(s => !s.done);
   const toggle = (min: boolean) => { writeMin(profileId, min); setMinimized(min); };
-  /** El paso de la IA lleva directo a la clave, no a la portada de Configuración. */
-  const go = (s: FirstStep) => { if (s.id === 'ai') requestSettingsPanel('ia'); onNav(s.target); };
+  /** El paso de la IA abre los pasos de la clave aquí mismo, en su ventana, sin salir del Inicio. */
+  const go = (s: FirstStep) => { if (s.id === 'ai') abrirClaveIA(); else onNav(s.target); };
 
   // Minimizada: una sola línea con el progreso y el paso que toca
   if (!hero && minimized) {

@@ -7,6 +7,9 @@ import { AvisoCopiaWeb, AvisoPdfWeb, CarpetaWebAviso } from './components/Carpet
 import { AvisoPasarAWeb } from './components/AvisoPasarAWeb';
 import { DatosIlegiblesPantalla } from './components/DatosIlegibles';
 import { AvisoSinGuardar } from './components/AvisoSinGuardar';
+import { AvisoDeshacer } from './components/ui/AvisoDeshacer';
+import { VentanaClaveIA } from './components/VentanaClaveIA';
+import { useHayClaveIA } from './hooks/useClaveIA';
 import { CONECTAR_YA, ConectarDriveWeb, EntrarWeb } from './pages/EntrarWeb';
 import { AceptarCondiciones } from './components/AceptarCondiciones';
 import { condicionesAceptadas } from './lib/condiciones';
@@ -27,6 +30,7 @@ import type { LicenseState } from './types/electron';
 import { Dashboard } from './pages/Dashboard';
 import { Profile } from './pages/Profile';
 import { useAppState } from './hooks/useAppState';
+import { olvidarRuta, useRuta } from './hooks/useRuta';
 import { useNarrowScreen, usePhoneScreen } from './hooks/useNarrowScreen';
 import { applyTheme, type ThemeKey } from './lib/utils';
 import { setPrivacyRoster } from './services/privacy';
@@ -39,9 +43,11 @@ import { semanaDe } from './lib/semana';
 import { HubTabs } from './components/layout/HubTabs';
 import { EvaluarInicio } from './pages/EvaluarInicio';
 import { EnClaseInicio } from './pages/EnClaseInicio';
-import { claseQueToca } from './lib/claseQueToca';
+import { claseAlAbrirAhora, pedirClase, recordarClase } from './lib/claseActiva';
+import { claseParaSda, encargarClase, planDeOrigen, type FuenteDeSesiones, type OrigenPlan } from './lib/darLaClase';
+import { ClaseActiva } from './components/ClaseActiva';
 import { DocumentosInicio } from './pages/DocumentosInicio';
-import { hubEnMenu, navGroupsFor, rememberTab } from './lib/navigation';
+import { enMenu, hubEnMenu, navGroupsFor, rememberTab } from './lib/navigation';
 import { bloquesDeApoyo } from './lib/apoyo';
 import { alumnadoParaIA, exentosDelDia, LIMITACIONES, pruebasDe, recursosParaIA } from './lib/ef';
 import type { SesionEF } from './types/ef';
@@ -113,10 +119,18 @@ function AppInner() {
   const { t, lang } = useI18n();
   const st = useAppState();
 
-  const [section, setSection]         = useState<Section>('dashboard');
+  // La pantalla abierta va unida a la dirección («#/cuaderno») y al historial del navegador: atrás y adelante cambian
+  // de pantalla, recargar deja en la misma y `setSection` añade una entrada (hooks/useRuta.ts, lib/ruta.ts)
+  const { section, setSection, llegada } = useRuta({
+    profileId: st.profileId,
+    tipo: st.ready && st.currentUser ? st.currentUser.tipo ?? 'aula' : null,
+  });
   /** El alumno cuya ficha hay que abrir al llegar a Mis clases (desde el radar del Inicio o el buscador). */
   const [fichaPedida, setFichaPedida] = useState<{ id: string | null; clase: string | null; n: number }>({ id: null, clase: null, n: 0 });
   const abrirAlumno = (id: string) => { setFichaPedida(p => ({ id, clase: null, n: p.n + 1 })); setSection('classes'); };
+  /** El alumno cuyo informe de seguimiento hay que abrir al llegar a Informes (desde su ficha). Va en el estado, no en la dirección. */
+  const [informePedido, setInformePedido] = useState<{ id: string | null; n: number }>({ id: null, n: 0 });
+  const abrirInforme = (id: string) => { setInformePedido(p => ({ id, n: p.n + 1 })); setSection('reports'); };
   /**
    * El buscador general (18-11-2026): se abre con el botón «Buscar» o con Ctrl+K (⌘K). Un alumno abre su ficha, una
    * clase su alumnado, y una rúbrica o una situación de aprendizaje llevan a su pantalla con lo buscado ya escrito.
@@ -162,9 +176,16 @@ function AppInner() {
   const [taskText, setTaskText]       = useState('');
   const [taskPri, setTaskPri]         = useState<'high'|'medium'|'low'>('medium');
 
+  // Al poner la clave de la IA en su ventana, la pantalla de debajo se vuelve a pintar y activa su botón de generar
+  useHayClaveIA();
+
   // Al profesorado de PT y AL, su menú y su Inicio (ver lib/navigation.ts).
   const tipo = st.currentUser?.tipo ?? 'aula';
   const especialista = tipo === 'apoyo';
+  /** Para la Agenda: una capa cuya pantalla este perfil no tiene en su menú no se ofrece. */
+  const pantallaDelPerfil = useCallback((s: Section) => enMenu(s, tipo), [tipo]);
+  /** Las pruebas físicas con nombre (las de partida y las del docente), para la capa de la Agenda. */
+  const pruebasEF = useMemo(() => (tipo === 'ef' ? pruebasDe(st.ef) : []), [tipo, st.ef]);
   // Se memoriza para no crear una lista nueva en cada render: Aula Live la usa
   // como origen de la ruleta y reiniciaría el giro cada vez que cambie. Para
   // el de PT y AL, la ruleta es de su alumnado de apoyo, no de clases que no tiene.
@@ -245,6 +266,16 @@ function AppInner() {
     [section, st.ef.sesiones, st.calEvents, st.classes],
   );
 
+  /** Las sesiones con fecha de hoy que aún no se han dado, para «Tu jornada» del Inicio: cada una, con «Dar la clase». */
+  const sesionesDeHoyInicio = useMemo(() => {
+    if (section !== 'dashboard') return undefined;
+    const hoy = isoDate();
+    return st.ef.sesiones.filter(s => s.fecha === hoy && !s.completada && !s.archivada).map(s => {
+      const c = st.classes.find(x => x.id === s.claseId);
+      return { id: s.id, titulo: s.titulo, clase: c?.name ?? '', color: c?.color ?? 'var(--text-3)' };
+    });
+  }, [section, st.ef.sesiones, st.classes]);
+
   /** El radar del alumnado, para el Inicio y Mis clases: solo se calcula en esas dos pantallas. */
   const conRadar = section === 'dashboard' || section === 'classes';
   const radarAlumnado = useMemo(() => (conRadar ? radar({
@@ -284,7 +315,8 @@ function AppInner() {
   }, []);
 
   // Al cambiar de perfil se vuelve al inicio, no a la sección del docente
-  // anterior. Se ajusta durante el render (patrón recomendado por React para
+  // anterior (lo hace `useRuta`, que lleva la pantalla), y se suelta la pizarra.
+  // Se ajusta durante el render (patrón recomendado por React para
   // «reiniciar estado cuando cambia un valor»), no en un efecto: así no se
   // pinta ni un instante la sección del perfil anterior.
   const [sectionOwner, setSectionOwner] = useState(st.profileId);
@@ -298,7 +330,6 @@ function AppInner() {
   if (section === 'sec-classroom' && !pizarraViva) setPizarraViva(true);
   if (sectionOwner !== st.profileId) {
     setSectionOwner(st.profileId);
-    setSection('dashboard');
     setPizarraViva(false);
   }
   const enPizarra = section === 'sec-classroom';
@@ -312,22 +343,69 @@ function AppInner() {
     }, 60_000);
     return () => window.clearInterval(id);
   }, [enPizarra, pizarraViva]);
-  // La clase que toca se mira cada vez que se entra en la pizarra, no al cargar el perfil
+  // La clase activa (la de ahora o la última con la que se trabajó, `lib/claseActiva.ts`) se mira cada vez
+  // que se entra en la pizarra, no al cargar el perfil
+  const clasePizarra = useMemo(() => claseAlAbrirAhora({
+    perfil: st.profileId ?? '', classes: st.classes, blocks: st.scheduleBlocks,
+    comunidad: st.currentUser?.community, provincia: st.currentUser?.provincia,
   // eslint-disable-next-line react-hooks/exhaustive-deps -- `enPizarra` está para volver a mirar la hora al entrar
-  const clasePizarra = useMemo(() => claseQueToca(st.classes, st.scheduleBlocks), [st.classes, st.scheduleBlocks, enPizarra]);
+  }).id, [st.profileId, st.classes, st.scheduleBlocks, st.currentUser?.community, st.currentUser?.provincia, enPizarra]);
   /**
    * Guardar una evaluación desde las pantallas de evaluar. Si ese alumno ya tiene hoy una con el mismo
    * instrumento, puede ser una corrección o un trabajo distinto: se pregunta, salvo en las escalas de
    * registro, que se abren con lo ya valorado y siempre corrigen.
    */
   const { evaluations: evaluacionesHechas, dianas: dianasHechas, addEvaluation } = st;
-  const guardarEvaluacion = useCallback((ev: Evaluation) => {
-    const repetida = evaluacionesHechas.some(e => mismaEvaluacionDelDia(ev, e));
+  const guardarEvaluacion = useCallback((ev: Evaluation, opciones: { otroTrabajo?: boolean } = {}) => {
+    // Con «Evaluar a la clase» (20-11-2026) la ventana ya carga la evaluación de hoy y la corrige con
+    // `updateEvaluation`; si llega aquí una nueva con `otroTrabajo`, el docente ya ha dicho que no es una corrección
+    const repetida = !opciones.otroTrabajo && evaluacionesHechas.some(e => mismaEvaluacionDelDia(ev, e));
     const esEscala = dianasHechas.some(d => d.id === ev.rubric_id && d.tipo === 'registro');
     const sustituir = repetida && (esEscala || window.confirm(t('Hoy ya has evaluado a {name} con «{instrumento}». Si estás corrigiendo esa evaluación, pulsa Aceptar y esta la sustituirá. Si es otro trabajo, pulsa Cancelar y se guardarán las dos.', { name: ev.student_name, instrumento: ev.rubric_name })));
     addEvaluation(ev, { sustituir });
   }, [evaluacionesHechas, dianasHechas, addEvaluation, t]);
   const alTerminarDeProyectar = useCallback(() => setLiveFicha(null), [setLiveFicha]);
+
+  /**
+   * «Dar la clase» (20-11-2026, `lib/darLaClase.ts`): abre la pizarra con esa clase y la sesión montada en
+   * «Plan del día». La pizarra puede estar ya montada (sigue viva entre pantallas), así que la sesión viaja
+   * como un encargo que ella recoge al enseñarse, sin borrar lo que tuviera. Sin sesión, solo la clase y el plan.
+   */
+  const { sesiones: sesionesPreparadas, pizarras: circuitosDibujados } = st.ef;
+  const { learningSituations: situaciones, saveLearningSituation: guardarSituacion, classes: clasesDelPerfil, profileId: perfilAbierto } = st;
+  const fuenteDeSesiones = useMemo<FuenteDeSesiones | undefined>(() => (especialista ? undefined : {
+    sesiones: sesionesPreparadas, sdas: situaciones, pizarras: circuitosDibujados, ef: tipo === 'ef',
+  }), [especialista, sesionesPreparadas, situaciones, circuitosDibujados, tipo]);
+  const darLaClase = useCallback((origen: OrigenPlan | null, claseId?: string) => {
+    const plan = origen && fuenteDeSesiones ? planDeOrigen(fuenteDeSesiones, origen) : null;
+    const clase = [claseId, plan?.sesion.claseId].find(id => !!id && clasesDelPerfil.some(c => c.id === id));
+    // La pizarra abre la clase de ahora o la última usada: la de la sesión manda, como en el resto de enlaces
+    if (clase) { pedirClase(clase); if (perfilAbierto) recordarClase(perfilAbierto, clase); }
+    encargarClase({ ...(clase ? { claseId: clase } : {}), plan });
+    setSection('sec-classroom');
+  }, [fuenteDeSesiones, clasesDelPerfil, perfilAbierto, setSection]);
+  /** Lo mismo con una sesión de una situación de aprendizaje que aún no se ha pasado a Sesiones. */
+  const { scheduleBlocks: bloquesDelHorario, currentUser: docente } = st;
+  const darLaClaseDeSda = useCallback((sdaId: string, indice: number) => {
+    const sda = situaciones.find(x => x.id === sdaId);
+    if (!sda) return;
+    // Una situación puede ser de varias clases: si la de ahora es una de ellas, esa; si no, la principal
+    const deAhora = claseAlAbrirAhora({
+      perfil: perfilAbierto ?? '', classes: clasesDelPerfil, blocks: bloquesDelHorario, comunidad: docente?.community, provincia: docente?.provincia,
+    }).id;
+    darLaClase({ tipo: 'sda', id: sdaId, indice }, claseParaSda(sda, deAhora));
+  }, [situaciones, perfilAbierto, clasesDelPerfil, bloquesDelHorario, docente, darLaClase]);
+  /** La sesión montada en la pizarra, marcada como dada desde ella (lo propone al marcar su última actividad). */
+  const marcarSesionDada = useCallback((o: OrigenPlan) => {
+    if (o.tipo === 'sesion') {
+      setEf(d => ({ ...d, sesiones: d.sesiones.map(x => (x.id === o.id ? { ...x, completada: true } : x)) }));
+    } else {
+      const sda = situaciones.find(x => x.id === o.id);
+      if (!sda?.content.sesiones[o.indice]) return;
+      guardarSituacion({ ...sda, content: { ...sda.content, sesiones: sda.content.sesiones.map((x, k) => (k === o.indice ? { ...x, completada: true } : x)) } });
+    }
+    toast(t('Sesión completada'));
+  }, [setEf, situaciones, guardarSituacion, toast, t]);
 
   // Los nombres del alumnado nunca viajan a la IA: ver services/privacy.ts.
   // Tampoco los del alumnado de apoyo de PT y AL, que no está en las clases.
@@ -364,7 +442,7 @@ function AppInner() {
       else remove = () => { handle.remove(); };
     });
     return () => { cancelled = true; remove?.(); };
-  }, []);
+  }, [setSection]);
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
       if (e.key === 'Escape') { setShowAddTask(false); setMenuOpen(false); }
@@ -390,14 +468,17 @@ function AppInner() {
         onOpenProfile={st.openProfile}
         onCreateProfile={async (input, options) => {
           await st.createAndOpenProfile(input, options);
+          // Un perfil recién creado empieza por el Inicio, aunque se llegara con la dirección de otra pantalla
+          setSection('dashboard', { sustituir: true });
           toast(t('✅ ¡Bienvenido/a, {name}!', { name: input.name.split(' ')[0] }));
         }}
         onExploreDemo={async input => {
           // El ejemplo de PT y AL lleva el nombre que le pone la bienvenida
           await st.createAndOpenProfile(input.especialidades?.length || input.tipoDocente === 'ef' ? input : {
             name: t(DEMO_USER.full_name), school: t(DEMO_USER.school),
-            subject: t(DEMO_USER.subject), course: '2025-2026', community: DEMO_COMMUNITY,
+            subject: t(DEMO_USER.subject), course: input.course || '', community: DEMO_COMMUNITY,   // el curso de hoy, el que calcula la bienvenida
           }, { demo: true, lang });
+          setSection('dashboard', { sustituir: true });
           toast(t('✅ Datos de ejemplo cargados'));
         }}
       />
@@ -415,6 +496,8 @@ function AppInner() {
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
       <AvisoSinGuardar motivo={st.errorGuardado} exportar={st.exportData} />
+      <AvisoDeshacer pendiente={st.borradoPendiente} onDeshacer={st.deshacerBorrado} onOlvidar={st.olvidarBorrado} />
+      <VentanaClaveIA />
       {isWebApp() && <AvisoCopiaWeb exportar={st.exportData} oculto={section === 'profile' || !!st.errorGuardado} onIrADatos={() => { setSection('profile'); setMenuOpen(false); }} />}
       {(!phone || menuOpen) && <Sidebar
         mini={menuMini}
@@ -427,7 +510,8 @@ function AppInner() {
         onLogout={async () => {
           await st.logout();
           // En la web, salir es salir de la cuenta: vuelve a la pantalla de entrada
-          if (isWebApp()) { await cerrarSesion(); window.location.reload(); return; }
+          // (y quien entre después empieza por el Inicio, no por la pantalla en la que se salió)
+          if (isWebApp()) { await cerrarSesion(); olvidarRuta(); window.location.reload(); return; }
           toast(t('Sesión cerrada'));
         }}
         onBuscar={() => setBuscando(true)}
@@ -480,6 +564,7 @@ function AppInner() {
               nuevo y su animación de aviso (parpadeo) vuelve a sonar. Al
               cambiar de pestaña dentro del mismo apartado no parpadea. */}
           <HubTabs key={hubEnMenu(section, tipo)?.id ?? 'none'} section={section} tipo={tipo} onNav={setSection} />
+          <ClaseActiva perfil={st.profileId ?? ''} classes={st.classes} blocks={st.scheduleBlocks} comunidad={st.currentUser.community} provincia={st.currentUser.provincia}>
           <Suspense fallback={<Loading />}>
             {section === 'dashboard' && especialista && (
               <InicioApoyo
@@ -510,6 +595,8 @@ function AppInner() {
                 onOpenStudent={abrirAlumno}
                 semana={semana}
                 onVerSesiones={() => setSection(tipo === 'ef' ? 'ef-sesiones' : 'sesiones')}
+                sesionesHoy={sesionesDeHoyInicio}
+                onDarLaClase={id => darLaClase({ tipo: 'sesion', id })}
                 ef={efInicio}
               />
             )}
@@ -543,7 +630,8 @@ function AppInner() {
                     <Suspense fallback={null}>
                       <ResumenDeAlumno student={s} cls={cls} companeros={st.students.filter(x => x.class_id === s.class_id).map(x => x.id)}
                         gradeCategories={gradeView.gradeCategories} gradeItems={gradeView.gradeItems} grades={gradeView.grades}
-                        attendance={st.attendance} classMarks={st.classMarks} evaluations={st.evaluations} />
+                        attendance={st.attendance} classMarks={st.classMarks} evaluations={st.evaluations}
+                        onInforme={pantallaDelPerfil('reports') ? () => abrirInforme(s.id) : undefined} />
                     </Suspense>
                   );
                 }}
@@ -572,6 +660,9 @@ function AppInner() {
                 onNav={s => setSection(s as Section)}
                 comunidad={st.currentUser.community}
                 provincia={st.currentUser.provincia}
+                sesiones={st.ef.sesiones} gradeItems={st.gradeItems} gradeCategories={st.gradeCategories} workSessions={st.workSessions}
+                marcas={st.ef.marcas} pruebas={pruebasEF} students={st.students}
+                esEF={tipo === 'ef'} tienePantalla={pantallaDelPerfil} onAddGradeItem={st.addGradeItem}
               />
             )}
             {section === 'evaluar' && (
@@ -609,8 +700,11 @@ function AppInner() {
                 onUpdateDiana={st.updateDiana}
                 onDeleteDiana={st.deleteDiana}
                 onAddEvaluation={guardarEvaluacion}
+                onUpdateEvaluation={st.updateEvaluation}
+                scheduleBlocks={st.scheduleBlocks}
                 gradeCategories={st.gradeCategories}
                 comunidad={st.currentUser?.community}
+                ef={tipo === 'ef'}
               />
             )}
             {section === 'registros' && (
@@ -619,6 +713,7 @@ function AppInner() {
                 gradeCategories={st.gradeCategories}
                 onAddDiana={st.addDiana} onUpdateDiana={st.updateDiana} onDeleteDiana={st.deleteDiana}
                 onAddEvaluation={guardarEvaluacion}
+                ef={tipo === 'ef'}
               />
             )}
             {section === 'diana' && (
@@ -670,6 +765,7 @@ function AppInner() {
                 dianas={st.dianas}
                 onOpenEval={() => setSection('rubrics')}
                 onDeleteEval={st.deleteEvaluation}
+                onUpdateEval={st.updateEvaluation}
               />
             )}
             {section === 'notebook' && (
@@ -690,6 +786,7 @@ function AppInner() {
                 onUpdateItem={st.updateGradeItem}
                 onDeleteItem={st.deleteGradeItem}
                 onSetGrade={st.setGrade}
+                onSetGrades={st.setManyGrades}
                 lawDocument={st.lawDocument}
                 onLawDocumentChange={st.setLawDocument}
                 onNav={s => setSection(s as Section)}
@@ -699,18 +796,6 @@ function AppInner() {
                 chat={st.chat}
                 onChatChange={st.setChat}
               />
-            )}
-            {(section === 'sec-classroom' || pizarraViva) && (
-              <div style={{ display: section === 'sec-classroom' ? 'contents' : 'none' }}>
-                <PizarraViva
-                  studentNames={studentFirstNames}
-                  clases={ruletaClases}
-                  claseInicial={clasePizarra}
-                  fichas={st.fichas}
-                  projectFicha={liveFicha}
-                  onProjectDone={alTerminarDeProyectar}
-                />
-              </div>
             )}
             {section === 'classroom-live' && (
               <ClassroomLive
@@ -753,6 +838,8 @@ function AppInner() {
                 comunidad={st.currentUser?.community}
                 provincia={st.currentUser?.provincia}
                 onNav={setSection}
+                sesiones={fuenteDeSesiones}
+                onDarLaClase={darLaClase}
               />
             )}
             {section === 'actitud' && (
@@ -798,18 +885,24 @@ function AppInner() {
             )}
             {section === 'reports' && (
               <Reports
+                key={informePedido.n}
+                alumnoInicial={informePedido.id}
+                onAlumnoAbierto={() => setInformePedido(p => ({ ...p, id: null }))}
                 classes={st.classes}
                 students={st.students}
                 evaluations={st.evaluations}
                 rubrics={st.rubrics}
                 dianas={st.dianas}
-                gradeCategories={gradeView.gradeCategories}
-                gradeItems={gradeView.gradeItems}
-                grades={gradeView.grades}
+                gradeCategories={st.gradeCategories}
+                gradeItems={st.gradeItems}
+                grades={st.grades}
+                classMarks={st.classMarks}
+                marksConfigs={st.marksConfigs}
                 attendance={st.attendance}
                 reports={st.reports}
                 comunidad={st.currentUser.community}
                 onAddReport={st.addReport}
+                onAddReports={st.addReports}
                 onUpdateReport={st.updateReport}
                 onDeleteReport={st.deleteReport}
                 onNav={s => setSection(s as Section)}
@@ -836,6 +929,7 @@ function AppInner() {
                 onAddDiana={d => { st.addDiana(d); }}
                 onAddFicha={f => { st.saveFicha(f); }}
                 onNav={s => setSection(s as Section)}
+                onDarLaClase={especialista ? undefined : darLaClaseDeSda}
               />
             )}
             {section === 'resources' && (
@@ -877,6 +971,8 @@ function AppInner() {
             )}
             {section === 'apoyo-alumno' && (
               <AlumnoApoyo
+                // Atrás o adelante entre las páginas de dos alumnos: se monta de nuevo con el de esa entrada
+                key={llegada}
                 data={st.apoyo}
                 onChange={st.setApoyo}
                 especialidades={st.currentUser.especialidades ?? []}
@@ -915,9 +1011,11 @@ function AppInner() {
                 perfil={tipo === 'ef' ? 'ef' : 'aula'}
                 classes={st.classes} students={st.students} acsAula={st.apoyo.acsAula} scheduleBlocks={st.scheduleBlocks} ef={st.ef} onChangeEf={st.setEf}
                 comunidad={st.currentUser?.community} rubrics={st.rubrics} dianas={st.dianas} onAddDiana={st.addDiana}
-                onNav={s => setSection(s)} evaluations={st.evaluations} lawDocument={st.lawDocument} onAddEvaluation={guardarEvaluacion}
+                onNav={s => setSection(s)} evaluations={st.evaluations} lawDocument={st.lawDocument} onAddEvaluation={guardarEvaluacion} onUpdateEvaluation={st.updateEvaluation}
                 learningSituations={st.learningSituations} onSaveSda={st.saveLearningSituation}
                 onAbrirSda={() => setSection(tipo === 'ef' ? 'ef-sda' : 'learning-situations')}
+                calEvents={st.calEvents} onApuntarCambio={n => st.apuntarCambio({ tipo: 'fechas', cuantos: n })}
+                onDarLaClase={s => darLaClase({ tipo: 'sesion', id: s.id }, s.claseId)}
               />
             )}
             {section === 'ef-actividades' && (
@@ -945,16 +1043,39 @@ function AppInner() {
                 onExportData={st.exportData}
                 onImportData={st.importData}
                 onClearSchoolYear={st.clearSchoolYear}
+                datosDelCurso={st.datosDelCurso}
+                onStartSchoolYear={st.startNewSchoolYear}
               />
             )}
           </Suspense>
+          {/* La pizarra, viva entre pantallas, va fuera de la espera de las demás páginas (20-11-2026): la primera
+              vez que se abre otra pantalla, esa espera oculta todo lo que tiene dentro y, al volver a enseñarlo,
+              React monta de nuevo sus efectos; la pizarra estaba oculta y sin medidas, y sus ventanas quedaban
+              desplazadas al doble de su sitio (algunas, fuera de la pantalla). */}
+          <Suspense fallback={<Loading />}>
+            {(section === 'sec-classroom' || pizarraViva) && (
+              <div style={{ display: section === 'sec-classroom' ? 'contents' : 'none' }}>
+                <PizarraViva
+                  studentNames={studentFirstNames}
+                  clases={ruletaClases}
+                  claseInicial={clasePizarra}
+                  fichas={st.fichas}
+                  projectFicha={liveFicha}
+                  onProjectDone={alTerminarDeProyectar}
+                  sesiones={fuenteDeSesiones}
+                  onSesionDada={marcarSesionDada}
+                />
+              </div>
+            )}
+          </Suspense>
+          </ClaseActiva>
         </main>
       </div>
 
       {/* Ayuda sobre la aplicación: botón flotante en todas las pantallas.
           Va aquí dentro y no junto a UpdateBanner porque necesita saber en qué
           sección está el docente y poder llevarle a otra. */}
-      <HelpChat section={section} onNav={s => setSection(s as Section)} />
+      <HelpChat section={section} onNav={s => setSection(s as Section)} puedeIr={s => enMenu(s as Section, tipo)} />
 
       {/* A los perfiles anteriores a la comunidad se les pregunta una sola vez,
           la elijan o la dejen para después (ver `communityPromptAt`). */}

@@ -82,7 +82,7 @@ export function InformesLoteApoyo({ open, onClose, data, onChange, comunidad, on
   return (
     <Modal open={open} onClose={() => !ocupado && onClose()} wide title={t('Documentos del trimestre')}>
       <div className="ap-form">
-        {sinClave && <AiKeyNotice message={t('Para que la IA prepare los documentos necesitas una clave gratuita de Google (se configura en 2 minutos).')} action={t('Configurar ahora')} onAction={() => onNav('profile')} />}
+        {sinClave && <AiKeyNotice message={t('Para que la IA prepare los documentos necesitas una clave gratuita de Google (se configura en 2 minutos).')} action={t('Configurar ahora')} />}
         <fieldset className="fgroup ap-fs" style={{ gridColumn: '1 / -1' }}>
           <legend className="flabel">{t('Documento')}</legend>
           <div className="chip-row">

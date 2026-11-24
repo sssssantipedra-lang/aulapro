@@ -12,11 +12,12 @@
  * eliminarlas, archivarlas, asociarlas a una SdA o crear una SdA con ellas.
  */
 import { CasillaAcs } from '../components/apoyo/CasillaAcs';
+import { AyudaVideo } from '../components/AyudaVideo';
 import { useAcsParaIA } from '../hooks/useAcsParaIA';
 import { palabrasDeNombres } from '../lib/barreras';
 import type { AcsApoyo } from '../types/apoyo';
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
-import { Plus, Sparkles, Trash2, FileDown, CalendarDays, MapPin, Bandage, Copy, Circle, CheckCircle2, Eye, Check, ChevronUp, ChevronDown, GripVertical } from 'lucide-react';
+import { Plus, Sparkles, Trash2, FileDown, CalendarDays, MapPin, Bandage, Copy, Circle, CheckCircle2, Eye, Check, ChevronUp, ChevronDown, GripVertical, CalendarX2 } from 'lucide-react';
 import { Modal } from '../components/ui/Modal';
 import { DocPreview } from '../components/DocPreview';
 import { CopiarAClases } from '../components/CopiarAClases';
@@ -39,13 +40,15 @@ import { limitacionesParaIA, prepararSesion } from '../services/efIA';
 import { alumnadoParaIA } from '../lib/ef';
 import { guardarSesionPdf, buildSesionHtml } from '../services/exportSesionEF';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
-import type { Class, EvalDiana, Evaluation, LearningSituation, Rubric, ScheduleBlock, Student } from '../types';
+import type { CalEvent, Class, EvalDiana, Evaluation, LearningSituation, Rubric, ScheduleBlock, Student } from '../types';
 import { SesionEvaluacionCircuito } from '../components/ef/SesionEvaluacionCircuito';
 import { ETIQUETA_INSTRUMENTO } from '../lib/instrumentosSesion';
 import { htmlInstrumento } from '../services/instrumentoEmbebido';
 import { pizarraSvg } from '../lib/pizarraEF';
 import type { OrdenFila } from '../components/sesiones/SesionesDeClase';
-import { archivarSesiones, asociarASda, ordenarGrupo, quitarSesiones } from '../lib/sesiones';
+import { agruparPorSda, archivarSesiones, asociarASda, ordenarGrupo, quitarSesiones, type GrupoSda } from '../lib/sesiones';
+import { aplicarFechas, type FechaPropuesta } from '../lib/repartoSesiones';
+import { PonerFechas, type PeticionDeFechas } from '../components/sesiones/PonerFechas';
 import { ClasesDeSesiones } from '../components/sesiones/ClasesDeSesiones';
 import { SesionesDeClase } from '../components/sesiones/SesionesDeClase';
 import { AsociarASda } from '../components/sesiones/AsociarASda';
@@ -55,6 +58,9 @@ import { CrearSdaDeSesiones } from '../components/sesiones/CrearSdaDeSesiones';
 import type { EfData, ImagenSesion, InstrumentoRefEF, ModalidadEF, SesionEF } from '../types/ef';
 import type { InlineFile } from '../services/gemini';
 import { ValorarRegistro } from '../components/ValorarRegistro';
+import { useClaseActiva, useRecordarClase } from '../hooks/useClaseActiva';
+import { clasePedida } from '../lib/claseActiva';
+import { BotonDarLaClase } from '../components/darLaClase/BotonDarLaClase';
 
 /** La sesión sin sus imágenes: lo que se compara y lo que va al borrador. */
 const sinImagenes = (s: SesionEF): SesionEF => (s.imagenes ? (({ imagenes: _i, ...r }) => { void _i; return r; })(s) : s);
@@ -76,7 +82,9 @@ interface Props {
   /** Para valorar a la clase con un instrumento de la sesión, sin salir de ella. */
   evaluations?: Evaluation[];
   lawDocument?: InlineFile | null;
-  onAddEvaluation?: (ev: Evaluation) => void;
+  onAddEvaluation?: (ev: Evaluation, opciones?: { otroTrabajo?: boolean }) => void;
+  /** Corregir una evaluación ya hecha: la ventana de evaluar a la clase actualiza la de hoy en vez de crear otra. */
+  onUpdateEvaluation?: (ev: Evaluation) => void;
   /** Educación Física (con su banco, circuitos e IA de sesiones) o docente de aula; por defecto, EF. */
   perfil?: 'ef' | 'aula';
   /** Las situaciones de aprendizaje, para asociarles sesiones o crear una con ellas. */
@@ -84,6 +92,12 @@ interface Props {
   onSaveSda?: (s: LearningSituation) => void;
   /** Ir a Situaciones de aprendizaje. */
   onAbrirSda?: () => void;
+  /** Los eventos de la Agenda: al poner fechas se avisa si uno cae en un día propuesto. */
+  calEvents?: CalEvent[];
+  /** Se llama justo antes de cambiar las fechas de varias sesiones, para que el cambio se pueda deshacer. */
+  onApuntarCambio?: (cuantas: number) => void;
+  /** «Dar la clase»: abre la pizarra con la sesión montada en el plan del día. */
+  onDarLaClase?: (s: SesionEF) => void;
 }
 
 const EvalRubricaModal = lazy(() => import('./Rubrics').then(m => ({ default: m.EvalModal })));
@@ -116,7 +130,8 @@ function minutosDeClase(blocks: ScheduleBlock[], claseId: string, fecha: string)
 
 export function Sesiones({
   classes, students, scheduleBlocks, ef, onChangeEf, comunidad, rubrics = [], dianas = [], onAddDiana, onNav, evaluations = [], lawDocument = null,
-  onAddEvaluation, perfil = 'ef', learningSituations = [], onSaveSda, onAbrirSda, acsAula = [],
+  onAddEvaluation, onUpdateEvaluation, perfil = 'ef', learningSituations = [], onSaveSda, onAbrirSda, acsAula = [],
+  calEvents = [], onApuntarCambio, onDarLaClase,
 }: Props) {
   const { t, lang, locale } = useI18n();
   const { toast } = useToast();
@@ -130,7 +145,14 @@ export function Sesiones({
   const [altSel, setAltSel] = useState<string[]>([]);
   const esEF = perfil === 'ef';
   /** La clase abierta (`''` = sesiones sin clase); `null`, la portada con las tarjetas. */
-  const [claseVista, setClaseVista] = useState<string | null>(null);
+  // Quien llega con una clase pedida (un apunte de la Agenda) entra ya en ella, no en la portada
+  const [claseVista, setClaseVista] = useState<string | null>(() => {
+    const pedida = clasePedida();
+    return pedida && classes.some(c => c.id === pedida) ? pedida : null;
+  });
+  // Una sesión nueva sin clase abierta empieza en la clase activa (la de ahora o la última con la que se trabajó)
+  const [claseActiva] = useClaseActiva(classes);
+  const recordarClase = useRecordarClase();
   /** Sesiones por asociar a una SdA y sesiones con las que crear una SdA nueva. */
   const [asociando, setAsociando] = useState<string[] | null>(null);
   const [creandoSda, setCreandoSda] = useState<string[] | null>(null);
@@ -142,6 +164,8 @@ export function Sesiones({
   /** Valorar a la clase con un instrumento de la sesión, sin salir de ella. */
   const [evaluando, setEvaluando] = useState<InstrumentoRefEF | null>(null);
   const [preview, setPreview] = useState<{ html: string; title: string } | null>(null);
+  /** «Poner fechas» a un grupo de sesiones, o «No se dio» desde una: la ventana que lo enseña antes de aplicarlo. */
+  const [fechando, setFechando] = useState<PeticionDeFechas | null>(null);
 
   /* Autoguardado: una sesión nueva (la prepare la IA o la escriba el docente) o con cambios, y sin guardar, se conserva */
   const borrador = useBorradorVentana<SesionEF>('sesion-ef', !!editando, s => s.titulo || s.objetivo);
@@ -235,13 +259,13 @@ export function Sesiones({
     toast(t('{n} sesiones copiadas a {clases}.', { n: nuevas.length, clases: destinos.map(c => c.name).join(', ') }));
   }
 
-  const vacia = (claseId: string | undefined = claseVista || classes[0]?.id): SesionEF => ({
+  const vacia = (claseId: string | undefined = claseVista || claseActiva || undefined): SesionEF => ({
     id: nuevoIdEF('ses'), titulo: '', claseId, fecha: hoy, ...(esEF && ef.instalaciones[0] ? { instalacionId: ef.instalaciones[0].id } : {}),
     objetivo: '', calentamiento: '', principal: '', calma: '', material: '', inclusion: '', planB: '',
   });
 
   function abrirIa() {
-    const claseId = classes[0]?.id ?? '';
+    const claseId = claseVista || claseActiva;
     setIa({ claseId, fecha: hoy, instalacionId: ef.instalaciones[0]?.id ?? '', tema: '', minutos: minutosDeClase(scheduleBlocks, claseId, hoy) ?? 55, banco: true, modalidad: '' });
   }
 
@@ -311,7 +335,7 @@ export function Sesiones({
   /* ── Acciones sobre varias sesiones ── */
   function eliminarVarias(ids: string[]) {
     if (ids.length === 0) return;
-    if (!window.confirm(t(ids.length === 1 ? '¿Eliminar la sesión elegida? No se puede deshacer.' : '¿Eliminar las {n} sesiones elegidas? No se puede deshacer.', { n: ids.length }))) return;
+    if (!window.confirm(t(ids.length === 1 ? '¿Eliminar la sesión elegida?' : '¿Eliminar las {n} sesiones elegidas?', { n: ids.length }))) return;
     onChangeEf(d => ({ ...d, sesiones: quitarSesiones(d.sesiones, new Set(ids)) }));
     toast(t(ids.length === 1 ? '{n} sesión eliminada.' : '{n} sesiones eliminadas.', { n: ids.length }));
   }
@@ -339,6 +363,32 @@ export function Sesiones({
   function sdaCreada(sda: LearningSituation, ids: string[]) {
     onSaveSda?.(sda);
     onChangeEf(d => ({ ...d, sesiones: asociarASda(d.sesiones, ids, sda.id) }));
+  }
+
+  /* ── Poner fechas y «No se dio» ── */
+  /** Lo que hace falta para fechar un grupo: su clase, sus sesiones en orden y por dónde proponer la asignatura. */
+  function peticionDe(g: GrupoSda, modo: PeticionDeFechas['modo'], desdeId?: string): PeticionDeFechas {
+    const claseId = g.sesiones[0]?.claseId && classes.some(c => c.id === g.sesiones[0].claseId) ? g.sesiones[0].claseId : undefined;
+    return {
+      modo, claseId, sesiones: g.sesiones, ...(desdeId ? { desdeId } : {}),
+      grupo: g.sda?.title ?? t('Sin situación de aprendizaje'), clave: `${claseId ?? ''}|${g.key}`,
+      pistas: [...(g.sda?.request.areas ?? []), ...(esEF ? ['Educación Física', 'EF'] : [])],
+    };
+  }
+
+  /** «No se dio»: el grupo de la sesión (las de su clase y su situación de aprendizaje), como se ve en la pantalla. */
+  function abrirNoSeDio(s: SesionEF) {
+    const grupo = agruparPorSda(sesionesAbiertas.filter(x => !x.archivada), sdasDeLaClase(claseAbierta?.id)).find(g => g.sesiones.some(x => x.id === s.id));
+    if (grupo) setFechando(peticionDe(grupo, 'correr', s.id));
+  }
+
+  function ponerFechas(propuestas: FechaPropuesta[]) {
+    setFechando(null);
+    if (propuestas.length === 0) return;
+    // Se apunta antes de cambiar: el aviso de «Deshacer» devuelve las fechas de antes
+    onApuntarCambio?.(propuestas.length);
+    onChangeEf(d => ({ ...d, sesiones: aplicarFechas(d.sesiones, propuestas) }));
+    if (!onApuntarCambio) toast(t(propuestas.length === 1 ? 'Fecha cambiada a {n} sesión.' : 'Fecha cambiada a {n} sesiones.', { n: propuestas.length }));
   }
 
   async function pdf(s: SesionEF) {
@@ -410,6 +460,14 @@ export function Sesiones({
           </span>
           {s.objetivo.trim() && <span className="ap-sub">{s.objetivo}</span>}
         </button>
+        {!seleccion && s.fecha && !s.completada && !s.archivada && (
+          <button type="button" className={`ses-nodio${s.fecha < hoy ? ' atrasada' : ''}`} onClick={() => abrirNoSeDio(s)}
+            title={t('No se dio: correr esta y las siguientes')}
+            aria-label={t('«{nombre}» no se dio: correr esta y las siguientes', { nombre: s.titulo || t('Sin título') })}>
+            <CalendarX2 size={17} aria-hidden="true" />{s.fecha < hoy && <span>{t('No se dio')}</span>}
+          </button>
+        )}
+        {onDarLaClase && !s.archivada && !seleccion && <BotonDarLaClase compacto titulo={s.titulo} onClick={() => onDarLaClase(s)} />}
       </li>
     );
   };
@@ -427,7 +485,7 @@ export function Sesiones({
     <section className="sec active ap-page">
       <div className="pg-hd">
         <div>
-          <h1 className="pg-title">{t('Sesiones')}</h1>
+          <h1 className="pg-title">{t('Sesiones')}<AyudaVideo id="sesiones" /></h1>
           <p className="pg-sub">{t(esEF
             ? 'Calentamiento, parte principal y vuelta a la calma, con medidas para quien tiene una limitación (DUA-A) y un plan B. Una tarjeta por clase y, dentro, agrupadas por situación de aprendizaje.'
             : 'Inicio, desarrollo y cierre de cada clase, con medidas de inclusión y un plan B. Una tarjeta por clase y, dentro, agrupadas por situación de aprendizaje.')}</p>
@@ -460,7 +518,7 @@ export function Sesiones({
               </div>
             );
           })()}
-          <ClasesDeSesiones classes={classes} sesiones={ef.sesiones} hoy={hoy} onAbrir={setClaseVista} onNueva={id => setEditando(vacia(id))} />
+          <ClasesDeSesiones classes={classes} sesiones={ef.sesiones} hoy={hoy} onAbrir={id => { recordarClase(id); setClaseVista(id); }} onNueva={id => setEditando(vacia(id))} />
         </>
       ) : (
         <SesionesDeClase
@@ -470,9 +528,14 @@ export function Sesiones({
           onEliminar={eliminarVarias} onArchivar={archivarVarias} onOrdenar={ordenarVarias}
           onAsociar={ids => setAsociando(ids)} onCrearSda={ids => setCreandoSda(ids)}
           onAbrirSda={onAbrirSda} puedeCrearSda={!!onSaveSda}
+          onPonerFechas={g => setFechando(peticionDe(g, 'poner'))}
         />
       )}
 
+      <PonerFechas
+        peticion={fechando} classes={classes} bloques={scheduleBlocks} eventos={calEvents} comunidad={comunidad}
+        onAplicar={ponerFechas} onClose={() => setFechando(null)}
+      />
       <AsociarASda
         open={!!asociando} onClose={() => setAsociando(null)} cuantas={asociando?.length ?? 0}
         sdas={learningSituations} claseId={claseAbierta?.id} onElegir={asociarVarias}
@@ -692,7 +755,7 @@ export function Sesiones({
       </Modal>
 
       {evaluando && editando && (() => {
-        const alGuardar = (ev: Evaluation) => onAddEvaluation?.(ev);
+        const alGuardar = (ev: Evaluation, opciones?: { otroTrabajo?: boolean }) => onAddEvaluation?.(ev, opciones);
         const cerrar = () => setEvaluando(null);
         const rubrica = evaluando.tipo === 'rubrica' ? rubrics.find(r => r.id === evaluando.id) : undefined;
         const diana = evaluando.tipo !== 'rubrica' ? dianas.find(d => d.id === evaluando.id) : undefined;
@@ -704,10 +767,12 @@ export function Sesiones({
             )}
             {evaluando.tipo === 'rubrica' && rubrica && (
               <EvalRubricaModal open rubric={rubrica} classes={classes} students={students} lawDocument={lawDocument}
+                evaluations={evaluations} scheduleBlocks={scheduleBlocks} onUpdate={onUpdateEvaluation}
                 defaultClassId={editando.claseId} onClose={cerrar} onSave={alGuardar} />
             )}
             {evaluando.tipo === 'diana' && diana && (
               <EvalDianaModal open diana={diana} classes={classes} students={students}
+                evaluations={evaluations} scheduleBlocks={scheduleBlocks} onUpdate={onUpdateEvaluation}
                 defaultClassId={editando.claseId} onClose={cerrar} onSave={alGuardar} />
             )}
           </Suspense>

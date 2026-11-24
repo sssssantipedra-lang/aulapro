@@ -1,6 +1,7 @@
 import type { User, Class, Student, ScheduleBlock, CalEvent, Task, Rubric, Evaluation, EvalDiana, DianaProfile, GradeCategory, GradeItem, GradeMap, ClassMark, MarksBlockConfig, OfficialCriterionRef } from '../types';
 import { gradeFromLevels, levelsOf, competencyScoresFor } from '../types';
 import { isoDate, LOMLOE_TO_DIANA } from './utils';
+import { diaDeEjemplo, evaluacionDe } from './periodos';
 import type { ComunidadId } from './curriculum/comunidades';
 import { translate, type Lang } from '../i18n/core';
 import { nombreDeAlumnoDeEjemplo } from '../i18n/demo';
@@ -136,11 +137,20 @@ function daysFromNow(n: number): string {
   return isoDate(d);
 }
 
+/**
+ * Fecha de lo que cuenta en el cuaderno y en el acta (actividades, anotaciones, evaluaciones): N días atrás,
+ * sin salirse de la evaluación en curso. El cuaderno enseña una evaluación cada vez (20-11-2026): con las
+ * fechas tal cual, quien explorase la app al empezar un trimestre vería el cuaderno de ejemplo casi vacío.
+ */
+function diaDelCuaderno(n: number): string {
+  return diaDeEjemplo(daysFromNow(n), isoDate());
+}
+
 function buildDemoEvents(tr: Tr): CalEvent[] {
   return [
     { id: 'ev1', name: tr('Entrega notas 1ª Eval.'), date: daysFromNow(3), time: '09:00', type: 'deadline', urgency: 'alta', color: '#ef4444', desc: tr('Plazo máximo de entrega a jefatura') },
     { id: 'ev2', name: tr('Reunión Orientación'), date: daysFromNow(5), time: '11:30', type: 'meeting', urgency: 'media', color: '#f59e0b', desc: tr('Con el departamento de orientación') },
-    { id: 'ev3', name: tr('Excursión 3º ESO A'), date: daysFromNow(8), time: '08:30', type: 'event', urgency: 'baja', color: '#10b981', desc: tr('Visita al museo de ciencias') },
+    { id: 'ev3', name: tr('Excursión 3º ESO A'), date: daysFromNow(8), time: '08:30', type: 'event', urgency: 'baja', color: '#10b981', desc: tr('Visita al museo de ciencias'), classId: 'c3' },
     { id: 'ev4', name: tr('Claustro trimestral'), date: daysFromNow(12), time: '17:00', type: 'meeting', urgency: 'media', color: '#8b5cf6', desc: '' },
   ];
 }
@@ -248,7 +258,7 @@ function demoEvaluations(alumno: (n: number) => string, rubrics: Rubric[], diana
     out.push({
       id: `dev${out.length + 1}`, rubric_id: inst.id, rubric_name: inst.name, instrument,
       student_id: sid(n), student_name: alumno(n), class_id: classId,
-      date: daysFromNow(-2 - (out.length % 12)), scores, notes: '', max_level: max,
+      date: diaDelCuaderno(-2 - (out.length % 12)), scores, notes: '', max_level: max,
       grade: gradeFromLevels(scores, items.map(it => it.id), levels, instrument === 'diana' ? weights : undefined) ?? undefined,
       competencyScores: competencyScoresFor(items, scores),
       officialCriteriaScores: notasDeCriterios(items, scores, max),
@@ -285,11 +295,15 @@ function demoDianaProfiles(tr: Tr, evaluations: Evaluation[]): Record<string, Di
       }
     }
     const sectores = Object.keys(valores);
-    out[n] = {
+    const diana = {
       scores: Object.fromEntries(sectores.map(k => [k, Math.max(1, Math.min(4, Math.round(valores[k].reduce((a, b) => a + b, 0) / valores[k].length)))])),
       descriptors: Object.fromEntries(sectores.map(k => [k, tr('Calculado a partir de: {resumen}', { resumen: [...fuentes[k]].join(', ') })])),
       updated: daysFromNow(-1),
     };
+    // La Diana va por evaluación y se abre en la de hoy (20-11-2026): la de ejemplo se guarda también en ella, o
+    // quien explora la app (y las capturas de la web) vería una Diana vacía al elegir a un alumno. Es la misma
+    // que la del curso porque todas las evaluaciones de ejemplo caen en la evaluación en curso (`diaDelCuaderno`)
+    out[n] = { ...diana, porEvaluacion: { [evaluacionDe(isoDate())]: diana } };
   }
   return out;
 }
@@ -325,7 +339,7 @@ const COLUMNAS: { sufijo: string; cat: 'pruebas' | 'tareas'; nombre: string; dia
 
 function buildDemoGradeItems(tr: Tr): GradeItem[] {
   return CLASES.flatMap(c => COLUMNAS.map(col => ({
-    id: `${c.id}-${col.sufijo}`, class_id: c.id, category_id: `${c.id}-${col.cat}`, name: tr(col.nombre), date: daysFromNow(col.dias),
+    id: `${c.id}-${col.sufijo}`, class_id: c.id, category_id: `${c.id}-${col.cat}`, name: tr(col.nombre), date: diaDelCuaderno(col.dias),
   })));
 }
 
@@ -350,7 +364,7 @@ function buildDemoGrades(): GradeMap {
 function buildDemoMarks(): ClassMark[] {
   const out: ClassMark[] = [];
   const m = (class_id: string, n: number, type: ClassMark['type'], days: number) =>
-    out.push({ id: `mk${out.length + 1}`, class_id, student_id: sid(n), type, date: daysFromNow(days) });
+    out.push({ id: `mk${out.length + 1}`, class_id, student_id: sid(n), type, date: diaDelCuaderno(days) });
   CLASES.forEach((c, i) => {
     for (const n of alumnosDe(i)) {
       if (nivel(n) < 5.5) { m(c.id, n, 'homework', -6); m(c.id, n, 'homework', -2); }

@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2, Target, X, Sparkles, ClipboardCheck, Copy, FileDown } from 'lucide-react';
-import type { EvalDiana, DianaItem, Evaluation, Class, Student, GradeCategory, GradeTarget } from '../types';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Plus, Pencil, Trash2, Target, X, Sparkles, Copy, FileDown } from 'lucide-react';
+import type { EvalDiana, DianaItem, Evaluation, Class, Student, GradeCategory, GradeTarget, ScheduleBlock } from '../types';
 import { GradeTargetsPicker } from '../components/GradeTargetPicker';
 import { buildDianaHtml, guardarInstrumentoPdf, nombresDeClases } from '../services/exportInstrumento';
 import type { InlineFile } from '../services/gemini';
 import { callGemini, parseGeminiJson } from '../services/gemini';
-import { competenciasClaveValidas, isoDate, newId } from '../lib/utils';
+import { competenciasClaveValidas, isoDate } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
 import { DianaBoard } from '../components/diana/DianaBoard';
 import { dianaGrade } from '../components/diana/dianaGrade';
@@ -23,6 +23,12 @@ import { useI18n } from '../i18n';
 import { clasesDe, objetivoPara } from '../lib/objetivos';
 import { useBorradorVentana } from '../hooks/useBorrador';
 import { AvisoBorrador } from '../components/AvisoBorrador';
+import { AbrirArchivoDeInstrumento, GuardarInstrumentoComoArchivo } from '../components/evaluar/ArchivoDeInstrumento';
+import { AiKeyNotice } from '../components/ui/AiKeyNotice';
+import { useHayClaveIA } from '../hooks/useClaveIA';
+import { idDeEvaluacion, type Marcado } from '../lib/evaluarClase';
+import { useEvaluarClase, type GuardarEvaluacion } from '../hooks/useEvaluarClase';
+import { AlumnoQueSeEvalua, CabeceraDeEvaluarClase, ListaDeClase, PieDeEvaluarClase } from '../components/evaluar/EvaluarClasePartes';
 
 interface Props {
   dianas: EvalDiana[];
@@ -34,7 +40,11 @@ interface Props {
   onAddDiana: (d: EvalDiana) => void;
   onUpdateDiana: (d: EvalDiana) => void;
   onDeleteDiana: (id: string) => void;
-  onAddEvaluation: (ev: Evaluation) => void;
+  onAddEvaluation: GuardarEvaluacion;
+  /** Corregir una evaluación ya hecha (al volver a un alumno evaluado hoy, la ventana la actualiza en vez de crear otra). */
+  onUpdateEvaluation?: (ev: Evaluation) => void;
+  /** El horario: la ventana de evaluar se abre con la clase que toca. */
+  scheduleBlocks?: ScheduleBlock[];
   /** La comunidad del perfil: de su currículo salen los criterios oficiales que se pueden marcar. */
   comunidad?: ComunidadId;
 }
@@ -75,7 +85,9 @@ interface DianaModalProps {
 function DianaModal({ open, inicial, onCambio, editing, classes, gradeCategories, lawDocument, onClose, onSave, comunidad }: DianaModalProps) {
   const { toast } = useToast();
   const { t, lang } = useI18n();
-  const [mode, setMode] = useState<'ia' | 'manual'>('ia');
+  // Sin clave de la IA no se abre en la pestaña de la IA; al día, por si la clave se pone en su ventana, encima de esta
+  const sinClave = !useHayClaveIA();
+  const [mode, setMode] = useState<'ia' | 'manual'>(sinClave ? 'manual' : 'ia');
 
   const [aiContext, setAiContext] = useState('');
   const [aiCount, setAiCount]     = useState(5);
@@ -124,7 +136,7 @@ function DianaModal({ open, inicial, onCambio, editing, classes, gradeCategories
     } else {
       setTarget({});
       setLevels(defaultLevels(lang));
-      setMode('ia');
+      setMode(sinClave ? 'manual' : 'ia');
       setName('');
       setItems([blankItem()]);
       setAiContext('');
@@ -334,6 +346,12 @@ function DianaModal({ open, inicial, onCambio, editing, classes, gradeCategories
 
         {mode === 'ia' ? (
           <div>
+            {sinClave && (
+              <AiKeyNotice
+                message={t('Para que la IA escriba la diana hace falta la clave gratuita de Google. Sin ella puedes escribirla a mano.')}
+                action={t('Configurar la IA')}
+              />
+            )}
             <div className="fgroup">
               <label className="flabel" htmlFor="evaldianas-f2">{t('¿Qué quieres evaluar? *')}</label>
               <textarea
@@ -354,7 +372,7 @@ function DianaModal({ open, inicial, onCambio, editing, classes, gradeCategories
             </div>
             <button
               className="btn-ia"
-              disabled={!aiContext.trim() || generating}
+              disabled={!aiContext.trim() || generating || sinClave}
               onClick={handleGenerate}
               style={{ width: '100%', justifyContent: 'center' }}
             >
@@ -482,70 +500,68 @@ interface DianaEvalProps {
   diana: EvalDiana | null;
   classes: Class[];
   students: Student[];
+  /** Las evaluaciones ya hechas: quién está evaluado y, al entrar en un alumno evaluado hoy, lo que se le marcó. */
+  evaluations?: Evaluation[];
+  /** El horario, para abrir con la clase que toca. */
+  scheduleBlocks?: ScheduleBlock[];
+  /** Una evaluación ya hecha que se abre para corregirla (desde el Historial). */
+  corrigiendo?: Evaluation | null;
   onClose: () => void;
-  onSave: (ev: Evaluation) => void;
+  onSave: GuardarEvaluacion;
+  /** Actualizar una evaluación ya hecha, en vez de crear otra. */
+  onUpdate?: (ev: Evaluation) => void;
 }
 
-/** Evaluar a un alumno con una diana. También lo usan las sesiones de EF. */
-export function DianaEvalModal({ open, defaultClassId, diana, classes, students, onClose, onSave }: DianaEvalProps) {
-  const { toast } = useToast();
+/**
+ * Evaluar a la clase con una diana (20-11-2026; antes, un alumno por ventana): la lista del alumnado al
+ * lado, «Guardar y siguiente» sin cerrar y «Poner a todos este nivel» (`hooks/useEvaluarClase.ts`). Con
+ * `corrigiendo`, corrige una evaluación ya hecha. También lo usan las sesiones de EF y el Historial.
+ */
+export function DianaEvalModal({ open, defaultClassId, diana, classes, students, evaluations, scheduleBlocks, corrigiendo, onClose, onSave, onUpdate }: DianaEvalProps) {
   const { t, locale } = useI18n();
-  const [classId, setClassId]   = useState('');
-  const [studentId, setStudentId] = useState('');
-  const [scores, setScores]     = useState<Record<string, number>>({});
-  const [notes, setNotes]       = useState('');
+  const caja = useRef<HTMLDivElement>(null);
 
-  useResetOnChange(`${open}:${diana?.id ?? ''}:${defaultClassId ?? ''}`, () => {
-    if (!open) return;
-    // La diana ya sabe a qué clase va: no hacer elegir lo que no tiene opción.
-    setClassId(defaultClassId && (!diana || !clasesDe(diana).length || clasesDe(diana).includes(defaultClassId)) ? defaultClassId : diana?.class_id ?? '');
-    setStudentId('');
-    setScores({});
-    setNotes('');
+  /** La evaluación de un alumno con lo marcado. Lo que no se marca no cuenta: la nota sale solo de lo marcado. */
+  function construir(alumno: { id: string; name: string }, clase: string, m: Marcado): Evaluation {
+    const d = diana!;
+    const tope = Math.max(...levelsOf(d).map(l => l.value));
+    return {
+      id: idDeEvaluacion(),
+      rubric_id: d.id,
+      rubric_name: d.name,
+      student_id: alumno.id,
+      student_name: alumno.name,
+      class_id: clase,
+      date: isoDate(),
+      scores: m.scores,
+      notes: m.notes,
+      instrument: 'diana',
+      max_level: tope,
+      grade: dianaGrade(d.items, m.scores, d.levels) ?? undefined,
+      competencyScores: competencyScoresFor(d.items, m.scores),
+      officialCriteriaScores: officialCriteriaScoresFor(d.items, m.scores, tope),
+    };
+  }
+
+  const clase = useEvaluarClase({
+    open, instrumento: diana, tipo: 'diana', ids: diana?.items.map(i => i.id) ?? [], niveles: levelsOf(diana).map(l => l.value),
+    classes, students, evaluations, scheduleBlocks, defaultClassId, corrigiendo,
+    construir, onSave, onUpdate, onClose,
   });
+  const { scores, notes, setScores, setNotes, studentId } = clase;
 
   if (!diana) return null;
 
-  const classStudents = students.filter(s => s.class_id === classId);
-
-  // Igual que en las rúbricas: atada a una clase, esa es la única; y se muestra
-  // la asignatura de la diana, no la principal de la clase, que puede ser otra.
-  const evalClasses = clasesDe(diana).length ? classes.filter(c => clasesDe(diana).includes(c.id)) : classes;
+  // Igual que en las rúbricas: atada a una clase, esa es la única (`evalClasses` de `useEvaluarClase`); y se
+  // muestra la asignatura de la diana, no la principal de la clase, que puede ser otra.
   const subjectLabel = (c: { id: string; subject: string }) => objetivoPara(diana, c.id)?.subject || c.subject;
   const scale = levelsOf(diana);
   const grade = dianaGrade(diana.items, scores, diana.levels);
   const done = diana.items.filter(i => scores[i.id]).length;
-  const sinMarcar = diana.items.length - done;
-
-  function handleSave() {
-    if (!studentId) { toast(t('Elige el alumno al que evalúas')); return; }
-    if (done === 0) { toast(t('Marca al menos un ítem en la diana')); return; }
-    if (sinMarcar > 0 && !window.confirm(t(sinMarcar === 1
-      ? 'Queda {n} ítem sin marcar: la nota se calculará solo con lo marcado. ¿Guardar así?'
-      : 'Quedan {n} ítems sin marcar: la nota se calculará solo con lo marcado. ¿Guardar así?', { n: sinMarcar }))) return;
-    const student = students.find(s => s.id === studentId);
-    onSave({
-      id: newId('ev'),
-      rubric_id: diana!.id,
-      rubric_name: diana!.name,
-      student_id: studentId,
-      student_name: student?.name ?? '',
-      class_id: classId,
-      date: isoDate(),
-      scores,
-      notes,
-      instrument: 'diana',
-      max_level: Math.max(...levelsOf(diana).map(l => l.value)),
-      grade: grade ?? undefined,
-      competencyScores: competencyScoresFor(diana!.items, scores),
-      officialCriteriaScores: officialCriteriaScoresFor(diana!.items, scores, Math.max(...levelsOf(diana).map(l => l.value))),
-    });
-    onClose();
-  }
 
   return (
-    <div className={`modal-overlay${open ? ' open' : ''}`} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="modal wide" style={{ maxHeight: '92vh', width: 780 }}>
+    <div className={`modal-overlay${open ? ' open' : ''}`} onClick={e => { if (e.target === e.currentTarget) clase.cerrar(); }}>
+      <div ref={caja} className={`modal wide evc-modal evc-diana${clase.enClase ? ' evc-con-lista' : ''}`} role="dialog" aria-modal="true" aria-label={diana.name}>
         <div className="modal-hd">
           <div>
             <div className="modal-title">{diana.name}</div>
@@ -553,27 +569,18 @@ export function DianaEvalModal({ open, defaultClassId, diana, classes, students,
               {t('Haz clic en cada sector para marcar el nivel de logro')}
             </p>
           </div>
-          <button className="ico-btn" onClick={onClose} aria-label={t('Cerrar')} title={t('Cerrar')}><X size={18} /></button>
+          <button className="ico-btn" onClick={clase.cerrar} aria-label={t('Cerrar')} title={t('Cerrar')}><X size={18} /></button>
         </div>
 
-        <div className="frow" style={{ marginBottom: 16 }}>
-          <div className="fgroup" style={{ marginBottom: 0 }}>
-            <label className="flabel" htmlFor="evaldianas-f5">{t('Clase')}</label>
-            <select id="evaldianas-f5" className="finput" value={classId} onChange={e => { setClassId(e.target.value); setStudentId(''); }} style={{ cursor: 'pointer' }}>
-              <option value="">{t('Selecciona clase…')}</option>
-              {evalClasses.map(c => <option key={c.id} value={c.id}>{c.name} – {subjectLabel(c)}</option>)}
-            </select>
-          </div>
-          <div className="fgroup" style={{ marginBottom: 0 }}>
-            <label className="flabel" htmlFor="evaldianas-f6">{t('Alumno')}</label>
-            <select id="evaldianas-f6" className="finput" value={studentId} onChange={e => setStudentId(e.target.value)} disabled={!classId} style={{ cursor: 'pointer' }}>
-              <option value="">{t('Selecciona alumno…')}</option>
-              {classStudents.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-            </select>
-          </div>
-        </div>
+        {/* La clase se elige una vez; el alumnado, en la lista */}
+        <CabeceraDeEvaluarClase clase={clase} asignatura={subjectLabel} idSelect="evaldianas-f5" />
 
-        <div className="stack-sm" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 260px', gap: 18, alignItems: 'start' }}>
+        <div className="evc-cuerpo">
+        {clase.enClase && <ListaDeClase clase={clase} niveles={scale} />}
+        <div className="evc-ficha">
+        <AlumnoQueSeEvalua clase={clase} />
+        {studentId && <>
+        <div className="evc-diana-zona" style={{ display: 'grid', gap: 18, alignItems: 'start' }}>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', background: 'var(--surface)', borderRadius: 12, padding: '18px 12px' }}>
             <DianaBoard items={diana.items} scores={scores} levels={diana.levels}
               onSetScore={(id, lv) => setScores(p => ({ ...p, [id]: p[id] === lv ? 0 : lv }))} />
@@ -644,12 +651,16 @@ export function DianaEvalModal({ open, defaultClassId, diana, classes, students,
           />
         </div>
 
-        <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', paddingTop: 12, borderTop: '0.5px solid var(--border)' }}>
-          <button className="btn-ghost" onClick={onClose}>{t('Cancelar')}</button>
-          <button className="btn-accent" onClick={handleSave}>
-            <ClipboardCheck size={14} />{t('Guardar evaluación')}
-          </button>
+        </>}
         </div>
+        </div>
+
+        <PieDeEvaluarClase clase={clase} alGuardar={() => caja.current?.scrollTo?.({ top: 0 })}>
+          {studentId && grade !== null && <>
+            <span style={{ fontSize: 13, color: 'var(--text-2)', fontWeight: 600 }}>{t('Nota calculada')}</span>
+            <span className="score-pill">{grade.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</span>
+          </>}
+        </PieDeEvaluarClase>
       </div>
     </div>
   );
@@ -659,10 +670,10 @@ export function DianaEvalModal({ open, defaultClassId, diana, classes, students,
 
 export function DianasTab({
   dianas, evaluations, classes, students, gradeCategories, lawDocument,
-  onAddDiana, onUpdateDiana, onDeleteDiana, onAddEvaluation, comunidad,
+  onAddDiana, onUpdateDiana, onDeleteDiana, onAddEvaluation, onUpdateEvaluation, scheduleBlocks, comunidad,
 }: Props) {
   const { toast } = useToast();
-  const { t, locale, lang } = useI18n();
+  const { t, lang } = useI18n();
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing]     = useState<EvalDiana | null>(null);
   // Una diana que se cerró o se quedó a medias: se ofrece continuarla
@@ -682,6 +693,12 @@ export function DianasTab({
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
   function openNew()  { setEditing(null); setInicial(null); setModalOpen(true); }
+  /** Una diana guardada como archivo (`lib/archivoInstrumento.ts`) se abre en el editor, sin clase: el docente elige las suyas y la guarda. */
+  function abrirArchivo(d: Pick<EvalDiana, 'name' | 'items' | 'levels'>) {
+    setEditing(null);
+    setInicial({ mode: 'manual', aiContext: '', aiCount: 5, name: d.name, items: d.items, target: {}, levels: d.levels ?? defaultLevels(lang) });
+    setModalOpen(true);
+  }
   function openEdit(d: EvalDiana) { setEditing(d); setModalOpen(true); }
   function openEval(d: EvalDiana) { setEvalDiana(d); setEvalOpen(true); }
 
@@ -716,6 +733,7 @@ export function DianasTab({
         <p style={{ fontSize: 12.5, color: 'var(--text-2)', flex: 1, lineHeight: 1.5 }}>
           {t('Marca el nivel de logro de cada ítem y la nota sobre 10 se calcula sola.')}
         </p>
+        <AbrirArchivoDeInstrumento tipo="diana" onDiana={abrirArchivo} />
         <button className="btn-accent" onClick={openNew}>
           <Plus size={15} />{t('Nueva diana')}
         </button>
@@ -752,6 +770,7 @@ export function DianasTab({
                   <div style={{ display: 'flex', gap: 2, marginLeft: 8, flexShrink: 0 }}>
                     <button className="ico-btn" onClick={() => openEdit(d)} title={t('Editar diana')}><Pencil size={14} /></button>
                     <button className="ico-btn" onClick={() => descargarPdf(d)} title={t('Descargar en PDF')} aria-label={t('Descargar «{nombre}» en PDF', { nombre: d.name })}><FileDown size={14} /></button>
+                    <GuardarInstrumentoComoArchivo diana={d} />
                     <button className="ico-btn" onClick={() => duplicate(d)} title={t('Duplicar diana')}><Copy size={14} /></button>
                     <button className="ico-btn" onClick={() => setConfirmDelete(d.id)} title={t('Eliminar diana')}><Trash2 size={14} color="var(--danger)" /></button>
                   </div>
@@ -781,7 +800,7 @@ export function DianasTab({
                 </div>
 
                 <button className="btn-accent" onClick={() => openEval(d)} style={{ justifyContent: 'center', width: '100%' }}>
-                  <Target size={14} />{t('Evaluar alumno')}
+                  <Target size={14} />{t('Evaluar a la clase')}
                 </button>
               </div>
             );
@@ -810,14 +829,12 @@ export function DianasTab({
         diana={evalDiana}
         classes={classes}
         students={students}
+        evaluations={evaluations}
+        scheduleBlocks={scheduleBlocks}
         onClose={() => setEvalOpen(false)}
-        onSave={ev => {
-          onAddEvaluation(ev);
-          const gradeStr = typeof ev.grade === 'number'
-            ? ev.grade.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })
-            : '—';
-          toast(t('✅ Evaluación guardada — nota {grade}', { grade: gradeStr }));
-        }}
+        // El aviso de «guardada» lo da la propia ventana, que ahora guarda a varios alumnos seguidos
+        onSave={onAddEvaluation}
+        onUpdate={onUpdateEvaluation}
       />
 
       {/* Confirmar borrado */}

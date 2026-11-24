@@ -5,6 +5,7 @@
  * menú abre siempre esta pantalla (`portada` en lib/navigation.ts).
  */
 import { useEffect, useMemo, useState } from 'react';
+import { AyudaVideo } from '../components/AyudaVideo';
 import { ArrowRight, Flag, LayoutGrid, Presentation, Smartphone, UserCheck } from 'lucide-react';
 import type { Class, ClassMark, ScheduleBlock, SeatingPlan, Section } from '../types';
 import { bloqueQueToca, enMarcha } from '../lib/claseQueToca';
@@ -13,6 +14,9 @@ import { useCalendarioEscolar } from '../hooks/useCalendarioEscolar';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
 import { isoDate } from '../lib/utils';
 import { useI18n } from '../i18n';
+import { useFijarClase } from '../hooks/useClaseActiva';
+import { BotonDarLaClase } from '../components/darLaClase/BotonDarLaClase';
+import { sesionesDeHoy, type FuenteDeSesiones, type OrigenPlan } from '../lib/darLaClase';
 
 interface Props {
   classes: Class[];
@@ -23,10 +27,16 @@ interface Props {
   comunidad?: ComunidadId;
   provincia?: import('../lib/provincias').ProvinciaId;
   onNav: (s: Section) => void;
+  /** Las sesiones preparadas: si la clase de la franja tiene una con fecha de hoy, «Dar la clase» la lleva a la pizarra. */
+  sesiones?: Pick<FuenteDeSesiones, 'sesiones' | 'sdas'>;
+  /** Abre la pizarra con la clase y, si se dice, la sesión montada en el plan del día (`darLaClase` en `App.tsx`). */
+  onDarLaClase?: (origen: OrigenPlan | null, claseId: string) => void;
 }
 
-export function EnClaseInicio({ classes, scheduleBlocks, classMarks, seatingPlans, comunidad, provincia, onNav }: Props) {
+export function EnClaseInicio({ classes, scheduleBlocks, classMarks, seatingPlans, comunidad, provincia, onNav, sesiones, onDarLaClase }: Props) {
   const { t } = useI18n();
+  // Los botones de la franja llevan a la clase que la franja enseña, también cuando es la siguiente y no la de ahora
+  const fijarClase = useFijarClase();
   // La hora se renueva cada medio minuto: sin esto, la clase de «ahora» se quedaba la de cuando se abrió la pantalla
   const [ahoraMs, setAhoraMs] = useState(() => Date.now());
   useEffect(() => {
@@ -49,6 +59,10 @@ export function EnClaseInicio({ classes, scheduleBlocks, classMarks, seatingPlan
   // bloqueQueToca da el que está en marcha o, si no, el siguiente
   const ahora = !!bloque && enMarcha(bloque, ahoraD);
   const cuenta = (n: number, uno: string, varios: string) => t(n === 1 ? uno : varios, { n });
+  // La sesión de hoy de esa clase, si está preparada: con una sola, «Dar la clase» la lleva ya montada; con
+  // varias (o ninguna), abre la pizarra con la clase y el plan del día, que ofrece las que hay
+  const deHoy = clase && sesiones ? sesionesDeHoy(sesiones, clase.id, hoy) : [];
+  const sesionDeHoy = deHoy.length === 1 ? deHoy[0] : null;
 
   const tarjetas: { id: Section; color: string; icono: React.ReactNode; titulo: string; texto: string; dato: string }[] = [
     {
@@ -81,7 +95,7 @@ export function EnClaseInicio({ classes, scheduleBlocks, classMarks, seatingPlan
     <section className="sec active">
       <div className="pg-hd">
         <div>
-          <h1 className="pg-title">{t('En clase')}</h1>
+          <h1 className="pg-title">{t('En clase')}<AyudaVideo id="pizarra" /></h1>
           <p className="pg-sub">{t('Lo que usas con el alumnado delante')}</p>
         </div>
       </div>
@@ -92,12 +106,23 @@ export function EnClaseInicio({ classes, scheduleBlocks, classMarks, seatingPlan
           <span className="ec-ahora-txt">
             <span className="ec-ahora-lbl">{t(ahora ? 'Ahora' : 'Siguiente')} · {bloque.time_start}–{bloque.time_end}</span>
             <strong>{clase.name}</strong>
+            {deHoy.length > 0 && (
+              <span className="dlc-ahora-sesion">
+                {sesionDeHoy ? `${t('Sesión de hoy')}: ${sesionDeHoy.titulo || t('Sin título')}` : t('{n} sesiones para hoy', { n: deHoy.length })}
+              </span>
+            )}
           </span>
           <span className="ec-ahora-acts">
-            <button type="button" className="btn-ghost" onClick={() => onNav('attendance')}>
+            {onDarLaClase && (
+              <BotonDarLaClase
+                principal titulo={sesionDeHoy?.titulo}
+                onClick={() => onDarLaClase(sesionDeHoy ? { tipo: 'sesion', id: sesionDeHoy.id } : null, clase.id)}
+              />
+            )}
+            <button type="button" className="btn-ghost" onClick={() => { fijarClase(clase.id); onNav('attendance'); }}>
               <UserCheck size={14} />{t('Pasar lista')}
             </button>
-            <button type="button" className="btn-accent" onClick={() => onNav('actitud')}>
+            <button type="button" className={onDarLaClase ? 'btn-ghost' : 'btn-accent'} onClick={() => { fijarClase(clase.id); onNav('actitud'); }}>
               <Flag size={14} />{t('Anotar actitud')}
             </button>
           </span>

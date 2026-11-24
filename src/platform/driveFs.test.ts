@@ -139,6 +139,7 @@ describe('Google Drive como carpeta (versión web)', () => {
     expect(vaADrive('AulaPro/perfiles/p1/copias/copia-1.json')).toBe(false);
     expect(vaADrive('AulaPro/perfiles/p1/datos.json')).toBe(true);
     expect(vaADrive('AulaPro/perfiles/p1/copias/copia-2026-06-30T10-00-00-antes-de-vaciar.json')).toBe(true);
+    expect(vaADrive('AulaPro/perfiles/p1/copias/copia-2026-06-30T10-00-00-antes-de-curso-nuevo.json')).toBe(true);
   });
 
   it('escribe, lee, lista y borra en la carpeta «AulaPro» de Drive', async () => {

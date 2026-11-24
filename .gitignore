@@ -59,3 +59,7 @@ web/sitio/en.html
 web/sitio/app/
 _pages/
 scripts/videos/.tmp-*
+
+# Modelo de voz de los vídeos de ayuda (scripts/videos/voces.py)
+scripts/videos/.modelos/
+.venv-voces/

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type SetStateAction } from 'react';
 import type {
   Class, Student, ScheduleBlock, CalEvent, Task, Rubric, Evaluation,
   GradeCategory, GradeItem, GradeMap, DianaProfile, EvalDiana,
@@ -6,8 +6,9 @@ import type {
   LearningSituation, Ficha, WorkSession, SeatingPlan, ClassMark, MarksBlockConfig,
 } from '../types';
 import { normalizeClass } from '../types';
-import { destinosDe, notaDeDestino, objetivoPara, objetivosDe } from '../lib/objetivos';
+import { columnaDeEvaluacion, destinosDe, notaDeDestino, objetivoPara, objetivosDe } from '../lib/objetivos';
 import { mismaEvaluacionDelDia } from '../lib/evaluacionDelDia';
+import { evaluacionVigente } from '../lib/evaluarClase';
 import { isoDate } from '../lib/utils';
 import { buildDemoData } from '../lib/demoData';
 import { buildDemoApoyo } from '../lib/demoApoyo';
@@ -31,6 +32,15 @@ import {
   pushEntry, newEntry, formatGrade, formatDay,
   type AuditEntry, type AuditAction, type AuditEntity,
 } from '../services/audit';
+import {
+  esCambio,
+  anotarBorrado, borradoAlPintar, borradoDeApoyo, borradoDeEF, loQueVuelve, textoDeBorrados,
+  type Borrado, type BorradoPendiente,
+} from '../lib/deshacer';
+import { translate } from '../i18n/core';
+import { cursoNuevoDe, type PlanDeCurso } from '../lib/cursoNuevo';
+import { apuntarCambioDeCurso } from '../lib/cursoAnterior';
+import { cambiosReales, conCambios, type CambioDeNota } from '../lib/pegarNotas';
 
 /** Cómo se lee cada estado de asistencia en el registro de cambios. */
 const ATT_LABEL: Record<AttendanceStatus, string> = {
@@ -73,6 +83,20 @@ interface ProfileSnapshot {
   ef: EfData;
   auditLog: AuditEntry[];
 }
+
+/**
+ * Lo que «Deshacer» puede reponer tras un borrado: todo el perfil menos el registro de cambios, que no vuelve
+ * atrás (el borrado y el haberlo deshecho quedan anotados los dos). Ver `lib/deshacer.ts`.
+ */
+type Reponible = Omit<ProfileSnapshot, 'auditLog'>;
+const REPONIBLES = [
+  'tasks', 'classes', 'students', 'blocks', 'events', 'rubrics', 'dianas', 'evaluations',
+  'gradeCategories', 'gradeItems', 'grades', 'dianaProfiles', 'attendance', 'reports', 'selfAssessments',
+  'learningSituations', 'fichas', 'workSessions', 'seatingPlans', 'classMarks', 'marksConfigs', 'apoyo', 'ef',
+] as const satisfies readonly (keyof Reponible)[];
+/** Si se añade una colección al perfil y no se apunta arriba, esto no compila: «Deshacer» no la repondría. */
+const REPONIBLES_COMPLETO: Exclude<keyof Reponible, (typeof REPONIBLES)[number]> extends never ? true : never = true;
+void REPONIBLES_COMPLETO;
 
 function emptySnapshot(): ProfileSnapshot {
   return {
@@ -190,6 +214,8 @@ export function useAppState() {
   const [apoyo, setApoyo]                     = useState<ApoyoData>(APOYO_VACIO);
   const [ef, setEf]                           = useState<EfData>(EF_VACIO);
   const [auditLog, setAuditLog]               = useState<AuditEntry[]>([]);
+  /** El último borrado, mientras se puede deshacer (más abajo, «Deshacer tras un borrado»). */
+  const [borradoPendiente, setBorradoPendiente] = useState<BorradoPendiente<Reponible> | null>(null);
 
   // El documento de normativa (base64, puede ser enorme) solo vive en memoria
   const [lawDocument, setLawDocument] = useState<{ name: string; mimeType: string; base64: string } | null>(null);
@@ -232,6 +258,8 @@ export function useAppState() {
     // La conversación con el asistente habla de los alumnos del perfil que se
     // acaba de dejar atrás: no puede seguir abierta en el siguiente.
     setChat([]);
+    // Y un borrado de antes de cargar otros datos (otro perfil, una copia) ya no se puede deshacer
+    setBorradoPendiente(null);
   }, []);
 
   /* ── Carga al entrar en un perfil ── */
@@ -285,6 +313,32 @@ export function useAppState() {
     ready, profileId, snapshot, retardo: SAVE_DELAY_MS,
     guardar: (id, datos) => store.saveData(id, datos as unknown as store.ProfileData),
   });
+
+  /* ── «Deshacer» tras un borrado (ver `lib/deshacer.ts`) ── */
+
+  /**
+   * El perfil tal como se pintó por última vez: de aquí sale el «antes» de cada borrado. Se apunta en el mismo
+   * momento en que se pinta (`useLayoutEffect`), no un instante después: si entre medias llegara un borrado,
+   * su «antes» sería el de un pintado atrás y deshacerlo se llevaría lo último que entró (una ficha recién
+   * generada, por ejemplo).
+   */
+  const pintadoRef = useRef<Reponible>(snapshot);
+  useLayoutEffect(() => { pintadoRef.current = snapshot; }, [snapshot]);
+
+  // Ajuste durante el pintado: el primero tras un borrado fija cómo ha quedado todo; en los siguientes, si se ha
+  // tocado algo de lo que el borrado cambió (o se ha cambiado de perfil), deja de poderse deshacer
+  const borradoAhora = borradoAlPintar(borradoPendiente, profileId, snapshot as Reponible, REPONIBLES);
+  if (borradoAhora !== borradoPendiente) setBorradoPendiente(borradoAhora);
+
+  const numeroDeBorrado = useRef(0);
+  /** Se llama justo antes de borrar, en el mismo gesto: guarda cómo está todo para poder reponerlo. */
+  const apuntarBorrado = useCallback((...borrados: Borrado[]) => {
+    const nuevo = { id: ++numeroDeBorrado.current, perfil: profileId, borrados, antes: pintadoRef.current };
+    setBorradoPendiente(prev => anotarBorrado(prev, nuevo));
+  }, [profileId]);
+
+  /** Retira el aviso (pasó su tiempo o se cerró): ya no se puede deshacer. */
+  const olvidarBorrado = useCallback(() => setBorradoPendiente(null), []);
 
   /* ── Copia de seguridad automática ── */
   useEffect(() => {
@@ -390,6 +444,30 @@ export function useAppState() {
     setAuditLog([newEntry(whoRef.current, 'delete', 'system', 'audit', 'Vació el registro de cambios')]);
   }, []);
 
+  /**
+   * Deshace el último borrado: repone cada colección que cambió, tal como estaba antes (lo borrado vuelve con
+   * todo lo que se fue con él). Solo mientras el aviso está a la vista; devuelve si se ha deshecho.
+   */
+  const deshacerBorrado = useCallback((): boolean => {
+    const p = borradoPendiente;
+    if (!p?.despues || p.perfil !== profileId) return false;
+    // Una por colección (el tipo lo exige): una colección nueva del perfil sin su línea aquí no compila
+    const reponer: { [K in keyof Reponible]: (valor: Reponible[K]) => void } = {
+      tasks: setTasks, classes: setClasses, students: setStudents, blocks: setScheduleBlocks, events: setCalEvents,
+      rubrics: setRubrics, dianas: setDianas, evaluations: setEvaluations, gradeCategories: setGradeCategories,
+      gradeItems: setGradeItems, grades: setGrades, dianaProfiles: setDianaProfiles, attendance: setAttendance,
+      reports: setReports, selfAssessments: setSelfAssessments, learningSituations: setLearningSituations,
+      fichas: setFichas, workSessions: setWorkSessions, seatingPlans: setSeatingPlans, classMarks: setClassMarks,
+      marksConfigs: setMarksConfigs, apoyo: setApoyo, ef: setEf,
+    };
+    const v = loQueVuelve(p, REPONIBLES);
+    for (const k of REPONIBLES) if (k in v) (reponer[k] as (valor: unknown) => void)(v[k]);
+    setBorradoPendiente(null);
+    // El registro se escribe en castellano, como el resto de sus líneas
+    log('create', 'system', 'deshacer', esCambio(p.borrados) ? 'Deshizo un cambio' : 'Deshizo un borrado', textoDeBorrados(p.borrados, (k, vars) => translate('es', k, vars)));
+    return true;
+  }, [borradoPendiente, profileId, log]);
+
   /* ── Tareas ── */
   const addTask = useCallback((text: string, priority: Task['priority']) => {
     setTasks(prev => [{ id: 'task' + Date.now(), text, priority, done: false }, ...prev]);
@@ -398,8 +476,9 @@ export function useAppState() {
     setTasks(prev => prev.map(t => t.id === id ? { ...t, done: !t.done } : t));
   }, []);
   const deleteTask = useCallback((id: string) => {
+    apuntarBorrado({ tipo: 'tarea', nombre: pintadoRef.current.tasks.find(t => t.id === id)?.text });
     setTasks(prev => prev.filter(t => t.id !== id));
-  }, []);
+  }, [apuntarBorrado]);
 
   /* ── Clases y alumnos ── */
   const addClass = useCallback((cls: Class) => {
@@ -423,6 +502,7 @@ export function useAppState() {
     const cascadeStudentIds  = students.filter(s => s.class_id === id).map(s => s.id);
     const cascadeItemIds     = gradeItems.filter(i => i.class_id === id).map(i => i.id);
 
+    apuntarBorrado({ tipo: 'clase', nombre: goneName });
     setClasses(prev => prev.filter(c => c.id !== id));
     setStudents(prev => prev.filter(s => s.class_id !== id));
     setApoyo(prev => sinAcsDeAula(prev, new Set(cascadeStudentIds)));
@@ -446,7 +526,7 @@ export function useAppState() {
       cascadeStudentIds.length
         ? `arrastró ${cascadeStudentIds.length} alumnos y todas sus notas`
         : undefined);
-  }, [students, gradeItems, log, className]);
+  }, [students, gradeItems, log, className, apuntarBorrado]);
 
   const addStudent = useCallback((s: Student) => {
     // La ficha hereda el dueño de su clase: quien manda en la lista es quien
@@ -463,6 +543,7 @@ export function useAppState() {
   }, [log]);
   const deleteStudent = useCallback((id: string) => {
     const goneName = studentName(id);
+    apuntarBorrado({ tipo: 'alumno', nombre: goneName });
     setStudents(prev => prev.filter(s => s.id !== id));
     setClassMarks(prev => prev.filter(m => m.student_id !== id));
     setEf(prev => sinAlumnoEF(prev, id));
@@ -479,17 +560,26 @@ export function useAppState() {
       ? { ...plan, groups: plan.groups.map(g => ({ ...g, studentIds: g.studentIds.map(x => (x === id ? '' : x)) })) }
       : plan])));
     log('delete', 'student', id, `Alumno ${goneName}`, 'con sus notas, evaluaciones, asistencia e informes');
-  }, [log, studentName]);
+  }, [log, studentName, apuntarBorrado]);
 
   /* ── Horario y calendario ── */
   const addBlock       = useCallback((b: ScheduleBlock) => setScheduleBlocks(prev => [...prev, b]), []);
   const updateBlock    = useCallback((b: ScheduleBlock) => setScheduleBlocks(prev => prev.map(x => x.id === b.id ? b : x)), []);
-  const deleteBlock    = useCallback((id: string) => setScheduleBlocks(prev => prev.filter(b => b.id !== id)), []);
+  const deleteBlock    = useCallback((id: string) => {
+    apuntarBorrado({ tipo: 'bloque', nombre: pintadoRef.current.blocks.find(b => b.id === id)?.subject });
+    setScheduleBlocks(prev => prev.filter(b => b.id !== id));
+  }, [apuntarBorrado]);
   /** Sustituye el horario entero: vacío para borrarlo, o el recién escaneado. */
-  const replaceBlocks  = useCallback((blocks: ScheduleBlock[]) => setScheduleBlocks(blocks), []);
+  const replaceBlocks  = useCallback((blocks: ScheduleBlock[]) => {
+    if (!blocks.length && pintadoRef.current.blocks.length) apuntarBorrado({ tipo: 'horario' });
+    setScheduleBlocks(blocks);
+  }, [apuntarBorrado]);
   const addCalEvent    = useCallback((ev: CalEvent) => setCalEvents(prev => [...prev, ev]), []);
   const updateCalEvent = useCallback((ev: CalEvent) => setCalEvents(prev => prev.map(x => x.id === ev.id ? ev : x)), []);
-  const deleteCalEvent = useCallback((id: string) => setCalEvents(prev => prev.filter(ev => ev.id !== id)), []);
+  const deleteCalEvent = useCallback((id: string) => {
+    apuntarBorrado({ tipo: 'evento', nombre: pintadoRef.current.events.find(ev => ev.id === id)?.name });
+    setCalEvents(prev => prev.filter(ev => ev.id !== id));
+  }, [apuntarBorrado]);
 
   /* ── Rúbricas y dianas ── */
   const addRubric = useCallback((r: Rubric) => {
@@ -502,9 +592,10 @@ export function useAppState() {
   }, [log]);
   const deleteRubric = useCallback((id: string) => {
     const goneName = rubricName(id);
+    apuntarBorrado({ tipo: 'rubrica', nombre: goneName });
     setRubrics(prev => prev.filter(r => r.id !== id));
     log('delete', 'rubric', id, `Rúbrica «${goneName}»`);
-  }, [log, rubricName]);
+  }, [log, rubricName, apuntarBorrado]);
 
   const addDiana = useCallback((d: EvalDiana) => {
     setDianas(prev => [d, ...prev]);
@@ -516,9 +607,11 @@ export function useAppState() {
   }, [log]);
   const deleteDiana = useCallback((id: string) => {
     const goneName = dianaName(id);
+    // Una escala de registro se guarda como una diana (`tipo: 'registro'`), pero el docente la conoce por su nombre
+    apuntarBorrado({ tipo: mirrorRef.current.dianas.find(d => d.id === id)?.tipo === 'registro' ? 'escala' : 'diana', nombre: goneName });
     setDianas(prev => prev.filter(d => d.id !== id));
     log('delete', 'diana', id, `Diana «${goneName}»`);
-  }, [log, dianaName]);
+  }, [log, dianaName, apuntarBorrado]);
 
   /**
    * Lleva al cuaderno la nota que sale de evaluar con una rúbrica o una diana.
@@ -553,8 +646,11 @@ export function useAppState() {
 
       const value = notaDeDestino(inst, destino, ev);
       if (typeof value !== 'number') continue;
-      const itemId = destino.id;
-      const isNew = !m.gradeItems.some(i => i.id === itemId);
+      // La columna es por evaluación (20-11-2026): la que el instrumento ya tiene en la evaluación de esa
+      // fecha o, si no tiene, una nueva. Así evaluar en el segundo trimestre no cambia la nota del primero.
+      // El id sale siempre igual con el mismo cuaderno delante: evaluar a varios seguidos no la duplica.
+      const { id: itemId, existe } = columnaDeEvaluacion(destino.id, ev.date, m.gradeItems);
+      const isNew = !existe;
 
       // El updater comprueba de nuevo la existencia: así evaluar a dos alumnos
       // seguidos no puede duplicar la columna.
@@ -563,7 +659,8 @@ export function useAppState() {
         class_id: destino.class_id,
         category_id: destino.category_id as string,
         name: destino.subject && destinos.length > 1 ? `${inst.name} · ${destino.subject}` : inst.name,
-        date: isoDate(),
+        // La fecha de la evaluación, que es la que decide en qué evaluación del curso cuenta la columna
+        date: /^\d{4}-\d{2}-\d{2}/.test(ev.date) ? ev.date.slice(0, 10) : isoDate(),
       }]);
 
       setGrades(prev => ({ ...prev, [itemId]: { ...(prev[itemId] ?? {}), [ev.student_id]: value } }));
@@ -601,31 +698,49 @@ export function useAppState() {
     const m = mirrorRef.current;
     const ev = m.evaluations.find(e => e.id === id);
     if (!ev) return;
+    apuntarBorrado({ tipo: 'evaluacion', nombre: ev.student_name });
     setEvaluations(prev => prev.filter(e => e.id !== id));
     log('delete', 'evaluation', id, `Evaluación de ${ev.student_name} con «${ev.rubric_name}»`,
       typeof ev.grade === 'number' ? `nota ${formatGrade(ev.grade)}` : undefined);
     if (!ev.student_id || typeof ev.grade !== 'number') return;
-    // De la más reciente a la más antigua por fecha; a igual fecha, la lista ya va de nueva a antigua
-    const conNota = m.evaluations
-      .filter(e => e.rubric_id === ev.rubric_id && e.student_id === ev.student_id && e.class_id === ev.class_id && typeof e.grade === 'number')
-      .map((e, i) => ({ e, i }))
-      .sort((a, b) => b.e.date.localeCompare(a.e.date) || a.i - b.i)
-      .map(x => x.e);
-    if (conNota[0]?.id !== id) return;
-    const anterior = conNota[1];
+    // La vigente es la más reciente de su misma evaluación del curso (cada evaluación tiene su columna): si se
+    // borra esa, manda la anterior de esa evaluación; una de otro trimestre no ocupa su sitio
+    if (evaluacionVigente(m.evaluations, ev)?.id !== id) return;
+    const anterior = evaluacionVigente(m.evaluations.filter(e => e.id !== id), ev);
     if (anterior) { routeToNotebook(anterior); return; }
     const inst = m.rubrics.find(r => r.id === ev.rubric_id) ?? m.dianas.find(d => d.id === ev.rubric_id);
     if (!inst) return;
     const destinos = objetivoPara(inst, ev.class_id)
       ? destinosDe(inst, ev.class_id)
       : ev.class_id ? [] : destinosDe(inst, objetivosDe(inst)[0]?.class_id ?? '');
-    const columnas = destinos.map(d => d.id).filter(c => m.grades[c]?.[ev.student_id] !== undefined);
+    const columnas = destinos.map(d => columnaDeEvaluacion(d.id, ev.date, m.gradeItems))
+      .filter(c => c.existe && m.grades[c.id]?.[ev.student_id] !== undefined).map(c => c.id);
     if (!columnas.length) return;
     setGrades(prev => {
       const next = { ...prev };
       for (const c of columnas) { const fila = { ...(next[c] ?? {}) }; delete fila[ev.student_id]; next[c] = fila; }
       return next;
     });
+  }, [log, routeToNotebook, apuntarBorrado]);
+
+  /**
+   * Corrige una evaluación ya hecha (20-11-2026): la sustituye en su sitio, con su mismo id, en vez de crear
+   * otra. La nota va al cuaderno con la regla de `deleteEvaluation`: solo si la corregida es la vigente (la
+   * más reciente con nota de ese alumno con ese instrumento en esa clase, `evaluacionVigente`). Corregir una
+   * más antigua no toca el cuaderno, que ya lleva la nota de otra posterior.
+   */
+  const updateEvaluation = useCallback((ev: Evaluation) => {
+    const m = mirrorRef.current;
+    const antes = m.evaluations.find(e => e.id === ev.id);
+    if (!antes) return;
+    setEvaluations(prev => prev.map(e => (e.id === ev.id ? ev : e)));
+    log('update', 'evaluation', ev.id, `Evaluación de ${ev.student_name} con «${ev.rubric_name}»`,
+      'corregida' + (typeof ev.grade === 'number'
+        ? ` · nota ${typeof antes.grade === 'number' && antes.grade !== ev.grade ? `${formatGrade(antes.grade)} → ` : ''}${formatGrade(ev.grade)}`
+        : ''));
+    const eraVigente = evaluacionVigente(m.evaluations, antes)?.id === antes.id;
+    const vigente = evaluacionVigente(m.evaluations.map(e => (e.id === ev.id ? ev : e)), ev);
+    if (vigente && (vigente.id === ev.id || eraVigente)) routeToNotebook(vigente);
   }, [log, routeToNotebook]);
 
   /* ── Cuaderno ── */
@@ -640,6 +755,7 @@ export function useAppState() {
   const deleteGradeCategory = useCallback((id: string) => {
     const goneName = gradeCategories.find(c => c.id === id)?.name ?? id;
     const cascadeItemIds = gradeItems.filter(i => i.category_id === id).map(i => i.id);
+    apuntarBorrado({ tipo: 'categoria', nombre: gradeCategories.find(c => c.id === id)?.name });
     setGradeCategories(prev => prev.filter(c => c.id !== id));
     setGradeItems(prev => prev.filter(i => i.category_id !== id));
     if (cascadeItemIds.length) {
@@ -652,7 +768,7 @@ export function useAppState() {
     }
     log('delete', 'gradeCategory', id, `Categoría «${goneName}»`,
       cascadeItemIds.length ? `arrastró ${cascadeItemIds.length} pruebas y sus notas` : undefined);
-  }, [gradeItems, gradeCategories, log]);
+  }, [gradeItems, gradeCategories, log, apuntarBorrado]);
 
   const addGradeItem = useCallback((i: GradeItem) => {
     // Con un id que ya existe (las pruebas físicas de EF usan uno fijo por prueba y clase), la columna se actualiza y no se repite
@@ -667,10 +783,11 @@ export function useAppState() {
   const deleteGradeItem = useCallback((id: string) => {
     const goneName = itemName(id);
     const lost = Object.values(mirrorRef.current.grades[id] ?? {}).filter(v => typeof v === 'number').length;
+    apuntarBorrado({ tipo: 'columna', nombre: goneName });
     setGradeItems(prev => prev.filter(i => i.id !== id));
     setGrades(g => { const next = { ...g }; delete next[id]; return next; });
     log('delete', 'gradeItem', id, `Prueba «${goneName}»`, lost ? `arrastró ${lost} notas` : undefined);
-  }, [log, itemName]);
+  }, [log, itemName, apuntarBorrado]);
 
   const setGrade = useCallback((itemId: string, studentId: string, value: number | null) => {
     const before = mirrorRef.current.grades[itemId]?.[studentId] ?? null;
@@ -682,6 +799,24 @@ export function useAppState() {
       `Nota de ${studentName(studentId)} en «${itemName(itemId)}»`,
       `${formatGrade(before)} → ${formatGrade(value)}`);
   }, [log, studentName, itemName]);
+
+  /**
+   * Varias notas de una vez (22-11-2026: pegar un bloque de una hoja de cálculo o poner una nota a quien no
+   * tiene, `lib/pegarNotas.ts`). Es un solo cambio: una línea en el registro y un «Deshacer» que las devuelve
+   * todas a como estaban. Lo que no cambia nada no cuenta.
+   */
+  const setManyGrades = useCallback((cambios: CambioDeNota[], como: 'pegar' | 'rellenar') => {
+    const reales = cambiosReales(cambios, mirrorRef.current.grades);
+    if (reales.length === 0) return;
+    apuntarBorrado({ tipo: 'notas', cuantos: reales.length });
+    setGrades(prev => conCambios(prev, reales));
+    const columnas = [...new Set(reales.map(c => c.itemId))];
+    const donde = columnas.length === 1 ? `«${itemName(columnas[0])}»` : `${columnas.length} actividades`;
+    const cuantas = reales.length === 1 ? '1 nota' : `${reales.length} notas`;
+    log('update', 'grade', columnas.length === 1 ? columnas[0] : 'varias',
+      como === 'pegar' ? `Pegó ${cuantas} en ${donde}` : `Puso ${cuantas} a quien no tenía en ${donde}`,
+      como === 'rellenar' ? `con un ${formatGrade(reales[0].value)}` : undefined);
+  }, [log, itemName, apuntarBorrado]);
 
   const saveDianaProfile = useCallback((studentId: string, p: DianaProfile) => {
     setDianaProfiles(prev => ({ ...prev, [studentId]: p }));
@@ -717,6 +852,7 @@ export function useAppState() {
   }, [log, className]);
 
   const deleteAttendanceDay = useCallback((classId: string, date: string) => {
+    apuntarBorrado({ tipo: 'lista', nombre: className(classId), fecha: date });
     setAttendance(prev => {
       const cls = { ...(prev[classId] ?? {}) };
       delete cls[date];
@@ -724,22 +860,32 @@ export function useAppState() {
     });
     log('delete', 'attendance', `${classId}:${date}`,
       `Lista de ${className(classId)} del ${formatDay(date)}`);
-  }, [log, className]);
+  }, [log, className, apuntarBorrado]);
 
   /* ── Informes competenciales ── */
   const addReport = useCallback((r: CompetencyReport) => {
     setReports(prev => [r, ...prev.filter(x => !(x.student_id === r.student_id && x.period === r.period))]);
     log('create', 'report', r.id, `Informe de ${r.student_name}`, r.period);
   }, [log]);
+  /** Varios informes de una vez (los de seguimiento de toda la clase): un solo apunte en el registro y un «Deshacer» para todos. */
+  const addReports = useCallback((nuevos: CompetencyReport[]) => {
+    if (nuevos.length === 0) return;
+    apuntarBorrado({ tipo: 'informesCreados', cuantos: nuevos.length });
+    const clave = (r: CompetencyReport) => `${r.student_id}|${r.period}`;
+    const suyos = new Set(nuevos.map(clave));
+    setReports(prev => [...nuevos, ...prev.filter(x => !suyos.has(clave(x)))]);
+    log('create', 'report', nuevos[0].id, `${nuevos.length} informes de seguimiento`, nuevos[0].period);
+  }, [log, apuntarBorrado]);
   const updateReport = useCallback((r: CompetencyReport) => {
     setReports(prev => prev.map(x => x.id === r.id ? r : x));
     log('update', 'report', r.id, `Informe de ${r.student_name}`, 'editado a mano');
   }, [log]);
   const deleteReport = useCallback((id: string) => {
     const gone = mirrorRef.current.reports.find(r => r.id === id);
+    apuntarBorrado({ tipo: 'informe', nombre: gone?.student_name });
     setReports(prev => prev.filter(r => r.id !== id));
     log('delete', 'report', id, `Informe de ${gone?.student_name ?? 'un alumno'}`, gone?.period);
-  }, [log]);
+  }, [log, apuntarBorrado]);
 
   /* ── Autoevaluaciones de la Sala de alumnos ── */
 
@@ -767,10 +913,11 @@ export function useAppState() {
 
   const deleteSelfAssessment = useCallback((id: string) => {
     const gone = mirrorRef.current.selfAssessments.find(s => s.id === id);
+    apuntarBorrado({ tipo: 'autoevaluacion', nombre: gone?.title });
     setSelfAssessments(prev => prev.filter(s => s.id !== id));
     log('delete', 'evaluation', id,
       `Autoevaluación «${gone?.title ?? id}»`, 'descartada sin incluirla');
-  }, [log]);
+  }, [log, apuntarBorrado]);
 
   /* ── Situaciones de aprendizaje ── */
 
@@ -788,10 +935,11 @@ export function useAppState() {
 
   const deleteLearningSituation = useCallback((id: string) => {
     const gone = mirrorRef.current.learningSituations.find(s => s.id === id);
+    apuntarBorrado({ tipo: 'sda', nombre: gone?.title });
     setLearningSituations(prev => prev.filter(s => s.id !== id));
     log('delete', 'learningSituation', id,
       `Situación de aprendizaje «${gone?.title ?? id}»`);
-  }, [log]);
+  }, [log, apuntarBorrado]);
 
   /* ── Recursos: fichas de trabajo ── */
 
@@ -808,9 +956,10 @@ export function useAppState() {
 
   const deleteFicha = useCallback((id: string) => {
     const gone = mirrorRef.current.fichas.find(f => f.id === id);
+    apuntarBorrado({ tipo: 'ficha', nombre: gone?.title });
     setFichas(prev => prev.filter(f => f.id !== id));
     log('delete', 'ficha', id, `Ficha «${gone?.title ?? id}»`);
-  }, [log]);
+  }, [log, apuntarBorrado]);
 
   /* ── Reuniones y formaciones ── */
 
@@ -831,10 +980,11 @@ export function useAppState() {
 
   const deleteWorkSession = useCallback((id: string) => {
     const gone = mirrorRef.current.workSessions.find(s => s.id === id);
+    apuntarBorrado({ tipo: gone?.kind === 'training' ? 'formacion' : 'reunion', nombre: gone?.title });
     setWorkSessions(prev => prev.filter(s => s.id !== id));
     log('delete', 'workSession', id,
       `${gone?.kind === 'training' ? 'Formación' : 'Reunión'} «${gone?.title ?? id}»`);
-  }, [log]);
+  }, [log, apuntarBorrado]);
 
   /**
    * Distribución de aula: sustituye entera la de una clase. No hay CRUD de
@@ -858,12 +1008,22 @@ export function useAppState() {
 
   const deleteClassMark = useCallback((id: string, label: string) => {
     const gone = mirrorRef.current.classMarks.find(m => m.id === id);
+    // Quitar una anotación de hoy es corregir un toque (en «Anotar actitud» ya es el botón de deshacer) y se
+    // repone con otro toque: sin aviso. La de otro día no se puede volver a poner con su fecha: esa sí lo lleva
+    if (gone && gone.date !== isoDate()) apuntarBorrado({ tipo: 'anotacion', nombre: studentName(gone.student_id) });
     setClassMarks(prev => prev.filter(m => m.id !== id));
     if (gone) log('delete', 'classMark', id, `${label}: ${studentName(gone.student_id)}`);
-  }, [log, studentName]);
+  }, [log, studentName, apuntarBorrado]);
 
-  const setMarksConfig = useCallback((classId: string, subject: string, cfg: MarksBlockConfig) => {
+  const setMarksConfig = useCallback((classId: string, subject: string, cfg: MarksBlockConfig, motivo?: 'regla') => {
     setMarksConfigs(prev => ({ ...prev, [`${classId}|${subject}`]: cfg }));
+    // La regla de la nota final de curso se guarda con el bloque (`MarksBlockConfig.final`): cuando lo que
+    // cambia es ella, el registro lo dice así, y no que se ha tocado el bloque
+    if (motivo === 'regla') {
+      log('update', 'gradeCategory', `${classId}|${subject}`, `Nota final de curso de ${className(classId)}`,
+        cfg.final ? `media de las evaluaciones (${cfg.final.pesos.map(p => String(p).replace('.', ',')).join(' · ')})` : 'evaluación continua');
+      return;
+    }
     log('update', 'gradeCategory', `${classId}|${subject}`,
       `Bloque «Trabajo diario y actitud» de ${className(classId)}`,
       cfg.enabled === false ? 'no cuenta en la nota' : `${String(Math.round(cfg.points * 100) / 10).replace('.', ',')}% de la nota`);
@@ -898,6 +1058,29 @@ export function useAppState() {
     setSelfAssessments(prev => prev.map(s => (s.id === id ? { ...s, included: true } : s)));
   }, [addEvaluation]);
 
+  /* ── PT y AL y Educación Física ── */
+
+  /**
+   * Sus pantallas cambian su parte del perfil con una función, sin un «borrar» por cada cosa. Aquí se mira si el
+   * cambio borra algo (`borradoDeApoyo`, `borradoDeEF`) y, si es así, se apunta para poder deshacerlo, igual que
+   * los borrados de arriba y sin tocar cada pantalla.
+   */
+  const cambiarApoyo = useCallback((cambio: SetStateAction<ApoyoData>) => {
+    const antes = pintadoRef.current.apoyo;
+    const despues = typeof cambio === 'function' ? cambio(antes) : cambio;
+    const borrados = borradoDeApoyo(antes, despues, id => pintadoRef.current.students.find(s => s.id === id)?.name);
+    if (borrados.length) apuntarBorrado(...borrados);
+    setApoyo(cambio);
+  }, [apuntarBorrado]);
+
+  const cambiarEf = useCallback((cambio: SetStateAction<EfData>) => {
+    const antes = pintadoRef.current.ef;
+    const despues = typeof cambio === 'function' ? cambio(antes) : cambio;
+    const borrados = borradoDeEF(antes, despues, id => pintadoRef.current.students.find(s => s.id === id)?.name);
+    if (borrados.length) apuntarBorrado(...borrados);
+    setEf(cambio);
+  }, [apuntarBorrado]);
+
   /* ── Datos que llegan de otro docente (archivo cifrado, ver services/copiaCifrada.ts) ── */
 
   /** Lo propio con la forma de un paquete: lo que se comparte sale de aquí (ver `buildBundle`). */
@@ -913,6 +1096,7 @@ export function useAppState() {
    * Devuelve cuántas clases, alumnos, evaluaciones, situaciones de aprendizaje y fichas nuevos entran.
    */
   const importarPaquete = useCallback((remote: SharedBundle, modo: MergeMode) => {
+    setBorradoPendiente(null);
     const merged = mergeBundle(
       { classes, students, gradeCategories, gradeItems, grades, rubrics, dianas, evaluations, learningSituations, fichas },
       remote, modo,
@@ -949,6 +1133,7 @@ export function useAppState() {
   /* ── Datos de ejemplo y limpieza ── */
   const loadDemoData = useCallback((lang: Lang = 'es') => {
     const d = demoSnapshot(lang);
+    setBorradoPendiente(null);
     setTasks(d.tasks);
     setClasses(d.classes.map(normalizeClass));
     setStudents(d.students);
@@ -979,15 +1164,19 @@ export function useAppState() {
    * Carga una copia descargada (sustituye todo el trabajo del perfil). La lee y valida `leerCopiaDeDatos` (una copia
    * dañada o vacía no se carga) y, antes de cargarla, lo de ahora se guarda en una copia «antes-de-cargar», que va
    * también al Drive u OneDrive (auditoría del 1-11-2026: antes no quedaba nada de lo anterior). La confirmación la pide
-   * la pantalla (`pages/Profile.tsx`).
+   * la pantalla (`pages/Profile.tsx`). Si la copia dice de qué curso escolar es, el perfil pasa a ese curso (22-11-2026).
    */
   const importData = useCallback(async (raw: string): Promise<string | null> => {
     const copia = leerCopiaDeDatos(raw);
     if (!copia.ok) return copia.error;
     if (profileId) await store.backup(profileId, 'antes-de-cargar').catch(() => null);
     hydrate(copia.datos as Partial<ProfileSnapshot>);
+    // El curso escolar es del trabajo que se carga. Sin esto, quien volvía atrás tras «Empezar curso nuevo» cargando
+    // la copia del curso anterior se quedaba con el trabajo de ese curso y el nombre del nuevo en el perfil: en los
+    // documentos, en el nombre de la siguiente copia y en el curso que el asistente propone después
+    if (copia.curso && copia.curso !== profile?.course) await updateUser({ course: copia.curso }).catch(() => null);
     return null;
-  }, [hydrate, profileId]);
+  }, [hydrate, profileId, profile, updateUser]);
 
   /**
    * Vaciado de fin de curso: se borra el trabajo del año (clases, alumnos,
@@ -1001,6 +1190,8 @@ export function useAppState() {
    */
   const clearSchoolYear = useCallback(async () => {
     if (profileId) await store.backup(profileId, 'antes-de-vaciar');
+    // Vaciar el curso no se deshace con el aviso (tiene su copia «antes-de-vaciar»), y se lleva el que hubiera
+    setBorradoPendiente(null);
     setTasks([]);
     setClasses([]);
     setStudents([]);
@@ -1031,6 +1222,34 @@ export function useAppState() {
       'Vaciado de fin de curso', 'se conservan rúbricas y dianas')]);
   }, [profileId]);
 
+  /**
+   * «Empezar curso nuevo» (20-11-2026): a diferencia del vaciado, conserva lo que casi no cambia de un curso a
+   * otro. Cada clase sube de curso con su alumnado, se queda vacía o se va; el horario y las categorías y pesos
+   * del cuaderno se conservan si se pide; rúbricas, dianas, situaciones, fichas y sesiones siguen, y las notas, las
+   * evaluaciones, la asistencia y lo demás del curso que acaba empiezan limpios. La cuenta es de
+   * `lib/cursoNuevo.ts` (`cursoNuevoDe`) y lo que se elige, del asistente (`components/CursoNuevo.tsx`), que
+   * antes hace descargar la copia del curso. Aquí se guarda además la copia «antes-de-curso-nuevo» y se pone el
+   * curso escolar nuevo en el perfil.
+   */
+  const startNewSchoolYear = useCallback(async (plan: PlanDeCurso, cursoNuevo: string) => {
+    if (profileId) await store.backup(profileId, 'antes-de-curso-nuevo').catch(() => null);
+    const nuevo = cursoNuevoDe(snapshot, plan);
+    // Como al vaciar: no se deshace con el aviso (tiene su copia), y el registro del curso viejo se va con él
+    hydrate({
+      ...nuevo,
+      auditLog: [newEntry(whoRef.current, 'update', 'system', 'year',
+        cursoNuevo.trim() ? `Empezó el curso ${cursoNuevo.trim()}` : 'Empezó un curso nuevo',
+        `${nuevo.classes.length} clases y ${nuevo.students.length} alumnos siguen del curso anterior`)],
+    });
+    // El cambio ya está hecho: si el curso escolar no se pudiera apuntar en el perfil, se corrige en Configuración
+    const curso = cursoNuevo.trim().slice(0, 20);
+    if (curso && curso !== profile?.course) {
+      // Por si se vuelve atrás restaurando una copia de «Mis datos», que no lleva el curso escolar (`lib/cursoAnterior.ts`)
+      if (profileId) apuntarCambioDeCurso(profileId, profile?.course ?? '');
+      await updateUser({ course: curso }).catch(() => null);
+    }
+  }, [profileId, profile, snapshot, hydrate, updateUser]);
+
   // Todas las pantallas reciben el alumnado en orden de lista (ver `lib/alumnado.ts`);
   // lo guardado sigue en el orden en que se dio de alta.
   const alumnadoEnOrden = useMemo(() => ordenarAlumnado(students), [students]);
@@ -1054,13 +1273,14 @@ export function useAppState() {
     addCalEvent, updateCalEvent, deleteCalEvent,
     addRubric, updateRubric, deleteRubric,
     addDiana, updateDiana, deleteDiana,
-    addEvaluation, deleteEvaluation,
+    addEvaluation, updateEvaluation, deleteEvaluation,
     addGradeCategory, updateGradeCategory, deleteGradeCategory,
     addGradeItem, updateGradeItem, deleteGradeItem,
     setGrade,
+    setManyGrades,
     dianaProfiles, saveDianaProfile,
     setAttendanceFor, setAttendanceDay, deleteAttendanceDay,
-    addReport, updateReport, deleteReport,
+    addReport, addReports, updateReport, deleteReport,
     selfAssessments, saveSelfAssessment, deleteSelfAssessment, includeSelfAssessment,
     learningSituations, saveLearningSituation, deleteLearningSituation,
     fichas, saveFicha, deleteFicha,
@@ -1068,10 +1288,13 @@ export function useAppState() {
     seatingPlans, setSeatingPlan,
     classMarks, addClassMark, deleteClassMark,
     marksConfigs, setMarksConfig,
-    apoyo, setApoyo,
-    ef, setEf,
+    apoyo, setApoyo: cambiarApoyo,
+    ef, setEf: cambiarEf,
+    borradoPendiente: borradoPendiente?.despues ? borradoPendiente : null, deshacerBorrado, olvidarBorrado,
+    /** Antes de un cambio de varias cosas a la vez que también debe poder deshacerse (las fechas de las sesiones). */
+    apuntarCambio: apuntarBorrado,
     syncSource, importarPaquete,
     auditLog, clearAuditLog,
-    loadDemoData, exportData, importData, clearSchoolYear,
+    loadDemoData, exportData, importData, clearSchoolYear, startNewSchoolYear, datosDelCurso: snapshot,
   };
 }

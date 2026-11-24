@@ -107,3 +107,109 @@ export function conVecinos(periodo: string, rango: RangoDeFechas, hoy: string, g
 export function guardarRangos(rangos: Record<string, RangoDeFechas>, hoy: string): void {
   try { localStorage.setItem(CLAVE, JSON.stringify({ [String(inicioDeCurso(hoy))]: rangos })); } catch { /* sin almacenamiento */ }
 }
+
+/* ── Una sola noción de evaluación para toda la app (20-11-2026) ──
+ * El cuaderno, las actas y lo que venga después (informes, competencias) eligen la evaluación con el mismo
+ * selector («1.ª · 2.ª · 3.ª · Curso»), la recuerdan en el dispositivo y deciden con `cuentaEn` qué entra
+ * en cada una. */
+
+/** Las tres evaluaciones del curso, sin «Final de curso». */
+export const EVALUACIONES: readonly string[] = PERIODS.slice(0, 3);
+/** «Final de curso»: todo el curso, sin filtro de fechas. */
+export const CURSO_ENTERO: string = PERIODS[3];
+
+/** Cómo se nombra cada evaluación dentro de una frase («cuenta en la 2.ª evaluación»); se traduce al enseñarlo. */
+export const EN_FRASE: Record<string, string> = {
+  [PERIODS[0]]: 'la 1.ª evaluación', [PERIODS[1]]: 'la 2.ª evaluación', [PERIODS[2]]: 'la 3.ª evaluación', [PERIODS[3]]: 'todo el curso',
+};
+
+/** La clave de una evaluación del curso de `hoy` («2026-2»), la misma forma que da `evaluacionDe`; `null` en «Final de curso». */
+export function claveDe(periodo: string, hoy: string): string | null {
+  const n = EVALUACIONES.indexOf(periodo);
+  return n < 0 ? null : `${inicioDeCurso(hoy)}-${n + 1}`;
+}
+
+/** La evaluación en la que cae hoy. */
+export function periodoDeHoy(hoy: string, guardados: Record<string, RangoDeFechas> = rangosGuardados(hoy)): string {
+  return EVALUACIONES[Number(evaluacionDe(hoy, guardados).slice(-1)) - 1] ?? EVALUACIONES[0];
+}
+
+/**
+ * La evaluación del curso de `hoy` en la que cuenta algo con esa fecha, o `null` si no tiene fecha o es de
+ * otro curso. Un día que no cae en ningún rango (antes del primer día de la 1.ª, después del último de la
+ * 3.ª) cuenta en la evaluación más cercana, como en `evaluacionDe`: nada de este curso se queda sin evaluación.
+ */
+export function periodoDeFecha(fecha: string | undefined | null, hoy: string, guardados: Record<string, RangoDeFechas> = rangosGuardados(hoy)): string | null {
+  if (!fecha || !esFecha(fecha.slice(0, 10))) return null;
+  const dia = fecha.slice(0, 10);
+  if (inicioDeCurso(dia) !== inicioDeCurso(hoy)) return null;
+  return EVALUACIONES[Number(evaluacionDe(dia, guardados).slice(-1)) - 1] ?? null;
+}
+
+/**
+ * Si algo con esa fecha (una actividad del cuaderno, una anotación, una evaluación con rúbrica) cuenta en
+ * `periodo`. En «Final de curso» cuenta todo. Lo que no tiene fecha cuenta siempre: no se puede saber de
+ * cuándo es y esconderlo sería perderlo de vista. Lo de otro curso no cuenta en ninguna evaluación de este.
+ */
+export function cuentaEn(fecha: string | undefined | null, periodo: string, hoy: string, guardados: Record<string, RangoDeFechas> = rangosGuardados(hoy)): boolean {
+  if (!EVALUACIONES.includes(periodo)) return true;
+  if (!fecha || !esFecha(fecha.slice(0, 10))) return true;
+  return periodoDeFecha(fecha, hoy, guardados) === periodo;
+}
+
+/**
+ * Si dos fechas caen en la misma evaluación del mismo curso. Es lo que decide si una rúbrica usada otra vez
+ * escribe en la columna que ya tenía o en una nueva. Sin alguna de las dos fechas no se puede distinguir:
+ * cuentan como la misma.
+ */
+export function mismaEvaluacion(a: string | undefined | null, b: string | undefined | null): boolean {
+  const da = (a ?? '').slice(0, 10), db = (b ?? '').slice(0, 10);
+  if (!esFecha(da) || !esFecha(db)) return true;
+  return evaluacionDe(da) === evaluacionDe(db);
+}
+
+const CLAVE_ELEGIDA = 'aulapro_evaluacion_elegida';
+
+/**
+ * La evaluación que se está viendo, la misma en el cuaderno y en las actas. De entrada es la de hoy; lo que
+ * elige el docente se recuerda en el dispositivo mientras dure la evaluación en la que lo eligió: al empezar
+ * la siguiente, la app vuelve a abrir la que toca (si en enero se quedó mirando la 1.ª para cerrar notas, en
+ * abril no sigue ahí).
+ */
+export function periodoElegido(hoy: string, guardados: Record<string, RangoDeFechas> = rangosGuardados(hoy)): string {
+  const deHoy = periodoDeHoy(hoy, guardados);
+  try {
+    const x = JSON.parse(localStorage.getItem(CLAVE_ELEGIDA) ?? 'null') as { periodo?: unknown; cuando?: unknown } | null;
+    if (x && x.cuando === evaluacionDe(hoy, guardados) && typeof x.periodo === 'string' && (PERIODS as readonly string[]).includes(x.periodo)) return x.periodo;
+  } catch { /* sin almacenamiento o con algo que no se entiende: la de hoy */ }
+  return deHoy;
+}
+
+export function guardarPeriodoElegido(periodo: string, hoy: string, guardados: Record<string, RangoDeFechas> = rangosGuardados(hoy)): void {
+  try { localStorage.setItem(CLAVE_ELEGIDA, JSON.stringify({ periodo, cuando: evaluacionDe(hoy, guardados) })); } catch { /* sin almacenamiento */ }
+}
+
+/**
+ * El día que se propone a una actividad nueva para que caiga en la evaluación que se está viendo: hoy si hoy
+ * es de esa evaluación; si ya pasó, su último día, y si aún no ha empezado, el primero. En «Final de curso», hoy.
+ */
+export function diaParaNueva(periodo: string, hoy: string, guardados: Record<string, RangoDeFechas> = rangosGuardados(hoy)): string {
+  const rango = rangoDe(periodo, hoy, guardados);
+  if (!rango || cuentaEn(hoy, periodo, hoy, guardados)) return hoy;
+  return hoy > rango.hasta ? rango.hasta : rango.desde;
+}
+
+/**
+ * El día de un dato de ejemplo del cuaderno (una actividad, una anotación, una evaluación con rúbrica): el
+ * que le toca, pero nunca antes del primer día de la evaluación en la que cae hoy. Los datos de ejemplo se
+ * fechan unos días atrás; sin esto, quien explora la app en las primeras semanas de un trimestre (o en
+ * septiembre, cuando esos días son del curso anterior) abriría un cuaderno casi vacío, con las actividades
+ * en la evaluación de antes. Lo de hoy en adelante no se toca.
+ */
+export function diaDeEjemplo(dia: string, hoy: string, guardados: Record<string, RangoDeFechas> = rangosGuardados(hoy)): string {
+  if (dia >= hoy) return dia;
+  const desde = rangoDe(periodoDeHoy(hoy, guardados), hoy, guardados)?.desde ?? dia;
+  // Si hoy cae antes del primer día de su evaluación (unas fechas cambiadas que dejan un hueco), el tope es hoy
+  const tope = desde <= hoy ? desde : hoy;
+  return dia < tope ? tope : dia;
+}

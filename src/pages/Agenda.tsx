@@ -1,8 +1,17 @@
 import { useState, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, ChevronDown, Plus, X, Trash2, ScanLine, CalendarClock, CalendarDays, ArrowRight } from 'lucide-react';
+import { AyudaVideo } from '../components/AyudaVideo';
 import { ScheduleScanner } from '../components/agenda/ScheduleScanner';
 import { HorarioSemana } from '../components/agenda/HorarioSemana';
-import type { ScheduleBlock, CalEvent, Class } from '../types';
+import type { ScheduleBlock, CalEvent, Class, GradeCategory, GradeItem, Section, Student, WorkSession } from '../types';
+import type { MarcaPrueba, PruebaFisica, SesionEF } from '../types/ef';
+import { BarraDeCapas, ApuntesDelDia } from '../components/agenda/CapasAgenda';
+import {
+  CAPAS, apuntesDeAgenda, apuntesVisibles, capasApagadas, capasDe, categoriasParaColumna, colorDeCapa, columnaDeEvento, eventosVisibles,
+  guardarCapasApagadas, pantallaDe, porFecha,
+  type ApunteDeAgenda, type CapaAgenda,
+} from '../lib/capasAgenda';
+import { useFijarClase } from '../hooks/useClaseActiva';
 import { PALETTE } from '../lib/demoData';
 import { isoDate, fromIsoDate } from '../lib/utils';
 import { grupoDeBloque } from '../lib/apoyo';
@@ -99,7 +108,26 @@ interface Props {
   comunidad?: ComunidadId;
   /** Donde el calendario escolar es de cada provincia (Andalucía), la del perfil. */
   provincia?: ProvinciaId;
+  /**
+   * Lo que ya tiene fecha en otras pantallas: la Agenda lo enseña en capas de solo lectura (`lib/capasAgenda.ts`)
+   * y cada apunte abre su pantalla. No se guarda nada aquí.
+   */
+  sesiones?: SesionEF[];
+  gradeItems?: GradeItem[];
+  gradeCategories?: GradeCategory[];
+  workSessions?: WorkSession[];
+  /** Educación Física: las marcas de las pruebas físicas, con sus pruebas y el alumnado (para saber de qué clase son). */
+  marcas?: MarcaPrueba[];
+  pruebas?: PruebaFisica[];
+  students?: Student[];
+  esEF?: boolean;
+  /** Si el perfil tiene esa pantalla en su menú: una capa cuya pantalla no tiene no se ofrece. */
+  tienePantalla?: (s: Section) => boolean;
+  /** Al crear una entrega con clase se ofrece crear también su columna en el cuaderno. Sin esto, no se ofrece. */
+  onAddGradeItem?: (i: GradeItem) => void;
 }
+
+const SIEMPRE = () => true;
 
 // ==================== Agenda ====================
 export function Agenda({
@@ -117,6 +145,7 @@ export function Agenda({
   onNav,
   comunidad,
   provincia,
+  sesiones, gradeItems, gradeCategories, workSessions, marcas, pruebas, students, esEF = false, tienePantalla = SIEMPRE, onAddGradeItem,
 }: Props) {
   const { toast } = useToast();
   const { t, locale, lang } = useI18n();
@@ -148,6 +177,8 @@ export function Agenda({
   // ---- event modal ----
   const [eventModalOpen, setEventModalOpen] = useState(false);
   const [eventForm, setEventForm] = useState<CalEvent>(blankEvent);
+  /** Al crear una entrega con clase: si se crea también su columna en el cuaderno y en qué categoría. */
+  const [columna, setColumna] = useState({ crear: false, categoria: '' });
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
 
   // ---- calendar grid ----
@@ -166,15 +197,42 @@ export function Agenda({
   }, [classes]);
   const etapaLabel = (e: EtapaCalendario) => (e === 'primaria' ? t('Primaria') : t('ESO'));
 
+  // ---- capas de solo lectura y filtro por clase ----
+  const fijarClase = useFijarClase();
+  const [apagadas, setApagadas] = useState<Set<CapaAgenda>>(capasApagadas);
+  const [filtroClase, setFiltroClase] = useState('');
+  // Una clase borrada con el filtro puesto deja de filtrar
+  const claseFiltrada = classes.some(c => c.id === filtroClase) ? filtroClase : '';
+  const capas = useMemo(() => capasDe(esEF, tienePantalla), [esEF, tienePantalla]);
+  const apuntesPorFecha = useMemo(() => {
+    const todos = apuntesDeAgenda({ classes, sesiones, gradeItems, gradeCategories, workSessions, marcas, pruebas, students });
+    return porFecha(apuntesVisibles(todos.filter(a => capas.includes(a.capa)), apagadas, claseFiltrada || undefined));
+  }, [classes, sesiones, gradeItems, gradeCategories, workSessions, marcas, pruebas, students, capas, apagadas, claseFiltrada]);
+  function alternarCapa(capa: CapaAgenda) {
+    setApagadas(prev => {
+      const n = new Set(prev);
+      if (n.has(capa)) n.delete(capa); else n.add(capa);
+      guardarCapasApagadas(n);
+      return n;
+    });
+  }
+  /** Cada apunte abre su pantalla, en su clase. */
+  function abrirApunte(a: ApunteDeAgenda) {
+    fijarClase(a.claseId);
+    onNav(pantallaDe(a, esEF));
+  }
+  const eventosALaVista = useMemo(() => eventosVisibles(calEvents, claseFiltrada || undefined), [calEvents, claseFiltrada]);
+  const nombreDeClase = (id?: string) => classes.find(c => c.id === id)?.name;
+
   // ---- events by date (for dots) ----
   const eventsByDate = useMemo(() => {
     const map: Record<string, CalEvent[]> = {};
-    for (const ev of calEvents) {
+    for (const ev of eventosALaVista) {
       if (!map[ev.date]) map[ev.date] = [];
       map[ev.date].push(ev);
     }
     return map;
-  }, [calEvents]);
+  }, [eventosALaVista]);
 
   // ---- selected day events ----
   const selectedDayEvents = useMemo(
@@ -246,7 +304,10 @@ export function Agenda({
   // ==== event form handlers ====
   function openNewEvent(date?: string) {
     setEditingEventId(null);
-    setEventForm({ ...blankEvent(), date: date ?? isoDate(today) });
+    // Con el filtro por clase puesto, el evento nuevo nace en esa clase
+    const cls = classes.find(c => c.id === claseFiltrada);
+    setEventForm({ ...blankEvent(), date: date ?? isoDate(today), ...(cls ? { classId: cls.id, color: cls.color ?? PALETTE[0] } : {}) });
+    setColumna({ crear: false, categoria: '' });
     setEventModalOpen(true);
   }
   function openEditEvent(ev: CalEvent) {
@@ -256,12 +317,34 @@ export function Agenda({
   }
   function closeEventModal() { setEventModalOpen(false); }
 
+  /** La clase del evento (opcional): al elegirla, el evento toma su color, como los bloques del horario. */
+  function handleEventClassChange(classId: string) {
+    const cls = classes.find(c => c.id === classId);
+    setEventForm(f => {
+      const { classId: _c, ...resto } = f;
+      void _c;
+      return cls ? { ...resto, classId, color: cls.color ?? f.color } : resto;
+    });
+  }
+
+  // Una entrega (un examen, un trabajo) nueva y con clase: se ofrece crear también su columna en el cuaderno, para
+  // no apuntarla dos veces. Solo se ofrece; la casilla sale sin marcar.
+  const claseDelEvento = classes.find(c => c.id === eventForm.classId);
+  const categoriasDeColumna = categoriasParaColumna(gradeCategories ?? [], claseDelEvento);
+  const ofrecerColumna = !editingEventId && eventForm.type === 'deadline' && !!onAddGradeItem && tienePantalla('notebook') && categoriasDeColumna.length > 0;
+  const categoriaDeColumna = categoriasDeColumna.some(c => c.id === columna.categoria) ? columna.categoria : (categoriasDeColumna[0]?.id ?? '');
+
   function submitEvent() {
     if (!eventForm.name.trim()) { toast(t('Escribe un nombre para el evento')); return; }
     if (editingEventId) {
       onUpdateCalEvent({ ...eventForm, id: editingEventId });
     } else {
       onAddCalEvent({ ...eventForm, id: uid() });
+      const col = ofrecerColumna && columna.crear ? columnaDeEvento(eventForm, categoriaDeColumna, 'gi' + uid()) : null;
+      if (col && onAddGradeItem) {
+        onAddGradeItem(col);
+        toast(t('También se ha creado la columna «{nombre}» en el cuaderno de {clase}.', { nombre: col.name, clase: claseDelEvento?.name ?? '' }));
+      }
     }
     setEventModalOpen(false);
   }
@@ -277,7 +360,7 @@ export function Agenda({
       {/* Page header */}
       <div className="pg-hd">
         <div>
-          <h1 className="pg-title">{t('Agenda')}</h1>
+          <h1 className="pg-title">{t('Agenda')}<AyudaVideo id="agenda" /></h1>
           <p className="pg-sub">{t('Horario semanal y calendario de eventos')}</p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
@@ -326,6 +409,10 @@ export function Agenda({
           {t('Semanal')}
         </button>
       </div>
+
+      {view !== 'inicio' && (
+        <BarraDeCapas capas={capas} apagadas={apagadas} onAlternar={alternarCapa} classes={classes} claseId={claseFiltrada} onClase={setFiltroClase} />
+      )}
 
       {/* ===== PORTADA: dos tarjetas ===== */}
       {view === 'inicio' && (
@@ -395,6 +482,8 @@ export function Agenda({
                 const isToday = ds === isoDate(today);
                 const isSelected = ds === selectedDate;
                 const dots = eventsByDate[ds] ?? [];
+                // Una marca cuadrada por capa con algo ese día (los eventos, redondos): el mes no se llena
+                const capasDelDia = [...new Set((apuntesPorFecha[ds] ?? []).map(a => a.capa))];
                 const escolar = diaEscolar(calEscolar, ds);
                 const finde = d.getDay() === 0 || d.getDay() === 6;
 
@@ -421,7 +510,7 @@ export function Agenda({
                     title={escolar && !(escolar.tipo === 'no-lectivo' && finde) ? t(escolar.nombre) : undefined}
                   >
                     <span>{d.getDate()}</span>
-                    {dots.length > 0 && (
+                    {(dots.length > 0 || capasDelDia.length > 0) && (
                       <div style={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap', marginTop: 2 }}>
                         {dots.slice(0, 3).map((ev, j) => (
                           <span
@@ -430,6 +519,7 @@ export function Agenda({
                             style={{ background: ev.color }}
                           />
                         ))}
+                        {capasDelDia.map(c => <span key={c} className="cal-dot cal-capa" style={{ background: colorDeCapa(c) }} />)}
                       </div>
                     )}
                   </div>
@@ -489,9 +579,11 @@ export function Agenda({
               );
             })()}
             {selectedDayEvents.length === 0 ? (
-              <p style={{ color: 'var(--text-2, #9ca3af)', fontSize: 14, textAlign: 'center', padding: '24px 0' }}>
-                {t('Sin eventos para este día')}
-              </p>
+              (apuntesPorFecha[selectedDate] ?? []).length === 0 && (
+                <p style={{ color: 'var(--text-2, #9ca3af)', fontSize: 14, textAlign: 'center', padding: '24px 0' }}>
+                  {t(claseFiltrada ? 'Nada de esta clase para este día' : 'Sin eventos para este día')}
+                </p>
+              )
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {selectedDayEvents.map(ev => (
@@ -516,6 +608,7 @@ export function Agenda({
                       <div style={{ fontWeight: 600, fontSize: 14 }}>{ev.name}</div>
                       <div style={{ fontSize: 12, color: 'var(--text-2, #6b7280)', marginTop: 2 }}>
                         {eventTypeLabel(ev.type, lang)} · {t('Urgencia')} {urgencyLabel(ev.urgency, lang)}
+                        {nombreDeClase(ev.classId) && <> · {nombreDeClase(ev.classId)}</>}
                       </div>
                       {ev.desc && (
                         <div style={{ fontSize: 12, color: 'var(--text-2, #6b7280)', marginTop: 3 }}>{ev.desc}</div>
@@ -525,6 +618,7 @@ export function Agenda({
                 ))}
               </div>
             )}
+            <ApuntesDelDia apuntes={apuntesPorFecha[selectedDate] ?? []} classes={classes} onAbrir={abrirApunte} />
           </div>
         </div>
       )}
@@ -547,6 +641,8 @@ export function Agenda({
             dias={currentWeekDates} etiquetas={weekDayLabels} hoy={isoDate(today)} isoDe={isoDate}
             bloques={scheduleBlocks} apoyo={apoyoBlocks} eventosPorFecha={eventsByDate}
             onEditar={openEditBlock} onMover={onUpdateBlock} onEditarEvento={openEditEvent}
+            apuntesPorFecha={apuntesPorFecha} onAbrirApunte={abrirApunte} claseResaltada={claseFiltrada || undefined}
+            detalleDeApunte={a => [t(CAPAS.find(c => c.id === a.capa)!.label), nombreDeClase(a.claseId), a.tipo === 'prueba' ? t(a.titulo) : a.titulo].filter(Boolean).join(' · ')}
             onAbrirApoyo={b => { requestGrupos(grupoDeBloque(b.id)); onNav('apoyo-alumnado'); }}
           />
         </div>
@@ -759,6 +855,37 @@ export function Agenda({
               </select>
             </div>
           </div>
+
+          {classes.length > 0 && (
+            <div className="fgroup">
+              <label className="flabel" htmlFor="agenda-f13">{t('Clase (opcional)')}</label>
+              <select id="agenda-f13" className="finput" value={classes.some(c => c.id === eventForm.classId) ? eventForm.classId : ''}
+                onChange={e => handleEventClassChange(e.target.value)}>
+                <option value="">{t('Ninguna: es para todas o no es de una clase')}</option>
+                {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            </div>
+          )}
+
+          {ofrecerColumna && (
+            <div className="ag-columna">
+              <label className="ag-columna-casilla">
+                <input type="checkbox" checked={columna.crear} onChange={e => setColumna(c => ({ ...c, crear: e.target.checked }))} />
+                <span>
+                  <strong>{t('Crear también la columna en el cuaderno')}</strong>
+                  <span>{t('Saldrá en el cuaderno de {clase} con este nombre y esta fecha, lista para poner las notas: así no la apuntas dos veces.', { clase: claseDelEvento?.name ?? '' })}</span>
+                </span>
+              </label>
+              {columna.crear && (
+                <div className="ag-columna-cat">
+                  <label htmlFor="agenda-f14">{t('Categoría del cuaderno')}</label>
+                  <select id="agenda-f14" className="finput" value={categoriaDeColumna} onChange={e => setColumna(c => ({ ...c, categoria: e.target.value }))}>
+                    {categoriasDeColumna.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+                  </select>
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="fgroup">
             <label className="flabel">{t('Color')}</label>

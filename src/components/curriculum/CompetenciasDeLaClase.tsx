@@ -6,6 +6,10 @@
  * rúbricas y dianas que marcan qué criterios oficiales evalúan, igual que en
  * la Diana competencial, que tiene el detalle de cada alumno criterio a
  * criterio. No cambia la nota del cuaderno. Ver `docs/COMUNIDADES.md`.
+ *
+ * Va por evaluación, como el cuaderno (20-11-2026): cuentan las evaluaciones
+ * con rúbricas y dianas de las fechas de la evaluación elegida, la misma que
+ * se ve en «Notas» y en las actas (`useEvaluacionElegida`); en «Curso», todas.
  */
 import { useMemo, useState } from 'react';
 import { Download } from 'lucide-react';
@@ -17,6 +21,10 @@ import { citarNormas, type ComunidadId } from '../../lib/curriculum/comunidades'
 import { downloadFile } from '../../lib/download';
 import type { Class, Evaluation, Student } from '../../types';
 import { CARPETAS } from '../../lib/carpetas';
+import { useClaseActiva } from '../../hooks/useClaseActiva';
+import { useEvaluacionElegida } from '../../hooks/useEvaluacionElegida';
+import { SelectorEvaluacion } from '../SelectorEvaluacion';
+import { CURSO_ENTERO, EN_FRASE } from '../../lib/periodos';
 
 function Nota({ valor }: { valor: number | null }) {
   const { t, locale } = useI18n();
@@ -29,30 +37,48 @@ function Nota({ valor }: { valor: number | null }) {
   );
 }
 
-export function CompetenciasDeLaClase({ classes, students, evaluations, comunidad, onNav }: {
+export function CompetenciasDeLaClase({ classes, students, evaluations, comunidad, onNav, clase, onClase }: {
   classes: Class[];
   students: Student[];
   evaluations: Evaluation[];
   comunidad: ComunidadId | undefined;
   onNav: (s: string) => void;
+  /** La clase que lleva quien la muestra (el cuaderno, que la comparte entre sus pestañas) y cómo cambiarla. */
+  clase?: string;
+  onClase?: (id: string) => void;
 }) {
   const { t, lang, locale } = useI18n();
-  const [classId, setClassId] = useState(classes[0]?.id ?? '');
+  // Suelta, elige su clase con la regla común; dentro del cuaderno, sigue la del cuaderno
+  const [propia, setPropia] = useClaseActiva(classes, clase);
+  const classId = clase ?? propia;
+  const setClassId = onClase ?? setPropia;
   const cls = classes.find(c => c.id === classId) ?? classes[0] ?? null;
   const { estado, materias, curriculo } = useMateriasOficiales(cls, comunidad);
   const [elegida, setElegida] = useState('');
   const materia = materias.find(m => m.asignatura === elegida) ?? materias[0];
+  // La evaluación es la del cuaderno y las actas: lo que se elige aquí vale en «Notas», y al revés
+  const ev = useEvaluacionElegida();
+  const esCurso = ev.periodo === CURSO_ENTERO;
+  const enFrase = t(EN_FRASE[ev.periodo] ?? ev.periodo);
 
   const alumnos = useMemo(
     () => students.filter(s => s.class_id === cls?.id).sort((a, b) => a.name.localeCompare(b.name, 'es')),
     [students, cls?.id],
   );
   /** La nota de cada alumno en la materia elegida, competencia a competencia. */
+  const deLaEvaluacion = useMemo(() => evaluations.filter(e => ev.cuenta(e.date)), [evaluations, ev]);
   const filas = useMemo(() => (materia
-    ? alumnos.map(a => ({ alumno: a, notas: notasDeMateria(materia.entry, materia.grupo, evaluations.filter(e => e.student_id === a.id)) }))
-    : []), [materia, alumnos, evaluations]);
+    ? alumnos.map(a => ({ alumno: a, notas: notasDeMateria(materia.entry, materia.grupo, deLaEvaluacion.filter(e => e.student_id === a.id)) }))
+    : []), [materia, alumnos, deLaEvaluacion]);
   const competencias: NotaMateria['competencias'] = filas[0]?.notas.competencias ?? [];
   const hayNotas = filas.some(f => f.notas.nota !== null);
+  /** Si la materia tiene alguna nota en el resto del curso: sin notas en esta evaluación, no es que falte marcar criterios. */
+  const hayEnElCurso = useMemo(() => {
+    if (!materia || esCurso) return false;
+    const suyos = new Set(alumnos.map(a => a.id));
+    const prefijo = `${materia.entry.id}|`;
+    return evaluations.some(e => suyos.has(e.student_id) && Object.keys(e.officialCriteriaScores ?? {}).some(k => k.startsWith(prefijo)));
+  }, [materia, esCurso, alumnos, evaluations]);
   const cita = curriculo ? citarNormas(curriculo.normas, lang) : '';
 
   function exportar() {
@@ -61,10 +87,11 @@ export function CompetenciasDeLaClase({ classes, students, evaluations, comunida
     const celda = (s: string) => `"${s.replace(/"/g, '""')}"`;
     const cab = [t('Alumno'), ...competencias.map(c => t('CE{n}', { n: c.n })), t('Área por competencias')];
     const lineas = filas.map(f => [f.alumno.name, ...f.notas.competencias.map(c => num(c.nota)), num(f.notas.nota)]);
+    // La hoja dice de qué evaluación es, y el archivo también: la de la 1.ª y la de la 2.ª no se pisan
     const csv = [cab, ...lineas].map(l => l.map(celda).join(';')).join('\r\n')
-      + `\r\n\r\n${celda(`${materia.asignatura}${cita ? ` · ${cita}` : ''}`)}`;
+      + `\r\n\r\n${celda(`${materia.asignatura} · ${t(ev.periodo)}${cita ? ` · ${cita}` : ''}`)}`;
     void downloadFile(new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' }),
-      `${t('Competencias')} ${cls?.name ?? ''} ${materia.asignatura}.csv`.replace(/[\\/:*?"<>|]+/g, '-'), CARPETAS.informes);
+      `${t('Competencias')} ${cls?.name ?? ''} ${materia.asignatura} ${t(ev.periodo)}.csv`.replace(/[\\/:*?"<>|]+/g, '-'), CARPETAS.informes);
   }
 
   if (!cls) {
@@ -90,6 +117,8 @@ export function CompetenciasDeLaClase({ classes, students, evaluations, comunida
             </div>
           </>
         )}
+        <span className="toolbar-sep ev-sel-sep" aria-hidden="true" />
+        <SelectorEvaluacion ev={ev} queCuenta={t('Aquí cuentan las evaluaciones con rúbricas y dianas hechas en estas fechas.')} />
         <span className="toolbar-spacer" />
         <button className="tb-btn" onClick={exportar} disabled={!hayNotas}>
           <Download size={14} />{t('Exportar a Excel')}
@@ -110,7 +139,15 @@ export function CompetenciasDeLaClase({ classes, students, evaluations, comunida
         {estado === 'listo' && materias.length === 0 && (
           <p className="ce-aviso">{t('Ninguna asignatura de esta clase tiene materia oficial.')}</p>
         )}
-        {materia && !hayNotas && (
+        {materia && !hayNotas && hayEnElCurso && (
+          <>
+            <p className="ce-aviso" role="status">
+              {t('No hay evaluaciones con criterios oficiales en {evaluacion}. Las que hiciste en otras fechas siguen en su evaluación y en «Curso».', { evaluacion: enFrase })}
+            </p>
+            <button className="btn-ghost" style={{ marginTop: 10 }} onClick={() => ev.elegir(CURSO_ENTERO)}>{t('Ver todo el curso')}</button>
+          </>
+        )}
+        {materia && !hayNotas && !hayEnElCurso && (
           <>
             <p className="ce-aviso">
               {t('Aún no hay notas: en Rúbricas y Dianas, marca qué criterios oficiales evalúa cada criterio o ítem, y evalúa con ellos.')}
@@ -120,6 +157,9 @@ export function CompetenciasDeLaClase({ classes, students, evaluations, comunida
         )}
         {materia && hayNotas && (
           <>
+            {!esCurso && (
+              <p className="pc-periodo">{t('Notas de {evaluacion}: solo cuentan las evaluaciones hechas en sus fechas.', { evaluacion: enFrase })}</p>
+            )}
             <div className="ce-tabla-envoltorio ce-clase-envoltorio">
               <table className="ce-tabla ce-clase">
                 <thead>

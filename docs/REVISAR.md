@@ -141,7 +141,26 @@ Pendiente:
 - «Actividades con móviles» no funciona en la versión web: un navegador no puede abrir un servidor en la wifi del aula.
 - `docs/COMPARTIR.md` dice que faltan las capturas nuevas de «Trabajo compartido», pero `CLAUDE.md` dice que se rehicieron el 26-10-2026. Hay que comprobarlo y dejar uno de los dos bien.
 - Textos de la pantalla antigua de «Trabajo compartido» que siguen en el diccionario (`src/i18n/core.ts` y `ca.ts`).
-- «Asistencia» y «Anotar actitud» buscan la clase que toca sin mirar el calendario escolar; «En clase» ya lo mira.
+- ~~«Asistencia» y «Anotar actitud» buscan la clase que toca sin mirar el calendario escolar; «En clase» ya lo mira.~~ Hecho el 20-11-2026: todas las pantallas usan la regla de la clase activa, con calendario (`src/lib/claseActiva.ts`).
+- Decisiones del dueño que dejaron las mejoras del 20-11-2026 (detalle en `CLAUDE.md`, «Mejoras del 20-11-2026»):
+  - En un hueco, Asistencia y Anotar actitud abren la última clase usada hasta 10 minutos antes de la siguiente (antes, la siguiente de hoy).
+  - Las fechas de las evaluaciones viven en el dispositivo y deciden en qué columna del cuaderno escribe un instrumento: ¿pasarlas al perfil para que valgan en todos los dispositivos?
+  - Con evaluación continua, un instrumento usado en dos trimestres cuenta ahora como dos notas.
+  - Las medias de Mis clases, el Inicio, el radar, los informes y el asistente son de todo el curso aunque se elija la media de las evaluaciones.
+  - «No se dio» y «Poner fechas» solo miran las sesiones de su situación de aprendizaje: ¿avisar o correr también las de otras situaciones de la clase?
+  - Al empezar curso nuevo, una rúbrica con criterios oficiales de un curso sigue a su grupo cuando sube al siguiente, sin avisar de los criterios.
+  - Que las medias por competencias cuenten solo la última evaluación de cada instrumento, y si en una sesión de EF se puede evaluar a su clase con un instrumento que no es de ella.
+  - Con las 24 ventanas de la pizarra ocupadas, «Dar la clase» la abre sin plan y sin avisar: falta decidir qué decir.
+  - La Diana competencial se abre en la evaluación de hoy: quien ya tenía Dianas guardadas la ve vacía, con un enlace a la de «Curso».
+  - Una clave de la IA que Google rechaza se guarda igual, y un modelo de rúbrica en versión de ESO no avisa si después se marca una clase de Primaria.
+  - En una pantalla táctil, cada actividad nueva del cuaderno abre sola la lista de casillas grandes; y Ctrl+Z en una celda vacía deshace el último cambio común, sea cual sea.
+  - El editor del informe de seguimiento no tiene borrador automático, y una frase quitada vuelve con «Actualizar los datos».
+  - Conviene leer los modelos de rúbricas y escalas (`src/lib/modelosInstrumentos.ts`), sobre todo en catalán.
+  - Web (23-11-2026, `web/DISENO.md`, sección 54): en la portada siguen «25 informes competenciales» y la descripción para Google dice que AulaPro «prepara con IA… informes y fichas», las dos ciertas pero ya no toda la verdad; y conviene leer en catalán y en inglés las frases nuevas de la portada y de la demo.
+- Vídeos de ayuda (23-11-2026): los 19 se rehicieron con la app al día y la voz que eligió el dueño, gratuita y generada en el equipo (Chatterbox multilingüe; `CLAUDE.md`, «Vídeos de ayuda»). Conviene que el dueño escuche los 19: la comprobación con Whisper quita el «eh» del final y las palabras de propina, pero no oye un sonido raro pegado a una palabra ni sabe si «AulaPro» suena bien (Whisper la entiende como «Aula Pro» o «habla Pro»). Una frase que no guste se rehace sola con `voces.py --frase N <id>` y se vuelve a grabar su vídeo.
+  - Detalles vistos al revisarlos, sin arreglar: en «Pizarra y herramientas» la frase dice que se dibuja y se cambia el fondo, pero solo se abre la paleta; en «Recursos» no llega a verse el solucionario; en «Dianas y escalas» la diana de la tarjeta es muy pequeña y al cerrar sin guardar sale la franja «Te quedó una diana sin guardar»; en «Informes» el alumno de ejemplo no tiene asistencia en esa evaluación; en «Trabajo compartido» las rúbricas de ejemplo cuentan 0 porque no llevan clase; durante la grabación de AI Studio («Clave de la IA») no hay subtítulo; y en algunos el subtítulo salta arriba y abajo dentro de la misma escena.
+- Textos de la app vistos al poner al día los vídeos: el panel de la IA pone de ejemplo «12 Marta» (un nombre de persona en pantalla, regla 7); el aviso de la clave en «Nueva situación de aprendizaje» dice que se configura en Configuración, cuando «Configurar la IA» ya abre una ventana encima; y la diana de ejemplo de `demoData.ts` no tiene clase ni categoría del cuaderno, así que sus evaluaciones no llegan al cuaderno.
+- Al eliminar una clase no se van sus bloques del horario ni su distribución de aula (visto el 20-11-2026 al repasar «Deshacer»; ya era así).
 - PT y AL:
   - Faltan el formato oficial de Cataluña y el de Madrid.
   - Faltan los PDF de la normativa valenciana y catalana.

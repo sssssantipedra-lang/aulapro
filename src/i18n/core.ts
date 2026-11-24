@@ -6,6 +6,19 @@ import { COMPOSITOR_EN } from './compositor';
 import { LECTURA_EN } from './lectura';
 import { PIZARRA_EN } from './pizarra';
 import { MEJORAS_EN } from './mejoras';
+import { EN as TANDA_CLASEACTIVA_EN } from './tanda/claseActiva';
+import { EN as TANDA_EVALUARCLASE_EN } from './tanda/evaluarClase';
+import { EN as TANDA_DESHACER_EN } from './tanda/deshacer';
+import { EN as TANDA_FICHASSINIA_EN } from './tanda/fichasSinIA';
+import { EN as TANDA_NAVEGACION_EN } from './tanda/navegacion';
+import { EN as TANDA_TRIMESTRES_EN } from './tanda/trimestres';
+import { EN as TANDA_CURSO_EN } from './tanda/curso';
+import { EN as TANDA_TIEMPO_EN } from './tanda/tiempo';
+import { EN as TANDA_DARLACLASE_EN } from './tanda/darLaClase';
+import { EN as TANDA_INFORMEREGLAS_EN } from './tanda/informeReglas';
+import { EN as TANDA_RUBRICASMODELO_EN } from './tanda/rubricasModelo';
+import { EN as TANDA_PERIODOCOMPETENCIAS_EN } from './tanda/periodoCompetencias';
+import { EN as TANDA_PEGARNOTAS_EN } from './tanda/pegarNotas';
 import { COMPARTIR_EN } from './compartir';
 import { WEB_EN } from './web';
 import { IMAGENES_EN } from './imagenes';
@@ -731,7 +744,6 @@ const EN: Record<string, string> = {
   'Editando: {name}': 'Editing: {name}',
   'Descriptores': 'Descriptors',
   'Analizando perfil competencial...': 'Analysing competency profile...',
-  'Sin descriptor. Usa "Sugerir con IA" para generarlo.': 'No descriptor. Use "Suggest with AI" to generate one.',
   'Escribe un descriptor para esta competencia...': 'Write a descriptor for this competency...',
   '{n} competencia pendiente': '{n} competency left',
   '{n} competencias pendientes': '{n} competencies left',
@@ -2180,6 +2192,19 @@ const EN: Record<string, string> = {
   ...LECTURA_EN,
   ...PIZARRA_EN,
   ...MEJORAS_EN,
+  ...TANDA_CLASEACTIVA_EN,
+  ...TANDA_EVALUARCLASE_EN,
+  ...TANDA_DESHACER_EN,
+  ...TANDA_FICHASSINIA_EN,
+  ...TANDA_NAVEGACION_EN,
+  ...TANDA_TRIMESTRES_EN,
+  ...TANDA_CURSO_EN,
+  ...TANDA_TIEMPO_EN,
+  ...TANDA_DARLACLASE_EN,
+  ...TANDA_INFORMEREGLAS_EN,
+  ...TANDA_RUBRICASMODELO_EN,
+  ...TANDA_PERIODOCOMPETENCIAS_EN,
+  ...TANDA_PEGARNOTAS_EN,
   ...COMPARTIR_EN,
   ...WEB_EN,
   ...IMAGENES_EN,

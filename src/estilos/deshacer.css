@@ -1,0 +1,34 @@
+/* Estilos de la mejora «deshacer» (tanda del 20-11-2026). Los comunes siguen en index.css. */
+
+/* El aviso que sale tras un borrado, con el botón «Deshacer» (components/ui/AvisoDeshacer.tsx). Va donde el aviso
+   corto de siempre (.toast), abajo y centrado, y por encima de las ventanas emergentes: muchas veces se borra desde una. */
+.deshacer { position:fixed; left:50%; bottom:24px; transform:translateX(-50%); z-index:9999; display:flex; align-items:center; gap:10px; width:max-content; max-width:min(620px, calc(100vw - 32px)); padding:10px 10px 13px 14px; background:#1e293b; color:#fff; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.28); font-size:14px; line-height:1.4; overflow:hidden; animation:deshacer-entra 0.22s ease-out; }
+@keyframes deshacer-entra { from { opacity:0; transform:translateX(-50%) translateY(14px); } }
+.deshacer-ico { flex-shrink:0; opacity:0.75; }
+.deshacer-txt { flex:1; min-width:0; font-weight:500; overflow-wrap:anywhere; }
+.deshacer-btn { flex-shrink:0; display:inline-flex; align-items:center; gap:6px; min-height:40px; padding:0 14px; border:none; border-radius:9px; background:#fff; color:#1e293b; font-family:var(--font); font-size:14px; font-weight:800; cursor:pointer; white-space:nowrap; }
+.deshacer-btn:hover { background:#e2e8f0; }
+.deshacer-x { flex-shrink:0; display:flex; align-items:center; justify-content:center; width:40px; height:40px; border:none; border-radius:9px; background:transparent; color:#cbd5e1; cursor:pointer; }
+.deshacer-x:hover { background:rgba(255,255,255,0.12); color:#fff; }
+.deshacer-btn:focus-visible, .deshacer-x:focus-visible { outline:2px solid #fff; outline-offset:2px; }
+/* La barra dice cuánto queda; se para, como el tiempo, con el ratón encima o el foco dentro */
+.deshacer-barra { position:absolute; left:0; right:0; bottom:0; height:3px; background:rgba(255,255,255,0.14); }
+.deshacer-barra span { display:block; height:100%; background:var(--accent, #c2410c); transform-origin:left center; animation:deshacer-cuenta linear forwards; }
+@keyframes deshacer-cuenta { from { transform:scaleX(1); } to { transform:scaleX(0); } }
+.deshacer:focus-within .deshacer-barra span { animation-play-state:paused; }
+@media (hover:hover) { .deshacer:hover .deshacer-barra span { animation-play-state:paused; } }
+@media (prefers-reduced-motion: reduce) { .deshacer { animation:none; } .deshacer-barra { display:none; } }
+/* El aviso corto de siempre («Clase eliminada», «Recuperado…») sale en el mismo sitio: mientras este está, va encima */
+.con-deshacer .toast { bottom:calc(24px + var(--deshacer-alto, 60px) + 10px); }
+/* En el móvil ocupa el ancho y sube por encima del botón de ayuda */
+@media (max-width:640px) {
+  .deshacer { left:12px; right:12px; bottom:84px; transform:none; width:auto; max-width:none; }
+  .deshacer-ico { display:none; }
+  @keyframes deshacer-entra { from { opacity:0; transform:translateY(14px); } }
+  .con-deshacer .toast { bottom:calc(84px + var(--deshacer-alto, 60px) + 10px); }
+}
+
+/* Configuración › Datos y copias: qué copias automáticas se conservan (lib/copiasEscalonadas.ts) */
+.copias-nota { margin:-2px 0 8px; font-size:12px; line-height:1.5; color:var(--text-3); }
+
+@media print { .deshacer { display:none; } }

@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
-import { HardDrive, FolderOpen, Archive, RotateCcw, Trash2, CalendarX } from 'lucide-react';
+import { HardDrive, FolderOpen, Archive, RotateCcw, Trash2 } from 'lucide-react';
 import * as store from '../services/storage';
 import { useToast } from './ui/Toast';
 import { useI18n } from '../i18n';
 import { isAndroidApp, isWebApp } from '../lib/platform';
 import { bloquearGuardado } from '../lib/guardadoBloqueado';
 import { CarpetaWebPanel, CuentaWebPanel, SinConexionPanel } from './CarpetaWeb';
+import { FinalDeCurso, type DatosParaCursoNuevo } from './FinalDeCurso';
+import { cursoAlRestaurar } from '../lib/cursoAnterior';
 
 interface Props {
   profileId: string | null;
@@ -13,18 +15,19 @@ interface Props {
   onClearSchoolYear: () => Promise<void>;
   /** Perfil de PT y AL: al vaciar el curso se conserva su alumnado de apoyo, y se dice. */
   apoyo?: boolean;
+  /** Lo que necesita «Empezar curso nuevo» (`components/CursoNuevo.tsx`). Sin ello, solo se ofrece vaciar. */
+  cursoNuevo?: DatosParaCursoNuevo;
 }
 
 /**
- * Panel de la carpeta de datos: dónde está, cuánto ocupa, copias de
- * seguridad y el vaciado de fin de curso.
+ * Panel de la carpeta de datos: dónde está, cuánto ocupa y copias de
+ * seguridad. Debajo, en su tarjeta, el final de curso (`FinalDeCurso`).
  */
-export function DataFolder({ profileId, courseLabel, onClearSchoolYear, apoyo = false }: Props) {
+export function DataFolder({ profileId, courseLabel, onClearSchoolYear, apoyo = false, cursoNuevo }: Props) {
   const { toast } = useToast();
   const { t, locale } = useI18n();
   const [info, setInfo] = useState<store.FolderInfo | null>(null);
   const [busy, setBusy] = useState(false);
-  const [confirmClear, setConfirmClear] = useState(false);
 
   const refresh = useCallback(() => {
     if (!profileId) return;
@@ -55,6 +58,9 @@ export function DataFolder({ profileId, courseLabel, onClearSchoolYear, apoyo = 
     // Desde aquí, lo que hay en memoria no se vuelve a guardar: escribiría encima de la copia restaurada antes de recargar
     bloquearGuardado();
     const ok = await store.restoreBackup(profileId, file);
+    // Una copia de antes de «Empezar curso nuevo» devuelve también el perfil a su curso escolar (`lib/cursoAnterior.ts`)
+    const curso = ok ? cursoAlRestaurar(profileId, file) : null;
+    if (curso !== null) await store.updateProfile(profileId, { course: curso }).catch(() => null);
     setBusy(false);
     toast(t(ok ? '✅ Copia restaurada. Se recarga la aplicación…' : 'No se pudo restaurar esa copia'));
     // Se recarga también si falla: con el guardado parado, seguir aquí perdería lo que se hiciera después
@@ -62,6 +68,7 @@ export function DataFolder({ profileId, courseLabel, onClearSchoolYear, apoyo = 
   }
 
   return (
+    <>
     <div className="card" style={{ gridColumn: '1 / -1' }}>
       <div className="card-hd">
         <div className="card-ttl"><HardDrive size={14} color="var(--accent-d)" />{t('Mis datos')}</div>
@@ -113,6 +120,7 @@ export function DataFolder({ profileId, courseLabel, onClearSchoolYear, apoyo = 
           <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
             {t('Copias de seguridad ({n})', { n: info.backups.length })}
           </div>
+          <p className="copias-nota">{t('Se guardan las cinco más recientes y, de los días y las semanas anteriores, la primera de cada uno.')}</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 168, overflowY: 'auto' }}>
             {info.backups.map(b => (
               <div key={b.file} style={{
@@ -149,47 +157,14 @@ export function DataFolder({ profileId, courseLabel, onClearSchoolYear, apoyo = 
         </div>
       )}
 
-      {/* Fin de curso */}
-      <div style={{ paddingTop: 16, borderTop: '0.5px solid var(--border)' }}>
-        <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)', marginBottom: 6 }}>
-          {t('Final de curso')} {courseLabel && `· ${courseLabel}`}
-        </div>
-        <p style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 14 }}>
-          {t('Cuando termine la tercera evaluación puedes vaciar el curso: se borran clases, alumnos, notas, evaluaciones, asistencia e informes.')} <strong>{t('Se conservan tus rúbricas y dianas')}</strong>{t(', que te servirán el año que viene.')}
-          {apoyo && <> {t('De PT y AL se conserva tu alumnado de apoyo con sus grupos, sus programas, sus adaptaciones y sus agendas visuales; se borran los registros de las sesiones, las coordinaciones, los cierres de trimestre y los documentos.')}</>}
-          {desktop && t(' Antes de borrar se guarda una copia de seguridad.')}
-        </p>
-
-        {confirmClear ? (
-          <div style={{ background: 'rgba(239,68,68,0.07)', border: '0.5px solid rgba(239,68,68,0.3)', borderRadius: 10, padding: '13px 15px' }}>
-            <p style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.55, marginBottom: 12 }}>
-              {t('¿Seguro? Se borrará el trabajo de este curso. Podrás recuperarlo desde las copias de seguridad de arriba si te arrepientes.')}
-            </p>
-            <div style={{ display: 'flex', gap: 9 }}>
-              <button
-                className="btn-ghost"
-                style={{ color: 'white', background: 'var(--danger)', border: 'none' }}
-                disabled={busy}
-                onClick={async () => {
-                  setBusy(true);
-                  await onClearSchoolYear();
-                  setBusy(false);
-                  setConfirmClear(false);
-                  refresh();
-                  toast(t('✅ Curso vaciado. Tus rúbricas siguen ahí.'));
-                }}
-              >
-                {t('Sí, vaciar el curso')}
-              </button>
-              <button className="btn-ghost" onClick={() => setConfirmClear(false)}>{t('Cancelar')}</button>
-            </div>
-          </div>
-        ) : (
-          <button className="btn-ghost" style={{ color: 'var(--danger)' }} onClick={() => setConfirmClear(true)}>
-            <CalendarX size={14} />{t('Vaciar el curso')}
-          </button>
-        )}
-      </div>
     </div>
+
+    {/* Final de curso, en su tarjeta: empezar curso nuevo y, aparte, vaciarlo */}
+    <FinalDeCurso
+      courseLabel={courseLabel} apoyo={apoyo} conCopias={desktop} cursoNuevo={cursoNuevo}
+      onClearSchoolYear={async () => { await onClearSchoolYear(); refresh(); }}
+      onHecho={refresh}
+    />
+    </>
   );
 }

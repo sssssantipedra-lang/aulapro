@@ -6,7 +6,10 @@
  * Dos fuentes, cada una con su escala, llevadas al 1-4 de la Diana:
  *
  * - Las competencias clave que lleva cada criterio de rúbrica o ítem de diana
- *   (`Evaluation.competencyScores`, ya en 1-4).
+ *   (`Evaluation.competencyScores`, en los niveles de su instrumento). Se pasan
+ *   a 1-4 con el nivel más alto de la evaluación (`max_level`), igual que en la
+ *   segunda página del acta: el nivel 3 de una rúbrica de tres niveles es un 4,
+ *   no un 3. Con los cuatro niveles de siempre no cambia nada.
  * - Las competencias específicas evaluadas con criterios oficiales, a través
  *   de las competencias clave con las que las conecta el decreto
  *   (`NotaCompetencia.clave`). Su nota sobre 10 pasa a la escala de la Diana
@@ -38,9 +41,12 @@ export function evidenciasPorSector(
 ): Record<SectorId, EvidenciaSector[]> {
   const out = vacio();
   for (const ev of evaluaciones) {
-    for (const [code, value] of Object.entries(ev.competencyScores ?? {})) {
+    const max = ev.max_level && ev.max_level > 0 ? ev.max_level : 4;
+    for (const [code, nivel] of Object.entries(ev.competencyScores ?? {})) {
+      // Sin redondear: la media del sector sale de los mismos números que la del acta (el redondeo, al enseñarlo)
+      const value = (nivel / max) * 4;
       for (const sid of LOMLOE_TO_DIANA[code] ?? []) {
-        out[sid as SectorId].push({ value, etiqueta: `${code} ${formato.numero(value)} («${ev.rubric_name}»)` });
+        out[sid as SectorId].push({ value, etiqueta: `${code} ${formato.numero(Math.round(value * 10) / 10)} («${ev.rubric_name}»)` });
       }
     }
   }

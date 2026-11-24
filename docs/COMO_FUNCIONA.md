@@ -121,6 +121,13 @@ Reglas de cálculo que comparten todas las pantallas:
 
 - **Medias del cuaderno**, siempre con `src/lib/ponderacion.ts`. Cada categoría tiene su peso en la nota final y cada nota puede tener su peso dentro de la categoría.
 - **Orden del alumnado**, siempre el de lista (`src/lib/alumnado.ts`).
+- **La evaluación (trimestre)**, una sola noción (`src/lib/periodos.ts`): el Cuaderno y las Actas comparten el selector «1.ª · 2.ª · 3.ª · Curso» (`useEvaluacionElegida`, `SelectorEvaluacion`), la cuenta por evaluación está en `src/lib/cuadernoEvaluacion.ts` y la columna de un instrumento es por evaluación (`columnaDeEvaluacion` en `src/lib/objetivos.ts`).
+- **La clase que abre cada pantalla**, una sola regla (`src/lib/claseActiva.ts`, `useClaseActiva`): la pedida, la de ahora según el horario y el calendario, la última usada.
+- **Cada pantalla tiene su dirección** (`#/…`, `src/lib/ruta.ts`, `useRuta`) y el botón de atrás cambia de pantalla o cierra la ventana abierta.
+- **Borrar se puede deshacer** diez segundos (`src/lib/deshacer.ts`, `apuntarBorrado`), y también un cambio de fechas de varias sesiones (`apuntarCambio`).
+- **Sin IA también se trabaja**: fichas en blanco y al instante (`src/lib/fichaInstante.ts`), rúbricas y escalas modelo (`src/lib/modelosInstrumentos.ts`) e informes de seguimiento por reglas (`src/lib/informeSeguimiento.ts`). La clave de la IA se pone en una ventana sobre la pantalla en curso (`abrirClaveIA`, `VentanaClaveIA`).
+- **Qué es una nota** lo decide `leerNota` (`src/lib/pegarNotas.ts`), para la celda, la lista, el relleno y lo pegado de una hoja de cálculo.
+- **Final de curso**: «Empezar curso nuevo» (Configuración › Datos y copias; `src/lib/cursoNuevo.ts`, `startNewSchoolYear`) pasa al curso siguiente conservando lo que sirve, con copia obligatoria antes; «Vaciar el curso» sigue al lado.
 - **Competencias.** Cada criterio de una rúbrica o ítem de una diana puede llevar los criterios oficiales que evalúa. Al evaluar, la nota se apunta en ellos, y de ahí salen las notas por competencia específica y clave (`src/lib/curriculum/evaluacionPorCriterios.ts`). La nota que manda en el cuaderno sigue siendo la del cuaderno.
 
 **Currículo.** Va dentro de la app: el estatal (RD 157/2022 y RD 217/2022) y el propio de la Comunitat Valenciana, Cataluña y Madrid, en Primaria y ESO, copiado de los PDF oficiales (`docs/COMUNIDADES.md`). Se carga cuando lo pide la primera pantalla que lo usa. El calendario escolar de las tres comunidades viene en `calendario-escolar.json`.

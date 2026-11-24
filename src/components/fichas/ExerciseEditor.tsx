@@ -2,15 +2,20 @@
  * Un ejercicio de la ficha como bloque editable: enunciado, los campos
  * propios de su tipo, la solución y las acciones (subir, bajar, borrar y
  * rehacer con IA siguiendo una indicación: «más fácil», «otro distinto»…).
+ * A mano y sin IA se le cambia el tipo (el desplegable de la cabecera), se
+ * duplica y, en tablas y cómics, se añaden o quitan filas, columnas y viñetas.
  */
 import { useState } from 'react';
-import { ArrowUp, ArrowDown, Trash2, Wand2, ChevronDown, ChevronRight } from 'lucide-react';
+import { ArrowUp, ArrowDown, Trash2, Wand2, ChevronDown, ChevronRight, Copy, Plus, Minus } from 'lucide-react';
 import { prepareExercise, shuffleApart, tiposDisponibles, type FichaExercise, type FichaExerciseType } from '../../services/resources';
 import { TIPO_LABEL, TIPO_EMOJI } from './tipos';
 import { EjercicioVisualEditor } from './VisualEditor';
 import { DibujosEditor } from './DibujosEditor';
 import { FraccionesEditor } from './FraccionesEditor';
 import { quitarNegritas } from '../../lib/negritas';
+import {
+  MAX_COLUMNAS_TABLA, MAX_FILAS_TABLA, MAX_VINETAS, ejercicioSinEscribir, conColumnaDeTabla, conFilaDeTabla, conVineta, sinColumnaDeTabla, sinFilaDeTabla, sinVineta, ultimaColumnaEscrita, ultimaFilaEscrita,
+} from '../../lib/fichaEnBlanco';
 
 const QUICK = ['Más fácil', 'Más difícil', 'Otro distinto', 'Más visual y motivador'];
 
@@ -19,7 +24,7 @@ type T = (k: string, v?: Record<string, string | number>) => string;
 const lines = (s: string) => s.split('\n').map(x => x.trim()).filter(Boolean);
 
 /** Lista de una línea por elemento; se aplica al salir del campo para no rehacer rejillas a cada tecla. */
-export function LinesField({ label, value, onCommit, hint }: { label: string; value: string[]; onCommit: (v: string[]) => void; hint?: string }) {
+export function LinesField({ label, value, onCommit, hint, placeholder }: { label: string; value: string[]; onCommit: (v: string[]) => void; hint?: string; placeholder?: string }) {
   const joined = value.join('\n');
   const [text, setText] = useState(joined);
   const [base, setBase] = useState(joined);
@@ -28,7 +33,7 @@ export function LinesField({ label, value, onCommit, hint }: { label: string; va
     <label className="fe-field">
       <span className="fe-lbl">{label}{hint && <em> · {hint}</em>}</span>
       <textarea
-        className="finput" rows={Math.min(8, Math.max(2, value.length + 1))} value={text}
+        className="finput" rows={Math.min(8, Math.max(2, value.length + 1))} value={text} placeholder={placeholder}
         onChange={e => setText(e.target.value)}
         onBlur={() => { if (text !== joined) onCommit(lines(text)); }}
       />
@@ -59,14 +64,23 @@ interface Props {
   onMove: (dir: -1 | 1) => void;
   onDelete: () => void;
   onRegenerate: (instruccion: string, tipo?: FichaExerciseType) => void;
+  /** Cambiar el tipo a mano, sin IA: se conserva lo que encaja en el nuevo. */
+  onChangeType: (tipo: FichaExerciseType) => void;
+  /** Una copia del ejercicio, justo debajo. */
+  onDuplicate: () => void;
 }
 
-export function ExerciseEditor({ ex, n, id, selected, first, last, busy, aiDisabled, visual, hilo, fracciones, lectura, t, onSelect, onChange, onMove, onDelete, onRegenerate }: Props) {
+export function ExerciseEditor({ ex, n, id, selected, first, last, busy, aiDisabled, visual, hilo, fracciones, lectura, t, onSelect, onChange, onMove, onDelete, onRegenerate, onChangeType, onDuplicate }: Props) {
   const [redo, setRedo] = useState(false);
   const [instr, setInstr] = useState('');
   const [tipo, setTipo] = useState<FichaExerciseType | ''>('');
   const [showSol, setShowSol] = useState(false);
   const set = (p: Partial<FichaExercise>) => onChange({ ...ex, ...p });
+  const disponibles = tiposDisponibles({ dibujos: !!hilo && !visual && !lectura, fracciones: !!fracciones && !lectura, lectura });
+  // El tipo que ya tiene siempre está en su desplegable, aunque hoy no se ofrezca (un «contar» al que se le quitó el hilo)
+  const tiposAMano = disponibles.includes(ex.tipo) ? disponibles : [ex.tipo, ...disponibles];
+  const unaPorLinea = t('Una por línea');
+  const sinEscribir = ejercicioSinEscribir(ex);
 
   const run = (instruccion: string) => {
     onRegenerate(instruccion, tipo || undefined);
@@ -79,7 +93,7 @@ export function ExerciseEditor({ ex, n, id, selected, first, last, busy, aiDisab
       <button type="button" className="fe-ex-mini" data-block={id} onClick={onSelect} aria-label={t('Editar el ejercicio {n}', { n })}>
         <span className="fe-ex-n">{n}</span>
         <span className="fe-type">{TIPO_EMOJI[ex.tipo]} {t(TIPO_LABEL[ex.tipo])}</span>
-        <span className="fe-ex-prev">{quitarNegritas(ex.enunciado)}</span>
+        <span className={`fe-ex-prev${sinEscribir ? ' fsi-sin' : ''}`}>{sinEscribir ? t('Sin escribir: no se imprime') : quitarNegritas(ex.enunciado)}</span>
       </button>
     );
   }
@@ -88,11 +102,17 @@ export function ExerciseEditor({ ex, n, id, selected, first, last, busy, aiDisab
     <div className={`fe-ex${selected ? ' sel' : ''}${busy ? ' busy' : ''}`} data-block={id} onFocusCapture={onSelect} onClick={onSelect}>
       <div className="fe-ex-hd">
         <span className="fe-ex-n">{n}</span>
-        <span className="fe-type">{TIPO_EMOJI[ex.tipo]} {t(TIPO_LABEL[ex.tipo])}</span>
+        <select
+          className="fe-type fe-type-sel" value={ex.tipo} aria-label={t('Cambiar tipo')} title={t('Cambiar tipo')} disabled={busy}
+          onChange={e => onChangeType(e.target.value as FichaExerciseType)}
+        >
+          {tiposAMano.map(x => <option key={x} value={x}>{TIPO_EMOJI[x]} {t(TIPO_LABEL[x])}</option>)}
+        </select>
         <span style={{ flex: 1 }} />
         <button type="button" className={`fe-redo-btn${redo ? ' on' : ''}`} disabled={aiDisabled || busy} onClick={() => setRedo(r => !r)}>
           {busy ? <span className="spin" /> : <Wand2 size={13} />}{t('Rehacer')}
         </button>
+        <button type="button" className="ico-btn sm" title={t('Duplicar')} aria-label={t('Duplicar')} disabled={busy} onClick={e => { e.stopPropagation(); onDuplicate(); }}><Copy size={14} /></button>
         <button type="button" className="ico-btn sm" title={t('Subir')} aria-label={t('Subir')} disabled={first} onClick={() => onMove(-1)}><ArrowUp size={14} /></button>
         <button type="button" className="ico-btn sm" title={t('Bajar')} aria-label={t('Bajar')} disabled={last} onClick={() => onMove(1)}><ArrowDown size={14} /></button>
         <button type="button" className="ico-btn sm" title={t('Eliminar')} aria-label={t('Eliminar')} onClick={onDelete}><Trash2 size={14} color="var(--danger)" /></button>
@@ -111,7 +131,7 @@ export function ExerciseEditor({ ex, n, id, selected, first, last, busy, aiDisab
             />
             <select className="finput" value={tipo} onChange={e => setTipo(e.target.value as FichaExerciseType | '')} aria-label={t('Tipo de ejercicio')}>
               <option value="">{t('Mismo tipo')}</option>
-              {tiposDisponibles({ dibujos: !!hilo && !visual && !lectura, fracciones: !!fracciones && !lectura, lectura }).map(x => <option key={x} value={x}>{TIPO_EMOJI[x]} {t(TIPO_LABEL[x])}</option>)}
+              {disponibles.map(x => <option key={x} value={x}>{TIPO_EMOJI[x]} {t(TIPO_LABEL[x])}</option>)}
             </select>
             <button type="button" className="btn-accent" disabled={!instr.trim() && !tipo} onClick={() => run(instr.trim())}>
               <Wand2 size={14} />{t('Rehacer')}
@@ -122,7 +142,7 @@ export function ExerciseEditor({ ex, n, id, selected, first, last, busy, aiDisab
 
       <textarea
         className="finput fe-enun" rows={2} value={ex.enunciado}
-        aria-label={t('Enunciado')}
+        aria-label={t('Enunciado')} placeholder={t('Escribe aquí el enunciado')}
         onChange={e => set({ enunciado: e.target.value })}
       />
       {ex.enunciado.includes('**') && <span className="fe-hint">{t('Lo que va entre dos asteriscos sale en negrita.')}</span>}
@@ -132,10 +152,10 @@ export function ExerciseEditor({ ex, n, id, selected, first, last, busy, aiDisab
       {fracciones && ['problema', 'abierta', 'completar', 'opcion_multiple'].includes(ex.tipo) && <FraccionesEditor ex={ex} uid={id} dedicado={false} onChange={set} t={t} />}
 
       {ex.tipo === 'opcion_multiple' && (
-        <LinesField label={t('Opciones')} value={ex.opciones ?? []} onCommit={v => set({ opciones: v })} />
+        <LinesField label={t('Opciones')} placeholder={unaPorLinea} value={ex.opciones ?? []} onCommit={v => set({ opciones: v })} />
       )}
       {ex.tipo === 'contestar' && (
-        <LinesField label={t('Preguntas')} hint={t('cada una con su línea para contestar')} value={ex.preguntas ?? []} onCommit={v => set({ preguntas: v })} />
+        <LinesField label={t('Preguntas')} hint={t('cada una con su línea para contestar')} placeholder={unaPorLinea} value={ex.preguntas ?? []} onCommit={v => set({ preguntas: v })} />
       )}
       {(ex.tipo === 'en_texto' || ex.tipo === 'dibujar') && (
         <label className="fe-field">
@@ -149,11 +169,11 @@ export function ExerciseEditor({ ex, n, id, selected, first, last, busy, aiDisab
         <LinesField label={t('Palabras del recuadro')} hint={t('opcional; con alguna de más')} value={ex.bancoPalabras ?? []} onCommit={v => set({ bancoPalabras: v })} />
       )}
       {ex.tipo === 'verdadero_falso' && (
-        <LinesField label={t('Afirmaciones')} value={ex.afirmaciones ?? []} onCommit={v => set({ afirmaciones: v })} />
+        <LinesField label={t('Afirmaciones')} placeholder={unaPorLinea} value={ex.afirmaciones ?? []} onCommit={v => set({ afirmaciones: v })} />
       )}
       {ex.tipo === 'calculos' && (
         <>
-          <LinesField label={t('Líneas')} hint={t('lo que va antes del «=»; el hueco lo pone la ficha')} value={ex.lineas ?? []} onCommit={v => set({ lineas: v })} />
+          <LinesField label={t('Líneas')} hint={t('lo que va antes del «=»; el hueco lo pone la ficha')} placeholder={'12 + 5\n20 − 7'} value={ex.lineas ?? []} onCommit={v => set({ lineas: v })} />
           <label className="fe-field">
             <span className="fe-lbl">{t('La respuesta se escribe en')}</span>
             <select className="finput" value={ex.respuesta === 'caja' ? 'caja' : 'linea'} onChange={e => set({ respuesta: e.target.value as 'linea' | 'caja' })}>
@@ -165,20 +185,20 @@ export function ExerciseEditor({ ex, n, id, selected, first, last, busy, aiDisab
       )}
       {ex.tipo === 'ordenar' && (
         <LinesField
-          label={t('En su orden correcto')} hint={t('en la ficha salen desordenados')}
+          label={t('En su orden correcto')} hint={t('en la ficha salen desordenados')} placeholder={unaPorLinea}
           value={ex.ordenCorrecto ?? ex.elementos ?? []}
           onCommit={v => set({ ordenCorrecto: v, elementos: shuffleApart(v) })}
         />
       )}
       {ex.tipo === 'sopa_letras' && (
         <LinesField
-          label={t('Palabras')} hint={t('la sopa se rehace al cambiarlas')} value={ex.palabras ?? []}
+          label={t('Palabras')} hint={t('la sopa se rehace al cambiarlas')} placeholder={unaPorLinea} value={ex.palabras ?? []}
           onCommit={v => onChange(prepareExercise({ ...ex, palabras: v }))}
         />
       )}
       {ex.tipo === 'crucigrama' && (
         <LinesField
-          label={t('Palabra: pista')} hint={t('el crucigrama se rehace al cambiarlas')}
+          label={t('Palabra: pista')} hint={t('el crucigrama se rehace al cambiarlas')} placeholder={t('sol: estrella que nos da luz')}
           value={(ex.pistas ?? []).map(p => `${p.palabra}: ${p.pista}`)}
           onCommit={v => onChange(prepareExercise({
             ...ex,
@@ -188,17 +208,17 @@ export function ExerciseEditor({ ex, n, id, selected, first, last, busy, aiDisab
       )}
       {ex.tipo === 'relacionar' && (
         <div className="fe-two">
-          <LinesField label={t('Columna izquierda')} value={ex.izquierda ?? []} onCommit={v => set({ izquierda: v })} />
-          <LinesField label={t('Columna derecha')} value={ex.derecha ?? []} onCommit={v => set({ derecha: v })} />
+          <LinesField label={t('Columna izquierda')} placeholder={unaPorLinea} value={ex.izquierda ?? []} onCommit={v => set({ izquierda: v })} />
+          <LinesField label={t('Columna derecha')} placeholder={unaPorLinea} value={ex.derecha ?? []} onCommit={v => set({ derecha: v })} />
         </div>
       )}
       {ex.tipo === 'colorear' && (
         <div className="fe-two">
           <LinesField
-            label={t('Leyenda (color: criterio)')} value={(ex.leyenda ?? []).map(l => `${l.color}: ${l.criterio}`)}
+            label={t('Leyenda (color: criterio)')} placeholder={t('rojo: resultado par')} value={(ex.leyenda ?? []).map(l => `${l.color}: ${l.criterio}`)}
             onCommit={v => set({ leyenda: v.map(l => { const i = l.indexOf(':'); return i < 0 ? { color: l, criterio: '' } : { color: l.slice(0, i).trim(), criterio: l.slice(i + 1).trim() }; }) })}
           />
-          <LinesField label={t('Elementos para colorear')} value={ex.itemsColorear ?? []} onCommit={v => set({ itemsColorear: v })} />
+          <LinesField label={t('Elementos para colorear')} placeholder={unaPorLinea} value={ex.itemsColorear ?? []} onCommit={v => set({ itemsColorear: v })} />
         </div>
       )}
       {ex.tipo === 'comic' && (
@@ -213,15 +233,21 @@ export function ExerciseEditor({ ex, n, id, selected, first, last, busy, aiDisab
                 className="finput" value={v.texto} placeholder={t('Vacío: lo escribe el alumnado')} aria-label={t('Bocadillo {n}', { n: i + 1 })}
                 onChange={e => set({ vinetas: ex.vinetas!.map((x, j) => (j === i ? { ...x, texto: e.target.value } : x)) })}
               />
+              {(ex.vinetas?.length ?? 0) > 2 && (
+                <button type="button" className="ico-btn sm" title={t('Quitar la viñeta {n}', { n: i + 1 })} aria-label={t('Quitar la viñeta {n}', { n: i + 1 })} onClick={() => onChange(sinVineta(ex, i))}><Trash2 size={14} /></button>
+              )}
             </div>
           ))}
+          {(ex.vinetas?.length ?? 0) < MAX_VINETAS && (
+            <button type="button" className="btn-ghost sm fsi-mas" onClick={() => onChange(conVineta(ex))}><Plus size={14} />{t('Añadir viñeta')}</button>
+          )}
         </div>
       )}
       {ex.tipo === 'tabla_rellenar' && !!ex.columnas?.length && (
         <div className="fe-table" style={{ gridTemplateColumns: `repeat(${ex.columnas.length}, minmax(0, 1fr))` }}>
           {ex.columnas.map((c, ci) => (
             <input
-              key={`h${ci}`} className="finput th" value={c} aria-label={t('Columna {n}', { n: ci + 1 })}
+              key={`h${ci}`} className="finput th" value={c} aria-label={t('Columna {n}', { n: ci + 1 })} placeholder={t('Columna {n}', { n: ci + 1 })}
               onChange={e => set({ columnas: ex.columnas!.map((x, j) => (j === ci ? e.target.value : x)) })}
             />
           ))}
@@ -232,6 +258,21 @@ export function ExerciseEditor({ ex, n, id, selected, first, last, busy, aiDisab
               onChange={e => set({ filas: ex.filas!.map((f, r) => (r === fi ? f.map((x, c) => (c === ci ? e.target.value : x)) : f)) })}
             />
           )))}
+        </div>
+      )}
+      {ex.tipo === 'tabla_rellenar' && !!ex.columnas?.length && (
+        <div className="fsi-tabla-acc">
+          <span className="fe-hint">{t('Las celdas vacías son las que rellena el alumnado.')}</span>
+          <span className="fsi-tabla-grupo">
+            <span className="fe-lbl">{t('Filas')}</span>
+            <button type="button" className="ico-btn sm" title={t('Quitar la última fila')} aria-label={t('Quitar la última fila')} disabled={(ex.filas?.length ?? 0) <= 1} onClick={() => { if (!ultimaFilaEscrita(ex) || window.confirm(t('La última fila tiene texto escrito. ¿Quitarla?'))) onChange(sinFilaDeTabla(ex)); }}><Minus size={14} /></button>
+            <button type="button" className="ico-btn sm" title={t('Añadir fila')} aria-label={t('Añadir fila')} disabled={(ex.filas?.length ?? 0) >= MAX_FILAS_TABLA} onClick={() => onChange(conFilaDeTabla(ex))}><Plus size={14} /></button>
+          </span>
+          <span className="fsi-tabla-grupo">
+            <span className="fe-lbl">{t('Columnas')}</span>
+            <button type="button" className="ico-btn sm" title={t('Quitar la última columna')} aria-label={t('Quitar la última columna')} disabled={ex.columnas.length <= 2} onClick={() => { if (!ultimaColumnaEscrita(ex) || window.confirm(t('La última columna tiene texto escrito. ¿Quitarla?'))) onChange(sinColumnaDeTabla(ex)); }}><Minus size={14} /></button>
+            <button type="button" className="ico-btn sm" title={t('Añadir columna')} aria-label={t('Añadir columna')} disabled={ex.columnas.length >= MAX_COLUMNAS_TABLA} onClick={() => onChange(conColumnaDeTabla(ex))}><Plus size={14} /></button>
+          </span>
         </div>
       )}
 

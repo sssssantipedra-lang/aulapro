@@ -11,6 +11,7 @@ import { useToast } from '../components/ui/Toast';
 import { useI18n } from '../i18n';
 import { isAndroidApp, isWebApp } from '../lib/platform';
 import { compararAlumnos } from '../lib/alumnado';
+import { useClaseActiva } from '../hooks/useClaseActiva';
 
 interface Props {
   classes: Class[];
@@ -53,7 +54,7 @@ export function ClassroomLive({ classes, students, rubrics, dianas: todasDianas,
   const bridge = window.electronAPI?.classroom;
 
   const [snap, setSnap] = useState<ClassroomSnapshot | null>(null);
-  const [classId, setClassId] = useState(classes[0]?.id ?? '');
+  const [classId, setClassId] = useClaseActiva(classes);
   const [kind, setKind] = useState<ActivityKind>('rubric');
   const [busy, setBusy] = useState(false);
 

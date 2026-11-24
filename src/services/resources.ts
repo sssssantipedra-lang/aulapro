@@ -343,6 +343,12 @@ export interface FichaContent {
    * Las actividades se hacen sobre este texto y el título de la ficha es el del texto.
    */
   lectura?: FichaLectura;
+  /**
+   * El docente quiere el solucionario impreso: una página aparte al final del PDF y del Word con la solución de
+   * cada ejercicio (la sopa con sus palabras marcadas y el crucigrama resuelto). Sin él, las soluciones solo se
+   * ven en el editor. No en tarjetas.
+   */
+  solucionario?: boolean;
 }
 
 /* ── Lo que pide el docente ── */
