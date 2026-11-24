@@ -52,8 +52,8 @@ export function VistaPreviaPegado({ filas, donde, onAplicar, onClose }: Props) {
   const porNombre = plan.modo === 'nombre';
   // Lo que hay que confirmar antes de poner nada: el orden, si se coloca por posición y hay más de una fila; los
   // nombres que solo se parecen, si se coloca por nombre
-  const hayQueConfirmar = !sinColumnas && total > 0 && (porNombre ? plan.aproximadas > 0 || plan.pareceOtroGrupo : plan.filas.length > 1);
   const ningunoCoincide = !porNombre && !!pegado.etiquetas && plan.filas.length > 0 && plan.descuadradas === plan.filas.length;
+  const hayQueConfirmar = !sinColumnas && total > 0 && (porNombre ? plan.aproximadas > 0 || plan.pareceOtroGrupo : plan.filas.length > 1 || ningunoCoincide);
   const cambiarCabecera = (v: boolean) => { setCabecera(v); setAMano({}); setComprobado(false); };
   const colocar = (fila: number, alumnoId: string) => {
     setAMano(m => {

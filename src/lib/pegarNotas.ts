@@ -221,7 +221,10 @@ function esDeNumerosDistintos(columna: string[]): boolean {
 /** El título de una columna con el número de lista («Nº», «N.º», «Núm.», «#», «Orden»). */
 const TITULO_NUMERO = /^(n[º°o]?\.?|n\.?\s?[º°o]\.?|n[uú]m(ero)?\.?|#|orden|lista|n[º°o]?\s*(de\s*)?lista)$/i;
 /** Títulos de columnas de texto que no son el nombre del alumno. */
-const TITULO_NO_NOMBRE = /tutor|grupo|curso|clase|unidad|nivel|sexo|g[eé]nero|repite|repetidor|observ|centro|nia\b|expediente|dni|nif|correo|email|tel[eé]fono|fecha|nacimiento|edad|optativa|religi|materia|asignatura|profesor/i;
+const TITULO_NO_NOMBRE = /tutor|grupo|grup\b|curso|curs\b|clase|classe|unidad|nivel|nivell|sexo|sexe|g[eé]nero|g[eè]nere|repite|repetidor|observ|centro|centre|nia\b|\bid\b|expediente|expedient|dni|nif|nie\b|correo|correu|e-?mail|mail|tel[eéè]f|m[oó]vil|phone|fecha|data\b|naix|nacimiento|birth|date|edad|edat|\bage\b|optativa|religi|materia|mat[eè]ria|asignatura|assignatura|profesor|professor|teacher|familia|fam[ií]lia|padre|madre|pare\b|mare\b/i;
+/** Títulos de las columnas de los apellidos y del nombre, cuando vienen separadas. */
+const TITULO_APELLIDOS = /apellid|cognom|surname|last\s*name|family\s*name/i;
+const TITULO_NOMBRE = /^(nom|nombre|nombres|noms|name|first\s*name|given\s*name|nom\s+de\s+pila)\.?$/i;
 
 /** Una columna que cuenta 1, 2, 3… desde arriba (cinco filas o más): el número de lista, no una nota. */
 function esNumeroDeLista(columna: string[]): boolean {
@@ -232,7 +235,21 @@ function esNumeroDeLista(columna: string[]): boolean {
  * Una columna de texto sin ninguna nota: los nombres. Una columna entera de «NP» o de «-» no lo es: es una
  * actividad que nadie tiene calificada, y apartarla llevaría las notas de la siguiente a la actividad de antes.
  */
-const esDeNombres = (columna: string[]) => !columna.some(esNota) && columna.some(x => hayTexto(x) && !esMarcaSinNota(x));
+/** Si un texto lleva al menos dos letras de verdad (no «3ºA», ni una fecha, ni un teléfono). */
+const dosLetras = (x: string) => (x.match(/[A-Za-zÀ-ÖØ-öø-ÿĀ-ž]/g)?.length ?? 0) >= 2;
+const esDeNombres = (columna: string[]) => !columna.some(esNota) && columna.some(x => hayTexto(x) && !esMarcaSinNota(x) && dosLetras(x) && !x.includes('@'));
+
+/**
+ * Una columna de datos que no es ni el nombre ni una nota (24-11-2026): fechas de nacimiento, teléfonos, edades, el
+ * grupo («3ºA»), correos. Va junto a los nombres en muchos listados; no se cuenta como nota ni como parte del nombre,
+ * porque sus cifras decidían a qué alumno iba la fila («12 Marta»). Una columna entera de «NP» o de «-» no lo es:
+ * es una actividad sin calificar y conserva su sitio.
+ */
+function esDeDatos(columna: string[], titulo: string | null): boolean {
+  if (titulo !== null && TITULO_NO_NOMBRE.test(titulo) && !columna.some(esNota)) return true;
+  if (columna.some(esNota) || columna.every(x => x === '' || esMarcaSinNota(x))) return false;
+  return columna.every(x => x === '' || x.includes('@') || !dosLetras(x));
+}
 
 /**
  * Entiende lo pegado: aparta la cabecera y las columnas del principio que no son notas (el número de lista y los
@@ -248,16 +265,20 @@ export function entenderPegado(filas: string[][], opciones: { cabecera?: boolean
 
   let primera = 0;
   let numeroDeLista = false;
+  let columnaDelNumero = 0;
   const deNombre: number[] = [];
   while (primera < ancho) {
     const col = columna(primera);
+    const titulo = conCabecera ? (filas[0][primera] ?? '') : null;
     // El número de lista solo si detrás queda algo: una sola columna de 1 a 5 son notas. Con los nombres justo
     // detrás lo es aunque sean pocas filas o no empiece en 1 (un grupo pequeño, la mitad de la lista): si no,
     // esos números entrarían como notas de la primera actividad y las notas irían dos columnas más allá
     const tituloNumero = conCabecera && TITULO_NUMERO.test((filas[0][primera] ?? '').trim()) && col.every(x => /^\d{1,3}\.?$/.test(x) || x === '');
     if (!numeroDeLista && deNombre.length === 0 && primera < ancho - 1
-      && (tituloNumero || esNumeroDeLista(col) || ((esCorrelativa(col) || esDeNumerosDistintos(col)) && esDeNombres(columna(primera + 1))))) { numeroDeLista = true; primera++; continue; }
+      && (tituloNumero || esNumeroDeLista(col) || ((esCorrelativa(col) || esDeNumerosDistintos(col)) && esDeNombres(columna(primera + 1))))) { numeroDeLista = true; columnaDelNumero = primera; primera++; continue; }
     if (esDeNombres(col)) { deNombre.push(primera); primera++; continue; }
+    // Una columna de datos entre las del principio (fecha, teléfono, grupo) se salta, si detrás quedan notas
+    if (primera < ancho - 1 && esDeDatos(col, titulo)) { primera++; continue; }
     break;
   }
   // De las columnas de texto, las que no son el nombre (el tutor, el grupo, el sexo) no cuentan para el nombre: por su
@@ -268,8 +289,16 @@ export function entenderPegado(filas: string[][], opciones: { cabecera?: boolean
     return !(deNombre.length > 1 && col.length >= 2 && col.every(x => x === col[0]));
   });
   const usadas = delNombre.length ? delNombre : deNombre;
-  const etiquetas = usadas.length ? cuerpo.map(f => usadas.map(k => f[k] ?? '').filter(Boolean).join(' ')) : null;
-  const numeros = numeroDeLista ? cuerpo.map(f => (f[0] ?? '').replace('.', '')) : null;
+  // Con los apellidos y el nombre en columnas con su título, se juntan como «Apellidos, Nombre»: sin la coma, un
+  // nombre que también es apellido («Martín», «Vicente») se podía leer al revés
+  const deApellidos = conCabecera ? usadas.filter(k => TITULO_APELLIDOS.test(filas[0][k] ?? '')) : [];
+  const deNombrePila = conCabecera ? usadas.filter(k => TITULO_NOMBRE.test((filas[0][k] ?? '').trim())) : [];
+  const separadas = deApellidos.length > 0 && deNombrePila.length > 0;
+  const junta = (f: string[], ks: number[]) => ks.map(k => (f[k] ?? '').replace(/,/g, ' ')).filter(Boolean).join(' ');
+  const etiquetas = usadas.length
+    ? cuerpo.map(f => (separadas ? `${junta(f, deApellidos)}, ${junta(f, deNombrePila)}` : usadas.map(k => f[k] ?? '').filter(Boolean).join(' ')))
+    : null;
+  const numeros = numeroDeLista ? cuerpo.map(f => (f[columnaDelNumero] ?? '').replace('.', '')) : null;
   return {
     celdas: cuerpo.map(f => f.slice(primera)),
     etiquetas,
@@ -305,7 +334,21 @@ export function nombresParecidos(a: string, b: string): boolean {
  */
 
 /** Partículas que no distinguen a nadie: «de la Fuente», «Puig i Soler», «D'Amico». */
-const PARTICULAS: ReadonlySet<string> = new Set(['de', 'del', 'la', 'las', 'los', 'y', 'i', 'e', 'd', 'l']);
+const PARTICULAS: ReadonlySet<string> = new Set(['de', 'del', 'la', 'las', 'los', 'da', 'das', 'do', 'dos']);
+
+/** Formas cortas de un nombre que no son su principio («Álex» y «Alejandro», «Pepe» y «José»). */
+const APODOS: Record<string, string[]> = {
+  alex: ['alejandro', 'alexandre', 'alexandra', 'alexis', 'alejandra'], dani: ['daniel', 'daniela'], fran: ['francisco', 'francesc', 'francisca'],
+  pepe: ['jose'], paco: ['francisco'], nacho: ['ignacio'], lola: ['dolores'], pili: ['pilar'], javi: ['javier'], rafa: ['rafael'],
+  manu: ['manuel', 'manuela'], chema: ['josemaria'], quique: ['enrique'], kike: ['enrique'], lucho: ['luis'], toni: ['antonio', 'antoni'],
+  tono: ['antonio'], pau: [], jordi: [], xavi: ['xavier', 'javier'], cesc: ['francesc'], quim: ['joaquim'], pep: ['josep'], berta: ['bertha'],
+  marga: ['margarita'], maite: ['mariateresa'], mayte: ['mariateresa'], tere: ['teresa'], isa: ['isabel'], eli: ['elisabet', 'elisa', 'elena'],
+  sole: ['soledad'], concha: ['concepcion'], charo: ['rosario'], rocio: [], nico: ['nicolas'], santi: ['santiago'], guille: ['guillermo'],
+  edu: ['eduardo'], fer: ['fernando'], migue: ['miguel'], adri: ['adrian', 'adriana'], gabi: ['gabriel', 'gabriela'], sergi: ['sergio'],
+};
+
+/** Palabras que no son el nombre de nadie: con el alumnado guardado solo con su número, la fila no puede traer otras. */
+const GENERICAS: ReadonlySet<string> = new Set(['alumno', 'alumna', 'alumne', 'alumnes', 'alumnos', 'student', 'pupil', 'estudiante', 'n', 'no', 'num', 'numero', 'nº']);
 
 /** Abreviaturas de nombres y apellidos que se ven en las listas. */
 const ABREVIATURAS: Record<string, string> = {
@@ -316,7 +359,15 @@ const ABREVIATURAS: Record<string, string> = {
 
 /** Las palabras de un nombre para emparejar: sin tildes ni mayúsculas, «l·l» como «ll» y las abreviaturas desplegadas. */
 function palabrasDeNombre(nombre: string): string[] {
-  const t = nombre.replace(/ŀl/gi, 'll').replace(/l[·•.‧∙]l/gi, 'll');
+  // Lo que va entre paréntesis o corchetes es una anotación del docente («(rep.)», «[ACIS]»), no el nombre
+  let t = nombre.replace(/\([^)]*\)/g, ' ').replace(/\[[^\]]*\]/g, ' ');
+  t = t.replace(/ŀl/gi, 'll').replace(/l[·•.‧∙]l/gi, 'll');
+  // «D'Amico», «L'Hereu»: el apóstrofo une; la letra de delante no es la inicial de nadie
+  t = t.replace(/(^|[\s,])([dl])['’´`]\s*(?=\p{L})/giu, '$1$2');
+  // La «i», la «y» o la «e» entre apellidos («Puig i Soler») es una conjunción; en mayúscula, una inicial, salvo
+  // que todo el nombre vaya en mayúsculas
+  const todoMayusculas = !/\p{Ll}/u.test(t);
+  t = t.replace(todoMayusculas ? /(\s)[IYE](?=\s+\p{L}{2,})/gu : /(\s)[iye](?=\s)/g, '$1');
   return palabras(t).map(w => ABREVIATURAS[w] ?? w);
 }
 
@@ -344,6 +395,7 @@ function mismaPalabra(a: string, b: string): 'igual' | 'parecida' | null {
   if (c.length === 1) return l.startsWith(c) ? 'parecida' : null;
   if (c.length <= 4 && l.length >= c.length + 2 && l.startsWith(c)) return 'parecida';
   if (sinDobles(a) === sinDobles(b)) return 'parecida';
+  if (APODOS[a]?.includes(b) || APODOS[b]?.includes(a)) return 'parecida';
   if (c.length >= 4 && aUnaLetra(a, b)) return 'parecida';
   return null;
 }
@@ -373,12 +425,38 @@ export interface ParecidoDeNombres {
   parecido: Parecido;
   /** Si lo decide el número de lista de la hoja (que puede estar renumerada). */
   porNumero: boolean;
+  /** Cuántas palabras de la hoja encajan (iguales o parecidas). */
+  cubiertas: number;
+  /** Las palabras de la hoja que encajan iguales, y todas las que encajan. */
+  palabrasExactas: string[];
+  palabrasCubiertas: string[];
+  /** Cuántas palabras sobran, entre la hoja y el alumno. */
+  sobran: number;
+  /** Todas iguales y no sobra ninguna: el mismo nombre. */
+  exacto: boolean;
+  /** Lo que sobra va al final (el segundo apellido que uno no escribió). */
+  alFinal: boolean;
+  ordenado: boolean;
+  /** Si se ha leído la hoja tal cual o dándole la vuelta (sin coma, con los apellidos delante). */
+  tal: boolean;
+  /** Si se ha leído el nombre del alumno tal cual o dándole la vuelta. */
+  alumnoTal: boolean;
 }
 
-const NADA: ParecidoDeNombres = { puntos: 0, parecido: 'aproximado', porNumero: false };
+const NADA: ParecidoDeNombres = { puntos: 0, parecido: 'aproximado', porNumero: false, cubiertas: 0, palabrasExactas: [], palabrasCubiertas: [], sobran: 0, exacto: false, alFinal: false, ordenado: false, tal: true, alumnoTal: true };
+/** Lo que se decide solo por números. */
+const porCifras = (puntos: number, parecido: Parecido, porNumero: boolean): ParecidoDeNombres =>
+  ({ puntos, parecido, porNumero, cubiertas: 1, palabrasExactas: [], palabrasCubiertas: [], sobran: 0, exacto: parecido === 'seguro', alFinal: true, ordenado: true, tal: true, alumnoTal: true });
+
+/** Da la vuelta a «Apellidos, Nombre». */
+function sinComa(nombre: string): string {
+  if (!nombre.includes(',')) return nombre;
+  const [antes, ...despues] = nombre.split(',');
+  return `${despues.join(' ')} ${antes}`;
+}
 
 /** Compara las palabras de la hoja (en el orden natural: nombre y apellidos) con las del alumno, en su orden. */
-function compararPalabras(hoja: string[], alumno: string[]): { iguales: number; parecidas: number; ordenado: boolean; sobranHoja: number; sobranAlumno: number; alFinal: boolean } | null {
+function compararPalabras(hoja: string[], alumno: string[]): { iguales: number; parecidas: number; ordenado: boolean; sobranHoja: number; sobranAlumno: number; alFinal: boolean; exactas: string[]; cubiertas: string[] } | null {
   const h = juntar(hoja, new Set(alumno)).filter(w => !PARTICULAS.has(w));
   const a = juntar(alumno, new Set(hoja)).filter(w => !PARTICULAS.has(w));
   const parejas: [number, number][] = [];
@@ -407,7 +485,8 @@ function compararPalabras(hoja: string[], alumno: string[]): { iguales: number; 
   const ultimaH = Math.max(-1, ...parejas.map(p => p[0]));
   const ultimaA = Math.max(-1, ...parejas.map(p => p[1]));
   const alFinal = h.every((_, i) => usadaH.has(i) || i > ultimaH) && a.every((_, j) => usadaA.has(j) || j > ultimaA);
-  return { iguales, parecidas, ordenado, sobranHoja, sobranAlumno, alFinal };
+  const exactas = parejas.filter(([i, k]) => h[i] === a[k]).map(([i]) => h[i]);
+  return { iguales, parecidas, ordenado, sobranHoja, sobranAlumno, alFinal, exactas, cubiertas: parejas.map(([i]) => h[i]) };
 }
 
 /** Las formas de leer el nombre de la hoja en el orden de la app: «Apellidos, Nombre» se da la vuelta; sin coma, se prueba también con los apellidos delante. */
@@ -428,13 +507,9 @@ function ordenesDeLaHoja(letras: string[], conComa: boolean): { ws: string[]; ta
  */
 export function parecidoDeNombres(hoja: string, alumno: string, numero?: string): ParecidoDeNombres {
   const conComa = hoja.includes(',');
-  let textoHoja = hoja;
-  if (conComa) {
-    const [antes, ...despues] = hoja.split(',');
-    textoHoja = `${despues.join(' ')} ${antes}`;
-  }
-  const wh = palabrasDeNombre(textoHoja);
-  const wa = palabrasDeNombre(alumno);
+  const wh = palabrasDeNombre(sinComa(hoja));
+  // El alumno también puede estar guardado como «Apellidos, Nombre»
+  const wa = palabrasDeNombre(sinComa(alumno));
   const cifrasH = wh.filter(esCifra).map(w => String(Number(w)));
   const cifrasA = wa.filter(esCifra).map(w => String(Number(w)));
   const letrasH = wh.filter(w => !esCifra(w));
@@ -449,22 +524,34 @@ export function parecidoDeNombres(hoja: string, alumno: string, numero?: string)
   if (num && cifrasA.length > 0 && !cifrasA.includes(num) && !cifrasEnNombre) return NADA;
 
   // El alumno guardado solo con números («3»): basta con que la hoja los lleve
+  // y no traiga otras palabras que «Alumno» («Media 2.ª ev.» no es el alumno 2)
   if (letrasA.length === 0) {
-    if (cifrasEnNombre && cifrasA.every(c => cifrasH.includes(c))) return { puntos: 20, parecido: 'seguro', porNumero: false };
-    if (cifraDeLista) return { puntos: 12, parecido: 'aproximado', porNumero: true };
+    if (!letrasH.every(w => GENERICAS.has(w))) return NADA;
+    if (cifrasEnNombre && cifrasA.every(c => cifrasH.includes(c))) return porCifras(20, 'seguro', false);
+    if (cifraDeLista) return porCifras(12, 'aproximado', true);
     return NADA;
   }
   // La hoja sin nombre, solo con su número de lista
-  if (letrasH.length === 0) return cifraDeLista ? { puntos: 12, parecido: 'aproximado', porNumero: true } : NADA;
+  if (letrasH.length === 0) return cifraDeLista ? porCifras(12, 'aproximado', true) : NADA;
 
   let mejor: ParecidoDeNombres = NADA;
-  for (const { ws, tal } of ordenesDeLaHoja(letrasH, conComa)) {
-    const c = compararPalabras(ws, letrasA);
+  // El alumno guardado con los apellidos delante y sin coma («Ruiz Gil Ana») también se lee dándole la vuelta
+  const ordenesAlumno = ordenesDeLaHoja(letrasA, alumno.includes(','));
+  const lecturas = ordenesDeLaHoja(letrasH, conComa).flatMap(h => ordenesAlumno.map(a => ({ ws: h.ws, wa: a.ws, tal: h.tal, alumnoTal: a.tal })));
+  for (const { ws, wa: letrasDelAlumno, tal, alumnoTal } of lecturas) {
+    const c = compararPalabras(ws, letrasDelAlumno);
     if (!c || c.iguales === 0) continue;
     const puntos = 10 * c.iguales + 5 * c.parecidas + (c.ordenado ? 3 : 0) + (tal ? 1 : 0) - 2 * c.sobranHoja - c.sobranAlumno
       + (cifrasEnNombre ? 8 : 0) + (cifraDeLista ? 8 : 0);
-    const seguro = c.parecidas === 0 && c.ordenado && c.alFinal && (c.iguales >= 2 || (c.iguales >= 1 && cifrasEnNombre));
-    const este: ParecidoDeNombres = { puntos, parecido: seguro ? 'seguro' : 'aproximado', porNumero: cifraDeLista };
+    // Dándole la vuelta al nombre del alumno, solo es seguro si no sobra nada («Ruiz Gil Ana» y «Ana Ruiz Gil»): si
+    // no, «Joan Pau Ferrer» leído como «Pau Ferrer Joan» sería el «Pau Ferrer» de la hoja
+    const seguro = c.parecidas === 0 && c.ordenado && c.alFinal && (c.iguales >= 2 || (c.iguales >= 1 && cifrasEnNombre))
+      && (alumnoTal || c.sobranHoja + c.sobranAlumno === 0);
+    const este: ParecidoDeNombres = {
+      puntos, parecido: seguro ? 'seguro' : 'aproximado', porNumero: cifraDeLista, cubiertas: c.iguales + c.parecidas,
+      palabrasExactas: c.exactas, palabrasCubiertas: c.cubiertas,
+      sobran: c.sobranHoja + c.sobranAlumno, exacto: seguro && c.sobranHoja + c.sobranAlumno === 0, alFinal: c.alFinal, ordenado: c.ordenado, tal, alumnoTal,
+    };
     if ((este.parecido === 'seguro' && mejor.parecido !== 'seguro') || (este.parecido === mejor.parecido && puntos > mejor.puntos)) mejor = este;
   }
   return mejor;
@@ -493,16 +580,36 @@ export function emparejarPorNombre(
     if (aMano[f]) return { alumnoId: aMano[f], parecido: 'a mano' };
     const posibles = alumnado.map((a, k) => ({ id: a.id, p: puntos[f][k] })).filter(x => x.p.puntos > 0 && !fuera.has(x.id));
     if (posibles.length === 0) return { alumnoId: null, motivo: 'nadie', candidatos: [] };
-    const seguros = posibles.filter(x => x.p.parecido === 'seguro');
-    if (seguros.length > 0) {
-      const mejor = Math.max(...seguros.map(x => x.p.puntos));
-      const top = seguros.filter(x => x.p.puntos === mejor);
-      return top.length === 1 ? { alumnoId: top[0].id, parecido: 'seguro' } : { alumnoId: null, motivo: 'varios', candidatos: top.map(x => x.id) };
+    const hayLiteral = posibles.some(x => x.p.tal);
+    // Otro alumno que tiene iguales todas las palabras de este y explica tantas o más de la hoja: a este le sobra algo,
+    // así que no se puede saber cuál es («Lucía Pérez» en la hoja, con «Lucía Pérez Navarro» y «Lucía Pérez N.»)
+    const otroExplicaMas = (x: (typeof posibles)[number]) => posibles.some(y => y.id !== x.id
+      && x.p.palabrasExactas.every(w => y.p.palabrasExactas.includes(w)) && y.p.cubiertas >= x.p.cubiertas);
+    // Un «seguro» deja de serlo si otro alumno explica más palabras de la hoja (la «S.» de «Daniel Ruiz S.» es el
+    // «Sanz» que al otro le sobraba), o si solo sale dándole la vuelta a la hoja y otro alumno encaja con ella tal
+    // cual (sin coma, «Martín Ruiz Pablo» se lee de dos maneras)
+    const seguros = posibles.filter(x => x.p.parecido === 'seguro'
+      && (x.p.exacto || !otroExplicaMas(x))
+      && (x.p.tal || !hayLiteral || posibles.every(y => y.id === x.id || !y.p.tal))
+      // y al revés: lo que sale leyendo la hoja tal cual no es seguro si, dándole la vuelta, sale seguro otro alumno
+      && (!x.p.tal || !posibles.some(y => y.id !== x.id && y.p.parecido === 'seguro' && !y.p.tal))
+      // Leyendo al revés el nombre del alumno, solo si no hay otro seguro leído tal cual («Vicente Ramón» y «Ramón Vicente»)
+      && (x.p.alumnoTal || !posibles.some(y => y.id !== x.id && y.p.parecido === 'seguro' && y.p.alumnoTal)));
+    if (seguros.length === 1) return { alumnoId: seguros[0].id, parecido: 'seguro' };
+    if (seguros.length > 1) {
+      // Dos posibles seguros: solo gana el que es el mismo nombre, sin nada que sobre
+      const exactos = seguros.filter(x => x.p.exacto);
+      return exactos.length === 1 ? { alumnoId: exactos[0].id, parecido: 'seguro' } : { alumnoId: null, motivo: 'varios', candidatos: seguros.map(x => x.id) };
     }
-    // Sin ninguno seguro, solo se coloca si no hay otro posible, o si lo decide el número de lista (y se marca)
+    // Sin ninguno seguro: el único posible, o el que lo decide el número de lista, o el que mejor encaja por este
+    // orden (lo que sobra al final, en el mismo orden, más palabras, menos que sobran) si no empata con otro; con ≈
     if (posibles.length === 1) return { alumnoId: posibles[0].id, parecido: 'aproximado' };
     const porNumero = posibles.filter(x => x.p.porNumero);
     if (porNumero.length === 1) return { alumnoId: porNumero[0].id, parecido: 'aproximado' };
+    const clave = (x: (typeof posibles)[number]) => [x.p.alFinal ? 1 : 0, x.p.ordenado ? 1 : 0, x.p.cubiertas, -x.p.sobran];
+    const compara = (x: number[], y: number[]) => x.reduce((r, v, i) => r || v - y[i], 0);
+    const orden = [...posibles].sort((x, y) => compara(clave(y), clave(x)));
+    if (compara(clave(orden[0]), clave(orden[1])) > 0) return { alumnoId: orden[0].id, parecido: 'aproximado' };
     return { alumnoId: null, motivo: 'varios', candidatos: posibles.map(x => x.id) };
   };
   const res: Emparejamiento[] = etiquetas.map((_, f) => elegir(f, deMano));
@@ -673,7 +780,7 @@ export function planDePegado(pegado: Pegado, donde: DondePegar, aMano: Record<nu
     descuadradas: 0,
     sinColocar,
     aproximadas: 0,
-    pareceOtroGrupo: porNombre && pegado.celdas.length >= 2 && sinColocar.filter(f => f.motivo === 'nadie').length * 2 >= pegado.celdas.length,
+    pareceOtroGrupo: porNombre && pegado.celdas.length >= 3 && sinColocar.filter(f => f.motivo === 'nadie').length * 2 >= pegado.celdas.length,
     noEstan: porNombre ? donde.alumnado.filter(a => !asignadas.some(x => x.alumno.id === a.id)).map(a => ({ id: a.id, nombre: a.name })) : [],
   };
   for (const { alumno, fila: f, parecido } of asignadas) {

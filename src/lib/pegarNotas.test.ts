@@ -170,7 +170,8 @@ describe('entenderPegado', () => {
 
   it('las columnas de nombre del principio se apartan y se enseñan como etiqueta', () => {
     const p = entenderPegado(leerPegado('Apellidos\tNombre\tExamen\nPérez Navarro\tLucía\t7\nGil\tMarc\t8'));
-    expect(p.etiquetas).toEqual(['Pérez Navarro Lucía', 'Gil Marc']);
+    // Con los títulos «Apellidos» y «Nombre», se juntan como «Apellidos, Nombre» (24-11-2026)
+    expect(p.etiquetas).toEqual(['Pérez Navarro, Lucía', 'Gil, Marc']);
     expect(p.titulos).toEqual(['Examen']);
     expect(p.celdas).toEqual([['7'], ['8']]);
   });
