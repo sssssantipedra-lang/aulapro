@@ -35,6 +35,17 @@
 .pn-tabla td.pn-etiqueta { text-align:left; color:var(--text-3); font-size:12px; max-width:200px; overflow:hidden; text-overflow:ellipsis; }
 .pn-fila-mal td.pn-etiqueta { color:var(--warn-fg); font-weight:700; }
 .pn-distinto { display:inline-flex; align-items:center; justify-content:center; width:18px; height:18px; margin-right:6px; border-radius:50%; background:var(--warn-fg); color:var(--card); font-size:12px; font-weight:800; }
+.pn-fila-aprox td.pn-etiqueta { color:var(--warn-fg); font-weight:600; }
+.pn-quitar { margin-left:8px; padding:1px 7px; border:0.5px solid var(--border); border-radius:99px; background:var(--surface); color:var(--text-2); font-family:var(--font); font-size:11px; cursor:pointer; }
+.pn-sin { padding:10px 12px; border:0.5px solid var(--border); border-radius:10px; background:var(--surface); }
+.pn-sin h3 { margin:0 0 8px; font-size:12.5px; font-weight:800; color:var(--text-2); }
+.pn-sin ul { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px; }
+.pn-sin li { display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
+.pn-sin-hoja { display:flex; flex-direction:column; min-width:0; }
+.pn-sin-hoja strong { font-size:13px; }
+.pn-sin-hoja small { font-size:11.5px; color:var(--text-3); }
+.pn-sin select { min-height:36px; max-width:100%; }
+.pn-confirmar { padding:9px 11px; border-radius:10px; background:var(--warn-bg); }
 .pn-c { display:inline-block; min-width:34px; padding:3px 8px; border-radius:7px; font-weight:600; }
 .pn-c.pn-nueva { background:var(--ok-bg); color:var(--ok-fg); }
 .pn-c.pn-cambia { background:var(--warn-bg); color:var(--warn-fg); }

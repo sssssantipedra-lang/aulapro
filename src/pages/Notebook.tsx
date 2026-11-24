@@ -936,7 +936,7 @@ function GradesTab({
             </div>
             {columnasEditables.length > 0 && (
               <p className="sda-note pn-pista">
-                <span className="pn-pista-teclado">{t('Intro y las flechas pasan de una celda a otra. Para traer notas de una hoja de cálculo, copia allí la columna y pégala sobre la celda del primer alumno: antes de poner nada verás lo que cambia.')} </span>
+                <span className="pn-pista-teclado">{t('Intro y las flechas pasan de una celda a otra. Para traer notas de una hoja de cálculo, copia allí los nombres con sus notas y pégalos en la columna de la actividad: cada nota irá a su alumno, y antes de poner nada verás lo que cambia.')} </span>
                 <span>{t('Pulsa el nombre de una actividad para calificarla en una lista o poner una nota a quien no tiene.')}</span>
               </p>
             )}

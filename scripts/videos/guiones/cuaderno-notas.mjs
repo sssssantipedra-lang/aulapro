@@ -77,14 +77,17 @@ export default {
         await esperar(p, 400);
         const c = await celda(p, 3);
         await clicar(p, c, rapido);
-        // Lo que llegaría al pegar tres notas copiadas de una columna de una hoja de cálculo
-        await c.locator('input').evaluate(el => {
+        // Lo que llegaría al pegar los nombres y las notas de tres alumnos copiados de una hoja de cálculo, en otro orden
+        // que el de la lista y con el nombre en mayúsculas: cada nota va a su alumno por el nombre (24-11-2026)
+        const nombres = await p.locator('.gb-table tbody tr').evaluateAll(trs => trs.slice(3, 6).map(tr => (tr.textContent ?? '').match(/Alumno \d+/)?.[0] ?? ''));
+        const hoja = ['Nombre\tNota', `${nombres[2].toUpperCase()}\t9`, `${nombres[0]}\t8`, `${nombres[1]}\t7,5`].join('\n');
+        await c.locator('input').evaluate((el, texto) => {
           const dt = new DataTransfer();
-          dt.setData('text/plain', '8\n7,5\n9');
+          dt.setData('text/plain', texto);
           el.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true }));
-        });
+        }, hoja);
         await esperar(p, 900);
-        await mover(p, modal(p).locator('.pn-resumen'), { pasos: 12, espera: 900 });
+        await mover(p, modal(p).locator('.pn-tabla td.pn-etiqueta').first(), { pasos: 12, espera: 900 });
         await clicar(p, modal(p).getByRole('button', { name: /^Poner \d+ notas?$/ }), rapido);
       } },
     { texto: 'En «Curso» ves la nota final de cada alumno, y eliges si es la evaluación continua o la media de las evaluaciones.',

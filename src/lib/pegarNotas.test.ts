@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
-  cambiosDeRelleno, cambiosReales, conCambios, entenderPegado, esBloque, leerNota, leerPegado, nombresParecidos,
-  esMarcaSinNota, pareceCabecera, planDePegado, puedeSerTitulo, sinNota, MAX_FILAS,
+  cambiosDeRelleno, cambiosReales, conCambios, emparejarPorNombre, entenderPegado, esBloque, leerNota, leerPegado, nombresParecidos,
+  esMarcaSinNota, parecidoDeNombres, pareceCabecera, planDePegado, puedeSerTitulo, sinNota, MAX_FILAS,
 } from './pegarNotas';
 import type { GradeMap } from '../types';
 
@@ -293,14 +293,21 @@ describe('planDePegado', () => {
     expect(plan.cambios.length).toBe(4);
   });
 
-  it('con los nombres de la hoja, avisa de las filas que no cuadran con el alumno', () => {
+  it('con los nombres de la hoja coloca por nombre; dos filas con el mismo nombre no van a nadie', () => {
     const texto = 'Alumno 1\t7\nAlumno 3\t8\nAlumno 3\t9';
     const plan = planDePegado(entenderPegado(leerPegado(texto)), donde)!;
-    expect(plan.filas.map(f => f.etiqueta)).toEqual(['Alumno 1', 'Alumno 3', 'Alumno 3']);
-    expect(plan.filas.map(f => f.descuadra)).toEqual([false, true, false]);
-    expect(plan.descuadradas).toBe(1);
-    // Sigue casando por posición: el aviso no cambia a quién va cada nota
-    expect(plan.cambios.map(c => c.studentId)).toEqual(['s1', 's3']);
+    expect(plan.modo).toBe('nombre');
+    expect(plan.cambios.map(c => c.studentId)).toEqual(['s1']);
+    expect(plan.sinColocar.map(f => [f.etiqueta, f.motivo])).toEqual([['Alumno 3', 'repetida'], ['Alumno 3', 'repetida']]);
+    // Lo pegado sin nombres sigue por posición, y ahí el aviso ≠ es lo único que queda
+    const sin = planDePegado(entenderPegado(leerPegado('7\n8')), donde)!;
+    expect(sin.modo).toBe('posicion');
+  });
+
+  it('sin ningún nombre parecido a la clase (la hoja de otro grupo), vuelve a la posición y marca cada fila con ≠', () => {
+    const plan = planDePegado(entenderPegado(leerPegado('Iván Costa\t3\nSara Mas\t7')), donde)!;
+    expect(plan.modo).toBe('posicion');
+    expect(plan.descuadradas).toBe(2);
   });
 
   it('lleva el título que la columna tenía en la hoja', () => {
@@ -356,5 +363,112 @@ describe('aplicar los cambios', () => {
     expect(notas.i1.s2).toBeNull();
     expect(despues.i2).toBe(notas.i2);
     expect(conCambios(notas, [])).toBe(notas);
+  });
+});
+
+/* ── Colocar por nombre (24-11-2026) ──
+ * Probado contra una clase ya creada y hojas como las que tiene un docente: el listado oficial («Apellidos, Nombre» y por
+ * apellido), su propia hoja con los nombres escritos de otra forma, con un alumno de más o de menos, solo el nombre de pila
+ * o las iniciales, y la app con «12 Marta» como recomienda la privacidad. Con la colocación por posición, el listado por
+ * apellido dejaba cinco de seis notas en el alumno equivocado.
+ */
+describe('colocar por nombre', () => {
+  const clase = [
+    'Ana Ruiz Mora', 'Carla Ferrer Ibáñez', 'Jorge Albert Vidal', 'Lucía Pérez Navarro', 'Marcos Gil Soler', 'Pau Martí Roig',
+  ].map((name, k) => ({ id: `a${k}`, name }));
+  const nota: Record<string, number> = { a0: 9, a1: 8.25, a2: 6, a3: 7.5, a4: 4, a5: 5 };
+  const examen = [{ id: 'x', name: 'Examen' }];
+  const pega = (filas: [string, number | string][], extra: Partial<{ cabecera: string; aMano: Record<number, string> }> = {}) => {
+    const texto = [`${extra.cabecera ?? 'Alumno'}\tExamen`, ...filas.map(([n, v]) => `${n}\t${v}`)].join('\n');
+    return planDePegado(entenderPegado(leerPegado(texto)), { alumnado: clase, actividades: examen, alumnoId: 'a0', actividadId: 'x', notas: {} }, extra.aMano)!;
+  };
+  const recibe = (plan: ReturnType<typeof pega>) => Object.fromEntries(plan.cambios.map(c => [c.studentId, c.value]));
+
+  it('el listado oficial, «Apellidos, Nombre» y por apellido: cada nota a su alumno', () => {
+    const plan = pega([['Albert Vidal, Jorge', 6], ['Ferrer Ibáñez, Carla', 8.25], ['Gil Soler, Marcos', 4], ['Martí Roig, Pau', 5], ['Pérez Navarro, Lucía', 7.5], ['Ruiz Mora, Ana', 9]]);
+    expect(plan.modo).toBe('nombre');
+    expect(recibe(plan)).toEqual(nota);
+    expect(plan).toMatchObject({ aproximadas: 0, sinColocar: [], noEstan: [] });
+    expect(plan.filas.every(f => f.parecido === 'seguro')).toBe(true);
+  });
+
+  it('en mayúsculas, sin tildes, sin el segundo apellido y con una errata: entra, y la errata se marca como aproximada', () => {
+    const plan = pega([['RUIZ MORA, ANA', 9], ['FERER IBAÑEZ, CARLA', 8.25], ['albert vidal jorge', 6], ['Lucia Perez', 7.5], ['Marcos Gil', 4], ['MARTI ROIG PAU', 5]]);
+    expect(recibe(plan)).toEqual(nota);
+    expect(plan.filas.filter(f => f.parecido === 'aproximado').map(f => f.alumnoId)).toEqual(['a1']);
+    expect(plan.aproximadas).toBe(1);
+  });
+
+  it('un alumno de más en la hoja no corre a nadie: se queda sin colocar', () => {
+    const plan = pega([['Ana Ruiz', 9], ['Carla Ferrer', 8.25], ['Iván Costa', 3], ['Jorge Albert', 6], ['Lucía Pérez', 7.5], ['Marcos Gil', 4], ['Pau Martí', 5]]);
+    expect(recibe(plan)).toEqual(nota);
+    expect(plan.sinColocar).toEqual([{ fila: 2, etiqueta: 'Iván Costa', motivo: 'nadie', candidatos: [], textos: ['3'] }]);
+    expect(plan.filasQueSobran).toBe(0);
+  });
+
+  it('a la hoja le falta un alumno: los demás van a su sitio y el que falta no se toca', () => {
+    const plan = pega([['Ana Ruiz', 9], ['Jorge Albert', 6], ['Lucía Pérez', 7.5], ['Marcos Gil', 4], ['Pau Martí', 5]]);
+    const { a1: _sinNota, ...resto } = nota;
+    void _sinNota;
+    expect(recibe(plan)).toEqual(resto);
+    expect(plan.noEstan).toEqual([{ id: 'a1', nombre: 'Carla Ferrer Ibáñez' }]);
+  });
+
+  it('un mote no va a nadie; el docente lo coloca a mano y entonces entra', () => {
+    const plan = pega([['Anita Ruiz', 9], ['Carla Ferrer', 8.25]]);
+    expect(plan.sinColocar.map(f => [f.etiqueta, f.motivo])).toEqual([['Anita Ruiz', 'nadie']]);
+    expect(recibe(plan)).toEqual({ a1: 8.25 });
+    const aMano = pega([['Anita Ruiz', 9], ['Carla Ferrer', 8.25]], { aMano: { 0: 'a0' } });
+    expect(recibe(aMano)).toEqual({ a0: 9, a1: 8.25 });
+    expect(aMano.filas.find(f => f.alumnoId === 'a0')?.parecido).toBe('a mano');
+    expect(aMano.sinColocar).toEqual([]);
+  });
+
+  it('solo el nombre de pila o con la inicial: entra si no hay otro igual, marcado como aproximado', () => {
+    const plan = pega([['Ana', 9], ['Carla F.', 8.25], ['Jorge', 6], ['Lucía P.', 7.5], ['Marcos', 4], ['Pau M.', 5]]);
+    expect(recibe(plan)).toEqual(nota);
+    expect(plan.aproximadas).toBe(6);
+  });
+
+  it('dos alumnas que se llaman igual de nombre: «Ana» sola no va a ninguna; con el apellido, cada una a la suya', () => {
+    const dos = [{ id: 'r', name: 'Ana Ruiz Mora' }, { id: 'l', name: 'Ana López Gil' }];
+    expect(emparejarPorNombre(['Ana', 'Ana'], dos).map(e => (e.alumnoId === null ? e.motivo : e.alumnoId))).toEqual(['varios', 'varios']);
+    expect(emparejarPorNombre(['López Gil, Ana', 'Ruiz, Ana'], dos).map(e => e.alumnoId)).toEqual(['l', 'r']);
+    // Si la otra ya tiene su fila, «Ana» es la que queda, y se marca como aproximada
+    expect(emparejarPorNombre(['Ana López', 'Ana'], dos)).toEqual([{ alumnoId: 'l', parecido: 'seguro' }, { alumnoId: 'r', parecido: 'aproximado' }]);
+  });
+
+  it('«Alumno 1» no es «Alumno 12», y las cifras del nombre deciden aunque la hoja esté desordenada', () => {
+    const lista = [1, 2, 3, 10, 12].map(n => ({ id: `n${n}`, name: `Alumno ${n}` }));
+    expect(emparejarPorNombre(['Alumno 12', 'Alumno 3', 'Alumno 1', 'Alumno 10', 'Alumno 2'], lista).map(e => e.alumnoId)).toEqual(['n12', 'n3', 'n1', 'n10', 'n2']);
+    expect(parecidoDeNombres('Alumno 1', 'Alumno 12').puntos).toBe(0);
+  });
+
+  it('en la app con «12 Marta» y en la hoja el número de lista y el nombre completo: van por el número', () => {
+    const lista = [{ id: 'm', name: '12 Marta' }, { id: 'j', name: '3 Joan' }, { id: 'c', name: '7 Marc' }];
+    const texto = ['Nº\tAlumno\tExamen', '3\tPuig Soler, Joan\t6', '7\tVidal Pons, Marc\t4', '12\tGarcía López, Marta\t8'].join('\n');
+    const pegado = entenderPegado(leerPegado(texto));
+    expect(pegado).toMatchObject({ numeroDeLista: true, numeros: ['3', '7', '12'] });
+    const plan = planDePegado(pegado, { alumnado: lista, actividades: examen, alumnoId: 'm', actividadId: 'x', notas: {} })!;
+    expect(Object.fromEntries(plan.cambios.map(c => [c.studentId, c.value]))).toEqual({ m: 8, j: 6, c: 4 });
+    expect(plan.filas.every(f => f.parecido === 'seguro')).toBe(true);
+  });
+
+  it('una palabra que solo se parece (una inicial, una errata) no basta para colocar a nadie', () => {
+    expect(parecidoDeNombres('M.', 'Marta García').puntos).toBe(0);
+    expect(parecidoDeNombres('Maria', 'Mario').puntos).toBe(0);
+    expect(parecidoDeNombres('Marc', 'Marcos Gil').puntos).toBe(0);
+    expect(parecidoDeNombres('María López', 'Mario López')).toMatchObject({ parecido: 'aproximado' });
+  });
+
+  it('con dos alumnos que encajan igual de bien, ninguno: se elige a mano', () => {
+    const dos = [{ id: 'm', name: 'Ana Ruiz Mora' }, { id: 'g', name: 'Ana Ruiz Gil' }];
+    expect(emparejarPorNombre(['Ana Ruiz'], dos)).toEqual([{ alumnoId: null, motivo: 'varios', candidatos: ['m', 'g'] }]);
+  });
+
+  it('da igual en qué celda se pegue: por nombre, cada fila va a su alumno', () => {
+    const texto = 'Alumno\tExamen\nRuiz Mora, Ana\t9\nGil Soler, Marcos\t4';
+    const plan = planDePegado(entenderPegado(leerPegado(texto)), { alumnado: clase, actividades: examen, alumnoId: 'a5', actividadId: 'x', notas: {} })!;
+    expect(Object.fromEntries(plan.cambios.map(c => [c.studentId, c.value]))).toEqual({ a0: 9, a4: 4 });
   });
 });

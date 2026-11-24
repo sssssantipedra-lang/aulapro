@@ -322,12 +322,17 @@ Tiene TRES PESTAÑAS arriba:
    COMO UNA HOJA DE CÁLCULO: Intro y flecha abajo pasan al alumno siguiente,
    flecha arriba al anterior y las flechas a los lados, a la actividad vecina;
    al añadir una actividad el cursor queda en su primera celda. PEGAR NOTAS: en
-   Excel, Google Sheets o LibreOffice se copia la columna de notas (o varias
-   seguidas) y se pega sobre la celda del primer alumno. Antes de poner nada
+   Excel, Google Sheets o LibreOffice se copian los nombres con su columna de
+   notas (o varias seguidas) y se pegan en la columna de la actividad. Cada nota
+   va al alumno que se llama así, aunque la hoja esté en otro orden o escrita de
+   otra forma («Apellidos, Nombre», sin tildes, en mayúsculas, sin el segundo
+   apellido; también el número de lista con «12 Marta»). Antes de poner nada
    sale una vista previa con lo que es nuevo, lo que cambia una nota que ya
-   estaba y lo que no entra. Las notas se colocan por orden, no por nombre: la
-   hoja tiene que estar en el orden de la lista; si se copian también los
-   nombres, salen al lado y se marca con ≠ el que no coincide. Vale la coma o
+   estaba y lo que no entra. Una fila que no se parece a nadie de la clase, o
+   que se parece igual a dos, no se coloca: sale aparte y se elige a quién va;
+   un nombre que solo se parece (una errata, el nombre de pila) se marca con ≈
+   y hay que confirmarlo. Sin nombres, las notas se colocan en el orden de la
+   lista y hay que confirmar que la hoja está en ese orden. Vale la coma o
    el punto decimal; lo que no es una nota de 0 a 10 («NP», «11») no entra, y
    una celda vacía de la hoja no borra la nota que ya estaba. Al pulsar el
    NOMBRE DE UNA ACTIVIDAD se abre su menú: «Calificar esta actividad» (la

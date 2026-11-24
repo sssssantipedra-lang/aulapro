@@ -42,6 +42,8 @@ function pinta(extra: Record<string, unknown> = {}) {
 const celda = (item: string, alumno: string) => document.querySelector<HTMLInputElement>(`input.gb-cell[data-item="${item}"][data-alumno="${alumno}"]`)!;
 const pegar = (donde: HTMLElement, texto: string) => fireEvent.paste(donde, { clipboardData: { getData: () => texto } });
 const ventana = () => screen.getAllByRole('dialog').filter(d => d.closest('.modal-overlay.open')).pop() as HTMLElement;
+/** Sin nombres en la hoja, hay que confirmar el orden antes de poner nada. */
+const confirmarOrden = (previa: HTMLElement) => fireEvent.click(within(previa).getByRole('checkbox', { name: /mismo orden que la lista/ }));
 
 describe('pegar un bloque de una hoja de cálculo', () => {
   it('no escribe nada hasta aplicar la vista previa, y casa por posición hacia abajo y a la derecha', () => {
@@ -53,6 +55,10 @@ describe('pegar un bloque de una hoja de cálculo', () => {
     expect(within(previa).getByText(/la primera fila va a Alumno 2/)).toBeTruthy();
     // «NP» se señala y no entra
     expect(within(previa).getByText('NP').className).toContain('pn-mal');
+    // Sin nombres, se coloca por orden de lista: hasta confirmarlo no se puede poner nada
+    expect(within(previa).getByText(/Tu hoja no trae los nombres/)).toBeTruthy();
+    expect((within(previa).getByRole('button', { name: 'Poner 3 notas' }) as HTMLButtonElement).disabled).toBe(true);
+    confirmarOrden(previa);
     fireEvent.click(within(previa).getByRole('button', { name: 'Poner 3 notas' }));
     expect(p.onSetGrades).toHaveBeenCalledWith([
       { itemId: 'i2', studentId: 's2', value: 7.5 },
@@ -68,6 +74,7 @@ describe('pegar un bloque de una hoja de cálculo', () => {
     const previa = ventana();
     expect(within(previa).getByText(/Sobra 1 columna/)).toBeTruthy();
     expect(within(previa).getByText(/Sobra 1 fila/)).toBeTruthy();
+    confirmarOrden(previa);
     fireEvent.click(within(previa).getByRole('button', { name: 'Poner 3 notas' }));
     const [cambios] = p.onSetGrades.mock.calls[0] as [{ itemId: string }[]];
     expect(new Set(cambios.map(c => c.itemId))).toEqual(new Set(['i2b']));
@@ -198,13 +205,47 @@ describe('la lista de «Calificar esta actividad» no pierde lo escrito al cerra
   });
 });
 
+describe('pegar con los nombres de la hoja (24-11-2026)', () => {
+  it('cada nota va al alumno que se llama así aunque la hoja venga en otro orden', () => {
+    const p = pinta();
+    pegar(celda('i2', 's1'), 'Alumno\tExamen\nAlumno 3\t7\nalumno 1\t9,5\nALUMNO 2\t5');
+    const previa = ventana();
+    expect(within(previa).getByText(/Cada nota va al alumno que se llama así/)).toBeTruthy();
+    // Todo coincide: no hay nada que confirmar
+    expect(within(previa).queryByRole('checkbox', { name: /He comprobado/ })).toBeNull();
+    fireEvent.click(within(previa).getByRole('button', { name: 'Poner 3 notas' }));
+    expect(p.onSetGrades).toHaveBeenCalledWith([
+      { itemId: 'i2', studentId: 's1', value: 9.5 },
+      { itemId: 'i2', studentId: 's2', value: 5 },
+      { itemId: 'i2', studentId: 's3', value: 7 },
+    ], 'pegar');
+  });
+
+  it('una fila que no es de nadie no entra hasta que el docente dice de quién es', () => {
+    const p = pinta();
+    pegar(celda('i2', 's1'), 'Alumno\tExamen\nAlumno 1\t9\nAlumna Tres\t7');
+    const previa = ventana();
+    expect(within(previa).getByText(/1 fila de tu hoja no se coloca/)).toBeTruthy();
+    expect(within(previa).getByText('Sin colocar')).toBeTruthy();
+    const elegir = within(previa).getByRole('combobox', { name: /Alumna Tres/ });
+    fireEvent.change(elegir, { target: { value: 's3' } });
+    expect(within(previa).getByText('elegido por ti')).toBeTruthy();
+    fireEvent.click(within(previa).getByRole('button', { name: 'Poner 2 notas' }));
+    expect(p.onSetGrades).toHaveBeenCalledWith([
+      { itemId: 'i2', studentId: 's1', value: 9 },
+      { itemId: 'i2', studentId: 's3', value: 7 },
+    ], 'pegar');
+  });
+});
+
 describe('la cabecera de lo pegado', () => {
   it('el primer alumno con «NP» no se toma por la cabecera: las notas no se corren una fila', () => {
     const p = pinta();
     pegar(celda('i2', 's1'), 'NP\n7\n9');
     const previa = ventana();
     // La casilla de la cabecera se ofrece, pero sin marcar
-    expect((within(previa).getByRole('checkbox') as HTMLInputElement).checked).toBe(false);
+    expect((within(previa).getByRole('checkbox', { name: /cabecera/ }) as HTMLInputElement).checked).toBe(false);
+    confirmarOrden(previa);
     fireEvent.click(within(previa).getByRole('button', { name: 'Poner 2 notas' }));
     expect(p.onSetGrades).toHaveBeenCalledWith([
       { itemId: 'i2', studentId: 's2', value: 7 },

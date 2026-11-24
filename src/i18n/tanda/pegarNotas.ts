@@ -13,8 +13,6 @@ export const EN: Record<string, string> = {
 
   // La tabla del cuaderno
   'clic para calificarla, rellenarla o editarla': 'click to grade it, fill it in or edit it',
-  'Intro y las flechas pasan de una celda a otra. Para traer notas de una hoja de cálculo, copia allí la columna y pégala sobre la celda del primer alumno: antes de poner nada verás lo que cambia.':
-    'Enter and the arrow keys move from one cell to another. To bring marks from a spreadsheet, copy the column there and paste it onto the first student\'s cell: you will see what changes before anything is entered.',
   'Pulsa el nombre de una actividad para calificarla en una lista o poner una nota a quien no tiene.':
     'Press the name of an activity to grade it in a list or to give a mark to those who have none.',
 
@@ -84,6 +82,56 @@ export const EN: Record<string, string> = {
   'No hay nada que poner': 'There is nothing to enter',
   'Poner 1 nota': 'Enter 1 mark',
   'Poner {n} notas': 'Enter {n} marks',
+
+  // Colocar por nombre (24-11-2026)
+  'Intro y las flechas pasan de una celda a otra. Para traer notas de una hoja de cálculo, copia allí los nombres con sus notas y pégalos en la columna de la actividad: cada nota irá a su alumno, y antes de poner nada verás lo que cambia.':
+    'Enter and the arrow keys move from one cell to another. To bring marks from a spreadsheet, copy the names with their marks there and paste them into the activity\'s column: each mark will go to its student, and you will see what changes before anything is entered.',
+  'Cada nota va al alumno que se llama así en tu hoja, aunque esté en otro orden o escrito de otra forma. La primera columna va a «{actividad}» y sigue hacia la derecha.':
+    'Each mark goes to the student with that name in your sheet, even if it is in another order or written differently. The first column goes to “{actividad}” and continues to the right.',
+  'Cada nota va al alumno que se llama así en tu hoja, aunque esté en otro orden o escrito de otra forma, en «{actividad}».':
+    'Each mark goes to the student with that name in your sheet, even if it is in another order or written differently, in “{actividad}”.',
+  'Tu hoja no trae los nombres: las notas se colocan en el orden de la lista del cuaderno. Si copias también la columna de los nombres, cada nota irá a su alumno.':
+    'Your sheet has no names: the marks are placed in the order of the gradebook list. If you also copy the names column, each mark will go to its student.',
+  'Ningún nombre de tu hoja coincide con el alumnado de esta clase: ¿es la hoja de otro grupo? Si sigues, las notas se colocan por orden.':
+    'No name in your sheet matches the students in this class: is it another group’s sheet? If you continue, the marks are placed in order.',
+  '1 fila de tu hoja no se coloca: elige abajo a quién va o se quedará sin poner.':
+    '1 row of your sheet is not placed: choose below who it belongs to or it will not be entered.',
+  '{n} filas de tu hoja no se colocan: elige abajo a quién van o se quedarán sin poner.':
+    '{n} rows of your sheet are not placed: choose below who they belong to or they will not be entered.',
+  '1 nombre de tu hoja se parece al del alumno, pero no es igual (marcado con ≈): compruébalo.':
+    '1 name in your sheet looks like the student’s but is not the same (marked with ≈): check it.',
+  '{n} nombres de tu hoja se parecen al del alumno, pero no son iguales (marcados con ≈): compruébalos.':
+    '{n} names in your sheet look like the student’s but are not the same (marked with ≈): check them.',
+  '1 alumno de la clase no está en tu hoja ({nombres}): su nota se queda como está.':
+    '1 student in the class is not in your sheet ({nombres}): their mark stays as it is.',
+  '{n} alumnos de la clase no están en tu hoja ({nombres}): sus notas se quedan como están.':
+    '{n} students in the class are not in your sheet ({nombres}): their marks stay as they are.',
+  'Se parece, pero no es igual: compruébalo':
+    'It looks similar but is not the same: check it',
+  'Quitar: esta fila se queda sin colocar':
+    'Remove: this row is left unplaced',
+  'elegido por ti':
+    'chosen by you',
+  'Sin colocar':
+    'Not placed',
+  '(sin nombre)':
+    '(no name)',
+  'A quién va la fila «{nombre}»':
+    'Who the row “{nombre}” belongs to',
+  'Sin poner':
+    'Do not enter',
+  'He comprobado los nombres marcados con ≈':
+    'I have checked the names marked with ≈',
+  'He comprobado que mi hoja está en el mismo orden que la lista del cuaderno':
+    'I have checked that my sheet is in the same order as the gradebook list',
+  'No se parece a nadie de la clase':
+    'It does not look like anyone in the class',
+  'Sin nombre en tu hoja':
+    'No name in your sheet',
+  'Se parece a {nombres}':
+    'It looks like {nombres}',
+  'Otra fila de tu hoja también es de {nombre}':
+    'Another row of your sheet is also {nombre}',
 };
 
 export const CA: Record<string, string> = {
@@ -93,8 +141,6 @@ export const CA: Record<string, string> = {
 
   // La tabla del cuaderno
   'clic para calificarla, rellenarla o editarla': 'clic per qualificar-la, omplir-la o editar-la',
-  'Intro y las flechas pasan de una celda a otra. Para traer notas de una hoja de cálculo, copia allí la columna y pégala sobre la celda del primer alumno: antes de poner nada verás lo que cambia.':
-    'Intro i les fletxes passen d\'una cel·la a una altra. Per portar notes d\'un full de càlcul, copia allà la columna i enganxa-la sobre la cel·la del primer alumne: abans de posar res veuràs què canvia.',
   'Pulsa el nombre de una actividad para calificarla en una lista o poner una nota a quien no tiene.':
     'Prem el nom d\'una activitat per qualificar-la en una llista o posar una nota a qui no en té.',
 
@@ -164,4 +210,54 @@ export const CA: Record<string, string> = {
   'No hay nada que poner': 'No hi ha res a posar',
   'Poner 1 nota': 'Posar 1 nota',
   'Poner {n} notas': 'Posar {n} notes',
+
+  // Colocar por nombre (24-11-2026)
+  'Intro y las flechas pasan de una celda a otra. Para traer notas de una hoja de cálculo, copia allí los nombres con sus notas y pégalos en la columna de la actividad: cada nota irá a su alumno, y antes de poner nada verás lo que cambia.':
+    'Intro i les fletxes passen d\'una cel·la a una altra. Per portar notes d\'un full de càlcul, copia allà els noms amb les seves notes i enganxa\'ls a la columna de l\'activitat: cada nota anirà al seu alumne, i abans de posar res veuràs què canvia.',
+  'Cada nota va al alumno que se llama así en tu hoja, aunque esté en otro orden o escrito de otra forma. La primera columna va a «{actividad}» y sigue hacia la derecha.':
+    'Cada nota va a l\'alumne que es diu així al teu full, encara que estigui en un altre ordre o escrit d\'una altra manera. La primera columna va a «{actividad}» i continua cap a la dreta.',
+  'Cada nota va al alumno que se llama así en tu hoja, aunque esté en otro orden o escrito de otra forma, en «{actividad}».':
+    'Cada nota va a l\'alumne que es diu així al teu full, encara que estigui en un altre ordre o escrit d\'una altra manera, a «{actividad}».',
+  'Tu hoja no trae los nombres: las notas se colocan en el orden de la lista del cuaderno. Si copias también la columna de los nombres, cada nota irá a su alumno.':
+    'El teu full no porta els noms: les notes es col·loquen en l\'ordre de la llista del quadern. Si copies també la columna dels noms, cada nota anirà al seu alumne.',
+  'Ningún nombre de tu hoja coincide con el alumnado de esta clase: ¿es la hoja de otro grupo? Si sigues, las notas se colocan por orden.':
+    'Cap nom del teu full no coincideix amb l\'alumnat d\'aquesta classe: és el full d\'un altre grup? Si continues, les notes es col·loquen per ordre.',
+  '1 fila de tu hoja no se coloca: elige abajo a quién va o se quedará sin poner.':
+    '1 fila del teu full no es col·loca: tria a sota a qui va o es quedarà sense posar.',
+  '{n} filas de tu hoja no se colocan: elige abajo a quién van o se quedarán sin poner.':
+    '{n} files del teu full no es col·loquen: tria a sota a qui van o es quedaran sense posar.',
+  '1 nombre de tu hoja se parece al del alumno, pero no es igual (marcado con ≈): compruébalo.':
+    '1 nom del teu full s\'assembla al de l\'alumne, però no és igual (marcat amb ≈): comprova\'l.',
+  '{n} nombres de tu hoja se parecen al del alumno, pero no son iguales (marcados con ≈): compruébalos.':
+    '{n} noms del teu full s\'assemblen al de l\'alumne, però no són iguals (marcats amb ≈): comprova\'ls.',
+  '1 alumno de la clase no está en tu hoja ({nombres}): su nota se queda como está.':
+    '1 alumne de la classe no és al teu full ({nombres}): la seva nota es queda com està.',
+  '{n} alumnos de la clase no están en tu hoja ({nombres}): sus notas se quedan como están.':
+    '{n} alumnes de la classe no són al teu full ({nombres}): les seves notes es queden com estan.',
+  'Se parece, pero no es igual: compruébalo':
+    'S\'assembla, però no és igual: comprova-ho',
+  'Quitar: esta fila se queda sin colocar':
+    'Treure: aquesta fila es queda sense col·locar',
+  'elegido por ti':
+    'triat per tu',
+  'Sin colocar':
+    'Sense col·locar',
+  '(sin nombre)':
+    '(sense nom)',
+  'A quién va la fila «{nombre}»':
+    'A qui va la fila «{nombre}»',
+  'Sin poner':
+    'Sense posar',
+  'He comprobado los nombres marcados con ≈':
+    'He comprovat els noms marcats amb ≈',
+  'He comprobado que mi hoja está en el mismo orden que la lista del cuaderno':
+    'He comprovat que el meu full està en el mateix ordre que la llista del quadern',
+  'No se parece a nadie de la clase':
+    'No s\'assembla a ningú de la classe',
+  'Sin nombre en tu hoja':
+    'Sense nom al teu full',
+  'Se parece a {nombres}':
+    'S\'assembla a {nombres}',
+  'Otra fila de tu hoja también es de {nombre}':
+    'Una altra fila del teu full també és de {nombre}',
 };

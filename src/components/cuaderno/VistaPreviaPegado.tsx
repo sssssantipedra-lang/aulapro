@@ -1,7 +1,11 @@
 /**
  * La vista previa de pegar notas en el cuaderno (22-11-2026): antes de escribir nada, enseña qué celda recibe cada
- * nota, lo que pisa y lo que no entra. Es obligatoria porque lo pegado se casa por posición y no por nombre: si
- * la hoja del docente no está en el orden de la lista, aquí es donde se ve. La cuenta es de `lib/pegarNotas.ts`.
+ * nota, lo que pisa y lo que no entra. La cuenta es de `lib/pegarNotas.ts`.
+ *
+ * Desde el 24-11-2026, si la hoja trae los nombres, cada nota va al alumno que se llama así: las filas que no se
+ * parecen a nadie, o que se parecen igual a dos, salen aparte y el docente elige a quién van; las que solo se
+ * parecen (una errata, el nombre de pila) se marcan con ≈ y hay que confirmarlas. Sin nombres se coloca por orden
+ * de lista, y hay que confirmar que la hoja está en ese orden.
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AlertTriangle, ClipboardPaste } from 'lucide-react';
@@ -21,8 +25,13 @@ export function VistaPreviaPegado({ filas, donde, onAplicar, onClose }: Props) {
   const { t, lang } = useI18n();
   /** Lo que el docente dice de la primera fila; sin decir nada, lo que parezca. */
   const [cabecera, setCabecera] = useState<boolean | undefined>(undefined);
+  /** Las filas de la hoja que el docente ha colocado él (fila → alumno). */
+  const [aMano, setAMano] = useState<Record<number, string>>({});
+  /** Si el docente ha confirmado el orden de su hoja (sin nombres) o los nombres que solo se parecen. */
+  const [comprobado, setComprobado] = useState(false);
   const pegado = useMemo(() => entenderPegado(filas, { cabecera }), [filas, cabecera]);
-  const plan = useMemo(() => planDePegado(pegado, donde), [pegado, donde]);
+  const plan = useMemo(() => planDePegado(pegado, donde, aMano), [pegado, donde, aMano]);
+  const nombreDe = useMemo(() => new Map(donde.alumnado.map(a => [a.id, a.name])), [donde.alumnado]);
   const primeraConTexto = useMemo(() => (filas[0] ?? []).some(x => leerNota(x).tipo === 'mal'), [filas]);
   const nota = (n: number | null) => (n === null ? '' : lang !== 'en' ? String(n).replace('.', ',') : String(n));
 
@@ -40,6 +49,25 @@ export function VistaPreviaPegado({ filas, donde, onAplicar, onClose }: Props) {
   const primeraActividad = plan.columnas[0]?.nombre ?? '';
   const variasColumnas = plan.columnas.length > 1;
   const sinColumnas = plan.columnas.length === 0;
+  const porNombre = plan.modo === 'nombre';
+  // Lo que hay que confirmar antes de poner nada: el orden, si se coloca por posición y hay más de una fila; los
+  // nombres que solo se parecen, si se coloca por nombre
+  const hayQueConfirmar = !sinColumnas && total > 0 && (porNombre ? plan.aproximadas > 0 : plan.filas.length > 1);
+  const ningunoCoincide = !porNombre && !!pegado.etiquetas && plan.filas.length > 0 && plan.descuadradas === plan.filas.length;
+  const cambiarCabecera = (v: boolean) => { setCabecera(v); setAMano({}); setComprobado(false); };
+  const colocar = (fila: number, alumnoId: string) => {
+    setAMano(m => {
+      const out = { ...m };
+      if (alumnoId) out[fila] = alumnoId; else delete out[fila];
+      return out;
+    });
+  };
+  const motivo = (f: (typeof plan.sinColocar)[number]) => {
+    if (f.motivo === 'nadie') return f.etiqueta.trim() ? t('No se parece a nadie de la clase') : t('Sin nombre en tu hoja');
+    const nombres = f.candidatos.map(id => nombreDe.get(id) ?? '').filter(Boolean).join(', ');
+    return f.motivo === 'varios' ? t('Se parece a {nombres}', { nombres }) : t('Otra fila de tu hoja también es de {nombre}', { nombre: nombres });
+  };
+  const noEstan = plan.noEstan.slice(0, 5).map(a => a.nombre).join(', ') + (plan.noEstan.length > 5 ? '…' : '');
 
   const celda = (c: CeldaDelPlan) => {
     if (c.estado === 'mal') return <span className="pn-c pn-mal" title={t('No es una nota de 0 a 10: no entra')}>{c.texto}</span>;
@@ -61,6 +89,10 @@ export function VistaPreviaPegado({ filas, donde, onAplicar, onClose }: Props) {
         <p className="pn-como">
           {sinColumnas
             ? t('Lo que has pegado no trae ninguna columna de notas.')
+            : porNombre
+              ? (variasColumnas
+                ? t('Cada nota va al alumno que se llama así en tu hoja, aunque esté en otro orden o escrito de otra forma. La primera columna va a «{actividad}» y sigue hacia la derecha.', { actividad: primeraActividad })
+                : t('Cada nota va al alumno que se llama así en tu hoja, aunque esté en otro orden o escrito de otra forma, en «{actividad}».', { actividad: primeraActividad }))
             : variasColumnas
               ? t('Se coloca por orden, no por nombre: la primera fila va a {alumno} y sigue hacia abajo; la primera columna va a «{actividad}» y sigue hacia la derecha.', { alumno: primerAlumno, actividad: primeraActividad })
               : t('Se coloca por orden, no por nombre: la primera fila va a {alumno}, en «{actividad}», y sigue hacia abajo.', { alumno: primerAlumno, actividad: primeraActividad })}
@@ -77,9 +109,41 @@ export function VistaPreviaPegado({ filas, donde, onAplicar, onClose }: Props) {
         )}
 
         {/* Sin ninguna columna de notas no hay nada que colocar: sobran los avisos de orden */}
-        {!sinColumnas && (plan.descuadradas > 0 || plan.filasQueSobran > 0 || plan.columnasQueSobran > 0) && (
+        {!sinColumnas && (plan.descuadradas > 0 || plan.filasQueSobran > 0 || plan.columnasQueSobran > 0
+          || plan.sinColocar.length > 0 || plan.aproximadas > 0 || plan.noEstan.length > 0 || (!porNombre && plan.filas.length > 1)) && (
           <ul className="pn-avisos" role="alert">
-            {plan.descuadradas > 0 && (
+            {!porNombre && !pegado.etiquetas && plan.filas.length > 1 && (
+              <li><AlertTriangle size={14} aria-hidden="true" />
+                {t('Tu hoja no trae los nombres: las notas se colocan en el orden de la lista del cuaderno. Si copias también la columna de los nombres, cada nota irá a su alumno.')}
+              </li>
+            )}
+            {ningunoCoincide && (
+              <li><AlertTriangle size={14} aria-hidden="true" />
+                {t('Ningún nombre de tu hoja coincide con el alumnado de esta clase: ¿es la hoja de otro grupo? Si sigues, las notas se colocan por orden.')}
+              </li>
+            )}
+            {plan.sinColocar.length > 0 && (
+              <li><AlertTriangle size={14} aria-hidden="true" />
+                {plan.sinColocar.length === 1
+                  ? t('1 fila de tu hoja no se coloca: elige abajo a quién va o se quedará sin poner.')
+                  : t('{n} filas de tu hoja no se colocan: elige abajo a quién van o se quedarán sin poner.', { n: plan.sinColocar.length })}
+              </li>
+            )}
+            {plan.aproximadas > 0 && (
+              <li><AlertTriangle size={14} aria-hidden="true" />
+                {plan.aproximadas === 1
+                  ? t('1 nombre de tu hoja se parece al del alumno, pero no es igual (marcado con ≈): compruébalo.')
+                  : t('{n} nombres de tu hoja se parecen al del alumno, pero no son iguales (marcados con ≈): compruébalos.', { n: plan.aproximadas })}
+              </li>
+            )}
+            {plan.noEstan.length > 0 && (
+              <li><AlertTriangle size={14} aria-hidden="true" />
+                {plan.noEstan.length === 1
+                  ? t('1 alumno de la clase no está en tu hoja ({nombres}): su nota se queda como está.', { nombres: noEstan })
+                  : t('{n} alumnos de la clase no están en tu hoja ({nombres}): sus notas se quedan como están.', { n: plan.noEstan.length, nombres: noEstan })}
+              </li>
+            )}
+            {!ningunoCoincide && plan.descuadradas > 0 && (
               <li><AlertTriangle size={14} aria-hidden="true" />
                 {plan.descuadradas === 1
                   ? t('1 nombre de tu hoja no coincide con el alumno de su fila (marcado con ≠). Puede que tu hoja no esté en el orden de la lista: compruébalo antes de seguir.')
@@ -106,7 +170,7 @@ export function VistaPreviaPegado({ filas, donde, onAplicar, onClose }: Props) {
         {/* Solo se pregunta por la cabecera si la primera fila trae algo que no es una nota (o si ya se ha tocado la casilla) */}
         {filas.length > 1 && (cabecera !== undefined || pegado.pareceCabecera || primeraConTexto) && (
           <label className="pn-cabecera">
-            <input type="checkbox" checked={pegado.cabecera} onChange={e => setCabecera(e.target.checked)} />
+            <input type="checkbox" checked={pegado.cabecera} onChange={e => cambiarCabecera(e.target.checked)} />
             <span>
               {t('La primera fila es la cabecera de mi hoja: no es de ningún alumno')}
               {pegado.pareceCabecera && cabecera === undefined && <small>{t('Se ha marcado sola porque esa fila no trae ninguna nota y las de debajo sí.')}</small>}
@@ -116,7 +180,7 @@ export function VistaPreviaPegado({ filas, donde, onAplicar, onClose }: Props) {
         {!sinColumnas && (pegado.numeroDeLista || pegado.etiquetas) && (
           <p className="sda-note pn-apartado">
             {pegado.numeroDeLista && t('La columna con el número de lista (1, 2, 3…) no se cuenta como nota.') + ' '}
-            {pegado.etiquetas && t('Los nombres de tu hoja salen junto a cada alumno para que compruebes el orden; no se usan para colocar las notas.')}
+            {pegado.etiquetas && !porNombre && t('Los nombres de tu hoja salen junto a cada alumno para que compruebes el orden; no se usan para colocar las notas.')}
           </p>
         )}
 
@@ -137,12 +201,18 @@ export function VistaPreviaPegado({ filas, donde, onAplicar, onClose }: Props) {
               </thead>
               <tbody>
                 {plan.filas.map(f => (
-                  <tr key={f.alumnoId} className={f.descuadra ? 'pn-fila-mal' : undefined}>
+                  <tr key={f.alumnoId} className={f.descuadra ? 'pn-fila-mal' : f.parecido === 'aproximado' ? 'pn-fila-aprox' : undefined}>
                     <th scope="row">{f.nombre}</th>
                     {pegado.etiquetas && (
                       <td className="pn-etiqueta">
                         {f.descuadra && <span className="pn-distinto" title={t('No coincide con el alumno de esta fila')}>≠</span>}
+                        {f.parecido === 'aproximado' && <span className="pn-distinto" title={t('Se parece, pero no es igual: compruébalo')}>≈</span>}
                         {f.etiqueta ?? ''}
+                        {f.parecido === 'a mano' && (
+                          <button type="button" className="pn-quitar" onClick={() => colocar(f.fila, '')} title={t('Quitar: esta fila se queda sin colocar')}>
+                            {t('elegido por ti')} <span aria-hidden="true">×</span>
+                          </button>
+                        )}
                       </td>
                     )}
                     {f.celdas.map((c, k) => <td key={plan.columnas[k].id}>{celda(c)}</td>)}
@@ -153,11 +223,42 @@ export function VistaPreviaPegado({ filas, donde, onAplicar, onClose }: Props) {
           </div>
         )}
 
+        {!sinColumnas && plan.sinColocar.length > 0 && (
+          <div className="pn-sin">
+            <h3>{t('Sin colocar')}</h3>
+            <ul>
+              {plan.sinColocar.map(f => (
+                <li key={f.fila}>
+                  <span className="pn-sin-hoja">
+                    <strong>{f.etiqueta || t('(sin nombre)')}</strong>
+                    <small>{motivo(f)}{f.textos.some(Boolean) ? ` · ${f.textos.filter(Boolean).join(' · ')}` : ''}</small>
+                  </span>
+                  <select aria-label={t('A quién va la fila «{nombre}»', { nombre: f.etiqueta })} value="" onChange={e => colocar(f.fila, e.target.value)}>
+                    <option value="">{t('Sin poner')}</option>
+                    {plan.noEstan.map(a => <option key={a.id} value={a.id}>{a.nombre}</option>)}
+                  </select>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {hayQueConfirmar && (
+          <label className="pn-cabecera pn-confirmar">
+            <input type="checkbox" checked={comprobado} onChange={e => setComprobado(e.target.checked)} />
+            <span>
+              {porNombre
+                ? t('He comprobado los nombres marcados con ≈')
+                : t('He comprobado que mi hoja está en el mismo orden que la lista del cuaderno')}
+            </span>
+          </label>
+        )}
+
         <p className="sda-note">
           {t('Una celda vacía de tu hoja no borra la nota que ya estaba. Después de poner las notas tendrás unos segundos para deshacerlo.')}
         </p>
         <div className="pn-pie">
-          <button type="button" className="btn-accent" disabled={total === 0} onClick={() => onAplicar(plan.cambios)}>
+          <button type="button" className="btn-accent" disabled={total === 0 || (hayQueConfirmar && !comprobado)} onClick={() => onAplicar(plan.cambios)}>
             {total === 0 ? t('No hay nada que poner') : t(una ? 'Poner 1 nota' : 'Poner {n} notas', { n: total })}
           </button>
           <button type="button" className="btn-ghost" onClick={onClose}>{t('Cancelar')}</button>

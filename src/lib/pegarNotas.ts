@@ -4,8 +4,15 @@
  *
  * Aquí va la lógica sin pantalla: leer lo que viene del portapapeles, decidir qué es una nota y preparar, sin
  * tocar nada, el plan de lo que cambiaría. La pantalla enseña ese plan antes de aplicarlo
- * (`components/cuaderno/VistaPreviaPegado.tsx`), porque lo pegado se casa **por posición, no por nombre**: la
- * primera fila pegada va al alumno de la celda donde se pega, la segunda al siguiente de la lista, y así.
+ * (`components/cuaderno/VistaPreviaPegado.tsx`).
+ *
+ * **A quién va cada fila** (24-11-2026, tras probar con un listado oficial ordenado por apellido, que dejaba cinco
+ * de seis notas en el alumno equivocado): si la hoja trae los nombres, cada fila va al alumno que se llama así
+ * (`emparejarPorNombre`), en cualquier orden y escrito de cualquier forma («Apellidos, Nombre», sin tildes, en
+ * mayúsculas, sin el segundo apellido, con la inicial). Una fila que no se parece a nadie, o que se parece igual a
+ * dos, no se coloca: se enseña aparte y el docente elige a quién va. Si la hoja no trae nombres (o ninguno se parece
+ * a nadie de la clase), se casa **por posición**: la primera fila va al alumno de la celda donde se pega, la segunda
+ * al siguiente de la lista, y la pantalla pide confirmar que la hoja está en ese orden.
  *
  * Reglas:
  *  - Una nota es un número de 0 a 10, con coma o punto decimal. Lo demás («NP», «11», «7/10») se señala y no entra.
@@ -107,6 +114,8 @@ export interface Pegado {
   pareceCabecera: boolean;
   /** Si se ha apartado una columna con el número de lista (1, 2, 3…). */
   numeroDeLista: boolean;
+  /** El número de lista de cada fila, si se ha apartado esa columna: ayuda a emparejar con «12 Marta». */
+  numeros: string[] | null;
 }
 
 const esNota = (x: string) => leerNota(x).tipo === 'nota';
@@ -198,6 +207,16 @@ function esCorrelativa(columna: string[]): boolean {
   return primero >= 1 && columna.every((x, k) => Number(x.replace('.', '')) === primero + k);
 }
 
+/**
+ * Una columna de números enteros distintos (3, 7, 12…): con los nombres justo detrás es el número de lista de un
+ * listado oficial, que no tiene por qué ir seguido (un grupo partido, alumnado de otra lista).
+ */
+function esDeNumerosDistintos(columna: string[]): boolean {
+  if (columna.length < 2 || !columna.every(x => /^\d{1,3}\.?$/.test(x))) return false;
+  const nums = columna.map(x => Number(x.replace('.', '')));
+  return nums.every(n => n >= 1) && new Set(nums).size === nums.length;
+}
+
 /** Una columna que cuenta 1, 2, 3… desde arriba (cinco filas o más): el número de lista, no una nota. */
 function esNumeroDeLista(columna: string[]): boolean {
   return columna.length >= 5 && esCorrelativa(columna) && Number(columna[0].replace('.', '')) === 1;
@@ -230,11 +249,12 @@ export function entenderPegado(filas: string[][], opciones: { cabecera?: boolean
     // detrás lo es aunque sean pocas filas o no empiece en 1 (un grupo pequeño, la mitad de la lista): si no,
     // esos números entrarían como notas de la primera actividad y las notas irían dos columnas más allá
     if (!numeroDeLista && deNombre.length === 0 && primera < ancho - 1
-      && (esNumeroDeLista(col) || (esCorrelativa(col) && esDeNombres(columna(primera + 1))))) { numeroDeLista = true; primera++; continue; }
+      && (esNumeroDeLista(col) || ((esCorrelativa(col) || esDeNumerosDistintos(col)) && esDeNombres(columna(primera + 1))))) { numeroDeLista = true; primera++; continue; }
     if (esDeNombres(col)) { deNombre.push(primera); primera++; continue; }
     break;
   }
   const etiquetas = deNombre.length ? cuerpo.map(f => deNombre.map(k => f[k] ?? '').filter(Boolean).join(' ')) : null;
+  const numeros = numeroDeLista ? cuerpo.map(f => (f[0] ?? '').replace('.', '')) : null;
   return {
     celdas: cuerpo.map(f => f.slice(primera)),
     etiquetas,
@@ -242,6 +262,7 @@ export function entenderPegado(filas: string[][], opciones: { cabecera?: boolean
     cabecera: conCabecera,
     pareceCabecera: parece,
     numeroDeLista,
+    numeros,
   };
 }
 
@@ -252,8 +273,8 @@ function palabras(nombre: string): string[] {
 
 /**
  * Si el nombre que traía la hoja puede ser el del alumno de su fila: todas las palabras del más corto están en el
- * otro, en cualquier orden («Pérez Navarro, Lucía» y «Lucía Pérez Navarro»; «Lucía» y «Lucía Pérez»). Solo sirve
- * para avisar: lo pegado se sigue casando por posición.
+ * otro, en cualquier orden («Pérez Navarro, Lucía» y «Lucía Pérez Navarro»; «Lucía» y «Lucía Pérez»). Sirve para
+ * avisar con ≠ cuando se coloca por posición; por nombre se empareja con `parecidoDeNombres`.
  */
 export function nombresParecidos(a: string, b: string): boolean {
   const pa = palabras(a);
@@ -261,6 +282,138 @@ export function nombresParecidos(a: string, b: string): boolean {
   if (pa.length === 0 || pb.length === 0) return true;
   const [corto, largo] = pa.length <= pb.length ? [pa, new Set(pb)] : [pb, new Set(pa)];
   return corto.every(p => largo.has(p));
+}
+
+/* ── Emparejar por nombre ── */
+
+/** Las palabras de un nombre, aparte las letras y las cifras («12 Marta», «Alumno 3»). */
+function partesDeNombre(nombre: string, numero?: string): { letras: string[]; cifras: string[] } {
+  const ws = palabras(nombre);
+  const cifras = ws.filter(w => /^\d+$/.test(w)).map(w => String(Number(w)));
+  if (numero && /^\d+$/.test(numero)) cifras.push(String(Number(numero)));
+  return { letras: ws.filter(w => !/^\d+$/.test(w)), cifras };
+}
+
+/** Si dos palabras se diferencian en una letra como mucho (una de más, una de menos o una cambiada). */
+function aUnaLetra(a: string, b: string): boolean {
+  if (Math.abs(a.length - b.length) > 1) return false;
+  let i = 0;
+  while (i < a.length && i < b.length && a[i] === b[i]) i++;
+  if (a.length === b.length) return a.slice(i + 1) === b.slice(i + 1);
+  return a.length > b.length ? a.slice(i + 1) === b.slice(i) : a.slice(i) === b.slice(i + 1);
+}
+
+/**
+ * Si dos palabras de un nombre son la misma: `igual`, o `parecida` si una es la inicial de la otra («P» y «Pérez»)
+ * o, en palabras de cinco letras o más, si solo cambia una letra («Ibañez» e «Ibáñez» ya son iguales sin tildes;
+ * «Gonzales» y «González», parecidas).
+ */
+function mismaPalabra(a: string, b: string): 'igual' | 'parecida' | null {
+  if (a === b) return 'igual';
+  if ((a.length === 1 && b.startsWith(a)) || (b.length === 1 && a.startsWith(b))) return 'parecida';
+  if (a.length >= 5 && b.length >= 5 && aUnaLetra(a, b)) return 'parecida';
+  return null;
+}
+
+/** Cómo de seguro es que una fila de la hoja sea de un alumno. */
+export type Parecido = 'seguro' | 'aproximado';
+
+/**
+ * Cuánto se parece el nombre de una fila de la hoja al de un alumno: 0 si no puede ser él. Puede ser si cada palabra
+ * del nombre más corto está en el otro (en cualquier orden) y, si los dos llevan cifras («Alumno 3», «12 Marta»),
+ * comparten alguna. Puntúan más las palabras iguales que las parecidas, y resta un poco lo que sobra del más largo:
+ * entre «Ana Ruiz» y «Ana Ruiz Mora» o «Ana Ruiz Gil», ninguno gana; entre «Ana» y «Ana Ruiz», «Ana» solo encaja
+ * si no hay otra Ana. `seguro` es todo igual y con dos palabras o más (o con la cifra en común).
+ */
+export function parecidoDeNombres(hoja: string, alumno: string, numero?: string): { puntos: number; parecido: Parecido } {
+  const a = partesDeNombre(hoja, numero);
+  const b = partesDeNombre(alumno);
+  const nada = { puntos: 0, parecido: 'aproximado' as Parecido };
+  const cifrasEnComun = a.cifras.some(c => b.cifras.includes(c));
+  const ambosConCifras = a.cifras.length > 0 && b.cifras.length > 0;
+  // «Alumno 1» y «Alumno 12» no son el mismo; un número de lista que no está en el nombre de la app, en cambio, no resta
+  const cifrasDelNombre = partesDeNombre(hoja).cifras;
+  if (cifrasDelNombre.length > 0 && b.cifras.length > 0 && !cifrasDelNombre.some(c => b.cifras.includes(c))) return nada;
+  if (a.letras.length === 0 || b.letras.length === 0) {
+    return cifrasEnComun && a.letras.length === b.letras.length ? { puntos: 8, parecido: 'seguro' } : nada;
+  }
+  const [corto, largo] = a.letras.length <= b.letras.length ? [a.letras, b.letras] : [b.letras, a.letras];
+  const libres = [...largo];
+  let iguales = 0;
+  let parecidas = 0;
+  // Primero las iguales, para que una inicial no se lleve la palabra que otra tiene entera
+  const pendientes: string[] = [];
+  for (const w of corto) {
+    const k = libres.indexOf(w);
+    if (k >= 0) { libres.splice(k, 1); iguales++; } else pendientes.push(w);
+  }
+  for (const w of pendientes) {
+    const k = libres.findIndex(x => mismaPalabra(w, x) !== null);
+    if (k < 0) return nada;
+    libres.splice(k, 1);
+    parecidas++;
+  }
+  // Una sola palabra que solo se parece («M.» con «Marta») no basta para colocar una nota
+  if (iguales === 0) return nada;
+  const puntos = 10 * iguales + 5 * parecidas + (cifrasEnComun ? 8 : 0) - libres.length;
+  const seguro = parecidas === 0 && (iguales >= 2 || (cifrasEnComun && ambosConCifras));
+  return { puntos, parecido: seguro ? 'seguro' : 'aproximado' };
+}
+
+/** Por qué una fila de la hoja no se ha colocado. */
+export type MotivoSinColocar = 'nadie' | 'varios' | 'repetida';
+
+/** A quién va cada fila de la hoja, o por qué no va a nadie. */
+export type Emparejamiento =
+  | { alumnoId: string; parecido: Parecido | 'a mano' }
+  | { alumnoId: null; motivo: MotivoSinColocar; candidatos: string[] };
+
+/**
+ * Empareja cada fila de la hoja con un alumno por su nombre. Una fila va al alumno con el que más se parece si no
+ * hay empate; si dos filas van al mismo alumno, se queda la que más se parece y la otra no se coloca (si empatan,
+ * ninguna). Una fila que dudaba entre varios se resuelve si los demás ya tienen su fila. `aMano` son las que el
+ * docente ha colocado él (fila → alumno): mandan sobre todo lo demás.
+ */
+export function emparejarPorNombre(
+  etiquetas: string[], alumnado: { id: string; name: string }[], numeros: string[] | null = null, aMano: Record<number, string> = {},
+): Emparejamiento[] {
+  const deMano = new Set(Object.values(aMano));
+  const puntos = etiquetas.map((e, f) => alumnado.map(a => (e.trim() === '' ? { puntos: 0, parecido: 'aproximado' as Parecido } : parecidoDeNombres(e, a.name, numeros?.[f]))));
+  const res: Emparejamiento[] = etiquetas.map((_, f) => {
+    if (aMano[f]) return { alumnoId: aMano[f], parecido: 'a mano' };
+    const libres = alumnado.map((a, k) => ({ a, p: puntos[f][k] })).filter(x => x.p.puntos > 0 && !deMano.has(x.a.id));
+    if (libres.length === 0) return { alumnoId: null, motivo: 'nadie', candidatos: [] };
+    const mejor = Math.max(...libres.map(x => x.p.puntos));
+    const top = libres.filter(x => x.p.puntos === mejor);
+    if (top.length > 1) return { alumnoId: null, motivo: 'varios', candidatos: top.map(x => x.a.id) };
+    return { alumnoId: top[0].a.id, parecido: top[0].p.parecido };
+  });
+  const puntosDe = (f: number, id: string) => puntos[f][alumnado.findIndex(a => a.id === id)]?.puntos ?? 0;
+  // Dos filas al mismo alumno: gana la que más se parece; con empate, ninguna
+  const quitarRepetidas = () => {
+    const porAlumno = new Map<string, number[]>();
+    res.forEach((r, f) => { if (r.alumnoId !== null && r.parecido !== 'a mano') porAlumno.set(r.alumnoId, [...(porAlumno.get(r.alumnoId) ?? []), f]); });
+    for (const [id, filas] of porAlumno) {
+      if (filas.length < 2) continue;
+      const mejor = Math.max(...filas.map(f => puntosDe(f, id)));
+      const ganan = filas.filter(f => puntosDe(f, id) === mejor);
+      for (const f of filas) if (ganan.length > 1 || f !== ganan[0]) res[f] = { alumnoId: null, motivo: 'repetida', candidatos: [id] };
+    }
+  };
+  quitarRepetidas();
+  // Las que dudaban entre varios: si todos menos uno ya tienen su fila, es ese (y sigue siendo aproximado)
+  for (let vuelta = 0; vuelta < 3; vuelta++) {
+    const ocupados = new Set(res.flatMap(r => (r.alumnoId ? [r.alumnoId] : [])));
+    let cambio = false;
+    res.forEach((r, f) => {
+      if (r.alumnoId !== null || r.motivo !== 'varios') return;
+      const quedan = r.candidatos.filter(id => !ocupados.has(id));
+      if (quedan.length === 1) { res[f] = { alumnoId: quedan[0], parecido: 'aproximado' }; ocupados.add(quedan[0]); cambio = true; }
+    });
+    if (!cambio) break;
+    quitarRepetidas();
+  }
+  return res;
 }
 
 /** Una nota que se va a escribir (o a quitar, con `null`). */
@@ -287,12 +440,29 @@ export interface FilaDelPlan {
   nombre: string;
   /** El nombre que traía la hoja en esa fila, si traía. */
   etiqueta?: string;
-  /** Si ese nombre no se parece al del alumno de la fila (posible fila descolocada). */
+  /** Si ese nombre no se parece al del alumno de la fila (posible fila descolocada; solo al colocar por posición). */
   descuadra: boolean;
+  /** Al colocar por nombre: si el nombre de la hoja es igual, solo se parece o lo ha elegido el docente. */
+  parecido?: Parecido | 'a mano';
+  /** La fila de la hoja (sin la cabecera) de la que salen estas notas. */
+  fila: number;
   celdas: CeldaDelPlan[];
 }
 
+/** Una fila de la hoja que no se ha colocado al emparejar por nombre: no entra hasta que el docente diga de quién es. */
+export interface FilaSinColocar {
+  fila: number;
+  etiqueta: string;
+  motivo: MotivoSinColocar;
+  /** Los alumnos con los que dudaba (o el que ya tiene otra fila). */
+  candidatos: string[];
+  /** Lo que trae en las columnas que se pegan. */
+  textos: string[];
+}
+
 export interface PlanDePegado {
+  /** `nombre`: cada fila va al alumno que se llama así; `posicion`: por orden, desde la celda donde se pega. */
+  modo: 'nombre' | 'posicion';
   /** Las actividades del cuaderno que reciben algo, en orden. */
   columnas: { id: string; nombre: string; titulo?: string }[];
   filas: FilaDelPlan[];
@@ -307,8 +477,14 @@ export interface PlanDePegado {
   filasQueSobran: number;
   /** Columnas pegadas que no caben: van más allá de la última actividad. */
   columnasQueSobran: number;
-  /** Filas cuyo nombre en la hoja no se parece al del alumno. */
+  /** Filas cuyo nombre en la hoja no se parece al del alumno (al colocar por posición). */
   descuadradas: number;
+  /** Al colocar por nombre: las filas de la hoja que no van a nadie hasta que el docente lo diga. */
+  sinColocar: FilaSinColocar[];
+  /** Al colocar por nombre: cuántas filas se han colocado porque el nombre se parece, sin ser igual. */
+  aproximadas: number;
+  /** Al colocar por nombre: el alumnado de la tabla que no sale en la hoja (sus notas no se tocan). */
+  noEstan: { id: string; nombre: string }[];
 }
 
 export interface DondePegar {
@@ -324,28 +500,52 @@ export interface DondePegar {
 }
 
 /**
- * El plan de pegar: qué celda del cuaderno recibe cada celda pegada, hacia abajo desde el alumno y hacia la
- * derecha desde la actividad donde se pega. No toca nada: es lo que enseña la vista previa. Devuelve `null` si la
- * celda de partida no está en la tabla.
+ * El plan de pegar: qué celda del cuaderno recibe cada celda pegada. Las columnas van hacia la derecha desde la
+ * actividad donde se pega. Las filas, por nombre si la hoja los trae y alguno se parece a alguien de la clase
+ * (`emparejarPorNombre`); si no, hacia abajo desde el alumno donde se pega. No toca nada: es lo que enseña la
+ * vista previa. `aMano` son las filas que el docente ha colocado él (fila de la hoja → alumno). Devuelve `null` si
+ * la celda de partida no está en la tabla.
  */
-export function planDePegado(pegado: Pegado, donde: DondePegar): PlanDePegado | null {
+export function planDePegado(pegado: Pegado, donde: DondePegar, aMano: Record<number, string> = {}): PlanDePegado | null {
   const f0 = donde.alumnado.findIndex(a => a.id === donde.alumnoId);
   const c0 = donde.actividades.findIndex(a => a.id === donde.actividadId);
   if (f0 < 0 || c0 < 0) return null;
   const anchoPegado = pegado.celdas[0]?.length ?? 0;
-  const alumnos = donde.alumnado.slice(f0, f0 + pegado.celdas.length);
   const actividades = donde.actividades.slice(c0, c0 + anchoPegado);
+
+  const emparejadas = pegado.etiquetas ? emparejarPorNombre(pegado.etiquetas, donde.alumnado, pegado.numeros, aMano) : null;
+  const porNombre = !!emparejadas && emparejadas.some(e => e.alumnoId !== null);
+
+  // Qué fila de la hoja va a qué alumno, en el orden de la lista
+  let asignadas: { alumno: { id: string; name: string }; fila: number; parecido?: Parecido | 'a mano' }[];
+  const sinColocar: FilaSinColocar[] = [];
+  if (porNombre) {
+    const deAlumno = new Map<string, { fila: number; parecido: Parecido | 'a mano' }>();
+    emparejadas!.forEach((e, f) => {
+      if (e.alumnoId !== null) deAlumno.set(e.alumnoId, { fila: f, parecido: e.parecido });
+      else sinColocar.push({ fila: f, etiqueta: pegado.etiquetas![f] ?? '', motivo: e.motivo, candidatos: e.candidatos, textos: pegado.celdas[f].slice(0, actividades.length) });
+    });
+    asignadas = donde.alumnado.filter(a => deAlumno.has(a.id)).map(a => ({ alumno: a, ...deAlumno.get(a.id)! }));
+  } else {
+    asignadas = donde.alumnado.slice(f0, f0 + pegado.celdas.length).map((alumno, f) => ({ alumno, fila: f }));
+  }
+
   const plan: PlanDePegado = {
+    modo: porNombre ? 'nombre' : 'posicion',
     columnas: actividades.map((a, k) => ({ id: a.id, nombre: a.name, ...(pegado.titulos?.[k] ? { titulo: pegado.titulos[k] } : {}) })),
     filas: [], cambios: [], nuevas: 0, cambian: 0, iguales: 0, mal: 0,
-    filasQueSobran: pegado.celdas.length - alumnos.length,
+    filasQueSobran: porNombre ? 0 : pegado.celdas.length - asignadas.length,
     columnasQueSobran: anchoPegado - actividades.length,
     descuadradas: 0,
+    sinColocar,
+    aproximadas: 0,
+    noEstan: porNombre ? donde.alumnado.filter(a => !asignadas.some(x => x.alumno.id === a.id)).map(a => ({ id: a.id, nombre: a.name })) : [],
   };
-  alumnos.forEach((alumno, f) => {
+  for (const { alumno, fila: f, parecido } of asignadas) {
     const etiqueta = pegado.etiquetas?.[f] || undefined;
-    const descuadra = !!etiqueta && !nombresParecidos(etiqueta, alumno.name);
+    const descuadra = !porNombre && !!etiqueta && !nombresParecidos(etiqueta, alumno.name);
     if (descuadra) plan.descuadradas++;
+    if (parecido === 'aproximado') plan.aproximadas++;
     const celdas = actividades.map((act, c): CeldaDelPlan => {
       const texto = pegado.celdas[f][c] ?? '';
       const actual = donde.notas[act.id]?.[alumno.id];
@@ -359,8 +559,8 @@ export function planDePegado(pegado: Pegado, donde: DondePegar): PlanDePegado | 
       plan.cambian++;
       return { texto, estado: 'cambia', antes, valor: leida.valor };
     });
-    plan.filas.push({ alumnoId: alumno.id, nombre: alumno.name, ...(etiqueta ? { etiqueta } : {}), descuadra, celdas });
-  });
+    plan.filas.push({ alumnoId: alumno.id, nombre: alumno.name, ...(etiqueta ? { etiqueta } : {}), descuadra, ...(parecido ? { parecido } : {}), fila: f, celdas });
+  }
   return plan;
 }
 
