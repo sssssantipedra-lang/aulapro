@@ -79,7 +79,7 @@ export default {
         await clicar(p, c, rapido);
         // Lo que llegaría al pegar los nombres y las notas de tres alumnos copiados de una hoja de cálculo, en otro orden
         // que el de la lista y con el nombre en mayúsculas: cada nota va a su alumno por el nombre (24-11-2026)
-        const nombres = await p.locator('.gb-table tbody tr').evaluateAll(trs => trs.slice(3, 6).map(tr => (tr.textContent ?? '').match(/Alumno \d+/)?.[0] ?? ''));
+        const nombres = await p.locator('.gb-table tbody tr').evaluateAll(trs => trs.slice(3, 6).map(tr => (tr.querySelector('th, td')?.textContent ?? '').match(/Alumno \d+/)?.[0] ?? ''));
         const hoja = ['Nombre\tNota', `${nombres[2].toUpperCase()}\t9`, `${nombres[0]}\t8`, `${nombres[1]}\t7,5`].join('\n');
         await c.locator('input').evaluate((el, texto) => {
           const dt = new DataTransfer();
