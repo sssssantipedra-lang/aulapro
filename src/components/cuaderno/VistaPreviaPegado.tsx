@@ -52,7 +52,7 @@ export function VistaPreviaPegado({ filas, donde, onAplicar, onClose }: Props) {
   const porNombre = plan.modo === 'nombre';
   // Lo que hay que confirmar antes de poner nada: el orden, si se coloca por posición y hay más de una fila; los
   // nombres que solo se parecen, si se coloca por nombre
-  const hayQueConfirmar = !sinColumnas && total > 0 && (porNombre ? plan.aproximadas > 0 : plan.filas.length > 1);
+  const hayQueConfirmar = !sinColumnas && total > 0 && (porNombre ? plan.aproximadas > 0 || plan.pareceOtroGrupo : plan.filas.length > 1);
   const ningunoCoincide = !porNombre && !!pegado.etiquetas && plan.filas.length > 0 && plan.descuadradas === plan.filas.length;
   const cambiarCabecera = (v: boolean) => { setCabecera(v); setAMano({}); setComprobado(false); };
   const colocar = (fila: number, alumnoId: string) => {
@@ -120,6 +120,11 @@ export function VistaPreviaPegado({ filas, donde, onAplicar, onClose }: Props) {
             {ningunoCoincide && (
               <li><AlertTriangle size={14} aria-hidden="true" />
                 {t('Ningún nombre de tu hoja coincide con el alumnado de esta clase: ¿es la hoja de otro grupo? Si sigues, las notas se colocan por orden.')}
+              </li>
+            )}
+            {plan.pareceOtroGrupo && (
+              <li><AlertTriangle size={14} aria-hidden="true" />
+                {t('La mitad de las filas de tu hoja o más no son de nadie de esta clase: ¿es la hoja de otro grupo? Comprueba que las notas que se colocan son de tu alumnado.')}
               </li>
             )}
             {plan.sinColocar.length > 0 && (
@@ -248,7 +253,7 @@ export function VistaPreviaPegado({ filas, donde, onAplicar, onClose }: Props) {
             <input type="checkbox" checked={comprobado} onChange={e => setComprobado(e.target.checked)} />
             <span>
               {porNombre
-                ? t('He comprobado los nombres marcados con ≈')
+                ? (plan.pareceOtroGrupo ? t('He comprobado que las notas que se colocan son de mi alumnado') : t('He comprobado los nombres marcados con ≈'))
                 : t('He comprobado que mi hoja está en el mismo orden que la lista del cuaderno')}
             </span>
           </label>

@@ -132,6 +132,10 @@ export const EN: Record<string, string> = {
     'It looks like {nombres}',
   'Otra fila de tu hoja también es de {nombre}':
     'Another row of your sheet is also {nombre}',
+  'La mitad de las filas de tu hoja o más no son de nadie de esta clase: ¿es la hoja de otro grupo? Comprueba que las notas que se colocan son de tu alumnado.':
+    'Half the rows of your sheet or more are not anyone in this class: is it another group’s sheet? Check that the marks being placed belong to your students.',
+  'He comprobado que las notas que se colocan son de mi alumnado':
+    'I have checked that the marks being placed belong to my students',
 };
 
 export const CA: Record<string, string> = {
@@ -260,4 +264,8 @@ export const CA: Record<string, string> = {
     'S\'assembla a {nombres}',
   'Otra fila de tu hoja también es de {nombre}':
     'Una altra fila del teu full també és de {nombre}',
+  'La mitad de las filas de tu hoja o más no son de nadie de esta clase: ¿es la hoja de otro grupo? Comprueba que las notas que se colocan son de tu alumnado.':
+    'La meitat de les files del teu full o més no són de ningú d\'aquesta classe: és el full d\'un altre grup? Comprova que les notes que es col·loquen són del teu alumnat.',
+  'He comprobado que las notas que se colocan son de mi alumnado':
+    'He comprovat que les notes que es col·loquen són del meu alumnat',
 };

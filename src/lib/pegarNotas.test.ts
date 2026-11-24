@@ -444,14 +444,15 @@ describe('colocar por nombre', () => {
     expect(parecidoDeNombres('Alumno 1', 'Alumno 12').puntos).toBe(0);
   });
 
-  it('en la app con «12 Marta» y en la hoja el número de lista y el nombre completo: van por el número', () => {
+  it('en la app con «12 Marta» y en la hoja el número de lista y el nombre completo: van por el número, marcadas con ≈', () => {
     const lista = [{ id: 'm', name: '12 Marta' }, { id: 'j', name: '3 Joan' }, { id: 'c', name: '7 Marc' }];
     const texto = ['Nº\tAlumno\tExamen', '3\tPuig Soler, Joan\t6', '7\tVidal Pons, Marc\t4', '12\tGarcía López, Marta\t8'].join('\n');
     const pegado = entenderPegado(leerPegado(texto));
     expect(pegado).toMatchObject({ numeroDeLista: true, numeros: ['3', '7', '12'] });
     const plan = planDePegado(pegado, { alumnado: lista, actividades: examen, alumnoId: 'm', actividadId: 'x', notas: {} })!;
     expect(Object.fromEntries(plan.cambios.map(c => [c.studentId, c.value]))).toEqual({ m: 8, j: 6, c: 4 });
-    expect(plan.filas.every(f => f.parecido === 'seguro')).toBe(true);
+    // Una lista se renumera tras una baja: lo que decide el número de la hoja hay que comprobarlo
+    expect(plan.filas.every(f => f.parecido === 'aproximado')).toBe(true);
   });
 
   it('una palabra que solo se parece (una inicial, una errata) no basta para colocar a nadie', () => {
