@@ -54,6 +54,17 @@ export function huecosDelPlan(plan: Pick<SeatingPlan, 'groups' | 'groupSize'>, e
 }
 
 /**
+ * Los roles para un número de asientos nuevo sin que nadie cambie de rol: con la rotación avanzada (`weekOffset`), el
+ * asiento i tenía `roles[(i + weekOffset) % groupSize]`; se ponen en ese orden y la rotación vuelve a 0. Los que falten
+ * los añade `completar` (los «Rol n» de la pantalla).
+ */
+export function rolesSinCambiarDeRol<R>(roles: R[], weekOffset: number): R[] {
+  const n = roles.length;
+  if (n === 0 || weekOffset % n === 0) return roles;
+  return Array.from({ length: n }, (_, i) => roles[(i + weekOffset) % n]);
+}
+
+/**
  * Las mesas de un plan con otra estructura: conserva las que ya había (con su nombre y su gente, recortada si la mesa
  * encoge) y añade las que falten con el nombre «Mesa n».
  */
@@ -83,7 +94,10 @@ export function aplicarReparto(
     (h?.libres ?? []).forEach((asiento, k) => { if (nuevos[k]) ids[asiento] = nuevos[k]; });
     // Sin huecos al final: un asiento vacío al final de la mesa es «no hay más gente»
     while (ids.length && ids[ids.length - 1] === '') ids.pop();
+    // Una mesa a la que no ha llegado nadie no ha cambiado: conserva su justificación aunque la IA escriba otra
+    const llegaAlguien = nuevos.some(Boolean);
     const justificacion = reparto[i]?.justificacion?.trim();
+    if (!todos && !llegaAlguien) return { ...g, studentIds: ids };
     return { ...g, studentIds: ids, justificacion: justificacion || (todos ? undefined : g.justificacion) };
   });
 }

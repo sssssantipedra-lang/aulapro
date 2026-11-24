@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { aplicarReparto, estructuraParaTodos, huecosDelPlan, mesasConEstructura } from './repartoMesas';
+import { aplicarReparto, estructuraParaTodos, huecosDelPlan, mesasConEstructura, rolesSinCambiarDeRol } from './repartoMesas';
 
 describe('estructuraParaTodos', () => {
   it('si caben todos, no cambia nada', () => {
@@ -56,3 +56,24 @@ describe('huecosDelPlan y aplicarReparto', () => {
     expect(g[0].studentIds).toEqual(['a', '']);
   });
 });
+
+describe('arreglos de la revisión del reparto (24-11-2026)', () => {
+  it('sentando solo a los que faltan, una mesa a la que no llega nadie conserva su justificación', () => {
+    const groups = [
+      { id: 'g1', label: 'Mesa 1', studentIds: ['a', 'b'], justificacion: 'La de antes' },
+      { id: 'g2', label: 'Mesa 2', studentIds: ['c'], justificacion: 'Otra' },
+    ];
+    const h = huecosDelPlan({ groupSize: 2, groups }, new Set(['a', 'b', 'c', 'd']), false);
+    const g = aplicarReparto(groups, h, [{ estudiantes: [], justificacion: 'Esta mesa ya está completa' }, { estudiantes: ['d'], justificacion: 'Nueva' }], 2, false);
+    expect(g[0].justificacion).toBe('La de antes');
+    expect(g[1].justificacion).toBe('Nueva');
+  });
+
+  it('al crecer las mesas con la rotación avanzada, cada asiento conserva el rol de esta semana', () => {
+    const roles = ['Portavoz', 'Secretario', 'Material', 'Tiempo'];
+    // weekOffset 2: el asiento 0 era Material, el 1 Tiempo, el 2 Portavoz y el 3 Secretario
+    expect(rolesSinCambiarDeRol(roles, 2)).toEqual(['Material', 'Tiempo', 'Portavoz', 'Secretario']);
+    expect(rolesSinCambiarDeRol(roles, 0)).toBe(roles);
+  });
+});
+

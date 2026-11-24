@@ -34,6 +34,11 @@ export interface StudentForGrouping {
   avisos: string[];
   /** Anotación libre del docente (`Student.notes`). */
   notas: string;
+  /**
+   * Las anotaciones del aula de las últimas semanas, contadas por tipo («Buen comportamiento: 3»), sin texto libre.
+   * Solo las que hay; sin ninguna, no se dice nada.
+   */
+  anotaciones?: { tipo: string; veces: number }[];
 }
 
 export interface GroupingRequest {
@@ -48,7 +53,7 @@ export interface GroupingRequest {
    * libres, en orden. Sin esto, todas las mesas vacías y con todos los roles. Con alguien sentado, la IA solo
    * reparte a `students` en los asientos libres.
    */
-  mesas?: { label: string; sentados: string[]; rolesLibres: (string | null)[] }[];
+  mesas?: { label: string; sentados: string[]; rolesSentados?: (string | null)[]; rolesLibres: (string | null)[] }[];
   /** Los que ya están sentados y se quedan, para que la IA equilibre las mesas contando con ellos. */
   yaSentados?: StudentForGrouping[];
   /** Los roles cooperativos, en orden de asiento, con su responsabilidad. */
@@ -86,6 +91,11 @@ export function repararGrupos(
   numGroups: number,
   /** Asientos por mesa, o los asientos libres de cada mesa (cuando hay gente que ya estaba sentada y se queda). */
   capacidad: number | number[],
+  /**
+   * Con roles, el sitio de cada alumno en la lista es su asiento (y su rol): un id descartado deja un hueco ('') en vez
+   * de correr a los de detrás, y quien la IA se dejó fuera ocupa antes esos huecos que los asientos del final.
+   */
+  conservarPosiciones = false,
 ): { grupos: GeneratedGroup[]; sinAsignar: string[] } {
   const validos = new Set(idsValidos);
   const usados = new Set<string>();
@@ -96,13 +106,15 @@ export function repararGrupos(
     const g = grupos[i];
     const propios: string[] = [];
     for (const id of g?.estudiantes ?? []) {
-      if (validos.has(id) && !usados.has(id) && propios.length < cabe(i)) {
+      if (propios.length >= cabe(i)) break;
+      if (validos.has(id) && !usados.has(id)) {
         propios.push(id);
         usados.add(id);
-      }
+      } else if (conservarPosiciones) propios.push('');
     }
     limpios.push({ estudiantes: propios, justificacion: g?.justificacion?.trim() ?? '' });
   }
+  const ocupados = (g: GeneratedGroup) => g.estudiantes.filter(Boolean).length;
 
   // Quien la IA se dejó fuera va a la mesa con más asientos libres (la primera, si empatan): así no se llena una
   // mesa mientras otra se queda medio vacía
@@ -111,12 +123,17 @@ export function repararGrupos(
   for (const id of huerfanos) {
     let mejor = -1;
     limpios.forEach((g, i) => {
-      const libres = cabe(i) - g.estudiantes.length;
-      if (libres > 0 && (mejor < 0 || libres > cabe(mejor) - limpios[mejor].estudiantes.length)) mejor = i;
+      const libres = cabe(i) - ocupados(g);
+      if (libres > 0 && (mejor < 0 || libres > cabe(mejor) - ocupados(limpios[mejor]))) mejor = i;
     });
-    if (mejor >= 0) { limpios[mejor].estudiantes.push(id); usados.add(id); }
-    else sinAsignar.push(id);
+    if (mejor < 0) { sinAsignar.push(id); continue; }
+    const hueco = limpios[mejor].estudiantes.indexOf('');
+    if (hueco >= 0) limpios[mejor].estudiantes[hueco] = id;
+    else limpios[mejor].estudiantes.push(id);
+    usados.add(id);
   }
+  // Los huecos que nadie ha llenado al final de una mesa no hacen falta
+  for (const g of limpios) while (g.estudiantes.length && g.estudiantes[g.estudiantes.length - 1] === '') g.estudiantes.pop();
 
   return { grupos: limpios, sinAsignar };
 }
@@ -132,6 +149,7 @@ function fichaAlumno(s: StudentForGrouping): string {
   if (avisos.length) partes.push(`avisos: ${avisos.join('; ')}`);
   const notas = textoLibreParaIA(s.notas.trim());
   if (notas) partes.push(`nota del docente: ${notas}`);
+  if (s.anotaciones?.length) partes.push(`anotaciones del aula de las últimas semanas: ${s.anotaciones.map(a => `${a.tipo} ${a.veces}`).join(', ')}`);
   return `- ${partes.join(' · ')}`;
 }
 
@@ -153,10 +171,14 @@ export async function generateBalancedGroups(
   if (ids.length === 0) return { grupos: [], sinAsignar: [] };
 
   // Cada mesa: quién se queda y qué asientos (con su rol) tiene libres. Sin `mesas`, todas vacías.
-  const roles = req.roles ?? [];
-  const mesas = req.mesas ?? Array.from({ length: req.numGroups }, (_, i) => ({
-    label: `${i + 1}`, sentados: [] as string[], rolesLibres: Array.from({ length: req.groupSize }, (_, k) => roles[k]?.name ?? null),
-  }));
+  // Los nombres y las responsabilidades de los roles y de las mesas los escribe el docente: van como cualquier texto
+  // libre, sin datos de contacto ni de salud
+  const limpio = (x: string | null) => (x === null ? null : textoLibreParaIA(x));
+  const roles = (req.roles ?? []).map(r => ({ name: textoLibreParaIA(r.name), description: textoLibreParaIA(r.description) }));
+  const mesas = (req.mesas ?? Array.from({ length: req.numGroups }, (_, i) => ({
+    label: `${i + 1}`, sentados: [] as string[], rolesSentados: [] as (string | null)[],
+    rolesLibres: Array.from({ length: req.groupSize }, (_, k) => req.roles?.[k]?.name ?? null),
+  }))).map(m => ({ ...m, label: textoLibreParaIA(m.label), rolesLibres: m.rolesLibres.map(limpio), rolesSentados: m.rolesSentados?.map(limpio) }));
   const capacidades = mesas.map(m => m.rolesLibres.length);
   const libresTotales = capacidades.reduce((a, b) => a + b, 0);
   const hayRoles = roles.length > 0;
@@ -212,13 +234,13 @@ export async function generateBalancedGroups(
   const lineaMesa = (m: typeof mesas[number], i: number) =>
     `- Mesa ${i + 1} («${m.label}»): ${m.rolesLibres.length} asientos libres` +
     (hayRoles && m.rolesLibres.length ? `, en este orden: ${m.rolesLibres.map(r => r ?? 'sin rol').join(', ')}` : '') +
-    (m.sentados.length ? `; ya sentados y se quedan: ${m.sentados.join(', ')}` : '');
+    (m.sentados.length ? `; ya sentados y se quedan: ${m.sentados.map((id, k) => (hayRoles && m.rolesSentados?.[k] ? `${id} (${m.rolesSentados[k]})` : id)).join(', ')}` : '');
 
   const userPrompt =
     `CÓMO SON LAS MESAS (lo ha elegido el docente):\n` +
     `- ${mesas.length} mesas de ${req.groupSize} asientos` + (req.forma ? `. ${req.forma}` : '') + `.\n` +
     `- Alumnado por sentar: ${ids.length}. Asientos libres en total: ${libresTotales}.\n` +
-    (hayRoles ? `- Roles de cada mesa, en orden de asiento: ${roles.map((r, k) => `${k + 1}. ${r.name}${r.description.trim() ? ` (${r.description.trim()})` : ''}`).join('; ')}.\n` : '') +
+    (hayRoles ? `- Roles cooperativos y su responsabilidad: ${roles.map(r => `${r.name}${r.description.trim() ? ` (${r.description.trim()})` : ''}`).join('; ')}. El rol de cada asiento libre va en la lista de su mesa.\n` : '') +
     `\nMESAS:\n${mesas.map(lineaMesa).join('\n')}\n` +
     `\nALUMNADO POR SENTAR (id · nombre · media · asistencia · avisos · nota del docente):\n` +
     req.students.map(fichaAlumno).join('\n') +
@@ -238,5 +260,5 @@ export async function generateBalancedGroups(
   const parsed = parseGeminiJson<GroupingResult>(raw);
   if (!parsed?.grupos) return null;
 
-  return repararGrupos(parsed.grupos, ids, mesas.length, capacidades);
+  return repararGrupos(parsed.grupos, ids, mesas.length, capacidades, hayRoles);
 }

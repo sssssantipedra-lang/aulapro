@@ -20,7 +20,7 @@ import type { Class, Student, GradeCategory, GradeItem, GradeMap, AttendanceMap,
 import { seatStudentId } from '../types';
 import { weightedAverage, attendanceRate } from '../services/aiContext';
 import { generateBalancedGroups, type StudentForGrouping } from '../services/classGroups';
-import { aplicarReparto, estructuraParaTodos, huecosDelPlan, mesasConEstructura } from '../lib/repartoMesas';
+import { aplicarReparto, estructuraParaTodos, huecosDelPlan, mesasConEstructura, rolesSinCambiarDeRol } from '../lib/repartoMesas';
 import { hasApiKey } from '../services/gemini';
 import { buildTableSvg, type FormaMesa } from '../lib/seatingLayout';
 
@@ -174,6 +174,7 @@ export function SeatingPlan({
   function pickClass(id: string) {
     setClassId(id);
     setSelected(null);
+    setSoloFaltan(false);
   }
 
   /* ── Estructura: nº de mesas y alumnos por mesa ── */
@@ -325,15 +326,29 @@ export function SeatingPlan({
         asistenciaPct: asis?.pct ?? null,
         avisos: s.alerts.map(a => a.text),
         notas: s.notes,
+        anotaciones: anotacionesDe.get(s.id) ?? [],
       };
     };
+    // Las anotaciones del aula de las últimas 4 semanas, contadas por tipo (sin texto libre)
+    const desde = isoDate(new Date(Date.now() - 28 * 86_400_000));
+    const cuenta = new Map<string, Map<string, number>>();
+    for (const m of classMarks) {
+      if (m.class_id !== clsId || m.date < desde) continue;
+      const tipo = t(markTypeInfo(m.type)?.label ?? m.type);
+      const delAlumno = cuenta.get(m.student_id) ?? new Map<string, number>();
+      delAlumno.set(tipo, (delAlumno.get(tipo) ?? 0) + 1);
+      cuenta.set(m.student_id, delAlumno);
+    }
+    const anotacionesDe = new Map([...cuenta].map(([id, tipos]) => [id, [...tipos].map(([tipo, veces]) => ({ tipo, veces }))]));
     const { modoFaltan, aSentar, numGroups, groupSize } = reparto;
-    // Las mesas con la estructura que hace falta para que quepan todos, y sus asientos libres con su rol
-    const roles = resizeRoles(plan.roles, groupSize, t);
+    // Las mesas con la estructura que hace falta para que quepan todos, y sus asientos libres con su rol. Si las mesas
+    // crecen dejando a gente sentada, los roles se ponen en el orden de esta semana para que nadie cambie de rol.
+    const crece = modoFaltan && groupSize !== plan.groupSize;
+    const roles = resizeRoles(crece ? rolesSinCambiarDeRol(plan.roles, plan.weekOffset) : plan.roles, groupSize, t);
     const base: SeatingPlan = {
       ...plan, numGroups, groupSize, roles,
       groups: mesasConEstructura(plan.groups, numGroups, groupSize, n => t('Mesa {n}', { n }), () => crypto.randomUUID()),
-      weekOffset: modoFaltan ? plan.weekOffset % groupSize : 0,
+      weekOffset: modoFaltan && !crece ? plan.weekOffset : 0,
     };
     const enClase = new Set(roster.map(s => s.id));
     const huecos = huecosDelPlan(base, enClase, !modoFaltan);
@@ -343,7 +358,12 @@ export function SeatingPlan({
     const res = await generateBalancedGroups(
       {
         students: aSentar.map(paraIA), numGroups, groupSize, notasDocente,
-        mesas: huecos.map(h => ({ label: h.label, sentados: h.sentados.map(x => x.id), rolesLibres: h.libres.map(i => roleForSeat(base, i)?.name ?? null) })),
+        mesas: huecos.map(h => ({
+          label: h.label,
+          sentados: h.sentados.map(x => x.id),
+          rolesSentados: h.sentados.map(x => roleForSeat(base, x.asiento)?.name ?? null),
+          rolesLibres: h.libres.map(i => roleForSeat(base, i)?.name ?? null),
+        })),
         yaSentados: roster.filter(s => sentadosQueSeQuedan.includes(s.id)).map(paraIA),
         roles: roles.map(r => ({ name: r.name, description: r.description })),
         forma: forma ? `${t(forma.label)}: ${t(forma.texto)}` : undefined,
@@ -368,7 +388,7 @@ export function SeatingPlan({
     } else if (groupSize !== plan.groupSize) {
       toast(t('✅ Todos sentados: para que cupieran, ahora hay {groups} mesas de {size}.', { groups: numGroups, size: groupSize }));
     } else if (añadidas > 0) {
-      toast(t('✅ Todos sentados: se han añadido {n} mesas para que cupieran.', { n: añadidas }));
+      toast(añadidas === 1 ? t('✅ Todos sentados: se ha añadido 1 mesa para que cupieran.') : t('✅ Todos sentados: se han añadido {n} mesas para que cupieran.', { n: añadidas }));
     } else {
       toast(t('✅ Grupos generados'));
     }
@@ -428,7 +448,8 @@ export function SeatingPlan({
     );
   }
 
-  const sentados = asignados.size;
+  // Solo cuenta el alumnado de esta clase: un asiento con alguien que se cambió de grupo es un asiento libre
+  const sentados = roster.length - sinAsignar.length;
   const nadieSentado = sentados === 0 && roster.length > 0;
 
   return (
@@ -476,7 +497,7 @@ export function SeatingPlan({
         <button className="seat-tb-btn" type="button" onClick={() => setConfigOpen(true)}>
           <Settings2 size={14} />{t('Mesas y roles')}
         </button>
-        <button className="btn-ia" type="button" onClick={() => setAiOpen(true)} disabled={generating}>
+        <button className="btn-ia" type="button" onClick={() => { setSoloFaltan(false); setAiOpen(true); }} disabled={generating}>
           {generating ? <><span className="spin" />{t('Generando…')}</> : <><Sparkles size={14} />{t('Repartir con IA')}</>}
         </button>
       </div>
@@ -660,7 +681,9 @@ export function SeatingPlan({
                 </label>
                 <label>
                   <input type="radio" name="seat-modo" checked={soloFaltan} onChange={() => setSoloFaltan(true)} />
-                  <span>{t('Dejar en su sitio a quien ya tiene mesa y sentar solo a los {n} que faltan', { n: sinAsignar.length })}</span>
+                  <span>{sinAsignar.length === 1
+                    ? t('Dejar en su sitio a quien ya tiene mesa y sentar solo al alumno que falta')
+                    : t('Dejar en su sitio a quien ya tiene mesa y sentar solo a los {n} que faltan', { n: sinAsignar.length })}</span>
                 </label>
               </div>
             )}
@@ -669,24 +692,29 @@ export function SeatingPlan({
               <strong>{t('La IA tendrá en cuenta')}</strong>
               <ul>
                 <li>{reparto.modoFaltan
-                  ? t('{n} alumnos por sentar, en los asientos libres de cada mesa', { n: reparto.aSentar.length })
-                  : t('Toda la clase: {n} alumnos', { n: reparto.aSentar.length })}</li>
-                <li>{t('{groups} mesas de {size} asientos', { groups: reparto.numGroups, size: reparto.groupSize })} · {t(FORMAS.find(f => f.id === (plan.forma ?? 'cooperativa'))?.label ?? 'Mesas cooperativas')}</li>
+                  ? (reparto.aSentar.length === 1
+                    ? t('1 alumno por sentar, en un asiento libre')
+                    : t('{n} alumnos por sentar, en los asientos libres de cada mesa', { n: reparto.aSentar.length }))
+                  : (reparto.aSentar.length === 1 ? t('Toda la clase: 1 alumno') : t('Toda la clase: {n} alumnos', { n: reparto.aSentar.length }))}</li>
+                <li>{reparto.numGroups === 1
+                  ? t('1 mesa de {size} asientos', { size: reparto.groupSize })
+                  : t('{groups} mesas de {size} asientos', { groups: reparto.numGroups, size: reparto.groupSize })} · {t(FORMAS.find(f => f.id === (plan.forma ?? 'cooperativa'))?.label ?? 'Mesas cooperativas')}</li>
                 <li>{t('Roles de cada mesa: {roles}', { roles: resizeRoles(plan.roles, reparto.groupSize, t).map(r => r.name).join(', ') })}</li>
-                <li>{t('La media, la asistencia, los avisos y las anotaciones de cada alumno')}</li>
+                <li>{t('La media, la asistencia, los avisos, la nota de su ficha y las anotaciones del aula de las últimas 4 semanas de cada alumno')}</li>
                 <li>{t('Lo que escribas abajo, que va por encima de todo lo demás')}</li>
               </ul>
               <button type="button" className="mk-link" onClick={() => { setAiOpen(false); setConfigOpen(true); }}>{t('Cambiar mesas y roles')}</button>
             </div>
-            {reparto.cambia && (
+            {reparto.noCaben > 0 ? (
+              <p className="seat-modal-warn">{t('No caben {n} alumnos: como mucho puede haber {groups} mesas de {size}, y se quedarán sin mesa.', { n: reparto.noCaben, groups: reparto.numGroups, size: reparto.groupSize })}</p>
+            ) : reparto.cambia && (
               <p className="seat-modal-warn">
                 {reparto.groupSize !== plan.groupSize
                   ? t('No caben todos en {groups} mesas de {size}: se pasará a {g2} mesas de {s2} para que nadie se quede sin mesa.', { groups: plan.numGroups, size: plan.groupSize, g2: reparto.numGroups, s2: reparto.groupSize })
-                  : t('No caben todos en {groups} mesas de {size}: se añadirán {n} mesas para que nadie se quede sin mesa.', { groups: plan.numGroups, size: plan.groupSize, n: reparto.numGroups - plan.numGroups })}
+                  : reparto.numGroups - plan.numGroups === 1
+                    ? t('No caben todos en {groups} mesas de {size}: se añadirá 1 mesa para que nadie se quede sin mesa.', { groups: plan.numGroups, size: plan.groupSize })
+                    : t('No caben todos en {groups} mesas de {size}: se añadirán {n} mesas para que nadie se quede sin mesa.', { groups: plan.numGroups, size: plan.groupSize, n: reparto.numGroups - plan.numGroups })}
               </p>
-            )}
-            {reparto.noCaben > 0 && (
-              <p className="seat-modal-warn">{t('Aun así no caben {n} alumnos: como mucho hay {groups} mesas de {size}.', { n: reparto.noCaben, groups: reparto.numGroups, size: reparto.groupSize })}</p>
             )}
             {sentados > 0 && !reparto.modoFaltan && (
               <p className="seat-modal-warn">{t('Se sustituirá la distribución actual de {clase}.', { clase: cls?.name ?? '' })}</p>

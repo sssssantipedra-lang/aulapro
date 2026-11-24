@@ -98,7 +98,7 @@ describe('Repartir con IA', () => {
     await waitFor(() => expect(ultimo).toBeTruthy());
     const req = generar.mock.calls[0][0];
     expect(req.students.map((s: { id: string }) => s.id)).toEqual(['s3', 's4', 's5']);
-    expect(req.mesas[0]).toEqual({ label: 'Mesa 1', sentados: ['s1', 's2'], rolesLibres: ['Secretario/a'] });
+    expect(req.mesas[0]).toEqual({ label: 'Mesa 1', sentados: ['s1', 's2'], rolesSentados: ['Portavoz', 'Material'], rolesLibres: ['Secretario/a'] });
     expect(req.yaSentados.map((s: { id: string }) => s.id)).toEqual(['s1', 's2']);
     expect(ultimo!.groups[0].studentIds).toEqual(['s1', 's3', 's2']);
     expect(ultimo!.groups[1].studentIds).toEqual(['s4', 's5']);
