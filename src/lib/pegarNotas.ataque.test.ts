@@ -312,3 +312,73 @@ describe('segunda vuelta: columnas de datos junto al nombre', () => {
     expect(r.notaDe('Joan Puig Soler')).toBeNull();
   });
 });
+
+/* ── Tercera vuelta del ataque (24-11-2026) ── */
+describe('tercera vuelta', () => {
+  it('una inicial pegada al nombre no forma el de otro («Luis A.» no es Luisa, «Martí N.» no es Martín)', () => {
+    const r = pega(['Luis Antonio Pérez Gil', 'Luisa Pérez Gil', 'Ana Ruiz'], 'Pérez Gil, Luis A.\t4\nRuiz, Ana\t7');
+    expect(r.notaDe('Luisa Pérez Gil')).toBeNull();
+    expect(r.notaDe('Luis Antonio Pérez Gil')).toBe(4);
+    const mellizos = pega(['Luis Antonio Pérez Gil', 'Luisa Pérez Gil', 'Ana Ruiz'], 'Pérez Gil, Luis A.\t4\nPérez Gil, Luisa\t8\nRuiz, Ana\t7');
+    expect(mellizos.recibe['Luisa Pérez Gil']).toEqual({ nota: 8, parecido: 'seguro' });
+    expect(mellizos.notaDe('Luis Antonio Pérez Gil')).toBe(4);
+    expect(pega(['Juan A. Martín', 'Juana Martín López', 'Eva Mora'], 'Martín, Juana\t8\nMora, Eva\t7').notaDe('Juan A. Martín')).toBeNull();
+    expect(pega(['Pau Martí Navarro', 'Pau Martín Gil', 'Ana Ruiz'], 'Martí N., Pau\t4\nRuiz, Ana\t7').notaDe('Pau Martín Gil')).toBeNull();
+    expect(pega(['Pau Ferrer', 'Pau Ferré Roca', 'Hugo Sanz'], 'Ferré R., Pau\t4\nSanz, Hugo\t6').notaDe('Pau Ferrer')).toBeNull();
+  });
+
+  it('las partículas cuentan: «María del Pino» no es «María Pino», y lo escrito tal cual se coloca', () => {
+    expect(pega(['María del Pino Suárez', 'María Pino', 'Hugo Sanz'], 'Pino Suárez, María\t4\nSanz, Hugo\t6').recibe['María del Pino Suárez']?.parecido).not.toBe('seguro');
+    const reyes = pega(['María de los Reyes García', 'María Reyes García', 'Hugo Sanz'], 'Reyes García, María\t4\nGarcía, María de los Reyes\t9\nSanz, Hugo\t6');
+    expect([reyes.notaDe('María Reyes García'), reyes.notaDe('María de los Reyes García')]).toEqual([4, 9]);
+  });
+
+  it('«José Vicente» no va a quien se apellida Vicente si está «José V. Martínez»', () => {
+    const r = pega(['José V. Martínez', 'José Vicente', 'Hugo Sanz'], 'Martínez Gil, José Vicente\t4\nSanz, Hugo\t6');
+    expect(r.recibe['José Vicente']?.parecido).not.toBe('seguro');
+  });
+
+  it('dos filas con el mismo nombre no se reparten solas', () => {
+    const r = pega(['Lucía Pérez', 'Lucía Pérez N.', 'Hugo Sanz', 'Ana Ruiz'], 'Alumno\tExamen\nLucía Pérez\t9\nLucía Pérez\t3\nHugo Sanz\t6\nAna Ruiz\t7');
+    expect([r.notaDe('Lucía Pérez'), r.notaDe('Lucía Pérez N.')]).toEqual([null, null]);
+    expect(r.sinColocar).toEqual(['Lucía Pérez', 'Lucía Pérez']);
+  });
+
+  it('el número de lista en la misma celda que el nombre se trata como el de su columna', () => {
+    const r = pega(['12 Marta', '13 Marta', 'Pedro'], 'Alumno\tNota\n13 García Ruiz, Marta\t5\n14 López Gil, Marta\t9\n15 Ruiz, Pedro\t6');
+    expect(r.recibe['13 Marta']?.parecido).not.toBe('seguro');
+    // Escrito igual que en la app, sí es el mismo
+    expect(pega(['12 Marta', '13 Marta'], '12 Marta\t5\n13 Marta\t9').recibe['12 Marta']).toEqual({ nota: 5, parecido: 'seguro' });
+  });
+
+  it('«Chema» y «Maite» son José María y María Teresa', () => {
+    expect(pega(['José María García López', 'Ana Ruiz', 'Hugo Sanz'], 'García López, Chema\t7\nRuiz, Ana\t5\nSanz, Hugo\t6').notaDe('José María García López')).toBe(7);
+    expect(pega(['María Teresa López Gil', 'Ana Ruiz', 'Hugo Sanz'], 'López Gil, Maite\t7\nRuiz, Ana\t5\nSanz, Hugo\t6').notaDe('María Teresa López Gil')).toBe(7);
+  });
+
+  it('dos columnas de nombre sin títulos: «Martín García | Lucía» no va seguro a Martín García', () => {
+    const r = pega(['Martín García', 'Ana López Gil', 'Hugo Sanz Mora', 'Pau Gil'], 'López Gil\tAna\t6\nMartín García\tLucía\t9\nSanz Mora\tHugo\t7\nGil Puig\tPau\t5');
+    expect(r.recibe['Martín García']?.parecido).not.toBe('seguro');
+    expect(r.recibe['Ana López Gil']).toEqual({ nota: 6, parecido: 'seguro' });
+  });
+
+  it('fechas con el mes en letras, el grupo con la etapa, la edad en años y el NIE no son parte del nombre', () => {
+    const fecha = pega(['3 Marta', '12 Marta', '5 Pedro'], 'García Ruiz, Marta\t21-sep-2013\t7\nLópez Gil, Marta\t3-nov-2013\t4\nSoler, Pedro\t14-feb-2013\t6');
+    expect([fecha.notaDe('3 Marta'), fecha.notaDe('12 Marta'), fecha.notaDe('5 Pedro')]).toEqual([null, null, 6]);
+    const grupo = pega(['Alumno 1', 'Alumno 2', 'Alumno 3', 'Alumno 4', 'Alumno 5'], 'Alumno 1\t3º ESO A\t6\nAlumno 2\t3º ESO B\t7\nAlumno 4\t3º ESO A\t5\nAlumno 12\t3º ESO B\t9\nAlumno 5\t3º ESO B\t8');
+    expect(['Alumno 1', 'Alumno 2', 'Alumno 3', 'Alumno 4', 'Alumno 5'].map(n => grupo.notaDe(n))).toEqual([6, 7, null, 5, 8]);
+    expect(grupo.recibe['Alumno 1'].parecido).toBe('seguro');
+    const edad = pega(['12 Marta', '13 Marta'], 'García Ruiz, Marta\t13 años\t7\nLópez Gil, Marta\t12 años\t4');
+    expect([edad.notaDe('12 Marta'), edad.notaDe('13 Marta')]).toEqual([null, null]);
+    const nie = pega(['Ana Ruiz Gil', 'Ana Ruiz', 'Luis Gil Mora'], '12345678-Z\tRuiz Gil, Ana\t7\nX-1234567-L\tGil Mora, Luis\t5');
+    expect(nie.recibe['Ana Ruiz Gil']).toEqual({ nota: 7, parecido: 'seguro' });
+    expect(nie.recibe['Luis Gil Mora']).toEqual({ nota: 5, parecido: 'seguro' });
+  });
+
+  it('«Sí/No» o «Home/Dona» junto al nombre no estropean lo evidente', () => {
+    const r = pega(['Ana Ruiz Gil', 'Luis Gil Mora', 'Pau Soler Puig'], 'Ruiz Gil, Ana\tSí\t7\nGil Mora, Luis\t\t5\nSoler Puig, Pau\tNo\t8');
+    expect(['Ana Ruiz Gil', 'Luis Gil Mora', 'Pau Soler Puig'].map(n => r.recibe[n]?.parecido)).toEqual(['seguro', 'seguro', 'seguro']);
+    const ca = pega(['Anna Vidal Roca', 'Anna Vidal', 'Pau Puig'], 'Vidal Roca, Anna\tDona\t7\nPuig, Pau\tHome\t5');
+    expect(ca.recibe['Anna Vidal Roca']).toEqual({ nota: 7, parecido: 'seguro' });
+  });
+});
