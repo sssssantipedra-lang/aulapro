@@ -222,7 +222,7 @@ export const EN: Record<string, string> = {
   'Arrastra aquí tu archivo':
     'Drag your file here',
   'o pulsa para elegirlo':
-    'or tap to choose it',
+    'or click to choose it',
   'Pulsa para elegir el archivo':
     'Tap to choose the file',
   'Excel (.xlsx, .xls), LibreOffice (.ods) o CSV, de hasta 10 MB. Va mejor con una columna con los nombres del alumnado y una columna por actividad.':
@@ -447,7 +447,7 @@ export const CA: Record<string, string> = {
   'Arrastra aquí tu archivo':
     'Arrossega aquí el teu fitxer',
   'o pulsa para elegirlo':
-    'o prem per triar-lo',
+    'o fes clic per triar-lo',
   'Pulsa para elegir el archivo':
     'Prem per triar el fitxer',
   'Excel (.xlsx, .xls), LibreOffice (.ods) o CSV, de hasta 10 MB. Va mejor con una columna con los nombres del alumnado y una columna por actividad.':

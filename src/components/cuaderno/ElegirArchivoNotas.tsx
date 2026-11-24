@@ -3,16 +3,16 @@
  * botón específico para importar»). Una ventana con una zona grande donde soltar el Excel o el CSV y el botón
  * «Elegir archivo». El archivo soltado lo recoge `useSoltarArchivo` en toda la pantalla del cuaderno (también aquí
  * encima), así que esta zona solo enseña dónde soltarlo y se ilumina al pasar un archivo por encima de la ventana.
- * Lo demás (elegir columnas y la vista previa) es de `ImportarNotas`.
+ * Lo demás (elegir columnas y la vista previa) es de `ImportarNotas`. Se monta solo mientras está abierta (cerrada,
+ * sus botones se alcanzarían con el tabulador), lleva el foco a la zona al abrirse y lo devuelve al cerrarse.
  */
-import { useId, useRef } from 'react';
+import { useEffect, useId, useRef } from 'react';
 import { FileSpreadsheet, Upload } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { useI18n } from '../../i18n';
 import { EXTENSIONES_NOTAS } from '../../lib/importarNotas';
 
 interface Props {
-  open: boolean;
   clase: string;
   /** Hay un archivo encima de la ventana del navegador. */
   arrastrando: boolean;
@@ -22,21 +22,28 @@ interface Props {
   onClose: () => void;
 }
 
-export function ElegirArchivoNotas({ open, clase, arrastrando, leyendo, onArchivo, onClose }: Props) {
+export function ElegirArchivoNotas({ clase, arrastrando, leyendo, onArchivo, onClose }: Props) {
   const { t } = useI18n();
   const input = useRef<HTMLInputElement>(null);
   const formatos = useId();
+  const zona = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    const antes = document.activeElement as HTMLElement | null;
+    zona.current?.focus({ preventScroll: true });
+    return () => { if (antes?.isConnected) antes.focus({ preventScroll: true }); };
+  }, []);
   return (
-    <Modal open={open} onClose={onClose} title={<span className="mk-ttl"><FileSpreadsheet size={17} color="var(--accent-d)" />{t('Importar notas de {clase}', { clase })}</span>}>
+    <Modal open onClose={onClose} title={<span className="mk-ttl"><FileSpreadsheet size={17} color="var(--accent-d)" />{t('Importar notas de {clase}', { clase })}</span>}>
       <div className="pn-elegir">
         <p className="pn-como">
           {t('Trae las notas de un Excel o de un CSV. Después eliges a qué actividad va cada columna y ves, alumno por alumno, cómo quedan antes de poner nada.')}
         </p>
         <button
+          ref={zona}
           type="button"
           className={`pn-soltar${arrastrando ? ' pn-soltar-encima' : ''}`}
-          onClick={() => input.current?.click()}
-          disabled={leyendo}
+          onClick={() => { if (!leyendo) input.current?.click(); }}
+          aria-disabled={leyendo || undefined}
           aria-describedby={formatos}
         >
           <Upload size={30} aria-hidden="true" />

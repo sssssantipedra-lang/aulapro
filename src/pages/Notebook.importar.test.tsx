@@ -35,6 +35,8 @@ function pinta(extra: { gradeCategories?: GradeCategory[] } = {}) {
 }
 const ventana = () => screen.getAllByRole('dialog').filter(d => d.closest('.modal-overlay.open')).pop() as HTMLElement;
 const subir = (texto: string, nombre = 'notas.csv') => {
+  // La ventana de importar se monta solo abierta: se abre con su botón y se elige el archivo en ella
+  if (!document.querySelector('input[type="file"]')) fireEvent.click(screen.getByRole('button', { name: /Importar notas/ }));
   const input = document.querySelector<HTMLInputElement>('input[type="file"]')!;
   fireEvent.change(input, { target: { files: [new File([texto], nombre)] } });
 };
@@ -116,8 +118,11 @@ describe('importar notas de un archivo', () => {
     const texto = { types: ['text/plain'], files: [], dropEffect: 'none' };
     fireEvent.dragEnter(window, { dataTransfer: texto });
     expect(screen.queryByText(/Suelta el archivo/)).toBeNull();
-    // El menú de una actividad abierto encima
+    // El menú de una actividad abierto encima: la marca ya avisa de que no se puede, antes de soltar
     fireEvent.click(screen.getByRole('button', { name: /Examen de invierno/ }));
+    fireEvent.dragEnter(window, { dataTransfer: { types: ['Files'], files: [], dropEffect: 'none' } });
+    expect(screen.queryByText(/Suelta el archivo/)).toBeNull();
+    expect(document.querySelector('.pn-arrastre-no')?.textContent).toMatch(/Cierra la ventana que tienes abierta/);
     soltar([new File([csv], 'notas.csv')]);
     await waitFor(() => expect(screen.getByText(/Cierra la ventana que tienes abierta/)).toBeTruthy());
     expect(screen.queryByText('Importar notas de un archivo')).toBeNull();
@@ -136,5 +141,23 @@ describe('importar notas de un archivo', () => {
     soltar([new File([csv], 'primero.csv'), new File([csv], 'segundo.csv')]);
     await waitFor(() => expect(screen.getByText(/se abre «primero.csv»/)).toBeTruthy());
     await waitFor(() => expect(within(ventana()).getByText(/«primero.csv»/)).toBeTruthy());
+  });
+
+  it('cerrar la ventana mientras se lee el archivo lo anula: al acabar no se abre nada', async () => {
+    const p = pinta();
+    fireEvent.click(screen.getByRole('button', { name: /Importar notas/ }));
+    let acabar!: (texto: string) => void;
+    const lento = new File([csv], 'notas.csv');
+    lento.text = () => new Promise<string>(r => { acabar = r; });
+    fireEvent.change(document.querySelector<HTMLInputElement>('input[type="file"]')!, { target: { files: [lento] } });
+    await waitFor(() => expect(within(ventana()).getByText('Leyendo el archivo…')).toBeTruthy());
+    fireEvent.click(within(ventana()).getByRole('button', { name: 'Cancelar' }));
+    acabar(csv);
+    await new Promise(r => setTimeout(r, 20));
+    expect(screen.queryByText('Importar notas de un archivo')).toBeNull();
+    expect(p.onSetGrades).not.toHaveBeenCalled();
+    // Y se puede volver a importar
+    subir(csv);
+    await waitFor(() => expect(within(ventana()).getByText('Importar notas de un archivo')).toBeTruthy());
   });
 });

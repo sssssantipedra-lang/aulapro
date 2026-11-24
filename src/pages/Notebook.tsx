@@ -393,29 +393,52 @@ function GradesTab({
     : ownCategories.length === 0
       ? t('Para importar notas, elige antes cómo evalúas en esta clase: las categorías del cuaderno.')
       : null;
+  // Cada lectura lleva su número: cerrar la ventana mientras se lee, o cambiar de clase, anula la que está en curso
+  // (al acabar no abre nada ni avisa de nada)
+  const lecturaLanzada = useRef(0);
+  const lecturaAnulada = useRef(0);
+  useEffect(() => { lecturaAnulada.current = lecturaLanzada.current; }, [clsId]);
   const abrirArchivoDeNotas = async (file: File) => {
     if (file.size > MAX_BYTES_NOTAS) { toast(t('El archivo es demasiado grande (más de 10 MB).')); return; }
+    const mia = ++lecturaLanzada.current;
+    // La ventana enseña «Leyendo el archivo…» (también si se soltó sobre el cuaderno) y tapa el cambio de clase
+    setEligiendoArchivo(true);
     setLeyendoArchivo(true);
     try {
       const hojas = await leerArchivoDeNotas(file);
+      if (mia <= lecturaAnulada.current) return;
       setEligiendoArchivo(false);
       setImportando({ archivo: file.name, hojas });
     } catch (err) {
+      if (mia <= lecturaAnulada.current) return;
       const m = err instanceof Error ? err.message : '';
       toast(m === 'formato' ? t('Ese archivo no es una hoja de cálculo: elige un Excel (.xlsx, .xls, .ods) o un CSV.')
         : m === 'vacio' ? t('El archivo no trae ninguna tabla.') : t('No se ha podido leer el archivo.'));
     } finally {
-      setLeyendoArchivo(false);
+      if (mia === lecturaLanzada.current) setLeyendoArchivo(false);
     }
   };
-  const { arrastrando: arrastrandoArchivo } = useSoltarArchivo(archivos => {
-    if (noSePuedeImportar) { toast(noSePuedeImportar); return; }
-    if (importando || leyendoArchivo) { toast(t('Ya hay un archivo abierto: termina o cierra esa ventana para importar otro.')); return; }
+  const cerrarElegirArchivo = () => {
+    lecturaAnulada.current = lecturaLanzada.current;
+    setLeyendoArchivo(false);
+    setEligiendoArchivo(false);
+  };
+  /**
+   * Por qué no se puede soltar un archivo ahora (o `null`). La misma regla para la marca que sale al arrastrar, el
+   * cursor y lo que pasa al soltar, para que la pantalla no invite a soltar algo que después rechaza. Mira el
+   * documento (`loAbierto`), así que solo se llama mientras se arrastra o al soltar.
+   */
+  const porQueNoSoltar = (): string | null => noSePuedeImportar
+    ?? (importando || leyendoArchivo ? t('Ya hay un archivo abierto: termina o cierra esa ventana para importar otro.') : null)
     // Con otra ventana abierta encima (editar una actividad, pegar…), el archivo no se mezcla con ella
-    if (!eligiendoArchivo && loAbierto(document)) { toast(t('Cierra la ventana que tienes abierta para importar el archivo.')); return; }
+    ?? (!eligiendoArchivo && loAbierto(document) ? t('Cierra la ventana que tienes abierta para importar el archivo.') : null);
+  const { arrastrando: arrastrandoArchivo } = useSoltarArchivo(archivos => {
+    const motivo = porQueNoSoltar();
+    if (motivo) { toast(motivo); return; }
     if (archivos.length > 1) toast(t('Se importa un archivo cada vez: se abre «{archivo}».', { archivo: archivos[0].name }));
     void abrirArchivoDeNotas(archivos[0]);
-  });
+  }, () => porQueNoSoltar() === null);
+  const noSoltarAhora = arrastrandoArchivo && !eligiendoArchivo ? porQueNoSoltar() : null;
   const actividadDelMenu = menuDe ? columnasEditables.find(i => i.id === menuDe) ?? null : null;
   const actividadEnLista = calificando ? columnasEditables.find(i => i.id === calificando) ?? null : null;
   const detalleDe = (item: GradeItem) => [myCategories.find(c => c.id === item.category_id)?.name, item.date ? diaCorto(item.date) : '']
@@ -1041,20 +1064,21 @@ function GradesTab({
       )}
 
       {/* Importar notas: la ventana para soltar o elegir el archivo, y la marca de soltar sobre todo el cuaderno */}
-      <ElegirArchivoNotas
-        open={eligiendoArchivo}
-        clase={cls?.name ?? ''}
-        arrastrando={arrastrandoArchivo}
-        leyendo={leyendoArchivo}
-        onArchivo={f => void abrirArchivoDeNotas(f)}
-        onClose={() => setEligiendoArchivo(false)}
-      />
-      {arrastrandoArchivo && !eligiendoArchivo && !importando && (
-        <div className={`pn-arrastre${noSePuedeImportar ? ' pn-arrastre-no' : ''}`} aria-hidden="true">
+      {eligiendoArchivo && (
+        <ElegirArchivoNotas
+          clase={cls?.name ?? ''}
+          arrastrando={arrastrandoArchivo}
+          leyendo={leyendoArchivo}
+          onArchivo={f => void abrirArchivoDeNotas(f)}
+          onClose={cerrarElegirArchivo}
+        />
+      )}
+      {arrastrandoArchivo && !eligiendoArchivo && (
+        <div className={`pn-arrastre${noSoltarAhora ? ' pn-arrastre-no' : ''}`} aria-hidden="true">
           <div>
             <FileSpreadsheet size={34} />
-            <strong>{noSePuedeImportar ?? t('Suelta el archivo para importar las notas de {clase}', { clase: cls?.name ?? '' })}</strong>
-            {!noSePuedeImportar && <span>{t('Excel (.xlsx, .xls), LibreOffice (.ods) o CSV')}</span>}
+            <strong>{noSoltarAhora ?? t('Suelta el archivo para importar las notas de {clase}', { clase: cls?.name ?? '' })}</strong>
+            {!noSoltarAhora && <span>{t('Excel (.xlsx, .xls), LibreOffice (.ods) o CSV')}</span>}
           </div>
         </div>
       )}
