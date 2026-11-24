@@ -7,6 +7,7 @@
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Plus, Play, Pause, Pencil, Trash2, SkipForward, SkipBack, Volume2, VolumeX, Maximize2, X, RotateCcw, Timer } from 'lucide-react';
+import { CampoNumero } from '../../components/ui/CampoNumero';
 import { Modal } from '../../components/ui/Modal';
 import { useToast } from '../../components/ui/Toast';
 import { useI18n } from '../../i18n';
@@ -65,7 +66,6 @@ export function EfCircuitos({ ef, onChangeEf }: Props) {
     setEditando(null);
   }
 
-  const num = (v: string, min: number, max: number) => Math.max(min, Math.min(max, Math.round(Number(v) || 0)));
   const previa = editando ? deBorrador(editando) : null;
 
   return (
@@ -114,23 +114,23 @@ export function EfCircuitos({ ef, onChangeEf }: Props) {
             </div>
             <div className="fgroup">
               <label className="flabel" htmlFor="ef-ci-w">{t('Trabajo (segundos)')}</label>
-              <input id="ef-ci-w" type="number" min={1} max={3600} className="finput" value={editando.trabajo}
-                onChange={e => setEditando({ ...editando, trabajo: num(e.target.value, 0, 3600) })} />
+              <CampoNumero id="ef-ci-w" min={1} max={3600} className="finput" value={editando.trabajo}
+                onChange={n => setEditando({ ...editando, trabajo: n })} />
             </div>
             <div className="fgroup">
               <label className="flabel" htmlFor="ef-ci-d">{t('Descanso entre estaciones (segundos)')}</label>
-              <input id="ef-ci-d" type="number" min={0} max={3600} className="finput" value={editando.descanso}
-                onChange={e => setEditando({ ...editando, descanso: num(e.target.value, 0, 3600) })} />
+              <CampoNumero id="ef-ci-d" min={0} max={3600} className="finput" value={editando.descanso}
+                onChange={n => setEditando({ ...editando, descanso: n })} />
             </div>
             <div className="fgroup">
               <label className="flabel" htmlFor="ef-ci-r">{t('Rondas')}</label>
-              <input id="ef-ci-r" type="number" min={1} max={20} className="finput" value={editando.rondas}
-                onChange={e => setEditando({ ...editando, rondas: num(e.target.value, 1, 20) })} />
+              <CampoNumero id="ef-ci-r" min={1} max={20} className="finput" value={editando.rondas}
+                onChange={n => setEditando({ ...editando, rondas: n })} />
             </div>
             <div className="fgroup">
               <label className="flabel" htmlFor="ef-ci-dr">{t('Descanso entre rondas (segundos)')}</label>
-              <input id="ef-ci-dr" type="number" min={0} max={3600} className="finput" value={editando.descansoRondas}
-                onChange={e => setEditando({ ...editando, descansoRondas: num(e.target.value, 0, 3600) })} />
+              <CampoNumero id="ef-ci-dr" min={0} max={3600} className="finput" value={editando.descansoRondas}
+                onChange={n => setEditando({ ...editando, descansoRondas: n })} />
             </div>
             <p className="ap-aviso" style={{ gridColumn: '1 / -1' }}>
               {t('En total, {total}, más {p} segundos para colocarse al empezar.', { total: mmss(duracionCircuito(previa)), p: PREPARADOS })}

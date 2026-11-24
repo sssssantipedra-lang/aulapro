@@ -739,7 +739,7 @@ export function SeatingPlan({
             <CampoNumero
               id="seatingplan-f2"
               className="finput" min={1} max={12} value={plan.numGroups}
-              onChange={n => applyStructure(n, plan.groupSize)}
+              alSalir onChange={n => applyStructure(n, plan.groupSize)}
             />
           </div>
           <div className="fgroup">
@@ -747,7 +747,7 @@ export function SeatingPlan({
             <CampoNumero
               id="seatingplan-f3"
               className="finput" min={1} max={8} value={plan.groupSize}
-              onChange={n => applyStructure(plan.numGroups, n)}
+              alSalir onChange={n => applyStructure(plan.numGroups, n)}
             />
           </div>
         </div>

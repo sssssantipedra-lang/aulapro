@@ -87,3 +87,22 @@ describe('CampoNumero con un dato que puede quedarse sin poner', () => {
     expect(valor()).toBe('12');
   });
 });
+
+describe('CampoNumero con alSalir', () => {
+  it('mientras se escribe no avisa (10 pasa por el 1); al salir, sí', () => {
+    const cambios: number[] = [];
+    function Mesas() {
+      const [n, setN] = useState(5);
+      return <CampoNumero aria-label="Nº de mesas" value={n} onChange={x => { cambios.push(x); setN(x); }} min={1} max={12} alSalir />;
+    }
+    render(<Mesas />);
+    const c = screen.getByRole('textbox', { name: 'Nº de mesas' }) as HTMLInputElement;
+    fireEvent.change(c, { target: { value: '' } });
+    fireEvent.change(c, { target: { value: '1' } });
+    fireEvent.change(c, { target: { value: '10' } });
+    expect(cambios).toEqual([]);
+    fireEvent.blur(c);
+    expect(cambios).toEqual([10]);
+    expect(c.value).toBe('10');
+  });
+});

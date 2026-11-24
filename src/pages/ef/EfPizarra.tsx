@@ -15,6 +15,7 @@ import {
   Plus, Save, Trash2, Undo2, Download, Sparkles, MousePointer2, Pencil, MoveRight, Shapes, Eraser, RotateCcw, RotateCw,
   ZoomIn, ZoomOut, Copy, Check, X, CopyPlus,
 } from 'lucide-react';
+import { CampoNumero } from '../../components/ui/CampoNumero';
 import { useToast } from '../../components/ui/Toast';
 import { useI18n } from '../../i18n';
 import { downloadFile } from '../../lib/download';
@@ -93,7 +94,7 @@ export function EfPizarra({ ef, onChangeEf, comunidad, embebida = false, inicial
   const [propuestas, setPropuestas] = useState<Propuesta[]>([]);
   const [resumenIa, setResumenIa] = useState('');
   const [pensando, setPensando] = useState(false);
-  const [copiasEnFila, setCopiasEnFila] = useState('4');
+  const [copiasEnFila, setCopiasEnFila] = useState(4);
   /** Piezas que se mueven a la vez: dónde estaban y dónde se pulsó. */
   const arrastre = useRef<{ inicio: Punto; origen: Map<string, Punto>; historia: PizarraEF | null } | null>(null);
   /** Para repetir la distancia de la última copia, como Ctrl+D en Canva. */
@@ -180,7 +181,7 @@ export function EfPizarra({ ef, onChangeEf, comunidad, embebida = false, inicial
     const paso: Punto = o && Math.hypot(elegidos[0].x - o.x, elegidos[0].y - o.y) >= 4
       ? [elegidos[0].x - o.x, elegidos[0].y - o.y]
       : [Math.round(caja.w + 14), 0];
-    const n = Math.max(1, Math.min(20, Math.round(Number(copiasEnFila)) || 1));
+    const n = copiasEnFila;
     const ids = elegidos.map(e => e.id);
     const nuevas: ElementoPizarra[] = [];
     for (let k = 1; k <= n; k++) nuevas.push(...copiarElementos([...piz.elementos, ...nuevas], ids, paso[0] * k, paso[1] * k, idNuevo, false));
@@ -607,8 +608,8 @@ export function EfPizarra({ ef, onChangeEf, comunidad, embebida = false, inicial
               <button type="button" className="btn-ghost" onClick={() => cambiarElementos(seleccion, x => ({ ...x, escala: Math.min(4, Math.round(x.escala * 118) / 100) }))}><ZoomIn size={14} />{t('Más grande')}</button>
               <button type="button" className="btn-ghost" onClick={() => duplicarElegidos()}><Copy size={14} />{t('Duplicar')}</button>
               <span className="ef-piz-fila">
-                <input className="finput" type="number" min={1} max={20} value={copiasEnFila} aria-label={t('Número de copias')}
-                  onChange={e => setCopiasEnFila(e.target.value)} />
+                <CampoNumero className="finput" min={1} max={20} value={copiasEnFila} aria-label={t('Número de copias')}
+                  onChange={setCopiasEnFila} />
                 <button type="button" className="btn-ghost" onClick={copiarEnFila}><CopyPlus size={14} />{t('Copias en fila')}</button>
               </span>
               <button type="button" className="btn-ghost ap-borrar" onClick={quitarElegidos}><Trash2 size={14} />{t('Quitar')}</button>

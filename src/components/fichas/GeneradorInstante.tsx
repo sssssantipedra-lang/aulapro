@@ -14,6 +14,7 @@ import {
   type FichaInstante, type GeneradorInstante as Generador, type Operacion,
 } from '../../lib/fichaInstante';
 import { normalizeLetters } from '../../lib/wordSearch';
+import { CampoNumero } from '../ui/CampoNumero';
 
 const GENERADOR: Record<Generador, { emoji: string; color: string; label: string; desc: string }> = {
   sopa: { emoji: '🔎', color: '#0ea5e9', label: 'Sopa de letras', desc: 'Escribes las palabras y la app monta la rejilla.' },
@@ -32,11 +33,6 @@ interface Props {
   children?: (gen: Generador) => ReactNode;
 }
 
-const entero = (v: string, min: number, max: number, defecto: number): number => {
-  const n = Math.round(Number(v));
-  return v.trim() !== '' && Number.isFinite(n) ? Math.max(min, Math.min(max, n)) : defecto;
-};
-
 export function GeneradorInstante({ nivel, onCrear, avisar, children }: Props) {
   const { t, lang } = useI18n();
   const [gen, setGen] = useState<Generador>('operaciones');
@@ -48,17 +44,17 @@ export function GeneradorInstante({ nivel, onCrear, avisar, children }: Props) {
 
   const [ops, setOps] = useState<Operacion[]>(['suma', 'resta']);
   const sugerido = rangoSugerido(nivel);
-  // Como texto, para poder borrar el número y escribir otro sin que salte a 0
-  const [min, setMin] = useState(String(sugerido.min));
-  const [max, setMax] = useState(String(sugerido.max));
+  // CampoNumero deja borrar la cifra y escribir otra: aquí solo llegan números válidos
+  const [min, setMin] = useState(sugerido.min);
+  const [max, setMax] = useState(sugerido.max);
   // Al elegir otra clase el rango propuesto sigue a su curso, salvo que el docente ya lo haya cambiado a mano
   const [nivelVisto, setNivelVisto] = useState(nivel);
   const [rangoTocado, setRangoTocado] = useState(false);
   if (nivel !== nivelVisto) {
     setNivelVisto(nivel);
-    if (!rangoTocado) { setMin(String(sugerido.min)); setMax(String(sugerido.max)); }
+    if (!rangoTocado) { setMin(sugerido.min); setMax(sugerido.max); }
   }
-  const [cantidad, setCantidad] = useState('18');
+  const [cantidad, setCantidad] = useState(18);
   const [sinLlevadas, setSinLlevadas] = useState(false);
   const [respuesta, setRespuesta] = useState<'caja' | 'linea'>('caja');
 
@@ -85,8 +81,8 @@ export function GeneradorInstante({ nivel, onCrear, avisar, children }: Props) {
     } else if (gen === 'operaciones') {
       if (!ops.length) { avisar(t('Elige al menos una operación.')); return; }
       r = fichaOperaciones({
-        titulo, operaciones: ops, min: entero(min, 0, MAX_NUMERO, sugerido.min), max: entero(max, 0, MAX_NUMERO, sugerido.max),
-        cantidad: entero(cantidad, MIN_OPERACIONES, MAX_OPERACIONES, 18), sinLlevadas, respuesta,
+        titulo, operaciones: ops, min, max,
+        cantidad, sinLlevadas, respuesta,
       }, t, lang);
       if (!r) { avisar(t('Entre esos números no sale ninguna operación. Amplía el rango.')); return; }
     } else {
@@ -159,15 +155,15 @@ export function GeneradorInstante({ nivel, onCrear, avisar, children }: Props) {
             <div className="fsi-fila">
               <div className="fgroup">
                 <label className="flabel" htmlFor="fsi-min">{t('Números del')}</label>
-                <input id="fsi-min" className="finput" type="number" inputMode="numeric" min={0} max={MAX_NUMERO} value={min} onChange={e => { setMin(e.target.value); setRangoTocado(true); }} />
+                <CampoNumero id="fsi-min" className="finput" min={0} max={MAX_NUMERO} value={min} onChange={n => { setMin(n); setRangoTocado(true); }} />
               </div>
               <div className="fgroup">
                 <label className="flabel" htmlFor="fsi-max">{t('al')}</label>
-                <input id="fsi-max" className="finput" type="number" inputMode="numeric" min={0} max={MAX_NUMERO} value={max} onChange={e => { setMax(e.target.value); setRangoTocado(true); }} />
+                <CampoNumero id="fsi-max" className="finput" min={0} max={MAX_NUMERO} value={max} onChange={n => { setMax(n); setRangoTocado(true); }} />
               </div>
               <div className="fgroup">
                 <label className="flabel" htmlFor="fsi-cantidad">{t('Cuántas operaciones')}</label>
-                <input id="fsi-cantidad" className="finput" type="number" inputMode="numeric" min={MIN_OPERACIONES} max={MAX_OPERACIONES} value={cantidad} onChange={e => setCantidad(e.target.value)} />
+                <CampoNumero id="fsi-cantidad" className="finput" min={MIN_OPERACIONES} max={MAX_OPERACIONES} value={cantidad} onChange={setCantidad} />
               </div>
               <div className="fgroup">
                 <label className="flabel" htmlFor="fsi-respuesta">{t('La respuesta se escribe en')}</label>

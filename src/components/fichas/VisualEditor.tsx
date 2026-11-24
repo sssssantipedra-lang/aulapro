@@ -7,6 +7,7 @@
 import { useState } from 'react';
 import { Plus, Search, Trash2, ImageOff } from 'lucide-react';
 import { Modal } from '../ui/Modal';
+import { CampoNumero } from '../ui/CampoNumero';
 import { useI18n } from '../../i18n';
 import { CATEGORIAS_PICTO, buscarPictos, pictoDe, urlPicto, type CategoriaPicto } from '../../lib/pictos';
 import type { ConceptoVisual, FichaActivity, FichaExercise, PasoVisual, RecuerdaVisual } from '../../services/resources';
@@ -171,9 +172,9 @@ export function EjercicioVisualEditor({ ex, onChange, t }: { ex: FichaExercise; 
               id={im.picto} label={t('Dibujo {n}', { n: i + 1 })} inicial="comida" size={36}
               onChange={picto => (picto ? setImg(i, { picto }) : onChange({ imagenes: imagenes.filter((_, j) => j !== i) }))}
             />
-            <input
-              className="finput" type="number" min={1} max={10} value={im.cantidad ?? 1} aria-label={t('Cuántas veces, el dibujo {n}', { n: i + 1 })}
-              onChange={e => setImg(i, { cantidad: Math.max(1, Math.min(10, Number(e.target.value) || 1)) })}
+            <CampoNumero
+              className="finput" min={1} max={10} value={im.cantidad ?? 1} aria-label={t('Cuántas veces, el dibujo {n}', { n: i + 1 })}
+              onChange={n => setImg(i, { cantidad: n })}
             />
           </span>
         ))}

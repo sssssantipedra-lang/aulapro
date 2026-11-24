@@ -7,6 +7,7 @@
 import { useMemo, useState } from 'react';
 import { Plus, Search, Trash2 } from 'lucide-react';
 import { Modal } from '../ui/Modal';
+import { CampoNumero } from '../ui/CampoNumero';
 import { useI18n } from '../../i18n';
 import { ILUSTRACIONES, ilustracionPorId, urlIlustracion } from '../../lib/ilustraciones';
 import { HILOS, dibujosDeHilo, esContable, hiloPorId, type Hilo } from '../../lib/hilos';
@@ -134,9 +135,9 @@ function DibujosSueltos({ ex, hilo, onChange, t }: EditorProps) {
               ? null
               : esContable(d.ilustracion)
                 ? (
-                  <input
-                    className="finput" type="number" min={1} max={10} value={d.cantidad ?? 1} aria-label={t('Cuántas veces se dibuja el dibujo {n}', { n: i + 1 })}
-                    onChange={e => set(i, { cantidad: Math.max(1, Math.min(10, Number(e.target.value) || 1)) })}
+                  <CampoNumero
+                    className="finput" min={1} max={10} value={d.cantidad ?? 1} aria-label={t('Cuántas veces se dibuja el dibujo {n}', { n: i + 1 })}
+                    onChange={n => set(i, { cantidad: n })}
                   />
                 )
                 : <em className="fe-hint" title={t('Este dibujo no se repite: solo sale una vez.')}>×1</em>}

@@ -32,9 +32,15 @@ interface Props extends Nativos {
   step?: number;
   /** Admite decimales (con coma o punto). De partida, solo enteros. */
   decimales?: boolean;
+  /**
+   * Avisar a la pantalla solo al salir del campo, con Intro o con las flechas, no mientras se escribe. Para un número
+   * que rehace algo al cambiar: escribir 10 mesas pasa por el 1, y aplicar ese 1 quitaría las mesas 2 a 10 con su
+   * alumnado.
+   */
+  alSalir?: boolean;
 }
 
-export function CampoNumero({ value, onChange, onVaciar, min, max, step, decimales = false, onBlur, onKeyDown, className, inputMode, ...resto }: Props) {
+export function CampoNumero({ value, onChange, onVaciar, min, max, step, decimales = false, alSalir = false, onBlur, onKeyDown, className, inputMode, ...resto }: Props) {
   const limites = { min, max, decimales };
   // Lo que se ve en el cuadro mientras se escribe, o `null` cuando no se está escribiendo (se ve `value`)
   const [escrito, setEscrito] = useState<string | null>(null);
@@ -61,6 +67,7 @@ export function CampoNumero({ value, onChange, onVaciar, min, max, step, decimal
       onChange={e => {
         const t = e.target.value;
         setEscrito(t);
+        if (alSalir) return;
         if (t.trim() === '' && onVaciar) { if (hay) onVaciar(); return; }
         const n = numeroEscrito(t, limites);
         if (n !== null && n !== value) onChange(n);
