@@ -21,7 +21,7 @@ describe('sin claves escritas en el código', () => {
       .filter(f => /\.(m?[jt]sx?|c?js|json|html|css|md|toml|ya?ml|txt|py)$/.test(f));
     const encontradas: string[] = [];
     for (const f of archivos) {
-      let texto = '';
+      let texto: string;
       try { texto = readFileSync(f, 'utf8'); } catch { continue; }
       for (const [nombre, forma] of FORMAS) if (forma.test(texto)) encontradas.push(`${f}: ${nombre}`);
     }
