@@ -8,6 +8,7 @@
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import { ArrowRightLeft, BookMarked, Download, FileText, Pencil, Plus, Sparkles, Trash2, TriangleAlert } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
+import { CampoNumero } from '../../components/ui/CampoNumero';
 import { EnviarAcs } from '../../components/apoyo/EnviarAcs';
 import { useToast } from '../../components/ui/Toast';
 import { useI18n } from '../../i18n';
@@ -231,7 +232,8 @@ function EditorAcs({ acs, alumno: alumnoFicha, data, comunidad, modelo, docente,
   const ajusteDe = (cod: string) => acs.ajusteCriterios?.[cod] ?? { aula: '' };
   const setAjuste = (cod: string, cambio: Partial<{ tipo?: 'priorizado' | 'modificado'; aula: string }>) =>
     set('ajusteCriterios', { ...acs.ajusteCriterios, [cod]: { ...ajusteDe(cod), ...cambio } });
-  const horas = (v: string) => Math.min(40, Math.max(0, Math.round((Number(v.replace(',', '.')) || 0) * 2) / 2));
+  // Las horas van de media en media hora: CampoNumero ya da un número entre 0 y 40
+  const horas = (n: number) => Math.round(n * 2) / 2;
 
   function pieza(p: PiezaAcs) {
     switch (p) {
@@ -469,9 +471,9 @@ function EditorAcs({ acs, alumno: alumnoFicha, data, comunidad, modelo, docente,
                 <Fragment key={id}>
                   <span className="acs-horas-n">{t(nombre)}</span>
                   {([dentro, fuera] as const).map(k => (
-                    <input key={k} type="number" min={0} max={40} step={0.5} className="finput"
+                    <CampoNumero key={k} min={0} max={40} step={0.5} decimales className="finput"
                       aria-label={`${t(nombre)}, ${t(k === dentro ? 'Dentro del aula' : 'Fuera del aula')}`}
-                      value={apoyos[k]} onChange={e => setApoyos({ [k]: horas(e.target.value) })} />
+                      value={apoyos[k]} onChange={n => setApoyos({ [k]: horas(n) })} />
                   ))}
                 </Fragment>
               ))}
@@ -492,8 +494,8 @@ function EditorAcs({ acs, alumno: alumnoFicha, data, comunidad, modelo, docente,
                 <input className="finput" aria-label={t('Instrumento')} value={i.nombre}
                   onChange={e => set('instrumentos', acs.instrumentos.map(x => (x.id === i.id ? { ...x, nombre: e.target.value } : x)))} />
                 <span className="acs-peso">
-                  <input type="number" min={0} max={100} step={5} className="finput" aria-label={t('Peso en la calificación')} value={i.peso}
-                    onChange={e => set('instrumentos', acs.instrumentos.map(x => (x.id === i.id ? { ...x, peso: Math.min(100, Math.max(0, Math.round(Number(e.target.value) || 0))) } : x)))} />
+                  <CampoNumero min={0} max={100} step={5} className="finput" aria-label={t('Peso en la calificación')} value={i.peso}
+                    onChange={n => set('instrumentos', acs.instrumentos.map(x => (x.id === i.id ? { ...x, peso: n } : x)))} />
                   %
                 </span>
                 <button type="button" className="ico-btn" aria-label={t('Quitar «{name}»', { name: i.nombre })} onClick={() => set('instrumentos', acs.instrumentos.filter(x => x.id !== i.id))}><Trash2 size={15} /></button>

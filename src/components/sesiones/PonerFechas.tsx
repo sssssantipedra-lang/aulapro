@@ -7,6 +7,7 @@
 import { useContext, useMemo, useState } from 'react';
 import { CalendarDays, Check, Undo2, X } from 'lucide-react';
 import { Modal } from '../ui/Modal';
+import { CampoNumero } from '../ui/CampoNumero';
 import { useI18n, weekdayLabel } from '../../i18n';
 import { useCalendarioEscolar } from '../../hooks/useCalendarioEscolar';
 import { ClaseActivaContexto } from '../../hooks/useClaseActiva';
@@ -162,8 +163,8 @@ function Contenido({ peticion, classes, bloques, eventos = [], comunidad: comuni
         {!conHorario && (
           <div className="fgroup">
             <label className="flabel" htmlFor="pf-cada">{t('Una sesión cada cuántos días lectivos')}</label>
-            <input id="pf-cada" type="number" min={1} max={10} className="finput pf-cada" value={cadaDias}
-              onChange={e => setCadaDias(Math.max(1, Math.min(10, Math.round(Number(e.target.value) || 1))))} />
+            <CampoNumero id="pf-cada" min={1} max={10} className="finput pf-cada" value={cadaDias}
+              onChange={setCadaDias} />
           </div>
         )}
       </div>

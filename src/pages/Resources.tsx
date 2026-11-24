@@ -35,6 +35,7 @@ import { FICHA_THEMES, fichaTheme, conHistoria, type FichaThemeId } from '../lib
 import { hasApiKey } from '../services/gemini';
 import { isoDate } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
+import { CampoNumero } from '../components/ui/CampoNumero';
 import { useI18n } from '../i18n';
 import { AiKeyNotice } from '../components/ui/AiKeyNotice';
 import { isDesktop } from '../services/storage';
@@ -1194,10 +1195,10 @@ export function Resources({ classes, fichas, onSave, onDelete, onProject, apoyo,
           <div className="fe-more-body">
             <div className="fgroup" style={{ maxWidth: 160 }}>
               <label className="flabel" htmlFor="resources-f5">{t(tipo === 'tarjetas' ? 'Nº de tarjetas' : 'Nº de ejercicios')}</label>
-              <input
+              <CampoNumero
                 id="resources-f5"
-                className="finput" type="number" min={1} max={20} value={numEjercicios}
-                onChange={e => setNumEjercicios(Math.max(1, Math.min(tipo === 'tarjetas' ? 32 : 20, Number(e.target.value) || 1)))}
+                className="finput" min={1} max={tipo === 'tarjetas' ? 32 : 20} value={numEjercicios}
+                onChange={setNumEjercicios}
               />
             </div>
             {tipo !== 'tarjetas' && (

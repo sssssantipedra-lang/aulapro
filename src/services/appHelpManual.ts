@@ -334,7 +334,17 @@ Tiene TRES PESTAÑAS arriba:
    y hay que confirmarlo. Sin nombres, las notas se colocan en el orden de la
    lista y hay que confirmar que la hoja está en ese orden. Vale la coma o
    el punto decimal; lo que no es una nota de 0 a 10 («NP», «11») no entra, y
-   una celda vacía de la hoja no borra la nota que ya estaba. Al pulsar el
+   una celda vacía de la hoja no borra la nota que ya estaba. IMPORTAR NOTAS
+   DE UN ARCHIVO: el botón «Importar notas» de la barra del cuaderno abre una
+   ventana donde se suelta o se elige un Excel (.xlsx, .xls), una hoja de
+   LibreOffice (.ods) o un CSV; en el ordenador también se puede arrastrar el
+   archivo directamente sobre el cuaderno, sin abrir la ventana. Si el archivo
+   tiene varias hojas, se elige cuál; después, a qué actividad va cada columna
+   de notas (una que ya existe, que se propone si se llama igual, una actividad
+   nueva con el título de la columna o «No importar»). Luego sale la misma
+   vista previa que al pegar: cada nota va al alumno que se llama así y no se
+   pone nada hasta aceptar. El archivo se lee en el dispositivo y no se envía a
+   ningún sitio. Al pulsar el
    NOMBRE DE UNA ACTIVIDAD se abre su menú: «Calificar esta actividad» (la
    lista del alumnado con una casilla grande para cada nota, pensada para
    tableta y móvil, donde se abre sola al añadir una actividad; «Siguiente» en

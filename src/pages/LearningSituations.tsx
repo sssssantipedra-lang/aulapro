@@ -40,6 +40,7 @@ import { fileToBase64, isoDate } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
 import { useI18n } from '../i18n';
 import { Modal } from '../components/ui/Modal';
+import { CampoNumero } from '../components/ui/CampoNumero';
 import { CopiarAClases } from '../components/CopiarAClases';
 import { DocPreview } from '../components/DocPreview';
 import { clonarSda } from '../lib/clonar';
@@ -1258,7 +1259,7 @@ export function LearningSituations({
               {MODALIDADES_EF.map(m => <option key={m.id} value={m.id}>{t(m.label)}</option>)}
             </select>
             <label className="sda-ef-lbl" htmlFor="learningsituations-ef-minutos">{t('Duración de cada sesión (minutos)')}</label>
-            <input id="learningsituations-ef-minutos" className="finput" type="number" min={20} max={120} value={efMinutos} onChange={e => setEfMinutos(e.target.value)} />
+            <CampoNumero id="learningsituations-ef-minutos" className="finput" min={20} max={120} value={Number(efMinutos) || MINUTOS_SESION_EF} onChange={n => setEfMinutos(String(n))} />
             {(ef.material || ef.instalaciones) && (
               <label className="td-chk">
                 <input type="checkbox" checked={efInventario} onChange={e => setEfInventario(e.target.checked)} />
@@ -1280,10 +1281,10 @@ export function LearningSituations({
         <div className="frow">
           <div className="fgroup">
             <label className="flabel" htmlFor="learningsituations-f8">{t('Nº de sesiones')}</label>
-            <input
+            <CampoNumero
               id="learningsituations-f8"
-              className="finput" type="number" min={1} max={40} value={numSesiones}
-              onChange={e => setNumSesiones(Math.max(1, Math.min(40, Number(e.target.value) || 1)))}
+              className="finput" min={1} max={40} value={numSesiones}
+              onChange={setNumSesiones}
             />
           </div>
           <div className="fgroup">
@@ -1879,10 +1880,10 @@ export function LearningSituations({
                   )}
                   <div className="fgroup">
                     <label className="flabel" htmlFor="learningsituations-f13">{t(fichaFormato === 'tarjetas' ? 'Nº de tarjetas' : 'Nº de ejercicios')}</label>
-                    <input
+                    <CampoNumero
                       id="learningsituations-f13"
-                      className="finput" type="number" min={1} max={fichaFormato === 'tarjetas' ? 32 : 20} value={fichaNumEjercicios}
-                      onChange={e => setFichaNumEjercicios(Math.max(1, Math.min(fichaFormato === 'tarjetas' ? 32 : 20, Number(e.target.value) || 1)))}
+                      className="finput" min={1} max={fichaFormato === 'tarjetas' ? 32 : 20} value={fichaNumEjercicios}
+                      onChange={setFichaNumEjercicios}
                     />
                   </div>
                 </div>

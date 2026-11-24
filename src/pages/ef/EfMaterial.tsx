@@ -7,6 +7,7 @@
 import { useState } from 'react';
 import { Plus, Pencil, Trash2, Package, Warehouse, Umbrella, Sun, FileUp } from 'lucide-react';
 import { ImportarMaterial } from '../../components/ef/ImportarMaterial';
+import { CampoNumero } from '../../components/ui/CampoNumero';
 import { Modal } from '../../components/ui/Modal';
 import { useToast } from '../../components/ui/Toast';
 import { useI18n } from '../../i18n';
@@ -142,8 +143,8 @@ export function EfMaterial({ ef, onChangeEf }: Props) {
             </div>
             <div className="fgroup">
               <label className="flabel" htmlFor="ef-m-cant">{t('Cantidad')}</label>
-              <input id="ef-m-cant" type="number" min={0} className="finput" value={material.cantidad}
-                onChange={e => setMaterial({ ...material, cantidad: Math.max(0, Math.round(Number(e.target.value) || 0)) })} />
+              <CampoNumero id="ef-m-cant" min={0} className="finput" value={material.cantidad}
+                onChange={n => setMaterial({ ...material, cantidad: n })} />
             </div>
             <div className="fgroup">
               <label className="flabel" htmlFor="ef-m-estado">{t('Estado')}</label>

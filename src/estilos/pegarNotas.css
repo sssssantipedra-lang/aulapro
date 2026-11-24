@@ -7,7 +7,7 @@
 @media (pointer: coarse) { .gb-cell { min-height:40px; } }
 
 /* ── Vista previa de lo pegado (`components/cuaderno/VistaPreviaPegado.tsx`) ── */
-.pn-previa { display:flex; flex-direction:column; gap:12px; }
+.pn-previa, .pn-elegir { display:flex; flex-direction:column; gap:12px; }
 /* Recibe el foco al abrirse (para sacarlo de la celda de debajo): no es un control, no lleva contorno */
 .pn-previa:focus { outline:none; }
 .pn-como { margin:0; font-size:13.5px; line-height:1.55; color:var(--text-2); }
@@ -45,6 +45,10 @@
 .pn-sin-hoja strong { font-size:13px; }
 .pn-sin-hoja small { font-size:11.5px; color:var(--text-3); }
 .pn-sin select { min-height:36px; max-width:100%; }
+.pn-imp-campo { display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:13px; font-weight:600; color:var(--text); }
+.pn-imp-campo select { min-height:36px; max-width:100%; }
+.pn-imp td select { min-height:34px; max-width:260px; }
+.pn-imp td.pn-etiqueta small { color:var(--text-3); }
 .pn-confirmar { padding:9px 11px; border-radius:10px; background:var(--warn-bg); }
 .pn-c { display:inline-block; min-width:34px; padding:3px 8px; border-radius:7px; font-weight:600; }
 .pn-c.pn-nueva { background:var(--ok-bg); color:var(--ok-fg); }
@@ -118,3 +122,23 @@
   /* Lo mismo en la vista previa de pegar: sin esto el botón de la ayuda tapaba medio «Cancelar» */
   .pn-pie { padding-right:38px; }
 }
+
+/* ── Importar notas: el botón, la zona para soltar (`ElegirArchivoNotas`) y la marca al arrastrar (24-11-2026) ── */
+.tb-btn.tb-importar { border-color:var(--accent); color:var(--accent-d); background:var(--accent-l); }
+.tb-btn.tb-importar:hover:not(:disabled) { background:var(--accent-d); border-color:var(--accent-d); color:#fff; }
+.pn-soltar { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; width:100%; min-height:170px; padding:22px 16px; border:2px dashed var(--border); border-radius:14px; background:var(--surface); color:var(--text-2); font-family:var(--font); font-size:13px; cursor:pointer; transition:border-color var(--t), background var(--t); }
+.pn-soltar strong { font-size:15px; font-weight:800; color:var(--text); }
+.pn-soltar svg { color:var(--accent-d); }
+.pn-soltar:hover:not(:disabled), .pn-soltar:focus-visible { border-color:var(--accent); }
+.pn-soltar.pn-soltar-encima { border-color:var(--accent); background:var(--accent-l); }
+.pn-soltar[aria-disabled="true"] { cursor:progress; opacity:.7; }
+/* Sobre todo el cuaderno: no atrapa el puntero, solo enseña que se puede soltar */
+.pn-arrastre { position:fixed; inset:0; z-index:900; display:flex; align-items:center; justify-content:center; padding:16px; pointer-events:none; background:rgba(0,0,0,0.18); }
+.pn-arrastre > div { display:flex; flex-direction:column; align-items:center; gap:8px; max-width:440px; padding:26px 28px; border:2px dashed var(--accent); border-radius:16px; background:var(--card); color:var(--accent-d); text-align:center; box-shadow:0 12px 40px rgba(0,0,0,0.18); }
+.pn-arrastre strong { font-size:16px; font-weight:800; color:var(--text); line-height:1.4; }
+.pn-arrastre span { font-size:12.5px; color:var(--text-3); }
+.pn-arrastre.pn-arrastre-no > div { border-color:var(--warn-fg); color:var(--warn-fg); }
+@media (prefers-reduced-motion: no-preference) { .pn-arrastre > div { animation:pn-aparece .15s ease-out; } }
+@keyframes pn-aparece { from { transform:scale(.96); opacity:0; } to { transform:none; opacity:1; } }
+.pn-con-dedo { display:none; }
+@media (pointer: coarse) { .pn-con-raton { display:none; } .pn-con-dedo { display:inline; } }

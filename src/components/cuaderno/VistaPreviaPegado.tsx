@@ -11,7 +11,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { AlertTriangle, ClipboardPaste } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { useI18n } from '../../i18n';
-import { entenderPegado, leerNota, planDePegado, type CambioDeNota, type CeldaDelPlan, type DondePegar } from '../../lib/pegarNotas';
+import { entenderPegado, leerNota, planDePegado, type CambioDeNota, type CeldaDelPlan, type DondePegar, type Pegado } from '../../lib/pegarNotas';
 
 interface Props {
   /** Lo que venía en el portapapeles, ya partido en filas y columnas (`leerPegado`). */
@@ -19,9 +19,16 @@ interface Props {
   donde: DondePegar;
   onAplicar: (cambios: CambioDeNota[]) => void;
   onClose: () => void;
+  /**
+   * Al importar un archivo (`ImportarNotas`): lo pegado ya entendido, solo con las columnas elegidas, cada una con su
+   * actividad (`donde.actividades`, en el mismo orden). Sin la casilla de la cabecera, que ya se decidió antes.
+   */
+  pegadoFijo?: Pegado;
+  /** Texto del botón de volver (al importar, vuelve a elegir las columnas). */
+  textoCancelar?: string;
 }
 
-export function VistaPreviaPegado({ filas, donde, onAplicar, onClose }: Props) {
+export function VistaPreviaPegado({ filas, donde, onAplicar, onClose, pegadoFijo, textoCancelar }: Props) {
   const { t, lang } = useI18n();
   /** Lo que el docente dice de la primera fila; sin decir nada, lo que parezca. */
   const [cabecera, setCabecera] = useState<boolean | undefined>(undefined);
@@ -29,7 +36,8 @@ export function VistaPreviaPegado({ filas, donde, onAplicar, onClose }: Props) {
   const [aMano, setAMano] = useState<Record<number, string>>({});
   /** Si el docente ha confirmado el orden de su hoja (sin nombres) o los nombres que solo se parecen. */
   const [comprobado, setComprobado] = useState(false);
-  const pegado = useMemo(() => entenderPegado(filas, { cabecera }), [filas, cabecera]);
+  const deArchivo = !!pegadoFijo;
+  const pegado = useMemo(() => pegadoFijo ?? entenderPegado(filas, { cabecera }), [pegadoFijo, filas, cabecera]);
   const plan = useMemo(() => planDePegado(pegado, donde, aMano), [pegado, donde, aMano]);
   const nombreDe = useMemo(() => new Map(donde.alumnado.map(a => [a.id, a.name])), [donde.alumnado]);
   const primeraConTexto = useMemo(() => (filas[0] ?? []).some(x => leerNota(x).tipo === 'mal'), [filas]);
@@ -84,11 +92,15 @@ export function VistaPreviaPegado({ filas, donde, onAplicar, onClose }: Props) {
   };
 
   return (
-    <Modal open onClose={onClose} wide stickyHeader title={<span className="mk-ttl"><ClipboardPaste size={17} color="var(--accent-d)" />{t('Pegar notas: revisa antes de poner nada')}</span>}>
+    <Modal open onClose={onClose} wide stickyHeader title={<span className="mk-ttl"><ClipboardPaste size={17} color="var(--accent-d)" />{deArchivo ? t('Importar notas: revisa antes de poner nada') : t('Pegar notas: revisa antes de poner nada')}</span>}>
       <div className="pn-previa" ref={caja} tabIndex={-1}>
         <p className="pn-como">
           {sinColumnas
             ? t('Lo que has pegado no trae ninguna columna de notas.')
+            : deArchivo
+              ? (porNombre
+                ? t('Cada nota va al alumno que se llama así en tu hoja, aunque esté en otro orden o escrito de otra forma. Cada columna va a la actividad que has elegido.')
+                : t('Tu hoja no trae los nombres: la primera fila va a {alumno} y sigue hacia abajo. Cada columna va a la actividad que has elegido.', { alumno: primerAlumno }))
             : porNombre
               ? (variasColumnas
                 ? t('Cada nota va al alumno que se llama así en tu hoja, aunque esté en otro orden o escrito de otra forma. La primera columna va a «{actividad}» y sigue hacia la derecha.', { actividad: primeraActividad })
@@ -173,7 +185,7 @@ export function VistaPreviaPegado({ filas, donde, onAplicar, onClose }: Props) {
         )}
 
         {/* Solo se pregunta por la cabecera si la primera fila trae algo que no es una nota (o si ya se ha tocado la casilla) */}
-        {filas.length > 1 && (cabecera !== undefined || pegado.pareceCabecera || primeraConTexto) && (
+        {!deArchivo && filas.length > 1 && (cabecera !== undefined || pegado.pareceCabecera || primeraConTexto) && (
           <label className="pn-cabecera">
             <input type="checkbox" checked={pegado.cabecera} onChange={e => cambiarCabecera(e.target.checked)} />
             <span>
@@ -266,7 +278,7 @@ export function VistaPreviaPegado({ filas, donde, onAplicar, onClose }: Props) {
           <button type="button" className="btn-accent" disabled={total === 0 || (hayQueConfirmar && !comprobado)} onClick={() => onAplicar(plan.cambios)}>
             {total === 0 ? t('No hay nada que poner') : t(una ? 'Poner 1 nota' : 'Poner {n} notas', { n: total })}
           </button>
-          <button type="button" className="btn-ghost" onClick={onClose}>{t('Cancelar')}</button>
+          <button type="button" className="btn-ghost" onClick={onClose}>{textoCancelar ?? t('Cancelar')}</button>
         </div>
       </div>
     </Modal>

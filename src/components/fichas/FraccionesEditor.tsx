@@ -10,6 +10,7 @@ import {
   type CogidosFraccion, type FraccionDibujo, type ModoFracciones, type ObjetoFraccion,
 } from '../../lib/fraccionesDibujo';
 import { useI18n } from '../../i18n';
+import { CampoNumero } from '../ui/CampoNumero';
 import type { FichaExercise } from '../../services/resources';
 
 type T = (k: string, v?: Record<string, string | number>) => string;
@@ -30,12 +31,6 @@ const COGIDOS_LABEL: Record<CogidosFraccion, string> = {
 };
 
 const OBJETO_LABEL: Record<ObjetoFraccion, string> = { pizza: 'Pizza', tarta: 'Tarta' };
-
-/** Un número entero dentro de unos límites. */
-const entre = (v: string, min: number, max: number, defecto: number): number => {
-  const n = Math.round(Number(v));
-  return Number.isFinite(n) ? Math.max(min, Math.min(max, n)) : defecto;
-};
 
 export function FraccionesEditor({ ex, uid, dedicado, onChange, t }: {
   ex: FichaExercise;
@@ -104,10 +99,10 @@ export function FraccionesEditor({ ex, uid, dedicado, onChange, t }: {
               {OBJETOS_FRACCION.map(o => <option key={o} value={o}>{t(OBJETO_LABEL[o])}</option>)}
             </select>
             <label className="fe-fr-num"><span>{t('Trozos')}</span>
-              <input className="finput" type="number" min={MIN_PARTES} max={MAX_PARTES} value={f.partes} onChange={e => cambiar(i, { partes: entre(e.target.value, MIN_PARTES, MAX_PARTES, f.partes) })} />
+              <CampoNumero className="finput" min={MIN_PARTES} max={MAX_PARTES} value={f.partes} onChange={n => cambiar(i, { partes: n })} />
             </label>
             <label className="fe-fr-num"><span>{t('Cogidos')}</span>
-              <input className="finput" type="number" min={0} max={f.partes} value={f.tomadas} onChange={e => cambiar(i, { tomadas: entre(e.target.value, 0, f.partes, f.tomadas) })} />
+              <CampoNumero className="finput" min={0} max={f.partes} value={f.tomadas} onChange={n => cambiar(i, { tomadas: n })} />
             </label>
             <button type="button" className="ico-btn sm" title={t('Quitar')} aria-label={t('Quitar')} onClick={() => quitar(i)}><Trash2 size={14} color="var(--danger)" /></button>
           </div>

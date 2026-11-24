@@ -135,4 +135,40 @@ describe('Distribución de aula', () => {
     expect(last?.forma).toBe('cuadrada');
     expect(mesa(1).querySelector('.seat-svg path')).toBeNull();
   });
+  it('al borrar «Alumnos por mesa» el cuadro se queda en blanco y se puede escribir otro número', async () => {
+    const user = userEvent.setup();
+    let last: Plan | undefined;
+    render(<Harness onPlan={p => { last = p; }} />);
+    const campo = screen.getByLabelText('Alumnos por mesa') as HTMLInputElement;
+    const antes = campo.value;
+    await user.clear(campo);
+    expect(campo.value).toBe('');
+    // Borrar no guarda un 1: la estructura no cambia
+    expect(last?.groupSize ?? Number(antes)).toBe(Number(antes));
+    await user.type(campo, '6');
+    expect(campo.value).toBe('6');
+    // La estructura se aplica al salir del campo (escribir un número de dos cifras pasa por otro que rehace las mesas)
+    expect(last?.groupSize ?? Number(antes)).toBe(Number(antes));
+    await user.tab();
+    expect(last?.groupSize).toBe(6);
+  });
+
+  it('escribir 10 en «Nº de mesas» no levanta a nadie de las mesas al pasar por el 1', async () => {
+    const user = userEvent.setup();
+    let last: Plan | undefined;
+    render(<Harness onPlan={p => { last = p; }} />);
+    // Un alumno por mesa: quedan en las mesas 1, 2 y 3
+    const porMesa = screen.getByLabelText('Alumnos por mesa') as HTMLInputElement;
+    await user.clear(porMesa);
+    await user.type(porMesa, '1');
+    await user.tab();
+    await user.click(screen.getAllByRole('button', { name: 'Sentar por orden de lista' })[0]);
+    expect(last?.groups.slice(0, 3).map(g => g.studentIds.filter(Boolean).length)).toEqual([1, 1, 1]);
+    const campo = screen.getByLabelText('Nº de mesas') as HTMLInputElement;
+    await user.clear(campo);
+    await user.type(campo, '10');
+    await user.tab();
+    expect(last?.numGroups).toBe(10);
+    expect(last?.groups.flatMap(g => g.studentIds.filter(Boolean))).toHaveLength(3);
+  });
 });

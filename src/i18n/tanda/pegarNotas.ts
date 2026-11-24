@@ -84,8 +84,8 @@ export const EN: Record<string, string> = {
   'Poner {n} notas': 'Enter {n} marks',
 
   // Colocar por nombre (24-11-2026)
-  'Intro y las flechas pasan de una celda a otra. Para traer notas de una hoja de cálculo, copia allí los nombres con sus notas y pégalos en la columna de la actividad: cada nota irá a su alumno, y antes de poner nada verás lo que cambia.':
-    'Enter and the arrow keys move from one cell to another. To bring marks from a spreadsheet, copy the names with their marks there and paste them into the activity\'s column: each mark will go to its student, and you will see what changes before anything is entered.',
+  'Intro y las flechas pasan de una celda a otra. Para traer notas de una hoja de cálculo, copia allí los nombres con sus notas y pégalos en la columna de la actividad, o arrastra el archivo sobre el cuaderno: cada nota irá a su alumno, y antes de poner nada verás lo que cambia.':
+    'Enter and the arrow keys move from one cell to another. To bring marks from a spreadsheet, copy the names with their marks there and paste them into the activity\'s column, or drag the file onto the gradebook: each mark will go to its student, and you will see what changes before anything is entered.',
   'Cada nota va al alumno que se llama así en tu hoja, aunque esté en otro orden o escrito de otra forma. La primera columna va a «{actividad}» y sigue hacia la derecha.':
     'Each mark goes to the student with that name in your sheet, even if it is in another order or written differently. The first column goes to “{actividad}” and continues to the right.',
   'Cada nota va al alumno que se llama así en tu hoja, aunque esté en otro orden o escrito de otra forma, en «{actividad}».':
@@ -136,6 +136,99 @@ export const EN: Record<string, string> = {
     'Half the rows of your sheet or more are not anyone in this class: is it another group’s sheet? Check that the marks being placed belong to your students.',
   'He comprobado que las notas que se colocan son de mi alumnado':
     'I have checked that the marks being placed belong to my students',
+
+  // Importar notas de un archivo (24-11-2026)
+  'nueva':
+    'new',
+  'Importar notas de un archivo':
+    'Import marks from a file',
+  'Elige a qué actividad va cada columna de notas de «{archivo}». Después verás, alumno por alumno, cómo quedan antes de poner nada: cada nota va al alumno que se llama así en tu hoja.':
+    'Choose which activity each column of marks in “{archivo}” goes to. Then you will see, student by student, how they look before anything is entered: each mark goes to the student with that name in your sheet.',
+  'Hoja del archivo':
+    'Sheet in the file',
+  'Tu hoja trae {n} filas con nombre: cada nota irá al alumno que se llama así.':
+    'Your sheet has {n} rows with a name: each mark will go to the student with that name.',
+  'Tu hoja no trae una columna con los nombres: las notas se colocarán en el orden de la lista, y tendrás que confirmarlo.':
+    'Your sheet has no column with the names: the marks will be placed in list order, and you will have to confirm it.',
+  'Esta hoja no trae ninguna columna de notas.':
+    'This sheet has no column of marks.',
+  'Columna de tu hoja':
+    'Column in your sheet',
+  'Va a':
+    'Goes to',
+  '{n} notas':
+    '{n} marks',
+  'ninguna nota':
+    'no marks',
+  'A qué actividad va la columna «{nombre}»':
+    'Which activity the column “{nombre}” goes to',
+  'No importar':
+    'Do not import',
+  'Actividad nueva: «{nombre}»':
+    'New activity: “{nombre}”',
+  'Dos columnas van a la misma actividad: elige otra para una de ellas.':
+    'Two columns go to the same activity: choose another one for one of them.',
+  'Las actividades nuevas van a la categoría':
+    'New activities go to the category',
+  'El archivo se lee en este dispositivo: no se envía a ningún sitio.':
+    'The file is read on this device: it is not sent anywhere.',
+  'Ver cómo quedan':
+    'See how they look',
+  'Cada nota va al alumno que se llama así en tu hoja, aunque esté en otro orden o escrito de otra forma. Cada columna va a la actividad que has elegido.':
+    'Each mark goes to the student with that name in your sheet, even if it is in another order or written differently. Each column goes to the activity you chose.',
+  'Tu hoja no trae los nombres: la primera fila va a {alumno} y sigue hacia abajo. Cada columna va a la actividad que has elegido.':
+    'Your sheet has no names: the first row goes to {alumno} and continues downwards. Each column goes to the activity you chose.',
+  'Importar notas: revisa antes de poner nada':
+    'Import marks: check before entering anything',
+  'Trae las notas de un Excel o un CSV, o arrastra el archivo sobre el cuaderno: cada nota va al alumno que se llama así':
+    'Bring marks from an Excel file or a CSV, or drag the file onto the gradebook: each mark goes to the student with that name',
+  'Importar notas':
+    'Import marks',
+  'El archivo es demasiado grande (más de 10 MB).':
+    'The file is too large (more than 10 MB).',
+  'Ese archivo no es una hoja de cálculo: elige un Excel (.xlsx, .xls, .ods) o un CSV.':
+    'That file is not a spreadsheet: choose an Excel file (.xlsx, .xls, .ods) or a CSV.',
+  'El archivo no trae ninguna tabla.':
+    'The file has no table.',
+  'No se ha podido leer el archivo.':
+    'The file could not be read.',
+  '✅ {n} notas importadas y {m} actividades nuevas':
+    '✅ {n} marks imported and {m} new activities',
+  '✅ {n} notas importadas':
+    '✅ {n} marks imported',
+  // Importar arrastrando el archivo o desde su ventana (24-11-2026)
+  'Para importar notas, añade antes el alumnado de la clase.':
+    'To import marks, first add the students to the class.',
+  'Para importar notas, elige antes cómo evalúas en esta clase: las categorías del cuaderno.':
+    'To import marks, first choose how you assess in this class: the gradebook categories.',
+  'Ya hay un archivo abierto: termina o cierra esa ventana para importar otro.':
+    'A file is already open: finish or close that window to import another one.',
+  'Cierra la ventana que tienes abierta para importar el archivo.':
+    'Close the window you have open to import the file.',
+  'Se importa un archivo cada vez: se abre «{archivo}».':
+    'One file is imported at a time: “{archivo}” is opened.',
+  'Suelta el archivo para importar las notas de {clase}':
+    'Drop the file to import the marks of {clase}',
+  'Excel (.xlsx, .xls), LibreOffice (.ods) o CSV':
+    'Excel (.xlsx, .xls), LibreOffice (.ods) or CSV',
+  'Importar notas de {clase}':
+    'Import marks for {clase}',
+  'Trae las notas de un Excel o de un CSV. Después eliges a qué actividad va cada columna y ves, alumno por alumno, cómo quedan antes de poner nada.':
+    'Bring the marks from an Excel file or a CSV. Then you choose which activity each column goes to and see, student by student, how they turn out before anything is entered.',
+  'Leyendo el archivo…':
+    'Reading the file…',
+  'Suéltalo aquí':
+    'Drop it here',
+  'Arrastra aquí tu archivo':
+    'Drag your file here',
+  'o pulsa para elegirlo':
+    'or click to choose it',
+  'Pulsa para elegir el archivo':
+    'Tap to choose the file',
+  'Excel (.xlsx, .xls), LibreOffice (.ods) o CSV, de hasta 10 MB. Va mejor con una columna con los nombres del alumnado y una columna por actividad.':
+    'Excel (.xlsx, .xls), LibreOffice (.ods) or CSV, up to 10 MB. It works best with a column with the students\' names and one column per activity.',
+  'Elegir archivo':
+    'Choose file',
 };
 
 export const CA: Record<string, string> = {
@@ -216,8 +309,8 @@ export const CA: Record<string, string> = {
   'Poner {n} notas': 'Posar {n} notes',
 
   // Colocar por nombre (24-11-2026)
-  'Intro y las flechas pasan de una celda a otra. Para traer notas de una hoja de cálculo, copia allí los nombres con sus notas y pégalos en la columna de la actividad: cada nota irá a su alumno, y antes de poner nada verás lo que cambia.':
-    'Intro i les fletxes passen d\'una cel·la a una altra. Per portar notes d\'un full de càlcul, copia allà els noms amb les seves notes i enganxa\'ls a la columna de l\'activitat: cada nota anirà al seu alumne, i abans de posar res veuràs què canvia.',
+  'Intro y las flechas pasan de una celda a otra. Para traer notas de una hoja de cálculo, copia allí los nombres con sus notas y pégalos en la columna de la actividad, o arrastra el archivo sobre el cuaderno: cada nota irá a su alumno, y antes de poner nada verás lo que cambia.':
+    'Intro i les fletxes passen d\'una cel·la a una altra. Per portar notes d\'un full de càlcul, copia allà els noms amb les seves notes i enganxa\'ls a la columna de l\'activitat, o arrossega el fitxer sobre el quadern: cada nota anirà al seu alumne, i abans de posar res veuràs què canvia.',
   'Cada nota va al alumno que se llama así en tu hoja, aunque esté en otro orden o escrito de otra forma. La primera columna va a «{actividad}» y sigue hacia la derecha.':
     'Cada nota va a l\'alumne que es diu així al teu full, encara que estigui en un altre ordre o escrit d\'una altra manera. La primera columna va a «{actividad}» i continua cap a la dreta.',
   'Cada nota va al alumno que se llama así en tu hoja, aunque esté en otro orden o escrito de otra forma, en «{actividad}».':
@@ -268,4 +361,97 @@ export const CA: Record<string, string> = {
     'La meitat de les files del teu full o més no són de ningú d\'aquesta classe: és el full d\'un altre grup? Comprova que les notes que es col·loquen són del teu alumnat.',
   'He comprobado que las notas que se colocan son de mi alumnado':
     'He comprovat que les notes que es col·loquen són del meu alumnat',
+
+  // Importar notas de un archivo (24-11-2026)
+  'nueva':
+    'nova',
+  'Importar notas de un archivo':
+    'Importar notes d\'un arxiu',
+  'Elige a qué actividad va cada columna de notas de «{archivo}». Después verás, alumno por alumno, cómo quedan antes de poner nada: cada nota va al alumno que se llama así en tu hoja.':
+    'Tria a quina activitat va cada columna de notes de «{archivo}». Després veuràs, alumne per alumne, com queden abans de posar res: cada nota va a l\'alumne que es diu així al teu full.',
+  'Hoja del archivo':
+    'Full de l\'arxiu',
+  'Tu hoja trae {n} filas con nombre: cada nota irá al alumno que se llama así.':
+    'El teu full porta {n} files amb nom: cada nota anirà a l\'alumne que es diu així.',
+  'Tu hoja no trae una columna con los nombres: las notas se colocarán en el orden de la lista, y tendrás que confirmarlo.':
+    'El teu full no porta una columna amb els noms: les notes es col·locaran en l\'ordre de la llista, i ho hauràs de confirmar.',
+  'Esta hoja no trae ninguna columna de notas.':
+    'Aquest full no porta cap columna de notes.',
+  'Columna de tu hoja':
+    'Columna del teu full',
+  'Va a':
+    'Va a',
+  '{n} notas':
+    '{n} notes',
+  'ninguna nota':
+    'cap nota',
+  'A qué actividad va la columna «{nombre}»':
+    'A quina activitat va la columna «{nombre}»',
+  'No importar':
+    'No importar',
+  'Actividad nueva: «{nombre}»':
+    'Activitat nova: «{nombre}»',
+  'Dos columnas van a la misma actividad: elige otra para una de ellas.':
+    'Dues columnes van a la mateixa activitat: tria\'n una altra per a una d\'elles.',
+  'Las actividades nuevas van a la categoría':
+    'Les activitats noves van a la categoria',
+  'El archivo se lee en este dispositivo: no se envía a ningún sitio.':
+    'L\'arxiu es llegeix en aquest dispositiu: no s\'envia enlloc.',
+  'Ver cómo quedan':
+    'Veure com queden',
+  'Cada nota va al alumno que se llama así en tu hoja, aunque esté en otro orden o escrito de otra forma. Cada columna va a la actividad que has elegido.':
+    'Cada nota va a l\'alumne que es diu així al teu full, encara que estigui en un altre ordre o escrit d\'una altra manera. Cada columna va a l\'activitat que has triat.',
+  'Tu hoja no trae los nombres: la primera fila va a {alumno} y sigue hacia abajo. Cada columna va a la actividad que has elegido.':
+    'El teu full no porta els noms: la primera fila va a {alumno} i continua cap avall. Cada columna va a l\'activitat que has triat.',
+  'Importar notas: revisa antes de poner nada':
+    'Importar notes: revisa abans de posar res',
+  'Trae las notas de un Excel o un CSV, o arrastra el archivo sobre el cuaderno: cada nota va al alumno que se llama así':
+    'Porta les notes d\'un Excel o un CSV, o arrossega el fitxer sobre el quadern: cada nota va a l\'alumne que es diu així',
+  'Importar notas':
+    'Importar notes',
+  'El archivo es demasiado grande (más de 10 MB).':
+    'L\'arxiu és massa gran (més de 10 MB).',
+  'Ese archivo no es una hoja de cálculo: elige un Excel (.xlsx, .xls, .ods) o un CSV.':
+    'Aquest arxiu no és un full de càlcul: tria un Excel (.xlsx, .xls, .ods) o un CSV.',
+  'El archivo no trae ninguna tabla.':
+    'L\'arxiu no porta cap taula.',
+  'No se ha podido leer el archivo.':
+    'No s\'ha pogut llegir l\'arxiu.',
+  '✅ {n} notas importadas y {m} actividades nuevas':
+    '✅ {n} notes importades i {m} activitats noves',
+  '✅ {n} notas importadas':
+    '✅ {n} notes importades',
+  // Importar arrastrando el archivo o desde su ventana (24-11-2026)
+  'Para importar notas, añade antes el alumnado de la clase.':
+    'Per importar notes, afegeix abans l\'alumnat de la classe.',
+  'Para importar notas, elige antes cómo evalúas en esta clase: las categorías del cuaderno.':
+    'Per importar notes, tria abans com avalues en aquesta classe: les categories del quadern.',
+  'Ya hay un archivo abierto: termina o cierra esa ventana para importar otro.':
+    'Ja hi ha un fitxer obert: acaba o tanca aquesta finestra per importar-ne un altre.',
+  'Cierra la ventana que tienes abierta para importar el archivo.':
+    'Tanca la finestra que tens oberta per importar el fitxer.',
+  'Se importa un archivo cada vez: se abre «{archivo}».':
+    'S\'importa un fitxer cada vegada: s\'obre «{archivo}».',
+  'Suelta el archivo para importar las notas de {clase}':
+    'Deixa anar el fitxer per importar les notes de {clase}',
+  'Excel (.xlsx, .xls), LibreOffice (.ods) o CSV':
+    'Excel (.xlsx, .xls), LibreOffice (.ods) o CSV',
+  'Importar notas de {clase}':
+    'Importar notes de {clase}',
+  'Trae las notas de un Excel o de un CSV. Después eliges a qué actividad va cada columna y ves, alumno por alumno, cómo quedan antes de poner nada.':
+    'Porta les notes d\'un Excel o d\'un CSV. Després tries a quina activitat va cada columna i veus, alumne per alumne, com queden abans de posar res.',
+  'Leyendo el archivo…':
+    'Llegint el fitxer…',
+  'Suéltalo aquí':
+    'Deixa\'l anar aquí',
+  'Arrastra aquí tu archivo':
+    'Arrossega aquí el teu fitxer',
+  'o pulsa para elegirlo':
+    'o fes clic per triar-lo',
+  'Pulsa para elegir el archivo':
+    'Prem per triar el fitxer',
+  'Excel (.xlsx, .xls), LibreOffice (.ods) o CSV, de hasta 10 MB. Va mejor con una columna con los nombres del alumnado y una columna por actividad.':
+    'Excel (.xlsx, .xls), LibreOffice (.ods) o CSV, de fins a 10 MB. Funciona millor amb una columna amb els noms de l\'alumnat i una columna per activitat.',
+  'Elegir archivo':
+    'Triar fitxer',
 };
