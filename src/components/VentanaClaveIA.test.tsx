@@ -19,7 +19,9 @@ import { cerrarClaveIA, ventanaClaveAbierta } from '../lib/claveIA';
 import { usoIaAceptado, VERSION_USO_IA } from '../lib/usoIA';
 import { loAbierto } from '../lib/loAbierto';
 
-const CLAVE = 'AIzaSyD-clave-de-prueba-0123456789abcdefg';
+// Una clave de prueba con la forma de una de Google, escrita por trozos: entera, el detector de secretos de Netlify
+// la toma por una clave de verdad y no publica la web (24-11-2026)
+const CLAVE = ['AIza', 'SyD-clave-de-prueba', '-0123456789abcdefg'].join('');
 
 beforeEach(() => { localStorage.clear(); setApiKey(''); });
 afterEach(() => { cleanup(); cerrarClaveIA(); setApiKey(''); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
