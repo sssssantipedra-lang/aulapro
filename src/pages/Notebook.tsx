@@ -2,7 +2,7 @@ import { esDeAsignatura, modeloAcs } from '../lib/acsModelos';
 import { AyudaVideo } from '../components/AyudaVideo';
 import type { AcsApoyo } from '../types/apoyo';
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
-import { Paperclip, X, BookOpen, FileText, Brain, Plus, Download, Pencil, Settings2, Users, ArrowRight, Sparkles, Send, Trash2, Database, Flag, Check, Hand, ChevronDown, ChevronUp } from 'lucide-react';
+import { Paperclip, X, BookOpen, FileText, Brain, Plus, Download, FileSpreadsheet, Pencil, Settings2, Users, ArrowRight, Sparkles, Send, Trash2, Database, Flag, Check, Hand, ChevronDown, ChevronUp } from 'lucide-react';
 import { callGemini, hasApiKey, type InlineFile, type ChatTurn } from '../services/gemini';
 import { ACEPTA_ADJUNTO, useAdjuntoParaIA } from '../hooks/useAdjuntoParaIA';
 import { preguntaParaIA } from '../lib/preguntaParaIA';
@@ -38,6 +38,8 @@ import { NotasDeCurso } from '../components/cuaderno/NotasDeCurso';
 import { explicacionDePropuestas, propuestasDeCategorias, tiposDeAsignatura } from '../lib/categoriasCuaderno';
 import { cambiosDeRelleno, esBloque, leerNota, leerPegado, pantallaTactil, type CambioDeNota } from '../lib/pegarNotas';
 import { VistaPreviaPegado } from '../components/cuaderno/VistaPreviaPegado';
+import { ImportarNotas } from '../components/cuaderno/ImportarNotas';
+import { EXTENSIONES_NOTAS, leerArchivoDeNotas, MAX_BYTES_NOTAS, type HojaDeNotas } from '../lib/importarNotas';
 import { MenuDeColumna } from '../components/cuaderno/MenuDeColumna';
 import { CalificarActividad } from '../components/cuaderno/CalificarActividad';
 
@@ -243,6 +245,9 @@ function GradesTab({
   const [calificando, setCalificando] = useState<string | null>(null);
   /** Un bloque pegado sobre una celda, a la espera de la vista previa. */
   const [pegado, setPegado] = useState<{ filas: string[][]; alumnoId: string; actividadId: string } | null>(null);
+  /** Un archivo de notas abierto (`ImportarNotas`), con sus hojas ya leídas. */
+  const [importando, setImportando] = useState<{ archivo: string; hojas: HojaDeNotas[] } | null>(null);
+  const archivoNotas = useRef<HTMLInputElement>(null);
   /** La actividad recién creada: en cuanto sale en la tabla, el foco va a su primera celda. */
   const focoPendiente = useRef<string | null>(null);
 
@@ -601,6 +606,23 @@ function GradesTab({
         <span className="toolbar-sep ev-sel-sep" aria-hidden="true" />
         <SelectorEvaluacion ev={ev} queCuenta={t('El cuaderno enseña y cuenta las actividades y las anotaciones de estas fechas.')} />
         <span className="toolbar-spacer" />
+        <button className="tb-btn" onClick={() => archivoNotas.current?.click()} disabled={myStudents.length === 0}
+          title={t('Trae las notas de un Excel o un CSV: cada nota va al alumno que se llama así')}>
+          <FileSpreadsheet size={14} />{t('Importar notas')}
+        </button>
+        <input ref={archivoNotas} type="file" accept={EXTENSIONES_NOTAS} hidden onChange={async e => {
+          const file = e.target.files?.[0];
+          e.target.value = '';
+          if (!file) return;
+          if (file.size > MAX_BYTES_NOTAS) { toast(t('El archivo es demasiado grande (más de 10 MB).')); return; }
+          try {
+            setImportando({ archivo: file.name, hojas: await leerArchivoDeNotas(file) });
+          } catch (err) {
+            const m = err instanceof Error ? err.message : '';
+            toast(m === 'formato' ? t('Ese archivo no es una hoja de cálculo: elige un Excel (.xlsx, .xls, .ods) o un CSV.')
+              : m === 'vacio' ? t('El archivo no trae ninguna tabla.') : t('No se ha podido leer el archivo.'));
+          }
+        }} />
         <button className="tb-btn" onClick={exportCsv} disabled={myItems.length === 0}>
           <Download size={14} />{t('Exportar a Excel')}
         </button>
@@ -989,6 +1011,31 @@ function GradesTab({
             ponerNotas(cambios, 'pegar');
             setPegado(null);
             focoEn(actividadId, alumnoId);
+          }}
+        />
+      )}
+
+      {/* Un archivo de notas: elegir columnas y, después, la misma vista previa que al pegar */}
+      {importando && (
+        <ImportarNotas
+          archivo={importando.archivo}
+          hojas={importando.hojas}
+          actividades={columnasEditables.map(i => ({ id: i.id, name: i.name, categoria: myCategories.find(c => c.id === i.category_id)?.name ?? '' }))}
+          categorias={ownCategories.map(c => ({ id: c.id, name: c.name }))}
+          alumnado={myStudents}
+          notas={grades}
+          onClose={() => setImportando(null)}
+          onAplicar={(nuevas, cambios) => {
+            // Las actividades nuevas, con la fecha de la evaluación que se ve (para que salgan en ella) y su id de verdad
+            const fecha = diaParaNueva(ev.periodo, ev.hoy, ev.rangos);
+            const base = Date.now();
+            const ids = new Map(nuevas.map((n, i) => [n.idProvisional, `gi${base + i}`]));
+            nuevas.forEach(n => onAddItem({ id: ids.get(n.idProvisional)!, class_id: clsId, category_id: n.categoria, name: n.nombre, date: fecha }));
+            ponerNotas(cambios.map(c => ({ ...c, itemId: ids.get(c.itemId) ?? c.itemId })), 'pegar');
+            setImportando(null);
+            toast(nuevas.length > 0
+              ? t('✅ {n} notas importadas y {m} actividades nuevas', { n: cambios.length, m: nuevas.length })
+              : t('✅ {n} notas importadas', { n: cambios.length }));
           }}
         />
       )}
