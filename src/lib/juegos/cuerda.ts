@@ -5,15 +5,19 @@
  * reductor puro (el azar va con semilla dentro del estado, así que dos toques a la vez se atienden en orden y se
  * puede probar). La pantalla es `components/juegos/TirarDeLaCuerda.tsx`.
  *
- * Niveles (decisión tomada con el currículo LOMLOE, RD 157/2022 de Primaria y RD 217/2022 de ESO; ver docs/PIZARRA.md):
- *   - 1.º y 2.º de Primaria: solo sumas y restas hasta 100 (sin resultados negativos ni restas que den 0). El RD
- *     157/2022 solo pone la suma y la resta en el «Sentido de las operaciones» del primer ciclo, y la construcción de
- *     las tablas y la división como reparto están en el segundo (igual en Madrid y en Andalucía; la Comunitat
- *     Valenciana habla solo de iniciarse en su significado, no de tablas con «×» y «:»).
- *   - 3.º y 4.º: sumas y restas de dos y tres cifras (hasta 999), todas las tablas y una cifra por dos cifras,
- *     divisiones exactas entre una cifra (cociente hasta 25). Sin «× 1» ni «x : x».
- *   - 5.º y 6.º: sumas y restas de hasta cuatro cifras, dos cifras por dos cifras y tres por una, y divisiones
- *     exactas entre una y entre dos cifras.
+ * Niveles (indicaciones del dueño del 25-11-2026, que mandan sobre los rangos anteriores; ver docs/PIZARRA.md):
+ *   - 1.º y 2.º de Primaria: solo sumas y restas, con cada número entre 1 y 10 (resultados de 0 a 20; las restas,
+ *     nunca negativas, y alguna vez 0). El RD 157/2022 solo pone la suma y la resta en el «Sentido de las
+ *     operaciones» del primer ciclo; la multiplicación y la división son del segundo.
+ *   - 3.º y 4.º: sumas con resultado hasta 50, restas con el minuendo hasta 25, tablas de una cifra por una cifra
+ *     (de 2 a 9) y divisiones exactas con divisor y cociente de una cifra (de 2 a 9).
+ *   - 5.º y 6.º: sumas y restas de números de dos cifras, y multiplicación y división con «Cifras del segundo
+ *     número» a elegir (`CifrasCuerda`): con una, 12 × 7 y 84 : 6 (cociente de dos cifras); con dos, 23 × 14 y
+ *     312 : 24 (cociente de una o dos cifras).
+ *   - ESO: suma y resta de números de hasta tres cifras (la resta puede dar negativo: alguna vez en 1.º y 2.º, más a
+ *     menudo en 3.º y 4.º), multiplicación (tres cifras por una o dos por dos en 1.º y 2.º; tres por dos en 3.º y
+ *     4.º, con algún factor negativo) y división exacta (dividendo de tres o cuatro cifras entre una o dos cifras en
+ *     1.º y 2.º; entre dos cifras con cociente de dos o tres en 3.º y 4.º, con algún negativo). Además:
  *   - 1.º y 2.º de ESO: números enteros (sumas, restas, productos y cocientes con negativos, y la jerarquía con dos
  *     operaciones), potencias de exponente natural, raíces cuadradas exactas y las propiedades de las potencias con
  *     resultado numérico, y porcentajes (de una cantidad, aumentos y descuentos con los porcentajes de siempre).
@@ -67,12 +71,36 @@ export const MAX_NOMBRE = 12;
 
 export const esEso = (n: NivelCuerda): boolean => n.startsWith('e');
 export const esNivel = (x: unknown): x is NivelCuerda => NIVELES.some(n => n.id === x);
-/** En 1.º y 2.º de Primaria, solo la suma y la resta (la multiplicación y la división son del segundo ciclo). */
+
+/**
+ * Las operaciones de cada nivel, con el nombre y el signo que se enseñan en los ajustes. En 1.º y 2.º de Primaria,
+ * solo la suma y la resta (la multiplicación y la división son del segundo ciclo); en ESO, las cuatro de siempre
+ * (con «·» para multiplicar, como en sus libros) y además los números enteros, las potencias y los porcentajes.
+ */
 export const operacionesDe = (n: NivelCuerda): readonly { id: Operacion; nombre: string; signo: string }[] =>
-  esEso(n) ? OPERACIONES_ESO : n === 'p12' ? OPERACIONES_PRIMARIA.slice(0, 2) : OPERACIONES_PRIMARIA;
-/** El tipo, si vale en ese nivel; si no (una operación de Primaria en ESO), la mezcla. */
+  esEso(n)
+    ? [...OPERACIONES_PRIMARIA.map(o => (o.id === 'multiplicacion' ? { ...o, signo: '·' } : o)), ...OPERACIONES_ESO]
+    : n === 'p12' ? OPERACIONES_PRIMARIA.slice(0, 2) : OPERACIONES_PRIMARIA;
+/** El tipo, si vale en ese nivel; si no (la multiplicación en 1.º y 2.º, los porcentajes en Primaria), la mezcla. */
 export function tipoParaNivel(n: NivelCuerda, tipo: unknown): TipoCuerda {
   return tipo === 'mezcla' || operacionesDe(n).some(o => o.id === tipo) ? tipo as TipoCuerda : 'mezcla';
+}
+
+/** Cuántas cifras tiene el segundo número de las multiplicaciones y las divisiones de 5.º y 6.º (se elige). */
+export type CifrasCuerda = 1 | 2;
+export const CIFRAS: readonly { id: CifrasCuerda; nombre: string }[] = [
+  { id: 1, nombre: 'Una cifra' },
+  { id: 2, nombre: 'Dos cifras' },
+];
+export const esCifras = (x: unknown): x is CifrasCuerda => x === 1 || x === 2;
+/** La elección «Cifras del segundo número» solo existe en 5.º y 6.º, con multiplicaciones o divisiones (o la mezcla). */
+export const usaCifras = (n: NivelCuerda, tipo: TipoCuerda): boolean =>
+  n === 'p56' && (tipo === 'multiplicacion' || tipo === 'division' || tipo === 'mezcla');
+
+/** El ejemplo de cada elección en los ajustes, de la operación elegida (en la mezcla, las dos). */
+export function ejemploDeCifras(cifras: CifrasCuerda, tipo: TipoCuerda): string {
+  const por = cifras === 1 ? '12 × 7' : '23 × 14', entreN = cifras === 1 ? '84 : 6' : '312 : 24';
+  return tipo === 'division' ? entreN : tipo === 'multiplicacion' ? por : `${por}, ${entreN}`;
 }
 
 /* ── Azar con semilla ── */
@@ -163,6 +191,10 @@ const conPlantilla = (clave: string, valores: Record<string, string | number>, r
  * Cómo se escribe la pregunta en pantalla: en inglés, «×» y «÷» (en un aula inglesa «:» es una razón); y sin cortes
  * de línea dentro de un paréntesis, entre un número y su «%» ni antes del «= ?», con espacios que no se parten.
  */
+/** El signo de una operación en los ajustes, como se verá en el juego: en inglés, «×» y «÷». */
+export const signoEnPantalla = (signo: string, ingles: boolean): string =>
+  (ingles ? signo.replace(/·/g, '×').replace(/:/g, '÷') : signo);
+
 export function preguntaEnPantalla(texto: string, ingles: boolean): string {
   let s = ingles ? texto.replace(/ · /g, ' × ').replace(/ : /g, ' ÷ ') : texto;
   let nivel = 0, fuera = '';
@@ -176,59 +208,106 @@ export function preguntaEnPantalla(texto: string, ingles: boolean): string {
   return igual >= 0 ? `${s.slice(0, igual)}\u00a0=\u00a0${s.slice(igual + 3)}` : s;
 }
 
-/* Primaria: en Primaria la multiplicación se escribe «×» y la división «:», como en los libros de texto. */
+/*
+ * Las cuatro operaciones. En Primaria la multiplicación se escribe «×» y la división «:», como en los libros de texto;
+ * en ESO, «·» y «:». El segundo número es el que lleva las cifras elegidas en 5.º y 6.º («Cifras del segundo número»),
+ * así que no se cambia de sitio.
+ */
+
+/**
+ * Un número de varias cifras que no acaba en 0: «60 × 11» o «420 : 20» se hacen quitando el cero y no practican
+ * la cuenta que se pide.
+ */
+const noRedondo = (azar: Azar, min: number, max: number): number => {
+  for (;;) { const n = entre(azar, min, max); if (n % 10 !== 0) return n; }
+};
+const signoPor = (nivel: NivelCuerda) => (esEso(nivel) ? '·' : '×');
+/** Una de cada dos, los dos sumandos cambian de sitio (los dos órdenes salen en los libros). */
+const quizaCambiados = (azar: Azar, a: number, b: number): [number, number] => (azar() < 0.5 ? [b, a] : [a, b]);
 
 function suma(nivel: NivelCuerda, azar: Azar): Pregunta {
   let a: number, b: number;
-  if (nivel === 'p12') {
-    if (azar() < 0.35) { a = entre(azar, 2, 9); b = entre(azar, 2, 9); }
-    else { a = entre(azar, 10, 89); b = entre(azar, 2, 100 - a); }
-  } else if (nivel === 'p34') {
-    const r = azar();
-    if (r < 0.4) { a = entre(azar, 11, 99); b = entre(azar, 11, 99); }
-    else if (r < 0.75) { a = entre(azar, 100, 899); b = entre(azar, 11, 99); }
-    else { a = entre(azar, 100, 499); b = entre(azar, 100, 499); }
-  } else {
-    if (azar() < 0.5) { a = entre(azar, 1000, 4999); b = entre(azar, 100, 4999); }
-    else { a = entre(azar, 100, 999); b = entre(azar, 100, 999); }
-  }
+  if (nivel === 'p12') { a = entre(azar, 1, 10); b = entre(azar, 1, 10); }
+  else if (nivel === 'p34') {
+    // Resultado hasta 50: un número de dos cifras y otro de una o de dos
+    a = entre(azar, 10, 45); b = entre(azar, 2, 50 - a);
+    [a, b] = quizaCambiados(azar, a, b);
+  } else if (nivel === 'p56') { a = entre(azar, 10, 99); b = entre(azar, 10, 99); }
+  else if (nivel === 'e12') {
+    a = entre(azar, 100, 999); b = azar() < 0.4 ? entre(azar, 10, 99) : entre(azar, 100, 999);
+    [a, b] = quizaCambiados(azar, a, b);
+  } else { a = entre(azar, 100, 999); b = entre(azar, 100, 999); }
   return P(`${a} + ${b}`, a + b, 'suma');
 }
+
+/** En ESO, cuántas restas dan negativo: alguna vez en 1.º y 2.º, más a menudo en 3.º y 4.º. */
+export const RESTAS_NEGATIVAS: Record<'e12' | 'e34', number> = { e12: 0.2, e34: 0.4 };
 
 function resta(nivel: NivelCuerda, azar: Azar): Pregunta {
   let a: number, b: number;
   if (nivel === 'p12') {
-    a = entre(azar, 10, 99);
-    b = azar() < 0.4 || a < 12 ? entre(azar, 1, 9) : entre(azar, 10, a - 1);
-  } else if (nivel === 'p34') {
-    if (azar() < 0.4) { a = entre(azar, 30, 99); b = entre(azar, 11, a - 1); }
-    else { a = entre(azar, 100, 999); b = entre(azar, 10, Math.min(a - 1, 600)); }
-  } else {
-    a = entre(azar, 1000, 9999);
-    b = azar() < 0.5 || a < 1100 ? entre(azar, 100, 999) : entre(azar, 1000, a - 1);
+    // Cada número de 1 a 10 y nunca negativa; un resultado 0, poco (x − x no practica casi nada). Las demás, todas
+    // las parejas con la misma probabilidad salvo «x − 1» y las que dan 1, a la mitad: si se elige primero el
+    // minuendo, «2 − 1» sale una de cada diez y casi un tercio de las restas son «x − 1»
+    if (azar() < 0.05) { a = entre(azar, 1, 10); b = a; }
+    else {
+      for (;;) {
+        a = entre(azar, 2, 10); b = entre(azar, 1, 9);
+        if (b < a && ((b !== 1 && a - b !== 1) || azar() < 0.5)) break;
+      }
+    }
+  } else if (nivel === 'p34') { a = entre(azar, 11, 25); b = entre(azar, 2, a - 1); }
+  else if (nivel === 'p56') { a = entre(azar, 20, 99); b = entre(azar, 10, a - 1); }
+  else {
+    // Dos números distintos de hasta tres cifras; el grande delante salvo cuando toca un resultado negativo
+    const x = entre(azar, 100, 999);
+    let y = azar() < 0.4 ? entre(azar, 10, 99) : entre(azar, 100, 999);
+    if (y === x) y = x - entre(azar, 1, 99);
+    const [mayor, menor] = x > y ? [x, y] : [y, x];
+    [a, b] = azar() < RESTAS_NEGATIVAS[nivel] ? [menor, mayor] : [mayor, menor];
   }
   return P(`${a} ${MENOS} ${b}`, a - b, 'resta');
 }
 
-function multiplicacion(nivel: NivelCuerda, azar: Azar): Pregunta {
-  let a: number, b: number;
-  if (nivel === 'p12' || nivel === 'p34') {
-    if (azar() < 0.6) { a = entre(azar, 2, 9); b = entre(azar, 2, 10); }
-    else { a = entre(azar, 11, 50); b = entre(azar, 2, 9); }
-  } else if (azar() < 0.5) { a = entre(azar, 11, 40); b = entre(azar, 11, 25); }
-  else { a = entre(azar, 101, 999); b = entre(azar, 2, 9); }
-  // Una de cada dos, el número pequeño delante (las dos formas salen en los libros)
-  if (azar() < 0.5) [a, b] = [b, a];
-  return P(`${a} × ${b}`, a * b, 'multiplicacion');
+/** En 3.º y 4.º de ESO, cuántas multiplicaciones y divisiones llevan un número negativo. */
+export const NEGATIVOS_E34 = 0.2;
+/** Un número negativo de vez en cuando (solo en 3.º y 4.º de ESO): el primero o el segundo, al azar. */
+function conAlgunNegativo(nivel: NivelCuerda, azar: Azar, a: number, b: number): [number, number] {
+  if (nivel !== 'e34' || azar() >= NEGATIVOS_E34) return [a, b];
+  return azar() < 0.5 ? [-a, b] : [a, -b];
 }
 
-function division(nivel: NivelCuerda, azar: Azar): Pregunta {
+function multiplicacion(nivel: NivelCuerda, azar: Azar, cifras: CifrasCuerda = 1): Pregunta {
+  let a: number, b: number;
+  if (nivel === 'p12' || nivel === 'p34') { a = entre(azar, 2, 9); b = entre(azar, 2, 9); }
+  else if (nivel === 'p56') {
+    if (cifras === 1) { a = noRedondo(azar, 12, 99); b = entre(azar, 2, 9); }
+    else { a = noRedondo(azar, 11, 99); b = noRedondo(azar, 11, 39); }
+  } else if (nivel === 'e12') {
+    if (azar() < 0.5) { a = noRedondo(azar, 101, 999); b = entre(azar, 2, 9); }
+    else { a = noRedondo(azar, 11, 99); b = noRedondo(azar, 11, 59); }
+  } else { a = noRedondo(azar, 101, 899); b = noRedondo(azar, 11, 49); }
+  [a, b] = conAlgunNegativo(nivel, azar, a, b);
+  return P(`${num(a)} ${signoPor(nivel)} ${par(b)}`, a * b, 'multiplicacion');
+}
+
+function division(nivel: NivelCuerda, azar: Azar, cifras: CifrasCuerda = 1): Pregunta {
   let d: number, c: number;
-  if (nivel === 'p12' || nivel === 'p34') { d = entre(azar, 2, 9); c = azar() < 0.6 ? entre(azar, 2, 10) : entre(azar, 11, 25); }
-  else if (azar() < 0.5) { d = entre(azar, 2, 9); c = entre(azar, 12, 150); }
-  else { d = entre(azar, 11, 25); c = entre(azar, 2, 20); }
+  if (nivel === 'p12' || nivel === 'p34') { d = entre(azar, 2, 9); c = entre(azar, 2, 9); }
+  else if (nivel === 'p56') {
+    // Con una cifra, 84 : 6 (cociente de dos cifras); con dos, 312 : 24 (cociente de una o de dos)
+    if (cifras === 1) { d = entre(azar, 2, 9); c = noRedondo(azar, 11, 99); }
+    // El dividendo, de tres cifras como mucho (los de cuatro cifras son de 1.º y 2.º de ESO)
+    else { d = noRedondo(azar, 11, 49); c = noRedondo(azar, 2, Math.min(25, Math.floor(999 / d))); }
+  } else if (nivel === 'e12') {
+    // Un dividendo de tres o cuatro cifras entre una cifra o entre dos
+    if (azar() < 0.5) { d = entre(azar, 2, 9); c = noRedondo(azar, Math.ceil(100 / d), 999); }
+    else { d = noRedondo(azar, 11, 49); c = noRedondo(azar, Math.max(3, Math.ceil(100 / d)), 60); }
+  } else { d = noRedondo(azar, 11, 49); c = noRedondo(azar, 12, 299); }
   // Siempre exacta: el dividendo sale del divisor por el cociente
-  return P(`${d * c} : ${d}`, c, 'division');
+  let dividendo = d * c;
+  [dividendo, d] = conAlgunNegativo(nivel, azar, dividendo, d);
+  return P(`${num(dividendo)} : ${par(d)}`, dividendo / d, 'division');
 }
 
 /* ESO: «·» para multiplicar y «:» para dividir, como en los libros de Secundaria. */
@@ -403,7 +482,9 @@ function porcentajes(nivel: NivelCuerda, azar: Azar): Pregunta {
       // Aumento y después descuento: cada paso, entero
       for (;;) {
         const p = unoDe(azar, [10, 20, 25, 50]), q = unoDe(azar, [10, 20, 25, 50]);
-        const n = 100 * entre(azar, 1, 8);
+        // Hasta 700: con 800 solo «800 aumentado un 50 % y luego rebajado un 10 %» daba cuatro cifras, y el otro
+        // equipo casi nunca encontraba una pregunta de su misma forma
+        const n = 100 * entre(azar, 1, 7);
         const tras = n + (p * n) / 100, fin = tras - (q * tras) / 100;
         if (Number.isInteger(tras) && Number.isInteger(fin)) {
           return conPlantilla('{n} aumentado un {p} % y luego rebajado un {q} %', { n, p, q }, fin);
@@ -413,7 +494,7 @@ function porcentajes(nivel: NivelCuerda, azar: Azar): Pregunta {
   ])();
 }
 
-const GENERADORES: Record<Operacion, (nivel: NivelCuerda, azar: Azar) => Pregunta> = {
+const GENERADORES: Record<Operacion, (nivel: NivelCuerda, azar: Azar, cifras: CifrasCuerda) => Pregunta> = {
   suma, resta, multiplicacion, division, enteros, potencias, porcentajes,
 };
 
@@ -422,16 +503,17 @@ const PESOS_MEZCLA: Record<NivelCuerda, readonly (readonly [number, Operacion])[
   p12: [[50, 'suma'], [50, 'resta']],
   p34: [[25, 'suma'], [25, 'resta'], [25, 'multiplicacion'], [25, 'division']],
   p56: [[25, 'suma'], [25, 'resta'], [25, 'multiplicacion'], [25, 'division']],
-  e12: [[40, 'enteros'], [30, 'potencias'], [30, 'porcentajes']],
-  e34: [[40, 'enteros'], [30, 'potencias'], [30, 'porcentajes']],
+  e12: [[10, 'suma'], [10, 'resta'], [10, 'multiplicacion'], [10, 'division'], [25, 'enteros'], [20, 'potencias'], [15, 'porcentajes']],
+  e34: [[10, 'suma'], [10, 'resta'], [10, 'multiplicacion'], [10, 'division'], [25, 'enteros'], [20, 'potencias'], [15, 'porcentajes']],
 };
 
 /**
  * La forma de una pregunta, para dar al otro equipo una de la misma dificultad: la operación, cómo se escribe con
  * cuántas cifras tiene cada número (sin el exponente), cuántos números negativos lleva y cuántas cifras tiene la
- * respuesta.
- * «57 + 17» y «34 + 25» tienen la misma forma; «7 + 9» y «85 + 12», no.
+ * respuesta (y, en las cuatro operaciones, si es negativa).
+ * «57 + 17» y «34 + 25» tienen la misma forma; «7 + 9» y «85 + 12», no; «718 − 523» y «523 − 718», tampoco.
  */
+const BASICAS: readonly Operacion[] = ['suma', 'resta', 'multiplicacion', 'division'];
 export function firma(p: Pregunta): string {
   const forma = p.plantilla
     ? `${p.plantilla.clave}:${Object.keys(p.plantilla.valores).sort().map(k => `${k}${String(p.plantilla!.valores[k]).length}`).join('')}`
@@ -442,7 +524,10 @@ export function firma(p: Pregunta): string {
       .replace(/\d+/g, m => 'n'.repeat(m.length));
   // Cuántos números negativos lleva: «(11 + 5) · (−3)» es más fácil que «(−11 + (−5)) · (−4)»
   const negativos = (p.texto.match(new RegExp(`${MENOS}(?=\\d)`, 'g')) ?? []).length;
-  return `${p.operacion}|${forma}|${negativos}|${String(Math.abs(p.respuesta)).length}`;
+  // En las cuatro operaciones, también si la respuesta es negativa: «523 − 718» es más difícil que «718 − 523». En
+  // enteros, potencias y porcentajes ya lo dicen la forma y los negativos, y pedirlo dejaba muchas sin pareja.
+  const signo = p.respuesta < 0 && BASICAS.includes(p.operacion) ? '-' : '';
+  return `${p.operacion}|${forma}|${negativos}|${signo}${String(Math.abs(p.respuesta)).length}`;
 }
 
 export interface OpcionesPregunta {
@@ -450,6 +535,13 @@ export interface OpcionesPregunta {
   molde?: string;
   /** Las que han salido hace poco en la partida: se evitan si se puede. */
   recientes?: readonly string[];
+  /** Las cifras del segundo número en las multiplicaciones y las divisiones de 5.º y 6.º (de partida, una). */
+  cifras?: CifrasCuerda;
+  /**
+   * La pregunta n.º k del otro equipo: no sale aunque sea la única de su forma (una potencia como «10⁴»), para que
+   * los dos equipos no tengan la misma y uno no copie la respuesta del otro.
+   */
+  pareja?: string;
 }
 
 /**
@@ -461,22 +553,26 @@ export function generarPregunta(
   nivel: NivelCuerda, tipo: TipoCuerda, azar: Azar, evitar: readonly string[] = [], opciones: OpcionesPregunta = {},
 ): Pregunta {
   const t = tipoParaNivel(nivel, tipo);
-  const { molde, recientes = [] } = opciones;
+  const { molde, recientes = [], pareja } = opciones;
+  const cifras: CifrasCuerda = opciones.cifras === 2 ? 2 : 1;
   const opMolde = molde ? (molde.split('|')[0] as Operacion) : null;
   const tamMolde = molde ? molde.slice(molde.lastIndexOf('|')) : '';
   let mejor: Pregunta | null = null;
   let notaMejor = -1;
   for (let i = 0; i < (molde ? 1500 : 60); i++) {
     const op: Operacion = opMolde && GENERADORES[opMolde] ? opMolde : t === 'mezcla' ? conPesos(azar, PESOS_MEZCLA[nivel]) : t;
-    const p = GENERADORES[op](nivel, azar);
+    const p = GENERADORES[op](nivel, azar, cifras);
     if (String(p.respuesta).length > MAX_RESPUESTA) continue;
     const f = molde ? firma(p) : '';
-    const nota = (evitar.includes(p.texto) ? 0 : 8) + (!molde || f === molde ? 4 : 0)
+    // Primero, una pregunta distinta de la que se evita y de la del otro equipo; después, su misma forma (o, si no se
+    // puede, el mismo tamaño de respuesta); al final, que no haya salido hace poco. Con una forma que solo tiene una
+    // pregunta («∛8», «10⁴»), el otro equipo recibe otra de la misma operación antes que la misma
+    const nota = (evitar.includes(p.texto) ? 0 : 16) + (p.texto === pareja ? 0 : 8) + (!molde || f === molde ? 4 : 0)
       + (!molde || f.endsWith(tamMolde) ? 2 : 0) + (recientes.includes(p.texto) ? 0 : 1);
-    if (nota === 15) return p;
+    if (nota === 31) return p;
     if (nota > notaMejor) { mejor = p; notaMejor = nota; }
   }
-  return mejor ?? GENERADORES[t === 'mezcla' ? PESOS_MEZCLA[nivel][0][1] : t](nivel, azar);
+  return mejor ?? GENERADORES[t === 'mezcla' ? PESOS_MEZCLA[nivel][0][1] : t](nivel, azar, cifras);
 }
 
 /* ── El teclado de las respuestas ── */
@@ -585,6 +681,8 @@ export interface Partida {
   nivel: NivelCuerda;
   tipo: TipoCuerda;
   meta: PuntosParaGanar;
+  /** Las cifras del segundo número de las multiplicaciones y las divisiones (solo cuentan en 5.º y 6.º). */
+  cifras: CifrasCuerda;
   /** Hacia dónde va la cuerda: negativo, hacia el equipo rojo (0); positivo, hacia el azul (1). */
   balance: number;
   equipos: [EquipoEnJuego, EquipoEnJuego];
@@ -593,6 +691,8 @@ export interface Partida {
   semilla: number;
   /** La firma de la pregunta n.º k: la n.º k del otro equipo tiene la misma (preguntas de la misma dificultad). */
   moldes: string[];
+  /** El texto de la pregunta n.º k del primer equipo que la tuvo: el otro equipo no recibe la misma. */
+  textos: string[];
   /** Las últimas preguntas de la partida, de los dos equipos: no vuelven enseguida. */
   recientes: string[];
   /**
@@ -607,14 +707,17 @@ const RECIENTES = 16;
 
 export type AccionPartida = { tipo: 'tecla'; equipo: IndiceEquipo; tecla: Tecla };
 
-export function nuevaPartida(nivel: NivelCuerda, tipo: TipoCuerda, meta: PuntosParaGanar, semilla: number): Partida {
+export function nuevaPartida(
+  nivel: NivelCuerda, tipo: TipoCuerda, meta: PuntosParaGanar, semilla: number, cifras: CifrasCuerda = 1,
+): Partida {
   const r = azarConSemilla(semilla);
   const t = tipoParaNivel(nivel, tipo);
-  const a = generarPregunta(nivel, t, r.azar);
-  const b = generarPregunta(nivel, t, r.azar, [a.texto], { molde: firma(a) });
+  const c: CifrasCuerda = cifras === 2 ? 2 : 1;
+  const a = generarPregunta(nivel, t, r.azar, [], { cifras: c });
+  const b = generarPregunta(nivel, t, r.azar, [a.texto], { molde: firma(a), cifras: c });
   return {
-    nivel, tipo: t, meta, balance: 0, ganador: null, ultima: null, semilla: r.semilla(),
-    moldes: [firma(a)], recientes: [a.texto, b.texto],
+    nivel, tipo: t, meta, cifras: c, balance: 0, ganador: null, ultima: null, semilla: r.semilla(),
+    moldes: [firma(a)], textos: [a.texto], recientes: [a.texto, b.texto],
     equipos: [
       { pregunta: a, escrito: '', aciertos: 0, fallos: 0 },
       { pregunta: b, escrito: '', aciertos: 0, fallos: 0 },
@@ -649,11 +752,15 @@ export function reducirPartida(p: Partida, a: AccionPartida): Partida {
   // La pregunta n.º k de este equipo: con la forma de la n.º k del otro, si ya la ha tenido
   const k = aciertos + fallos;
   const molde = p.moldes[k];
-  const pregunta = generarPregunta(p.nivel, p.tipo, r.azar, [eq.pregunta.texto, otro.pregunta.texto], { molde, recientes: p.recientes });
+  const pregunta = generarPregunta(
+    p.nivel, p.tipo, r.azar, [eq.pregunta.texto, otro.pregunta.texto],
+    { molde, recientes: p.recientes, cifras: p.cifras, pareja: p.textos[k] },
+  );
   const siguiente = conEquipo(p, i, { pregunta, escrito: '', aciertos, fallos });
   return {
     ...siguiente, balance, ganador, semilla: r.semilla(), ultima,
     moldes: molde ? p.moldes : [...p.moldes, firma(pregunta)],
+    textos: molde ? p.textos : [...p.textos, pregunta.texto],
     recientes: [...p.recientes, pregunta.texto].slice(-RECIENTES),
   };
 }

@@ -1081,14 +1081,19 @@ responden cuentas y cada acierto tira de la cuerda hacia su lado; gana el
 primero que la lleva hasta su meta (3, 5 o 7 puntos de ventaja, a elegir). Los
 nombres de los equipos se cambian tocándolos (teclado del juego con Ñ y tildes,
 o el teclado del ordenador; hasta 12 letras). Niveles: 1.º y 2.º de Primaria
-(suma, resta o mezcla: la multiplicación y la división son del segundo ciclo),
-3.º y 4.º y 5.º y 6.º de Primaria (suma, resta, multiplicación, división o
-mezcla) y 1.º y 2.º y 3.º y 4.º de ESO (números enteros, potencias y raíces,
-porcentajes o mezcla). Propone el nivel de la clase activa y se puede cambiar.
+(suma, resta o mezcla, con números del 1 al 10: la multiplicación y la división
+son del segundo ciclo), 3.º y 4.º de Primaria (sumas hasta 50, restas hasta 25,
+y multiplicaciones y divisiones de una cifra), 5.º y 6.º de Primaria (sumas y
+restas de dos cifras; en multiplicación, división o mezcla se elige «Cifras del
+segundo número»: una cifra, como 12 × 7 y 84 : 6, o dos, como 23 × 14 y
+312 : 24) y 1.º y 2.º y 3.º y 4.º de ESO (suma, resta, multiplicación y división
+con números de hasta tres cifras, más difíciles en 3.º y 4.º, números enteros,
+potencias y raíces, porcentajes o mezcla; en ESO alguna resta da negativo).
+Propone el nivel de la clase activa y se puede cambiar.
 Las respuestas son siempre números enteros; las divisiones, exactas; en
 Primaria no hay negativos, y en ESO el teclado lleva la tecla del signo menos.
 Los dos equipos reciben preguntas distintas de la misma dificultad (la misma
-operación y números del mismo tamaño). Durante la cuenta atrás no se ven las
+operación y números del mismo tamaño), y nunca la misma a la vez. Durante la cuenta atrás no se ven las
 preguntas. Tras un fallo, el equipo ve la respuesta correcta y su teclado
 espera un momento. Los dos equipos pueden tocar la pantalla a la vez
 (multitoque). Salir o volver al inicio en mitad de una partida pide tocar la X

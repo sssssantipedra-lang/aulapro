@@ -26,9 +26,10 @@ import confetti from 'canvas-confetti';
 import { ArrowLeft, Columns3, Delete, Home, Maximize2, Minimize2, Pencil, Play, RotateCcw, Smartphone, Volume2, VolumeX, X } from 'lucide-react';
 import { useI18n } from '../../i18n';
 import {
-  IMAGENES_CUERDA, MAX_NOMBRE, MENOS, MUSICA_CUERDA, NIVELES, PUNTOS_PARA_GANAR, enunciado, escribirNombre, esEso, esNivel, nivelDeClase, nombreFinal,
-  nuevaPartida, operacionesDe, preguntaEnPantalla, reducirPartida, resuelta, tipoParaNivel, vistaPara, vistasPosibles,
-  type AccionPartida, type IndiceEquipo, type NivelCuerda, type Partida, type Pregunta, type PuntosParaGanar, type Tecla,
+  CIFRAS, IMAGENES_CUERDA, MAX_NOMBRE, MENOS, MUSICA_CUERDA, NIVELES, PUNTOS_PARA_GANAR, enunciado, escribirNombre, esEso, esNivel, nivelDeClase, nombreFinal,
+  ejemploDeCifras, esCifras, nuevaPartida, operacionesDe, preguntaEnPantalla, reducirPartida, resuelta, signoEnPantalla, tipoParaNivel, usaCifras, vistaPara,
+  vistasPosibles,
+  type AccionPartida, type CifrasCuerda, type IndiceEquipo, type NivelCuerda, type Partida, type Pregunta, type PuntosParaGanar, type Tecla,
   type TipoCuerda, type Vista,
 } from '../../lib/juegos/cuerda';
 
@@ -46,14 +47,16 @@ const CLAVE_SILENCIO = 'aulapro_cuerda_silencio';
 
 type Fase = 'inicio' | 'ajustes' | 'cuenta' | 'juego';
 
-interface Ajustes { nivel: NivelCuerda; tipo: TipoCuerda; meta: PuntosParaGanar }
+/** `cifras`: las del segundo número en las multiplicaciones y las divisiones de 5.º y 6.º (en los demás niveles no cuenta). */
+interface Ajustes { nivel: NivelCuerda; tipo: TipoCuerda; meta: PuntosParaGanar; cifras: CifrasCuerda }
 
 function leerAjustes(): Partial<Ajustes> {
   try {
     const a = JSON.parse(localStorage.getItem(CLAVE_AJUSTES) ?? '{}') as Record<string, unknown>;
     const nivel = esNivel(a.nivel) ? a.nivel : undefined;
     const meta = PUNTOS_PARA_GANAR.find(m => m === a.meta);
-    return { nivel, tipo: nivel ? tipoParaNivel(nivel, a.tipo) : undefined, meta };
+    // Un tipo que ya no existe en ese nivel (la multiplicación que se recordaba de 1.º y 2.º) se vuelve la mezcla
+    return { nivel, tipo: nivel ? tipoParaNivel(nivel, a.tipo) : undefined, meta, cifras: esCifras(a.cifras) ? a.cifras : undefined };
   } catch { return {}; }
 }
 function guardarAjustes(a: Ajustes) {
@@ -325,7 +328,7 @@ interface Props {
 }
 
 export function TirarDeLaCuerda({ onClose, clase }: Props) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const reducirMov = !!useReducedMotion();
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -360,7 +363,7 @@ export function TirarDeLaCuerda({ onClose, clase }: Props) {
   const [ajustes, setAjustes] = useState<Ajustes>(() => {
     const g = leerAjustes();
     const nivel = nivelClase ?? g.nivel ?? 'p34';
-    return { nivel, tipo: g.nivel === nivel && g.tipo ? g.tipo : 'mezcla', meta: g.meta ?? 3 };
+    return { nivel, tipo: g.nivel === nivel && g.tipo ? g.tipo : 'mezcla', meta: g.meta ?? 3, cifras: g.cifras ?? 1 };
   });
   const [nombres, setNombres] = useState<[string | null, string | null]>([null, null]);
   const nombreDe = (i: IndiceEquipo) => nombres[i] ?? t(i === 0 ? 'Equipo rojo' : 'Equipo azul');
@@ -467,7 +470,7 @@ export function TirarDeLaCuerda({ onClose, clase }: Props) {
 
   function empezar() {
     guardarAjustes(ajustes);
-    despachar({ tipo: 'nueva', partida: nuevaPartida(ajustes.nivel, ajustes.tipo, ajustes.meta, semillaNueva()) });
+    despachar({ tipo: 'nueva', partida: nuevaPartida(ajustes.nivel, ajustes.tipo, ajustes.meta, semillaNueva(), ajustes.cifras) });
     setCuenta(3);
     setFase('cuenta');
     setFrame('neutral');
@@ -654,10 +657,26 @@ export function TirarDeLaCuerda({ onClose, clase }: Props) {
                   key={o.id} role="radio" aria-checked={ajustes.tipo === o.id} className={`cu-opcion${ajustes.tipo === o.id ? ' sel' : ''}`}
                   onPulsar={() => setAjustes(a => ({ ...a, tipo: o.id }))}
                 >
-                  <span className="cu-signo" aria-hidden="true">{o.signo}</span>{t(o.nombre)}
+                  <span className="cu-signo" aria-hidden="true">{signoEnPantalla(o.signo, lang === 'en')}</span>{t(o.nombre)}
                 </Boton>
               ))}
             </div>
+            {usaCifras(ajustes.nivel, ajustes.tipo) && (
+              <>
+                <h2 className="cu-h2">{t('Cifras del segundo número')}</h2>
+                <div className="cu-opciones" role="radiogroup" aria-label={t('Cifras del segundo número')}>
+                  {CIFRAS.map(c => (
+                    <Boton
+                      alSoltar
+                      key={c.id} role="radio" aria-checked={ajustes.cifras === c.id} className={`cu-opcion${ajustes.cifras === c.id ? ' sel' : ''}`}
+                      onPulsar={() => setAjustes(a => ({ ...a, cifras: c.id }))}
+                    >
+                      <span className="cu-signo" aria-hidden="true">{signoEnPantalla(ejemploDeCifras(c.id, ajustes.tipo), lang === 'en')}</span>{t(c.nombre)}
+                    </Boton>
+                  ))}
+                </div>
+              </>
+            )}
             <h2 className="cu-h2">{t('Puntos para ganar')}</h2>
             <div className="cu-opciones" role="radiogroup" aria-label={t('Puntos para ganar')}>
               {PUNTOS_PARA_GANAR.map(m => (

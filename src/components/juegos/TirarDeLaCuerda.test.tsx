@@ -102,7 +102,62 @@ describe('Tirar de la cuerda', () => {
     expect(screen.getByText(/Propuesto por la clase 3\.º B/)).toBeTruthy();
     const ops = within(screen.getByRole('radiogroup', { name: 'Operación' }));
     expect(ops.getByRole('radio', { name: /Potencias y raíces/ })).toBeTruthy();
-    expect(ops.queryByRole('radio', { name: /^.?Suma$/ })).toBeNull();
+    // En ESO también están las cuatro operaciones de siempre, con «·» para multiplicar
+    expect(ops.getAllByRole('radio').map(r => r.textContent)).toEqual([
+      '+Suma', '−Resta', '·Multiplicación', ':División', '±Números enteros', 'xⁿPotencias y raíces', '%Porcentajes', '🔀Mezcla',
+    ]);
+  });
+
+  it('en 1.º y 2.º de Primaria solo salen la suma, la resta y la mezcla; una multiplicación recordada cae en la mezcla', () => {
+    localStorage.setItem('aulapro_cuerda', JSON.stringify({ nivel: 'p12', tipo: 'multiplicacion', meta: 5 }));
+    montar();
+    pulsar(screen.getByRole('button', { name: '¡A jugar!' }));
+    const ops = within(screen.getByRole('radiogroup', { name: 'Operación' }));
+    expect(ops.getAllByRole('radio').map(r => r.textContent)).toEqual(['+Suma', '−Resta', '🔀Mezcla']);
+    expect(ops.getByRole('radio', { name: /Mezcla/ }).getAttribute('aria-checked')).toBe('true');
+    expect(screen.getByRole('radio', { name: '5' }).getAttribute('aria-checked')).toBe('true');
+  });
+
+  it('«Cifras del segundo número» sale solo en 5.º y 6.º, con multiplicación, división o mezcla, y se recuerda', () => {
+    vi.useFakeTimers();
+    vi.spyOn(Math, 'random').mockReturnValue(0.25);
+    const { unmount } = montar();
+    pulsar(screen.getByRole('button', { name: '¡A jugar!' }));
+    const niveles = within(screen.getByRole('radiogroup', { name: 'Nivel' }));
+    const ops = () => within(screen.getByRole('radiogroup', { name: 'Operación' }));
+    const cifras = () => screen.queryByRole('radiogroup', { name: 'Cifras del segundo número' });
+    for (const n of ['1.º y 2.º de Primaria', '3.º y 4.º de Primaria', '1.º y 2.º de ESO', '3.º y 4.º de ESO']) {
+      pulsar(niveles.getByRole('radio', { name: n }));
+      pulsar(ops().getByRole('radio', { name: /Mezcla/ }));
+      expect(cifras(), n).toBeNull();
+    }
+    pulsar(niveles.getByRole('radio', { name: '5.º y 6.º de Primaria' }));
+    for (const [op, sale] of [['Suma', false], ['Resta', false], ['Multiplicación', true], ['División', true], ['Mezcla', true]] as const) {
+      pulsar(ops().getByRole('radio', { name: new RegExp(op) }));
+      expect(!!cifras(), op).toBe(sale);
+    }
+    const grupo = within(cifras()!);
+    expect(grupo.getByRole('radio', { name: /Una cifra/ }).getAttribute('aria-checked')).toBe('true');
+    pulsar(grupo.getByRole('radio', { name: /Dos cifras/ }));
+    // El ejemplo de cada opción es de la operación elegida
+    const ejemplos = () => within(cifras()!).getAllByRole('radio').map(r => r.querySelector('.cu-signo')?.textContent);
+    expect(ejemplos()).toEqual(['12 × 7, 84 : 6', '23 × 14, 312 : 24']);
+    pulsar(ops().getByRole('radio', { name: /Multiplicación/ }));
+    expect(ejemplos()).toEqual(['12 × 7', '23 × 14']);
+    pulsar(ops().getByRole('radio', { name: /División/ }));
+    expect(ejemplos()).toEqual(['84 : 6', '312 : 24']);
+    pulsar(screen.getByRole('button', { name: 'Empezar' }));
+    for (let i = 0; i < 4; i++) act(() => { vi.advanceTimersByTime(810); });
+    // La partida es la de dos cifras: divisores de dos cifras en los dos equipos
+    const esperada = nuevaPartida('p56', 'division', 3, (0.25 * 2 ** 32) >>> 0, 2);
+    expect(esperada.equipos[0].pregunta.texto).toMatch(/^\d+ : \d\d$/);
+    expect(screen.getByText(`${esperada.equipos[0].pregunta.texto} = ?`)).toBeTruthy();
+    expect(JSON.parse(localStorage.getItem('aulapro_cuerda') ?? '{}')).toMatchObject({ nivel: 'p56', tipo: 'division', cifras: 2 });
+    unmount();
+    // Al volver a abrir el juego se acuerda de las dos cifras
+    montar();
+    pulsar(screen.getByRole('button', { name: '¡A jugar!' }));
+    expect(within(cifras()!).getByRole('radio', { name: /Dos cifras/ }).getAttribute('aria-checked')).toBe('true');
   });
 
   it('cuenta atrás y, en la partida, los dos teclados a la vez sin pisarse; el acierto tira y el fallo no', () => {
