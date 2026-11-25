@@ -10,7 +10,7 @@ import { DEFAULT_BLOCK, type MarksInput } from '../services/classMarks';
 import { translate, EN_DICT } from '../i18n';
 import { CA } from '../i18n/ca';
 import {
-  asistenciaDelPeriodo, claseDelPeriodo, componerSeguimiento, cuentasDePeriodo, datosCambiados, fraseParaFamilia, FRASE_FAMILIA,
+  asistenciaDelPeriodo, claseDelPeriodo, componerSeguimiento, conSusReglas, copiasSobrantes, cuentasDePeriodo, datosCambiados, huellaDeInforme, fraseParaFamilia, FRASE_FAMILIA,
   MAX_DE_COMPETENCIAS, MAX_FRASES, notasDelPeriodo, origenDelTexto, periodoAnterior, quitarFrase, recalcular, reglaDe, seguimientoLimpio, tablaPorReglas,
   textosParaTraducir, tieneContenido,
 } from './informeSeguimiento';
@@ -53,10 +53,11 @@ function cuaderno(extra: Partial<MarksInput> = {}): MarksInput {
   };
 }
 
-const componer = (d: MarksInput, periodo: string, id = 'a', extra: { attendance?: AttendanceMap; evaluations?: Evaluation[]; t?: typeof es; locale?: string } = {}) =>
+const componer = (d: MarksInput, periodo: string, id = 'a', extra: { attendance?: AttendanceMap; evaluations?: Evaluation[]; t?: typeof es; locale?: string; quitadas?: string[] } = {}) =>
   componerSeguimiento({
     clase: claseDelPeriodo(d, cls, periodo, HOY, {}), student: alumno(id),
     attendance: extra.attendance ?? {}, evaluations: extra.evaluations ?? [], t: extra.t ?? es, locale: extra.locale ?? 'es-ES',
+    quitadas: extra.quitadas,
   });
 
 describe('las frases para la familia', () => {
@@ -381,6 +382,78 @@ describe('guardar, recalcular y saber si está al día', () => {
     expect('quitadas' in r.seguimiento).toBe(false);
     expect(datosCambiados(viejo, c)).toBe(false);
     expect('quitadas' in seguimientoLimpio(viejo.seguimiento!)).toBe(false);
+  });
+
+  it('en un informe guardado antes del arreglo, la frase quitada al editarlo tampoco vuelve: al abrirlo, cada frase toma su regla por su origen', () => {
+    const evs = [evaluacion('e1', 'a', '2027-01-20', { CCL: 3.8 })];
+    const c = componer(cuaderno(), P2, 'a', { evaluations: evs });
+    const sinRegla = c.seguimiento.positivos.map(({ regla: _r, ...f }) => { void _r; return { ...f }; });
+    const viejo = { ...c.seguimiento, positivos: [...sinRegla, { texto: 'Ayuda a quien lo necesita.' }], mejorar: [] };
+    // Sin la regla, quitarla no apuntaba nada: es el fallo
+    const i = sinRegla.findIndex(f => f.origen?.includes('Media de'));
+    expect('quitadas' in quitarFrase(viejo, 'positivos', i)).toBe(false);
+    const abierto = conSusReglas(viejo, c);
+    expect(abierto.positivos.slice(0, -1).every(f => !!f.regla)).toBe(true);
+    // La escrita a mano se queda sin regla
+    expect(abierto.positivos.at(-1)).toEqual({ texto: 'Ayuda a quien lo necesita.' });
+    const sinElla = seguimientoLimpio(quitarFrase(abierto, 'positivos', i));
+    expect(sinElla.quitadas).toEqual(['Media de {nota} en {asignatura}|Lengua']);
+    const r = recalcular({ seguimiento: sinElla, tabla: c.tabla }, componer(cuaderno(), P2, 'a', { evaluations: evs }));
+    expect(r.seguimiento.positivos.some(f => f.texto.startsWith('En Lengua su nota es de'))).toBe(false);
+    // Una frase cuyo dato ya no sale no inventa regla
+    expect(conSusReglas({ ...viejo, positivos: [{ texto: 'X', origen: 'Notas: un dato que ya no está' }] }, c).positivos[0]).toEqual({ texto: 'X', origen: 'Notas: un dato que ya no está' });
+  });
+
+  it('dejar vacía una frase de las reglas es quitarla: tampoco vuelve al actualizar', () => {
+    const evs = [evaluacion('e1', 'a', '2027-01-20', { CCL: 3.8 })];
+    const c = componer(cuaderno(), P2, 'a', { evaluations: evs });
+    const i = c.seguimiento.positivos.findIndex(f => f.origen?.includes('Media de'));
+    const vaciada = { ...c.seguimiento, positivos: c.seguimiento.positivos.map((f, k) => (k === i ? { ...f, texto: '   ' } : f)) };
+    const limpio = seguimientoLimpio(vaciada);
+    expect(limpio.positivos).toHaveLength(c.seguimiento.positivos.length - 1);
+    expect(limpio.quitadas).toEqual(['Media de {nota} en {asignatura}|Lengua']);
+    const r = recalcular({ seguimiento: limpio, tabla: c.tabla }, componer(cuaderno(), P2, 'a', { evaluations: evs }));
+    expect(r.seguimiento.positivos.some(f => f.texto.startsWith('En Lengua su nota es de'))).toBe(false);
+    // Una escrita a mano que se deja vacía solo se va
+    expect('quitadas' in seguimientoLimpio({ ...c.seguimiento, positivos: [{ texto: ' ' }] })).toBe(false);
+  });
+
+  it('una frase quitada no ocupa el hueco de otra: con el tope lleno, sale la siguiente que cumple las condiciones', () => {
+    const extra = {
+      evaluations: [evaluacion('e1', 'a', '2026-10-20', { CCL: 1, CP: 1.2, STEM: 1.4, CD: 1.6, CPSAA: 1.8, CC: 2, CE: 2.2 })],
+      attendance: { c1: { '2026-10-02': { a: 'absent' }, '2026-10-05': { a: 'absent' }, '2026-10-06': { a: 'late' }, '2026-10-07': { a: 'late' } } } as AttendanceMap,
+    };
+    const c = componer(cuaderno(), P1, 'a', extra);
+    const deComp = c.seguimiento.mejorar.filter(f => f.origen?.startsWith('Competencias'));
+    expect(deComp).toHaveLength(MAX_DE_COMPETENCIAS);
+    const quitada = deComp[0].regla as string;
+    const otra = componer(cuaderno(), P1, 'a', { ...extra, quitadas: [quitada] });
+    const ahora = otra.seguimiento.mejorar.filter(f => f.origen?.startsWith('Competencias'));
+    // Siguen siendo dos de competencias: la quitada no está y entra la tercera
+    expect(ahora).toHaveLength(MAX_DE_COMPETENCIAS);
+    expect(ahora.map(f => f.regla)).not.toContain(quitada);
+    expect(ahora.map(f => f.regla)).toContain(deComp[1].regla);
+    // Y al actualizar una hoja guardada pasa lo mismo
+    const sinElla = seguimientoLimpio(quitarFrase(c.seguimiento, 'mejorar', c.seguimiento.mejorar.indexOf(deComp[0])));
+    expect(recalcular({ seguimiento: sinElla, tabla: c.tabla }, otra).seguimiento.mejorar.filter(f => f.origen?.startsWith('Competencias'))).toHaveLength(MAX_DE_COMPETENCIAS);
+  });
+
+  it('la huella del informe cambia si cambia lo guardado, y las copias sin guardar que sobran se reconocen', () => {
+    const r = { text: 'Hola', seguimiento: componer(cuaderno(), P2).seguimiento, tabla: [] };
+    expect(huellaDeInforme(null)).toBe('');
+    expect(huellaDeInforme(r)).toBe(huellaDeInforme({ ...r }));
+    expect(huellaDeInforme(r)).not.toBe(huellaDeInforme({ ...r, text: 'Hola.' }));
+    const h = huellaDeInforme(r);
+    const huella = (a: string, p: string) => (a === 'a' && p === P2 ? h : '');
+    const sobran = copiasSobrantes([
+      { tipo: `informe-seguimiento:a:${P2}`, desde: h },     // sigue igual: se queda
+      { tipo: `informe-seguimiento:a:${P1}`, desde: '' },    // sin informe y sigue sin él: se queda
+      { tipo: `informe-seguimiento:a:${P3}`, desde: h },     // el informe se eliminó: sobra
+      { tipo: `informe-seguimiento:b:${P2}`, desde: 'x' },   // el informe cambió: sobra
+      { tipo: `informe-seguimiento:zz:${P2}`, desde: '' },   // el alumno ya no está: sobra
+      { tipo: `informe-seguimiento:a:${CURSO}` },            // sin huella (de antes): sobra
+    ], ['a', 'b'], huella);
+    expect(sobran).toEqual([`informe-seguimiento:a:${P3}`, `informe-seguimiento:b:${P2}`, `informe-seguimiento:zz:${P2}`, `informe-seguimiento:a:${CURSO}`]);
   });
 
   it('sabe si los datos han cambiado desde que se guardó', () => {

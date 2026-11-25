@@ -530,9 +530,9 @@ export function huellaDeInforme(r?: Pick<CompetencyReport, 'text' | 'seguimiento
  * copia (`huellaDeInforme`). `alumnos` son los ids de todo el alumnado del perfil y `huella` da, para un alumno y
  * una evaluación, la huella de su informe guardado (`''` sin informe). Una copia sin `desde` también sobra.
  */
-export function copiasSobrantes(
-  copias: readonly { tipo: string; desde?: string }[], alumnos: readonly string[], huella: (alumno: string, periodo: string) => string,
-): string[] {
+export function copiasSobrantes<K extends string>(
+  copias: readonly { tipo: K; desde?: string }[], alumnos: readonly string[], huella: (alumno: string, periodo: string) => string,
+): K[] {
   return copias.filter(({ tipo, desde }) => {
     const alumno = alumnos.find(a => tipo.startsWith(`informe-seguimiento:${a}:`));
     if (alumno === undefined) return true;

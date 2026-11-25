@@ -1,7 +1,9 @@
 /**
  * Proyectar una ficha en clase, a pantalla completa y con el tema de la
- * ficha: la portada con el personaje y la misión, una pantalla por bloque
- * (o por sala del escape room) y el final con la insignia.
+ * ficha. Una ficha de ejercicios y una comprensión lectora se proyectan un
+ * ejercicio por pantalla (`ProyeccionEjercicios`, decisión del dueño del
+ * 25-11-2026). Aquí quedan el escape room (la portada con el personaje y la
+ * misión, una pantalla por sala y el final con la insignia) y las tarjetas.
  *
  * En un escape room cada sala termina en un candado digital: la clase dice
  * el código, el docente lo teclea y, si es el bueno, la sala se abre. Abajo
@@ -17,17 +19,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { X, ChevronLeft, ChevronRight, Maximize2, Eye, EyeOff, Play, Pause, Shuffle, RotateCcw } from 'lucide-react';
 import type { Ficha } from '../../types';
-import type { FichaExercise } from '../../services/resources';
 import { cleanCode, shuffleApart } from '../../services/resources';
 import { fichaTheme } from '../../lib/fichaThemes';
 import { ThemeArt } from '../fichas/ThemeArt';
-import { buildFigureSvg } from '../../lib/geometryFigures';
-import { urlPicto } from '../../lib/pictos';
-import { dibujosEnOrden } from '../../lib/pictosFicha';
-import { urlIlustracion, nombreIlustracion } from '../../lib/ilustraciones';
-import { bancoClasificar } from '../../lib/dibujosEjercicio';
 import { useI18n } from '../../i18n';
-import { partirNegritas, quitarNegritas, sinNegritasQueNoSePintan } from '../../lib/negritas';
+import { sinNegritasQueNoSePintan } from '../../lib/negritas';
+import { cabeceraDeBloque } from '../../lib/proyeccion';
+import { ProjExercise } from './ProjExercise';
+import { ProyeccionEjercicios } from './ProyeccionEjercicios';
 
 /** En Aula Live solo el texto de una comprensión lectora se pinta con negritas; en el resto, los asteriscos se quitan. */
 const SOLO_LECTURA = new Set(['parrafos']);
@@ -54,117 +53,25 @@ function beep(times = 3) {
   } catch { /* sin audio: basta el aviso en pantalla */ }
 }
 
-/** Un dibujo del catálogo (hilo conductor), tal como va dentro de la aplicación. */
-const Ilus = ({ id, className }: { id: string; className?: string }) =>
-  <img className={className} src={`${import.meta.env.BASE_URL}${urlIlustracion(id)}`} alt="" />;
-
-/** Los dibujos del catálogo de un ejercicio, en grande: lo que hay que contar, rotular o clasificar. */
-function ProjDibujos({ ex }: { ex: FichaExercise }) {
-  const { lang } = useI18n();
-  const dibujos = (ex.dibujos ?? []).filter(d => d.ilustracion);
-  if (ex.tipo === 'clasificar') {
-    return (
-      <>
-        <div className="cp-ilus">{bancoClasificar(ex.categorias).map((d, i) => (
-          <span key={i} className="cp-ilus-c"><b>{i + 1}</b><Ilus id={d.id} /><small>{nombreIlustracion(d.id, lang)}</small></span>
-        ))}</div>
-        <div className="cp-items">{(ex.categorias ?? []).map((c, i) => <span key={i} className="cp-item"><b>{c.nombre}</b></span>)}</div>
-      </>
-    );
-  }
-  if (!dibujos.length || ex.tipo === 'relacionar' || ex.tipo === 'tabla_rellenar') return null;
-  if (ex.tipo === 'contar') {
-    return (
-      <div className="cp-contar">{dibujos.map((d, i) => (
-        <div key={i} className="cp-ilus">{Array.from({ length: Math.max(1, Math.min(10, d.cantidad ?? 1)) }, (_, k) => <Ilus key={k} id={d.ilustracion} />)}</div>
-      ))}</div>
-    );
-  }
-  return (
-    <div className="cp-ilus">{dibujos.flatMap((d, i) => Array.from({ length: ex.tipo === 'etiquetar' ? 1 : Math.max(1, Math.min(10, d.cantidad ?? 1)) }, (_, k) => (
-      <span key={`${i}-${k}`} className="cp-ilus-c">{ex.tipo === 'etiquetar' && <b>{i + 1}</b>}<Ilus id={d.ilustracion} /></span>
-    )))}</div>
-  );
-}
-
 const mmss = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
-
-/** Un ejercicio en grande, para leerlo desde el fondo del aula. */
-function ProjExercise({ ex, n, showSol, color, t }: {
-  ex: FichaExercise; n: number; showSol: boolean; color: string; t: (k: string) => string;
-}) {
-  const letra = (i: number) => String.fromCharCode(97 + i);
-  return (
-    <div className="cp-ex">
-      <div className="cp-ex-q">
-        <span className="cp-ex-n" style={{ background: color }}>{n}</span>
-        {ex.consigna && <img className="cp-consigna" src={urlPicto(ex.consigna)} alt="" />}
-        {ex.enunciado}
-      </div>
-      {/* Ficha con apoyos visuales: lo que hay que contar o reconocer, en grande */}
-      {!!ex.imagenes?.length && (
-        <div className="cp-dibujos">{dibujosEnOrden(ex.imagenes).map((id, i) => <img key={i} src={urlPicto(id)} alt="" />)}</div>
-      )}
-      <ProjDibujos ex={ex} />
-      {ex.figura && (
-        <div className="cp-fig" dangerouslySetInnerHTML={{ __html: buildFigureSvg(ex.figura.forma, ex.figura.medidas, color) }} />
-      )}
-      {!!ex.opciones?.length && (
-        <div className="cp-items">{ex.opciones.map((o, i) => <span key={i} className="cp-item"><b>{letra(i)})</b> {o}</span>)}</div>
-      )}
-      {!!ex.afirmaciones?.length && (
-        <div className="cp-list">{ex.afirmaciones.map((a, i) => <div key={i} className="cp-row">{a}<span className="cp-vf">{t('V')} / {t('F')}</span></div>)}</div>
-      )}
-      {ex.tipo === 'calculos' && !!ex.lineas?.length && (
-        <div className="cp-list">{ex.lineas.map((l, i) => <div key={i} className="cp-row">{i + 1}. {l.replace(/[\s=_…]+$/u, '')} = …</div>)}</div>
-      )}
-      {!!ex.elementos?.length && (
-        <div className="cp-items">{ex.elementos.map((e, i) => <span key={i} className="cp-item">{e}</span>)}</div>
-      )}
-      {ex.tipo === 'relacionar' && !!ex.izquierda?.length && (
-        <div className="cp-two">
-          <div>{ex.izquierda.map((x, i) => (
-            <div key={i} className="cp-row">{ex.dibujos?.[i]?.ilustracion ? <Ilus id={ex.dibujos[i].ilustracion} className="cp-rel-img" /> : null}{i + 1}. {x}</div>
-          ))}</div>
-          <div>{(ex.derecha ?? []).map((x, i) => <div key={i} className="cp-row">{letra(i).toUpperCase()}. {x}</div>)}</div>
-        </div>
-      )}
-      {ex.tipo === 'tabla_rellenar' && !!ex.columnas?.length && (
-        <table className="cp-table">
-          <thead><tr>{ex.columnas.map((c, i) => <th key={i} style={{ background: color }}>{c}</th>)}</tr></thead>
-          <tbody>{(ex.filas ?? []).map((f, r) => <tr key={r}>{f.map((c, i) => <td key={i}>{c || '…'}</td>)}</tr>)}</tbody>
-        </table>
-      )}
-      {ex.tipo === 'colorear' && (
-        <div className="cp-items">
-          {(ex.leyenda ?? []).map((l, i) => <span key={`l${i}`} className="cp-item">🎨 {l.color}: {l.criterio}</span>)}
-          {(ex.itemsColorear ?? []).map((x, i) => <span key={i} className="cp-item">{x}</span>)}
-        </div>
-      )}
-      {ex.tipo === 'comic' && !!ex.vinetas?.length && (
-        <div className="cp-comic">
-          {ex.vinetas.map((v, i) => (
-            <div key={i} className="cp-panel">
-              <div className={`cp-bubble${v.texto ? '' : ' empty'}`}>{v.texto || '…?'}</div>
-              <div className="cp-who">{v.personaje}</div>
-            </div>
-          ))}
-        </div>
-      )}
-      {(ex.tipo === 'sopa_letras' || ex.tipo === 'crucigrama') && (
-        <div className="cp-note">📄 {t('Resuélvelo en tu hoja')}</div>
-      )}
-      {showSol && ex.solucion && <div className="cp-sol">✅ {ex.solucion}</div>}
-    </div>
-  );
-}
 
 interface Props {
   ficha: Ficha;
   onClose: () => void;
 }
 
+/**
+ * Proyectar una ficha: un escape room y unas tarjetas, aquí; una ficha de ejercicios y una
+ * comprensión lectora, un ejercicio por pantalla.
+ */
 export function ChallengePresenter({ ficha, onClose }: Props) {
+  const f = ficha.content.formato;
+  if (f === 'escape' || f === 'tarjetas') return <PresentadorReto ficha={ficha} onClose={onClose} />;
+  return <ProyeccionEjercicios ficha={ficha} onClose={onClose} />;
+}
+
+/** El escape room (salas con candado) y las tarjetas que se giran. */
+function PresentadorReto({ ficha, onClose }: Props) {
   const { t } = useI18n();
   const c = useMemo(() => sinNegritasQueNoSePintan(ficha.content, SOLO_LECTURA), [ficha.content]);
   const theme = fichaTheme(c.estilo);
@@ -172,10 +79,7 @@ export function ChallengePresenter({ ficha, onClose }: Props) {
   const escape = c.formato === 'escape';
   const cards = c.formato === 'tarjetas';
   const acts = useMemo(() => (cards ? [] : c.actividades ?? []), [cards, c.actividades]);
-  // Una comprensión lectora tiene una pantalla más, antes de los bloques: el texto para leerlo entre todos
-  const conTexto = !cards && !!c.lectura;
-  const off = conTexto ? 1 : 0;
-  const lastStep = cards ? 1 : acts.length + off + 1;
+  const lastStep = cards ? 1 : acts.length + 1;
   const paso = escape ? 'Sala' : theme.paso;
 
   const [step, setStep] = useState(0);
@@ -206,9 +110,9 @@ export function ChallengePresenter({ ficha, onClose }: Props) {
   const [lockState, setLockState] = useState<'idle' | 'wrong' | 'open'>('idle');
   const [tries, setTries] = useState(0);
   const boxesRef = useRef<(HTMLInputElement | null)[]>([]);
-  const act = step >= 1 + off && step <= acts.length + off ? acts[step - 1 - off] : undefined;
-  /** El número del bloque que se ve (1, 2, 3…), sin contar la pantalla del texto. */
-  const bi = step - off;
+  const act = step >= 1 && step <= acts.length ? acts[step - 1] : undefined;
+  /** El número de la sala que se ve (1, 2, 3…). */
+  const bi = step;
   const lockLen = act?.candado ? Math.max(3, act.candado.codigo.length) : 0;
 
   function celebrate(big = false) {
@@ -269,7 +173,8 @@ export function ChallengePresenter({ ficha, onClose }: Props) {
     keyRef.current = (e: KeyboardEvent) => {
       const typing = (e.target as HTMLElement)?.tagName === 'INPUT';
       if (e.key === 'Escape' && !document.fullscreenElement) { onClose(); return; }
-      if (typing) return;
+      // Ctrl+S, Ctrl+F… son del navegador: no enseñan las soluciones a la clase
+      if (typing || e.ctrlKey || e.metaKey || e.altKey) return;
       if (cards && step === 1) {
         if (e.key === 'ArrowRight') moveCard(1);
         else if (e.key === 'ArrowLeft') moveCard(-1);
@@ -286,7 +191,11 @@ export function ChallengePresenter({ ficha, onClose }: Props) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => keyRef.current(e);
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      // Al salir desde el final, el confeti no sigue cayendo sobre la pantalla de debajo
+      (confetti as { reset?: () => void }).reset?.();
+    };
   }, []);
 
   useEffect(() => { if (lockLen) boxesRef.current[0]?.focus(); }, [step, lockLen]);
@@ -367,36 +276,18 @@ export function ChallengePresenter({ ficha, onClose }: Props) {
             </div>
           )}
 
-          {/* El texto de una comprensión lectora, para leerlo entre todos */}
-          {conTexto && step === 1 && c.lectura && (
-            <div className={`cp-lectura${c.variante === 'lectura_facil' ? ' facil' : ''}`}>
-              {c.lectura.pista && <div className="cp-lectura-pista">🔍 {c.lectura.pista}</div>}
-              <div className="cp-lectura-texto">
-                {c.lectura.parrafos.map((p, i) => {
-                  const dib = c.lectura!.dibujos.find(d => d.parrafo === i)?.ilustracion;
-                  return (
-                    <p key={i} className={c.lectura!.genero === 'poema' ? 'verso' : undefined}>
-                      {dib && <Ilus id={dib} className="cp-lectura-img" />}
-                      {quitarNegritas(p) === p ? p : partirNegritas(p).map((x, k) => (x.negrita ? <b key={k}>{x.texto}</b> : <span key={k}>{x.texto}</span>))}
-                    </p>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
           {/* Bloques / salas */}
           {act && (
             <div className="cp-room">
               <div className="cp-room-hd" style={{ background: blockColor(bi - 1) }}>
                 <span className="cp-room-emoji">{actEmoji(bi - 1)}</span>
-                <span>{t(paso)} {bi} · {act.titulo}</span>
+                <span>{cabeceraDeBloque([t(paso), paso], bi, act.titulo)}</span>
                 {done.has(step) && <span className="cp-done-badge">✓</span>}
               </div>
               {act.narrativa && <div className="cp-narr">{act.narrativa}</div>}
               <div className="cp-exs">
                 {act.ejercicios.map((ex, i) => (
-                  <ProjExercise key={i} ex={ex} n={i + 1} showSol={showSol} color={blockColor(bi - 1)} t={t} />
+                  <ProjExercise key={i} ex={ex} n={i + 1} showSol={showSol} color={blockColor(bi - 1)} uid={`s${bi}-${i}`} />
                 ))}
               </div>
 
@@ -490,20 +381,14 @@ export function ChallengePresenter({ ficha, onClose }: Props) {
         <nav className="cp-map" aria-label={t('Mapa de la aventura')}>
           <button type="button" className="cp-nav" onClick={() => go(step - 1)} disabled={step === 0} aria-label={t('Anterior')}><ChevronLeft size={22} /></button>
           <button type="button" className={`cp-dot${step === 0 ? ' cur' : ''} done`} onClick={() => go(0)} title={t('Portada')}>⭐</button>
-          {conTexto && (
-            <span className="cp-map-seg">
-              <span className="cp-line done" />
-              <button type="button" className={`cp-dot${step === 1 ? ' cur' : ''} done`} onClick={() => go(1)} title={t('El texto')}>📖</button>
-            </span>
-          )}
           {acts.map((_, i) => (
             <span key={i} className="cp-map-seg">
-              <span className={`cp-line${done.has(i + 1 + off) ? ' done' : ''}`} />
+              <span className={`cp-line${done.has(i + 1) ? ' done' : ''}`} />
               <button
-                type="button" className={`cp-dot${step === i + 1 + off ? ' cur' : ''}${done.has(i + 1 + off) ? ' done' : ''}`}
-                onClick={() => go(i + 1 + off)} title={`${t(paso)} ${i + 1}: ${acts[i].titulo}`}
+                type="button" className={`cp-dot${step === i + 1 ? ' cur' : ''}${done.has(i + 1) ? ' done' : ''}`}
+                onClick={() => go(i + 1)} title={cabeceraDeBloque([t(paso), paso], i + 1, acts[i].titulo)}
               >
-                {done.has(i + 1 + off) ? '✓' : actEmoji(i)}
+                {done.has(i + 1) ? '✓' : actEmoji(i)}
               </button>
             </span>
           ))}

@@ -100,44 +100,30 @@ describe('ChallengePresenter · asteriscos de negrita', () => {
   });
 });
 
-describe('ChallengePresenter · comprensión lectora', () => {
-  const lectura: Ficha = {
-    id: 'l1', at: '2026-10-17T10:00:00Z', date: '2026-10-17', title: 'El dragón',
-    request: { tema: 'dragón', area: 'Lengua', nivel: '3º', numEjercicios: 2, niveles: false, contextoClase: '' },
-    content: {
-      estilo: 'cuaderno', formato: 'ficha', titulo: 'El dragón sin fuego', explicacion: '', instrucciones: '', variante: 'lectura_facil',
-      lectura: { genero: 'cuento', parrafos: ['Había un **dragón** solo.', 'Un día llegó un amigo.'], dibujos: [{ ilustracion: 'cue-dragon', parrafo: 0 }], pista: 'Fíjate en el dragón.' },
-      actividades: [{ titulo: 'Buscamos', ejercicios: [{ tipo: 'abierta', enunciado: '¿Quién llegó?', solucion: 'Un amigo' }] }],
-    },
-  };
-
-  it('tras la portada hay una pantalla con el texto, con sus dibujos y sus negritas; los bloques vienen después', async () => {
-    const { container } = renderIt(lectura);
-    await userEvent.click(screen.getByRole('button', { name: /Empezar la misión/ }));
-    expect(await screen.findByText('Fíjate en el dragón.', { exact: false })).toBeTruthy();
-    expect(container.querySelector('.cp-lectura.facil')).toBeTruthy();
-    expect(container.querySelector('.cp-lectura-texto b')?.textContent).toBe('dragón');
-    expect(container.querySelector('.cp-lectura-img')).toBeTruthy();
-    expect(screen.getByText('Un día llegó un amigo.')).toBeTruthy();
-    expect(container.textContent).not.toContain('**');
-    // Siguiente: el primer bloque, que sigue siendo el «1»
-    await userEvent.click(screen.getByRole('button', { name: 'Siguiente' }));
-    expect(await screen.findByText(/Actividad 1 · Buscamos/)).toBeTruthy();
-    expect(screen.getByText('¿Quién llegó?')).toBeTruthy();
+describe('ChallengePresenter · escape room', () => {
+  it('el título de una sala que ya dice «Sala 1» no se repite', async () => {
+    const f = { ...base, content: { ...base.content, actividades: [{ ...base.content.actividades[0], titulo: 'Sala 1: la compuerta' }] } };
+    renderIt(f);
+    await userEvent.click(screen.getByRole('button', { name: /Empezar a escapar/ }));
+    expect(await screen.findByText('Sala 1: la compuerta')).toBeTruthy();
+    expect(screen.queryByText(/Sala 1 · Sala 1/)).toBeNull();
   });
 
-  it('el mapa tiene su punto para el texto y no cuenta como un bloque', async () => {
-    renderIt(lectura);
-    await userEvent.click(screen.getByRole('button', { name: /Empezar la misión/ }));
-    expect(screen.getByTitle('El texto')).toBeTruthy();
-    await userEvent.click(screen.getByTitle(/Actividad 1: Buscamos/));
-    expect(await screen.findByText('¿Quién llegó?')).toBeTruthy();
-  });
-
-  it('una ficha sin texto sigue igual: de la portada al primer bloque', async () => {
+  it('un título sin el número lleva delante «Sala 1 ·», como siempre', async () => {
     renderIt(base);
     await userEvent.click(screen.getByRole('button', { name: /Empezar a escapar/ }));
-    expect(screen.queryByTitle('El texto')).toBeNull();
+    expect(await screen.findByText('Sala 1 · La bodega')).toBeTruthy();
+  });
+
+  it('el escape room sigue con todos los ejercicios de la sala a la vista y su temporizador en la portada', async () => {
+    const f = { ...base, content: { ...base.content, actividades: [{ ...base.content.actividades[0], ejercicios: [
+      { tipo: 'completar' as const, enunciado: 'Primero', solucion: '1' },
+      { tipo: 'completar' as const, enunciado: 'Segundo', solucion: '2' },
+    ] }] } };
+    renderIt(f);
+    expect(screen.getByText(/Tiempo/)).toBeTruthy();
+    await userEvent.click(screen.getByRole('button', { name: /Empezar a escapar/ }));
+    expect(await screen.findByText('Primero')).toBeTruthy();
+    expect(screen.getByText('Segundo')).toBeTruthy();
   });
 });
-

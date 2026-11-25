@@ -144,7 +144,7 @@ export function Reports(props: Props) {
       return b ? [{ tipo, desde: b.datos.desde }] : [];
     });
     const huella = (alumno: string, periodo: string) => huellaDeInforme(reports.find(r => r.student_id === alumno && r.period === periodo));
-    copiasSobrantes(copias, students.map(s => s.id), huella).forEach(tipo => borrarBorrador(tipo as typeof copias[number]['tipo']));
+    copiasSobrantes(copias, students.map(s => s.id), huella).forEach(borrarBorrador);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- una vez, al entrar
   }, []);
 

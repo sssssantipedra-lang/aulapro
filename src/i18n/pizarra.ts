@@ -101,6 +101,21 @@ export const PIZARRA_EN: Record<string, string> = {
   // Plan del día
   'Apunta lo que vais a hacer hoy y ve tachándolo.': 'Write down what you will do today and tick it off.',
   'Añadir una actividad': 'Add an activity',
+  // Proyectar una ficha, un ejercicio por pantalla (25-11-2026)
+  'Ejercicio {n} de {m}': 'Exercise {n} of {m}',
+  '1 ejercicio': '1 exercise',
+  'Un texto y {n} ejercicios': 'A text and {n} exercises',
+  'Un texto y 1 ejercicio': 'A text and 1 exercise',
+  'Un texto': 'A text',
+  'Esta ficha aún no tiene ejercicios escritos.': 'This worksheet has no written exercises yet.',
+  'Ver solución': 'Show answer',
+  'Ocultar solución': 'Hide answer',
+  'Tecla S': 'Shortcut: S',
+  'Ver el texto': 'Show the text',
+  'Volver al ejercicio': 'Back to the exercise',
+  'Escribir encima con el lápiz': 'Write on top with the pen',
+  'Borrar todo lo escrito': 'Clear everything written',
+  'Proyectarla a pantalla completa': 'Project it full screen',
 };
 
 export const PIZARRA_CA: Record<string, string> = {
@@ -190,4 +205,18 @@ export const PIZARRA_CA: Record<string, string> = {
   'El alumnado lo escanea con la cámara del móvil.': 'L’alumnat l’escaneja amb la càmera del mòbil.',
   'Apunta lo que vais a hacer hoy y ve tachándolo.': 'Apunta el que farem avui i ves-ho ratllant.',
   'Añadir una actividad': 'Afegir una activitat',
+  'Ejercicio {n} de {m}': 'Exercici {n} de {m}',
+  '1 ejercicio': '1 exercici',
+  'Un texto y {n} ejercicios': 'Un text i {n} exercicis',
+  'Un texto y 1 ejercicio': 'Un text i 1 exercici',
+  'Un texto': 'Un text',
+  'Esta ficha aún no tiene ejercicios escritos.': 'Aquesta fitxa encara no té exercicis escrits.',
+  'Ver solución': 'Veure la solució',
+  'Ocultar solución': 'Amagar la solució',
+  'Tecla S': 'Drecera: S',
+  'Ver el texto': 'Veure el text',
+  'Volver al ejercicio': "Tornar a l'exercici",
+  'Escribir encima con el lápiz': 'Escriure-hi a sobre amb el llapis',
+  'Borrar todo lo escrito': 'Esborrar tot el que s’ha escrit',
+  'Proyectarla a pantalla completa': 'Projectar-la a pantalla completa',
 };

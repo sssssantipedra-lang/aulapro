@@ -19,7 +19,7 @@ import { useAcsParaIA } from '../hooks/useAcsParaIA';
 import { palabrasDeNombres } from '../lib/barreras';
 import type { AcsApoyo } from '../types/apoyo';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Sparkles, Plus, Trash2, Check, FileDown, FileType2, ArrowLeft, ArrowUp, ArrowDown, Wand2, Layers, Eye, ChevronDown, MonitorPlay, NotebookPen, BookOpen, KeyRound, Scissors, FlipHorizontal2, Image as ImageIcon, Pencil, Grid2x2, Zap, FilePlus2,
 } from 'lucide-react';
@@ -65,14 +65,15 @@ import { bloqueVacio, cambiarTipo, dificultadDelSiguiente, duplicarEjercicio, ej
 import { areaPropuesta, type FichaInstante, type GeneradorInstante as Generador } from '../lib/fichaInstante';
 import { GeneradorInstante } from '../components/fichas/GeneradorInstante';
 
+/** La proyección de una ficha (un ejercicio por pantalla, escape room o tarjetas): se carga al proyectar. */
+const ChallengePresenter = lazy(() => import('../components/live/ChallengePresenter').then(m => ({ default: m.ChallengePresenter })));
+
 interface Props {
   classes: Class[];
   fichas: Ficha[];
   onSave: (f: Ficha) => void;
   onDelete: (id: string) => void;
   onNav: (s: string) => void;
-  /** Abre la ficha a pantalla completa en Aula Live. */
-  onProject?: (f: Ficha) => void;
   /** PT y AL: su alumnado de apoyo, para hacer una ficha adaptada a uno. */
   apoyo?: ApoyoData;
   /** Docente de aula o de EF: su alumnado y sus adaptaciones curriculares significativas, para tenerlas en cuenta. */
@@ -172,7 +173,7 @@ interface BorradorFicha {
   modoTarjeta: 'recortables' | 'interactivas';
 }
 
-export function Resources({ classes, fichas, onSave, onDelete, onProject, apoyo, students = [], acsAula = [], comunidad }: Props) {
+export function Resources({ classes, fichas, onSave, onDelete, apoyo, students = [], acsAula = [], comunidad }: Props) {
   const { toast } = useToast();
   const { t, lang, locale } = useI18n();
   const nombreCurso = useNombreCurso();
@@ -246,6 +247,8 @@ export function Resources({ classes, fichas, onSave, onDelete, onProject, apoyo,
   const [pickingImagen, setPickingImagen] = useState<number | null>(null);
   /** Tarjetas interactivas: abrir el modo de uso (girar y marcar), desde el editor o la biblioteca. */
   const [projecting, setProjecting] = useState<{ titulo: string; cards: FichaTarjetaInteractiva[] } | null>(null);
+  /** La ficha que se está proyectando (ejercicios, lectura, escape room o tarjetas recortables). */
+  const [proyectando, setProyectando] = useState<Ficha | null>(null);
   /** Tarjetas interactivas: abrir el juego del memory. */
   const [memory, setMemory] = useState<{ titulo: string; cards: FichaTarjetaInteractiva[] } | null>(null);
   /** Ficha de la biblioteca con su panel de acciones («Proyectar» / «Editar») abierto. */
@@ -430,7 +433,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onProject, apoyo,
     setContent(null); setEditingId(null); setDirty(false); setSelected(null);
   }
 
-  /** Proyectar una ficha guardada: las interactivas abren el modo de girar, el resto va a Pizarra y herramientas. */
+  /** Proyectar una ficha guardada: las interactivas abren el modo de girar, el resto se proyecta aquí mismo. */
   function projectFicha(f: Ficha) {
     setMenuFicha(null);
     if (f.content.interactivas) {
@@ -440,9 +443,13 @@ export function Resources({ classes, fichas, onSave, onDelete, onProject, apoyo,
     }
   }
 
-  /** A Pizarra y herramientas va lo que se imprime: sin los ejercicios añadidos a mano que aún no se han escrito. */
+  /**
+   * Se proyecta lo que se imprime: sin los ejercicios añadidos a mano que aún no se han escrito. La
+   * proyección se abre encima de Recursos (25-11-2026: antes iba a Pizarra y herramientas y, al salir,
+   * el docente se quedaba allí aunque viniera de aquí).
+   */
   function proyectar(f: Ficha) {
-    onProject?.({ ...f, content: sinEjerciciosSinEscribir(f.content) });
+    setProyectando({ ...f, content: sinEjerciciosSinEscribir(f.content) });
   }
 
   function editFicha(f: Ficha) {
@@ -673,8 +680,8 @@ export function Resources({ classes, fichas, onSave, onDelete, onProject, apoyo,
                 </button>
               </>
             )}
-            {onProject && !content.interactivas && (
-              <button type="button" className="btn-ghost" onClick={() => proyectar(ficha)} title={t('Proyectarla a pantalla completa en Aula Live')}>
+            {!content.interactivas && (
+              <button type="button" className="btn-ghost" onClick={() => proyectar(ficha)} title={t('Proyectarla a pantalla completa')}>
                 <MonitorPlay size={14} />{t('Proyectar')}
               </button>
             )}
@@ -990,6 +997,11 @@ export function Resources({ classes, fichas, onSave, onDelete, onProject, apoyo,
           onClose={() => setPickingImagen(null)}
           onPick={(tipo, id) => { if (pickingImagen !== null) patchCardInt(pickingImagen, { imagen: id, imagenTipo: tipo }); setPickingImagen(null); }}
         />
+        {proyectando && (
+          <Suspense fallback={null}>
+            <ChallengePresenter ficha={proyectando} onClose={() => setProyectando(null)} />
+          </Suspense>
+        )}
         {projecting && (
           <TarjetasInteractivasPlay
             onClose={() => setProjecting(null)}
@@ -1354,6 +1366,11 @@ export function Resources({ classes, fichas, onSave, onDelete, onProject, apoyo,
 
       {projecting && (
         <TarjetasInteractivasPlay onClose={() => setProjecting(null)} titulo={projecting.titulo} cards={projecting.cards} />
+      )}
+      {proyectando && (
+        <Suspense fallback={null}>
+          <ChallengePresenter ficha={proyectando} onClose={() => setProyectando(null)} />
+        </Suspense>
       )}
       {memory && (
         <TarjetasMemory onClose={() => setMemory(null)} titulo={memory.titulo} cards={memory.cards} />

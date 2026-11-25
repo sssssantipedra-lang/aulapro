@@ -10,7 +10,11 @@ la interfaz pública que se conocía, no de una comparación pantalla a pantalla
 
 - **Herramientas:** temporizador, ruleta (por clase), calculadora, sonómetro, contenido incrustado, reloj y fecha,
   cronómetro con vueltas, semáforo, símbolos de trabajo, dados (1 a 6), grupos (de la clase elegida, por tamaño o por
-  número), marcador por equipos, plan del día con casillas, nota y código QR. «Reto» proyecta una ficha.
+  número), marcador por equipos, plan del día con casillas, nota y código QR. «Reto» proyecta una ficha guardada
+  (al salir, se sigue en la pizarra). Desde el 25-11-2026 una ficha de ejercicios o una comprensión lectora se
+  proyecta un ejercicio por pantalla, con «Ver solución», un lápiz encima y deslizar el dedo para pasar
+  (`ProyeccionEjercicios`; detalle en `docs/FICHAS.md`, «Proyectar una ficha»), y «Proyectar» de Recursos ya no
+  pasa por la pizarra: se abre encima de Recursos y al salir se vuelve allí.
   Las nuevas están en `src/components/live/PizarraWidgets.tsx` y la lógica sin pantalla, en `src/lib/pizarraAula.ts`.
 - **Ruleta con memoria** (18-10-2026, petición del dueño): quien sale queda guardado por clase (`src/lib/ruleta.ts`,
   `aulapro_ruleta_<id de clase>`) y no vuelve a salir hasta «Reiniciar lista», aunque se cierre la pizarra. Dos
@@ -107,5 +111,5 @@ la interfaz pública que se conocía, no de una comparación pantalla a pantalla
 ## La pizarra sigue viva al cambiar de pantalla (19-11-2026)
 
 - Antes la pizarra se desmontaba al salir de ella: pasar lista o anotar actitud a mitad de clase costaba el temporizador en marcha, los grupos formados y lo dibujado. Ahora, una vez abierta, se queda montada y oculta (`PizarraViva` y `pizarraViva` en `src/App.tsx`) y al volver está como se dejó. Se suelta sola a los veinte minutos de haber salido de ella (para no dejar abierto el micrófono del medidor de ruido ni un vídeo; el plazo no se reinicia al pasar de una pantalla a otra, y con un temporizador en marcha espera, `lib/ocupado.ts`) y al cambiar de perfil. Mientras está montada, la app no se recarga para poner una versión nueva. Pendiente: que el medidor de ruido suelte el micrófono mientras la pizarra está oculta.
-- Consecuencias que hay que tener en cuenta: oculta mide cero, así que el ajuste de las ventanas al tamaño no actúa entonces (`ajustar` en `SecClassroom.tsx`); una ficha mandada a proyectar llega como cambio de la propiedad `projectFicha`, no solo al montar, y lo mismo la clase (`claseInicial`), que se vuelve a mirar en cada entrada y desde el 20-11-2026 es la clase activa (la de ahora según el horario o, sin clase en ese momento, la última usada: `claseAlAbrirAhora`, `src/lib/claseActiva.ts`); y en el documento sigue habiendo elementos de la pizarra aunque no se vean, cosa que tienen que saber las pruebas y `scripts/web/capturar.mjs` (que recarga la app para recolocar las ventanas).
+- Consecuencias que hay que tener en cuenta: oculta mide cero, así que el ajuste de las ventanas al tamaño no actúa entonces (`ajustar` en `SecClassroom.tsx`); una ficha mandada a proyectar llega como cambio de la propiedad `projectFicha`, no solo al montar (desde el 25-11-2026 Recursos ya no la usa: proyecta encima de sí misma; la propiedad queda para otra pantalla que quiera mandar una ficha a la pizarra), y lo mismo la clase (`claseInicial`), que se vuelve a mirar en cada entrada y desde el 20-11-2026 es la clase activa (la de ahora según el horario o, sin clase en ese momento, la última usada: `claseAlAbrirAhora`, `src/lib/claseActiva.ts`); y en el documento sigue habiendo elementos de la pizarra aunque no se vean, cosa que tienen que saber las pruebas y `scripts/web/capturar.mjs` (que recarga la app para recolocar las ventanas).
 - El temporizador va por el reloj (hora de fin), no restando un segundo por impulso: con la pestaña oculta o la tableta bloqueada ya no se retrasa.

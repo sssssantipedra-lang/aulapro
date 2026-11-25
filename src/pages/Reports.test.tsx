@@ -8,6 +8,7 @@ import { render, screen, cleanup, fireEvent, within, waitFor } from '@testing-li
 import { useEffect, useState } from 'react';
 import type { AttendanceMap, Class, ClassMark, CompetencyReport, Evaluation, GradeCategory, GradeItem, GradeMap, Student } from '../types';
 import { DEFAULT_BLOCK } from '../services/classMarks';
+import { guardarBorrador } from '../services/borradores';
 
 const ia = vi.hoisted(() => ({ conClave: false, llamadas: [] as string[], respuesta: '' }));
 vi.mock('../services/gemini', async importOriginal => ({
@@ -355,6 +356,51 @@ describe('Informes: la hoja a medias y las frases quitadas', () => {
     expect(copias()).toHaveLength(0);
     expect(guardados).toHaveLength(0);
     expect(screen.queryByText(/Te quedó un informe de seguimiento sin guardar/)).toBeNull();
+  });
+
+  it('en un informe guardado antes de recordar las quitadas, quitar una frase con «Editar» también se recuerda', () => {
+    // Un informe del 24-11: frases con su origen y sin `regla`
+    render(<Pantalla />);
+    elegir('Alumno 1');
+    fireEvent.click(screen.getByRole('button', { name: 'Informe de seguimiento' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar informe' }));
+    const viejo = guardados[0];
+    const sinRegla = (xs: NonNullable<CompetencyReport['seguimiento']>['positivos']) => xs.map(({ regla: _r, ...f }) => { void _r; return f; });
+    const delDia24: CompetencyReport = { ...viejo, seguimiento: { ...viejo.seguimiento!, positivos: sinRegla(viejo.seguimiento!.positivos), mejorar: sinRegla(viejo.seguimiento!.mejorar) } };
+    cleanup(); localStorage.clear();
+    render(<Pantalla iniciales={[delDia24]} />);
+    elegir('Alumno 1');
+    fireEvent.click(screen.getByRole('button', { name: 'Editar' }));
+    const i = frases().indexOf('En Matemáticas su nota es de 8,5 sobre 10, un buen resultado.');
+    expect(i).toBeGreaterThanOrEqual(0);
+    fireEvent.click(screen.getAllByRole('button', { name: 'Quitar esta frase' })[i]);
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }));
+    expect(guardados[0].seguimiento?.quitadas).toEqual(['Media de {nota} en {asignatura}|Matemáticas']);
+  });
+
+  it('una copia a medias no se ofrece si el informe cambió después por otro camino (no pisa lo nuevo)', () => {
+    render(<Pantalla />);
+    elegir('Alumno 2');
+    fireEvent.click(screen.getByRole('button', { name: 'Informe de seguimiento' }));
+    fireEvent.change(screen.getByLabelText('Observaciones del docente'), { target: { value: 'Lo dejo a medias.' } });
+    elegir('Alumno 1');
+    elegir('Alumno 2');
+    expect(screen.getByText(/Te quedó un informe de seguimiento sin guardar/)).toBeTruthy();
+    // Después se crean los de toda la clase: el alumno 2 ya tiene informe, y la copia era de cuando no lo tenía
+    fireEvent.click(screen.getByRole('button', { name: 'Informes de seguimiento de la clase' }));
+    expect(guardados.some(r => r.student_id === 's2')).toBe(true);
+    expect(screen.queryByText(/Te quedó un informe de seguimiento sin guardar/)).toBeNull();
+    // Tampoco dentro del editor
+    fireEvent.click(screen.getByRole('button', { name: 'Editar' }));
+    expect(screen.queryByText(/Te quedó un informe de seguimiento sin guardar/)).toBeNull();
+  });
+
+  it('al entrar se borran las copias sin guardar de un alumno que ya no está y las de un informe que ha cambiado', () => {
+    guardarBorrador('informe-seguimiento:borrado:2ª evaluación', { text: '', seguimiento: { notas: [], asistencia: null, positivos: [], mejorar: [], observacion: 'Sobre un alumno eliminado.' }, tabla: [], desde: '' }, 'X');
+    guardarBorrador('informe-seguimiento:s2:2ª evaluación', { text: '', seguimiento: { notas: [], asistencia: null, positivos: [], mejorar: [], observacion: 'Sigue valiendo.' }, tabla: [], desde: '' }, 'Alumno 2');
+    guardarBorrador('informe-seguimiento:s1:2ª evaluación', { text: '', seguimiento: { notas: [], asistencia: null, positivos: [], mejorar: [], observacion: 'De un informe que ya era otro.' }, tabla: [], desde: 'otro' }, 'Alumno 1');
+    render(<Pantalla />);
+    expect(Object.keys(localStorage).filter(k => k.includes('informe-seguimiento')).map(k => k.split('_').pop())).toEqual(['informe-seguimiento:s2:2ª evaluación']);
   });
 
   it('una frase quitada no vuelve con «Actualizar los datos», aunque su nota cambie', () => {
