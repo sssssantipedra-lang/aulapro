@@ -106,6 +106,7 @@ export const EN: Record<string, string> = {
   'una pizarra': 'a whiteboard',
   '{n} pizarras': '{n} whiteboards',
   // Confirmaciones que decían «no se puede deshacer»: ahora, durante unos segundos, sí se puede
+  '¿Eliminar la clase "{name}"? Se borran también su alumnado, su cuaderno, sus evaluaciones, su asistencia, sus anotaciones de actitud, sus informes, sus horas del horario semanal y su distribución de aula.': 'Delete the class "{name}"? Its students, gradebook, assessments, attendance, behaviour notes, reports, timetable slots and seating plan are deleted too.',
   '¿Eliminar a {name}? Se borran también sus notas, sus evaluaciones, su asistencia y sus informes.': 'Delete {name}? Their grades, assessments, attendance and reports are deleted too.',
   'Se borrarán las respuestas de {n} alumno de «{title}».': 'The answers of {n} student in "{title}" will be deleted.',
   'Se borrarán las respuestas de {n} alumnos de «{title}».': 'The answers of {n} students in "{title}" will be deleted.',
@@ -214,6 +215,7 @@ export const CA: Record<string, string> = {
   'la pizarra «{nombre}»': 'la pissarra «{nombre}»',
   'una pizarra': 'una pissarra',
   '{n} pizarras': '{n} pissarres',
+  '¿Eliminar la clase "{name}"? Se borran también su alumnado, su cuaderno, sus evaluaciones, su asistencia, sus anotaciones de actitud, sus informes, sus horas del horario semanal y su distribución de aula.': 'Vols eliminar la classe "{name}"? S’esborren també el seu alumnat, el seu quadern, les seves avaluacions, la seva assistència, les seves anotacions d’actitud, els seus informes, les seves hores de l’horari setmanal i la seva distribució d’aula.',
   '¿Eliminar a {name}? Se borran también sus notas, sus evaluaciones, su asistencia y sus informes.': 'Vols eliminar {name}? S’esborren també les seves notes, les seves avaluacions, la seva assistència i els seus informes.',
   'Se borrarán las respuestas de {n} alumno de «{title}».': 'S’esborraran les respostes de {n} alumne de «{title}».',
   'Se borrarán las respuestas de {n} alumnos de «{title}».': 'S’esborraran les respostes de {n} alumnes de «{title}».',

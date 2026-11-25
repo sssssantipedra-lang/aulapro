@@ -19,7 +19,8 @@ import { compararAlumnos } from '../lib/alumnado';
 import { calcularNota, cambiosDelDocente, ESTADOS_PREGUNTA, idColumnaFoto, leerPuntos, puntosValidos, type CorreccionFoto } from '../lib/evalFoto';
 import { fotoParaIA, LADO_FOTO_EXAMEN } from '../lib/fotos';
 import { isoDate } from '../lib/utils';
-import { hasApiKey, type InlineFile } from '../services/gemini';
+import type { InlineFile } from '../services/gemini';
+import { useHayClaveIA } from '../hooks/useClaveIA';
 import { corregirPorFoto, MAX_FOTOS_SOLUCIONES, MAX_FOTOS_TRABAJO, type TipoTrabajo } from '../services/evaluarFoto';
 import type { Class, GradeCategory, GradeItem, Section, Student } from '../types';
 import { useClaseActiva } from '../hooks/useClaseActiva';
@@ -51,6 +52,7 @@ interface BorradorEvalFoto {
 
 export function EvalFoto({ classes, students, gradeCategories, gradeItems, onAddGradeItem, onSetGrade, onNav }: Props) {
   const { t, locale } = useI18n();
+  const hayClaveIA = useHayClaveIA();
   const { toast } = useToast();
   const nombreCurso = useNombreCurso();
   const [claseId, setClaseId] = useClaseActiva(classes);
@@ -90,7 +92,7 @@ export function EvalFoto({ classes, students, gradeCategories, gradeItems, onAdd
   const resultado = calcularNota(preguntas);
   const cambios = correccion ? cambiosDelDocente(correccion.preguntas, preguntas) : 0;
   const fmt = (n: number) => n.toLocaleString(locale, { maximumFractionDigits: 2 });
-  const sinClave = !hasApiKey();
+  const sinClave = !hayClaveIA;
 
   async function anadir(files: FileList | null, aQuien: 'trabajo' | 'soluciones') {
     const lista = [...(files ?? [])];
@@ -233,7 +235,7 @@ export function EvalFoto({ classes, students, gradeCategories, gradeItems, onAdd
       </div>
 
       {sinClave && (
-        <AiKeyNotice message={t('Para corregir por foto hace falta la clave gratuita de Google que se configura en Configuración.')} action={t('Configurar la IA')} />
+        <AiKeyNotice message={t('Para corregir por foto hace falta la clave gratuita de Google. Puedes ponerla sin salir de esta pantalla.')} action={t('Configurar la IA')} />
       )}
 
       {borrador.encontrado && (

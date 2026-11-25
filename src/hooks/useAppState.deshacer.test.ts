@@ -48,6 +48,37 @@ describe('deshacer un borrado', () => {
     expect(despues.gradeItems).toBe(antes.gradeItems);
   });
 
+  it('eliminar una clase se lleva sus horas del horario, su distribución de aula y la Diana de su alumnado, y deshacer lo devuelve', () => {
+    const { result } = conEjemplo();
+    const clase = result.current.classes[0];
+    const otra = result.current.classes[1];
+    const alumno = result.current.students.find(s => s.class_id === clase.id)!;
+    const plan = (classId: string) => ({ class_id: classId, numGroups: 1, groupSize: 4, roles: [], groups: [], weekOffset: 0, updatedAt: '2026-11-25' });
+    // Un bloque sin clase (una guardia, un recreo) no es de ninguna y se queda
+    act(() => result.current.addBlock({ id: 'b-sin-clase', day: 1, time_start: '11:00', time_end: '11:30', subject: 'Guardia', room: '', class_id: '', color: '#888' }));
+    act(() => result.current.setSeatingPlan(clase.id, plan(clase.id)));
+    act(() => result.current.setSeatingPlan(otra.id, plan(otra.id)));
+    act(() => result.current.saveDianaProfile(alumno.id, { student_id: alumno.id } as never));
+    const antes = foto(result.current);
+    expect(antes.scheduleBlocks.some(b => b.class_id === clase.id)).toBe(true);
+    expect(antes.scheduleBlocks.some(b => b.class_id === otra.id)).toBe(true);
+
+    act(() => result.current.deleteClass(clase.id));
+    expect(result.current.scheduleBlocks.some(b => b.class_id === clase.id)).toBe(false);
+    expect(result.current.scheduleBlocks.filter(b => b.class_id === otra.id)).toEqual(antes.scheduleBlocks.filter(b => b.class_id === otra.id));
+    expect(result.current.scheduleBlocks.some(b => b.id === 'b-sin-clase')).toBe(true);
+    expect(clase.id in result.current.seatingPlans).toBe(false);
+    expect(result.current.seatingPlans[otra.id]).toBe(antes.seatingPlans[otra.id]);
+    expect(alumno.id in result.current.dianaProfiles).toBe(false);
+
+    act(() => { result.current.deshacerBorrado(); });
+    const despues = foto(result.current);
+    expect(despues).toEqual(antes);
+    expect(despues.scheduleBlocks).toBe(antes.scheduleBlocks);
+    expect(despues.seatingPlans).toBe(antes.seatingPlans);
+    expect(despues.dianaProfiles).toBe(antes.dianaProfiles);
+  });
+
   it('eliminar un alumno se lleva sus notas, evaluaciones y anotaciones, y deshacer las devuelve', () => {
     const { result } = conEjemplo();
     const antes = foto(result.current);

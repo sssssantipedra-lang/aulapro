@@ -326,7 +326,8 @@ Tiene TRES PESTAÑAS arriba:
    notas (o varias seguidas) y se pegan en la columna de la actividad. Cada nota
    va al alumno que se llama así, aunque la hoja esté en otro orden o escrita de
    otra forma («Apellidos, Nombre», sin tildes, en mayúsculas, sin el segundo
-   apellido; también el número de lista con «12 Marta»). Antes de poner nada
+   apellido; también el número de lista, si el alumnado de la app lo lleva
+   delante del nombre). Antes de poner nada
    sale una vista previa con lo que es nuevo, lo que cambia una nota que ya
    estaba y lo que no entra. Una fila que no se parece a nadie de la clase, o
    que se parece igual a dos, no se coloca: sale aparte y se elige a quién va;
@@ -901,7 +902,7 @@ mascota. Tipos propios: «Rodear o subrayar en el texto», «Contestar preguntas
 recuadro de palabras. En el editor, el bloque «El texto» cambia el tipo, la
 pista, cada párrafo y su dibujo; si cambias el texto, repasa las actividades.
 Siempre es «Cuaderno» y sale en PDF, Word y al proyectarla (una pantalla con el
-texto antes de los bloques). «Adaptar» ofrece solo «Lectura fácil», que
+texto antes de los ejercicios, que se proyectan de uno en uno). «Adaptar» ofrece solo «Lectura fácil», que
 reescribe el texto y rehace las actividades.
 LECTURA FÁCIL (dislexia): casilla del formulario, para cualquier ficha o
 comprensión lectora. Frases cortas (de 6 a 11 palabras de media), una idea por
@@ -923,7 +924,7 @@ fila). La IA elige los pictogramas de la lista de la app y no se inventa
 ninguno; en el editor se cambia cada dibujo con un clic, se quitan, se añaden
 pasos y se cambia cuántas veces sale un dibujo. Una ficha ya hecha se convierte
 con «Adaptar» → «Versión visual». Salen igual en el PDF, en el Word y al
-proyectarla en Aula Live, con la atribución de Mulberry Symbols al pie. Los
+proyectarla, con la atribución de Mulberry Symbols al pie. Los
 pictogramas también están en la Agenda visual, en «Consignas de ficha»,
 «Matemáticas», «Naturaleza», «El cuerpo» y «Transporte».
 AÑADIR: al final de cada bloque, «Añadir ejercicio con IA» (elige el tipo o
@@ -931,14 +932,33 @@ deja que lo elija la IA); en las tarjetas, «4 tarjetas más con IA» o «Añadi
 tarjeta» a mano. En un escape room, revisa después el código del candado.
 DESDE UNA SdA: en Materiales › Ficha se elige también ficha, escape room o
 tarjetas, y se lleva a Recursos para editarla.
-PROYECTAR: botón «Proyectar» del editor, o «Reto» en el dock de Aula Live
-para elegir una ficha guardada. Se ve a pantalla completa con su tema:
-portada con el personaje y la misión (y un temporizador opcional), una
-pantalla por bloque y el final con la insignia. En un escape room cada sala
-tiene un candado digital: se teclea el código y solo se abre si es el bueno.
-Abajo, el mapa de la aventura. Teclas: ← → moverse, S ver soluciones,
-F pantalla completa, Esc salir. Las tarjetas se proyectan de una en una y se
-giran con un clic o la barra espaciadora.
+PROYECTAR: «Proyectar» en el panel de una ficha guardada o en el editor (se
+abre encima de Recursos y, al salir con Esc o la X, sigues en Recursos), o
+«Reto» en el dock de Pizarra y herramientas para elegir una ficha guardada
+(al salir, sigues en la pizarra). Pensado para un proyector manejado desde
+una tableta o un móvil. Una ficha de ejercicios y una comprensión lectora se
+proyectan UN EJERCICIO POR PANTALLA: portada sencilla (el título, cuántos
+ejercicios y «Empezar»), en la comprensión lectora el texto para leerlo entre
+todos, cada ejercicio en grande (la letra crece hasta llenar la pantalla; si
+el ejercicio es muy largo, baja hasta un mínimo y se desplaza dentro) con su
+bloque, su nivel y «Ejercicio 3 de 8» arriba, y el final con el trofeo.
+«Ver solución», debajo, enseña la de ese ejercicio y se oculta al pasar a
+otro (tecla S). El lápiz de arriba escribe encima con el dedo o el lápiz de
+la tableta, en rojo, azul o verde, con borrador y «Borrar todo lo escrito»;
+lo escrito se borra al pasar de ejercicio (y el lápiz se apaga) o al girar
+la tableta. Se pasa de
+ejercicio deslizando el dedo (con el lápiz apagado), con los botones grandes
+de los lados, con los puntos de abajo (uno por ejercicio, agrupados por
+bloque) o con las flechas del teclado. En «Rodea en el texto…» el texto sale
+en la misma pantalla; en los demás ejercicios de una lectura, «Ver el texto»
+lo enseña en lugar del ejercicio y «Volver al ejercicio» lo devuelve, con lo
+escrito en cada uno donde estaba. La solución sale en una franja verde abajo,
+encima del ejercicio. Un escape room se proyecta por salas, con todos sus ejercicios a la vista:
+portada con el personaje y la misión (y un temporizador opcional), un candado
+digital en cada sala (se teclea el código y solo se abre si es el bueno), el
+mapa de la aventura abajo y el final con la insignia. Teclas: ← → moverse,
+S ver soluciones, F pantalla completa, Esc salir. Las tarjetas se proyectan
+de una en una y se giran con un clic o la barra espaciadora.
 ADAPTAR (botón arriba en el editor): crea otra versión de la misma ficha, con
 la misma historia: «Versión de apoyo», «Versión de ampliación» o «Lectura
 fácil» (frases cortas, palabras clave en negrita y letra más grande). Se abre como ficha nueva; en la

@@ -200,6 +200,19 @@ export function pareceCabecera(filas: string[][]): boolean {
   return hayTitulo;
 }
 
+/**
+ * La primera fila numera las actividades: dos números enteros o más, seguidos y desde el 1 («1 2 3», «1. 2.»). `pareceCabecera`
+ * no la toma nunca por cabecera (una nota mal escrita correría una fila a toda la clase), así que la vista previa
+ * ofrece la casilla y lo decide el docente (25-11-2026). Solo en ese caso: unas notas normales («7 8», «7,5»,
+ * una sola columna) no son una numeración, y ofrecer ahí la casilla invitaría a correr una fila a toda la clase.
+ * Que empiece por 1 deja fuera unas notas seguidas («7 8»), que son mucho más corrientes que un «1 2» de notas.
+ */
+export function primeraFilaNumera(filas: string[][]): boolean {
+  if (filas.length < 2) return false;
+  const llenas = (filas[0] ?? []).map(x => x.trim()).filter(Boolean);
+  return esCorrelativa(llenas) && Number(llenas[0].replace('.', '')) === 1;
+}
+
 /** Una columna de números enteros seguidos (3, 4, 5…), de dos filas o más. */
 function esCorrelativa(columna: string[]): boolean {
   if (columna.length < 2 || !columna.every(x => /^\d+\.?$/.test(x))) return false;

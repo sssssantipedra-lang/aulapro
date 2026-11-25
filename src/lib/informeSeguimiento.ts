@@ -26,6 +26,7 @@ import { mediaDeCategoria, mediaPonderada } from './ponderacion';
 import { datosDelAlumno, textoDeDato, type Cuentas, type DatoResumen, type TipoDato } from './resumenAlumno';
 import { notasPorClave, valoracionDeNota, type FilaCompetencia } from './tablaCompetencias';
 import { LOMLOE_COMPETENCES } from './utils';
+import type { TipoBorrador } from '../services/borradores';
 
 type T = (clave: string, vars?: Record<string, string | number>) => string;
 
@@ -156,15 +157,45 @@ export function fraseParaFamilia(d: DatoResumen, t: T, locale: string): string |
 /** De qué dato sale una frase, para el docente: «Notas: Media de 8,2 en Matemáticas». */
 export const origenDe = (d: DatoResumen, t: T, locale: string): string => `${t(NOMBRE_TIPO[d.tipo])}: ${textoDeDato(d, t, locale)}`;
 
-function frasesDe(datos: DatoResumen[], t: T, locale: string): FraseSeguimiento[] {
+/**
+ * Las reglas que solo cambian de forma con el número («1 falta sin justificar» y «{n} faltas sin justificar»)
+ * son la misma para recordar una frase quitada: si el docente quitó la de la falta, no vuelve con la segunda.
+ */
+const MISMA_REGLA: Record<string, string> = {
+  '1 falta sin justificar': '{n} faltas sin justificar',
+  '1 anotación positiva': '{n} anotaciones positivas',
+  '1 anotación negativa': '{n} anotaciones negativas',
+  'Sin nota en «{actividad}», que la clase ya tiene calificada': 'Sin nota en {n} actividades que la clase ya tiene calificadas',
+  'Nota más baja: {nota} en «{actividad}»': '{n} de {total} notas por debajo de 5',
+};
+
+/**
+ * Cómo se reconoce una frase aunque cambien sus números: la regla y, si la tiene, su asignatura o su
+ * competencia («Media de {nota} en {asignatura}|Matemáticas»). No lleva la nota, los días ni la actividad:
+ * quitar «Su mejor resultado ha sido un 9 en el examen» es no querer esa frase, aunque el mejor examen cambie.
+ * Las reglas que suben y bajan, aprueban y suspenden o destacan y flojean son distintas: quitar «ha subido»
+ * no calla un «ha bajado» que llegue después.
+ */
+export function reglaDe(d: Pick<DatoResumen, 'clave' | 'vars'>): string {
+  const de = ['asignatura', 'competencia'].map(k => d.vars?.[k]).filter(v => v !== undefined && v !== '');
+  return [MISMA_REGLA[d.clave] ?? d.clave, ...de].join('|');
+}
+
+/**
+ * Las frases de un lado de la hoja, como mucho `MAX_FRASES` y `MAX_DE_COMPETENCIAS`. Las quitadas por el
+ * docente se saltan antes de contar: no ocupan el hueco de otra que cumple las condiciones.
+ */
+function frasesDe(datos: DatoResumen[], t: T, locale: string, quitadas: ReadonlySet<string>): FraseSeguimiento[] {
   const out: FraseSeguimiento[] = [];
   let deCompetencias = 0;
   for (const d of datos) {
     // Las competencias ya van todas en su tabla: en frases, solo las que más pesan
     if (d.tipo === 'competencias' && deCompetencias === MAX_DE_COMPETENCIAS) continue;
+    const regla = reglaDe(d);
+    if (quitadas.has(regla)) continue;
     const texto = fraseParaFamilia(d, t, locale);
     if (!texto) continue;
-    out.push({ texto, origen: origenDe(d, t, locale) });
+    out.push({ texto, origen: origenDe(d, t, locale), regla });
     if (d.tipo === 'competencias') deCompetencias++;
     if (out.length === MAX_FRASES) break;
   }
@@ -323,6 +354,8 @@ export interface DatosDeSeguimiento {
   evaluations: readonly Evaluation[];
   t: T;
   locale: string;
+  /** Las reglas que el docente quitó de la hoja guardada (`InformeSeguimiento.quitadas`): no salen ni ocupan sitio. */
+  quitadas?: readonly string[];
 }
 
 export interface SeguimientoCompuesto {
@@ -333,7 +366,8 @@ export interface SeguimientoCompuesto {
 }
 
 /** El informe de seguimiento de un alumno, recién calculado: lo que el docente revisa antes de guardarlo. */
-export function componerSeguimiento({ clase, student, attendance, evaluations, t, locale }: DatosDeSeguimiento): SeguimientoCompuesto {
+export function componerSeguimiento({ clase, student, attendance, evaluations, t, locale, quitadas: sinEstas = [] }: DatosDeSeguimiento): SeguimientoCompuesto {
+  const quitadas = new Set(sinEstas);
   const { cls, periodo, hoy, rangos, entrada, cuentas } = clase;
   const suyas = evaluations.filter(e => e.student_id === student.id && e.class_id === cls.id);
   const datos = datosDelAlumno({
@@ -352,8 +386,8 @@ export function componerSeguimiento({ clase, student, attendance, evaluations, t
     seguimiento: {
       ...(rango ? { desde: rango.desde, hasta: rango.hasta } : {}),
       notas, asistencia,
-      positivos: frasesDe(conLaNota(datos.positivos, deLaNota.pos), t, locale),
-      mejorar: frasesDe(conLaNota(datos.atencion, deLaNota.neg), t, locale),
+      positivos: frasesDe(conLaNota(datos.positivos, deLaNota.pos), t, locale, quitadas),
+      mejorar: frasesDe(conLaNota(datos.atencion, deLaNota.neg), t, locale, quitadas),
       observacion: '',
     },
     tabla,
@@ -366,21 +400,52 @@ export function componerSeguimiento({ clase, student, attendance, evaluations, t
 const limpias = (xs: readonly FraseSeguimiento[]): FraseSeguimiento[] =>
   xs.map(f => ({ ...f, texto: f.texto.replace(/\s+/g, ' ').trim() })).filter(f => f.texto);
 
-/** La hoja como se guarda: sin frases vacías y con la observación recortada. */
+/**
+ * La hoja como se guarda: sin frases vacías y con la observación recortada. Una frase de las reglas que el
+ * docente dejó vacía es una frase quitada: su regla se apunta en `quitadas`, como con la papelera.
+ */
 export function seguimientoLimpio(s: InformeSeguimiento): InformeSeguimiento {
-  const ocultar = (s.ocultar ?? []).filter((x, i, xs) => xs.indexOf(x) === i);
-  const { ocultar: _antes, ...resto } = s;
-  void _antes;
+  const unicas = <X,>(xs: readonly X[] | undefined) => (xs ?? []).filter((x, i, todas) => todas.indexOf(x) === i);
+  const ocultar = unicas(s.ocultar);
+  const vaciadas = [...s.positivos, ...s.mejorar].filter(f => f.regla && !f.texto.trim()).map(f => f.regla as string);
+  const quitadas = unicas([...(s.quitadas ?? []), ...vaciadas]).filter(x => typeof x === 'string' && x);
+  const { ocultar: _antes, quitadas: _quitadas, ...resto } = s;
+  void _antes; void _quitadas;
   return {
     ...resto,
     positivos: limpias(s.positivos), mejorar: limpias(s.mejorar), observacion: s.observacion.trim(),
     ...(ocultar.length ? { ocultar } : {}),
+    ...(quitadas.length ? { quitadas } : {}),
   };
 }
 
 /**
+ * La hoja tras quitar una frase: fuera de su lista y, si sale de una regla, apuntada en `quitadas` para que
+ * «Actualizar los datos» no la vuelva a poner. Una frase escrita a mano solo se quita.
+ */
+export function quitarFrase(s: InformeSeguimiento, lado: 'positivos' | 'mejorar', i: number): InformeSeguimiento {
+  const f = s[lado][i];
+  if (!f) return s;
+  const quitadas = f.regla && !(s.quitadas ?? []).includes(f.regla) ? [...(s.quitadas ?? []), f.regla] : s.quitadas;
+  return { ...s, [lado]: s[lado].filter((_, k) => k !== i), ...(quitadas?.length ? { quitadas } : {}) };
+}
+
+/**
+ * Las frases de una hoja guardada antes del 25-11-2026 no llevan su regla, así que quitarlas no se
+ * recordaba. Al abrir una hoja para editarla, cada frase sin regla toma la de la frase recién calculada con
+ * el mismo `origen` (el mismo dato); las escritas a mano y las que ya no salen de ningún dato se quedan como estaban.
+ */
+export function conSusReglas(s: InformeSeguimiento, ahora: Pick<SeguimientoCompuesto, 'seguimiento'>): InformeSeguimiento {
+  const regla = new Map([...ahora.seguimiento.positivos, ...ahora.seguimiento.mejorar]
+    .filter(f => f.origen && f.regla).map(f => [f.origen as string, f.regla as string]));
+  const poner = (xs: readonly FraseSeguimiento[]) => xs.map(f => (!f.regla && f.origen && regla.has(f.origen) ? { ...f, regla: regla.get(f.origen) } : f));
+  return { ...s, positivos: poner(s.positivos), mejorar: poner(s.mejorar) };
+}
+
+/**
  * La hoja recalculada con los datos de ahora, sin perder lo que el docente escribió: su observación, las
- * partes que decidió no entregar, las frases que añadió a mano (las que no salen de ningún dato), los
+ * partes que decidió no entregar, las frases que quitó (por su regla, `quitadas`: no vuelven aunque cambien
+ * sus números), las frases que añadió a mano (las que no salen de ningún dato), los
  * comentarios de la tabla de competencias y la redacción que dio a una frase cuyo dato sigue igual (mismo
  * `origen`: si cambió «Ha faltado a clase 3 días sin justificante» por sus palabras y las faltas siguen
  * siendo 3, se quedan sus palabras). Las frases cuyo dato ha cambiado se cambian por las nuevas.
@@ -391,9 +456,12 @@ export function recalcular(
   const prev = antes.seguimiento;
   const aMano = (xs: readonly FraseSeguimiento[] | undefined) => (xs ?? []).filter(f => !f.origen && f.texto.trim());
   const comentario = new Map((antes.tabla ?? []).map(f => [f.clave, f.comentario]));
+  const quitadas = new Set(prev?.quitadas ?? []);
   const conSuRedaccion = (nuevas: readonly FraseSeguimiento[], viejas: readonly FraseSeguimiento[] | undefined) => {
     const escrito = new Map((viejas ?? []).filter(f => f.origen && f.texto.trim()).map(f => [f.origen, f.texto]));
-    return nuevas.map(f => (f.origen && escrito.has(f.origen) ? { ...f, texto: escrito.get(f.origen) as string } : f));
+    return nuevas
+      .filter(f => !f.regla || !quitadas.has(f.regla))
+      .map(f => (f.origen && escrito.has(f.origen) ? { ...f, texto: escrito.get(f.origen) as string } : f));
   };
   return {
     seguimiento: {
@@ -402,6 +470,7 @@ export function recalcular(
       mejorar: [...conSuRedaccion(ahora.seguimiento.mejorar, prev?.mejorar), ...aMano(prev?.mejorar)],
       observacion: prev?.observacion ?? '',
       ...(prev?.ocultar?.length ? { ocultar: prev.ocultar } : {}),
+      ...(quitadas.size ? { quitadas: [...quitadas] } : {}),
     },
     tabla: ahora.tabla.map(f => ({ ...f, comentario: comentario.get(f.clave) ?? '' })),
   };
@@ -433,6 +502,43 @@ export function datosCambiados(guardado: Pick<CompetencyReport, 'seguimiento' | 
   const de = (x: Pick<InformeSeguimiento, 'notas' | 'asistencia' | 'desde' | 'hasta'>, t: readonly FilaCompetencia[] | undefined) =>
     JSON.stringify([notas(x.notas), x.asistencia, x.desde ?? null, x.hasta ?? null, tabla(t)]);
   return de(s, guardado.tabla) !== de(ahora.seguimiento, ahora.tabla);
+}
+
+/**
+ * Dónde va la copia sin guardar del editor de la hoja (`hooks/useBorrador.ts`), una por alumno y evaluación:
+ * si el docente cambia de alumno, de evaluación o de pantalla con el informe a medias, se queda la suya y al
+ * volver se ofrece continuar. Va solo en el dispositivo, como las demás.
+ */
+export const borradorDeSeguimiento = (alumno: string, periodo: string): TipoBorrador => `informe-seguimiento:${alumno}:${periodo}`;
+
+/**
+ * Una huella corta del informe guardado del que sale una copia sin guardar (`''` si aún no había informe).
+ * La copia la lleva (`desde`): si después el informe cambia por otro camino (la IA lo vuelve a redactar, se
+ * elimina, se crea con los de toda la clase), la copia ya no se ofrece, porque guardarla pisaría lo nuevo.
+ */
+export function huellaDeInforme(r?: Pick<CompetencyReport, 'text' | 'seguimiento' | 'tabla'> | null): string {
+  if (!r) return '';
+  const texto = JSON.stringify([r.text, r.seguimiento ?? null, r.tabla ?? null]);
+  let h = 5381;
+  for (let i = 0; i < texto.length; i++) h = ((h * 33) ^ texto.charCodeAt(i)) >>> 0;
+  return `${h.toString(36)}-${texto.length.toString(36)}`;
+}
+
+/**
+ * Las copias sin guardar de informes de seguimiento que ya no sirven y hay que borrar: las de un alumno que
+ * ya no está (con su observación y sus notas dentro) y las de un informe que ha cambiado desde que se hizo la
+ * copia (`huellaDeInforme`). `alumnos` son los ids de todo el alumnado del perfil y `huella` da, para un alumno y
+ * una evaluación, la huella de su informe guardado (`''` sin informe). Una copia sin `desde` también sobra.
+ */
+export function copiasSobrantes<K extends string>(
+  copias: readonly { tipo: K; desde?: string }[], alumnos: readonly string[], huella: (alumno: string, periodo: string) => string,
+): K[] {
+  return copias.filter(({ tipo, desde }) => {
+    const alumno = alumnos.find(a => tipo.startsWith(`informe-seguimiento:${a}:`));
+    if (alumno === undefined) return true;
+    const periodo = tipo.slice(`informe-seguimiento:${alumno}:`.length);
+    return desde !== huella(alumno, periodo);
+  }).map(c => c.tipo);
 }
 
 /** Si una parte de la hoja se entrega (el docente puede quitar las notas, la asistencia o las competencias). */

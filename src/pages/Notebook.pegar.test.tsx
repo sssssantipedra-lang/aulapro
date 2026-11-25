@@ -253,6 +253,49 @@ describe('la cabecera de lo pegado', () => {
     ], 'pegar');
   });
 
+  it('una primera fila solo de números no se toma sola por cabecera, pero el docente puede decir que lo es (25-11-2026)', () => {
+    const p = pinta();
+    // La hoja numera las actividades: «1» y «2» encima de las notas de cada alumno
+    pegar(celda('i2', 's1'), '1\t2\n7\t8\n9\t6');
+    const previa = ventana();
+    const casilla = within(previa).getByRole('checkbox', { name: /cabecera/ }) as HTMLInputElement;
+    // Se ofrece sin marcar, con lo que hace si se marca
+    expect(casilla.checked).toBe(false);
+    expect(within(previa).getByText(/Si esa fila numera las actividades/)).toBeTruthy();
+    expect(within(previa).getByRole('button', { name: 'Poner 6 notas' })).toBeTruthy();
+    fireEvent.click(casilla);
+    expect(casilla.checked).toBe(true);
+    expect(within(previa).queryByText(/Si esa fila numera las actividades/)).toBeNull();
+    // Sus números son ahora los títulos de las columnas, no notas
+    expect(within(previa).getByText(/En tu hoja: 1$/)).toBeTruthy();
+    expect(within(previa).getByText(/En tu hoja: 2$/)).toBeTruthy();
+    confirmarOrden(previa);
+    fireEvent.click(within(previa).getByRole('button', { name: 'Poner 3 notas' }));
+    expect(p.onSetGrades).toHaveBeenCalledWith([
+      // Alumno 1 ya tenía un 8 en «Redacción de invierno»: no cambia
+      { itemId: 'i2', studentId: 's1', value: 7 },
+      { itemId: 'i2', studentId: 's2', value: 9 },
+      { itemId: 'i2b', studentId: 's2', value: 6 },
+    ], 'pegar');
+  });
+
+  it('con una primera fila con letras no sale la explicación de los números', () => {
+    pinta();
+    pegar(celda('i2', 's1'), 'NP\n7\n9');
+    expect(within(ventana()).queryByText(/Si esa fila numera las actividades/)).toBeNull();
+  });
+
+  it('al pegar notas de forma normal no sale la casilla de la cabecera (25-11-2026)', () => {
+    // Una columna de notas sin nombres y dos columnas: la primera fila es la de Alumno 1, no una numeración
+    for (const texto of ['7\n8\n9', '7\t8\n9\t6', '7,5\n8']) {
+      pinta();
+      pegar(celda('i2', 's1'), texto);
+      expect(within(ventana()).queryByRole('checkbox', { name: /cabecera/ }), texto).toBeNull();
+      expect(within(ventana()).queryByText(/Si esa fila numera las actividades/), texto).toBeNull();
+      cleanup();
+    }
+  });
+
   it('un texto de varias líneas sin notas no trae nada que poner, ni avisos de orden', () => {
     pinta();
     pegar(celda('i2', 's1'), 'hola\nadiós');

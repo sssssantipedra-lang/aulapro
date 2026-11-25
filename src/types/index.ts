@@ -571,6 +571,12 @@ export interface FraseSeguimiento {
   texto: string;
   /** De qué dato sale («Notas: Media de 8,2 en Matemáticas»). Lo ve el docente al editar; nunca sale en el documento. */
   origen?: string;
+  /**
+   * La regla de la que sale, estable aunque cambien los números («{n} faltas sin justificar», o la regla y su
+   * asignatura o competencia): con ella el informe recuerda las frases que el docente quitó (25-11-2026).
+   * Las frases escritas a mano y las guardadas antes de ese día no la llevan.
+   */
+  regla?: string;
 }
 
 /** Las notas de una asignatura en el periodo del informe. */
@@ -604,6 +610,11 @@ export interface InformeSeguimiento {
   observacion: string;
   /** Las partes que el docente ha decidido no entregar. */
   ocultar?: SeccionSeguimiento[];
+  /**
+   * Las reglas (`FraseSeguimiento.regla`) de las frases que el docente quitó: «Actualizar los datos» no las
+   * vuelve a poner. Ausente en los informes guardados antes del 25-11-2026: ninguna quitada.
+   */
+  quitadas?: string[];
 }
 
 /* ── Situaciones de aprendizaje ── */

@@ -9,7 +9,7 @@ import { useMemo, useState } from 'react';
 import { FileSpreadsheet } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { useI18n } from '../../i18n';
-import { entenderPegado, type CambioDeNota, type DondePegar } from '../../lib/pegarNotas';
+import { entenderPegado, primeraFilaNumera, type CambioDeNota, type DondePegar } from '../../lib/pegarNotas';
 import { columnasDeNotas, destinosPropuestos, pegadoDeColumnas, type Destino, type HojaDeNotas } from '../../lib/importarNotas';
 import { VistaPreviaPegado } from './VistaPreviaPegado';
 
@@ -98,7 +98,10 @@ export function ImportarNotas({ archivo, hojas, actividades, categorias, alumnad
         {hoja.filas.length > 1 && (
           <label className="pn-cabecera">
             <input type="checkbox" checked={pegado.cabecera} onChange={e => setCabecera(e.target.checked)} />
-            <span>{t('La primera fila es la cabecera de mi hoja: no es de ningún alumno')}</span>
+            <span>
+              {t('La primera fila es la cabecera de mi hoja: no es de ningún alumno')}
+              {primeraFilaNumera(hoja.filas) && !pegado.cabecera && <small>{t('Si esa fila numera las actividades (1, 2, 3…), márcala: sus números serán los títulos de las columnas y no se pondrán como notas.')}</small>}
+            </span>
           </label>
         )}
 

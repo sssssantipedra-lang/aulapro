@@ -36,7 +36,8 @@ import { bancoEF } from '../lib/bancoEF';
 import { todasLasActividades, textoDe } from '../lib/deportesAlternativos';
 import { describirCriterio } from '../lib/curriculum/criteriosParaIA';
 import { esAsignaturaEF } from '../services/classMarks';
-import { hasApiKey } from '../services/gemini';
+import { useHayClaveIA } from '../hooks/useClaveIA';
+import { AiKeyNotice } from '../components/ui/AiKeyNotice';
 import { limitacionesParaIA, prepararSesion } from '../services/efIA';
 import { alumnadoParaIA } from '../lib/ef';
 import { guardarSesionPdf, buildSesionHtml } from '../services/exportSesionEF';
@@ -135,6 +136,7 @@ export function Sesiones({
   calEvents = [], onApuntarCambio, onDarLaClase,
 }: Props) {
   const { t, lang, locale } = useI18n();
+  const hayClaveIA = useHayClaveIA();
   const { toast } = useToast();
   const nombreCurso = useNombreCurso();
   const hoy = isoDate();
@@ -495,13 +497,15 @@ export function Sesiones({
           {claseVista === null && <button className="btn-ghost" onClick={() => setEditando(vacia())}><Plus size={15} />{t('Nueva sesión')}</button>}
           <button className="btn-ghost" onClick={() => abrirCopia(claseVista ?? undefined)} disabled={ef.sesiones.length === 0}><Copy size={15} />{t('Copiar a otras clases')}</button>
           {esEF && (
-            <button className="btn-accent" onClick={abrirIa} disabled={!hasApiKey() || classes.length === 0}
-              title={hasApiKey() ? undefined : t('Configura tu clave API gratuita de Google en Configuración para usar la IA.')}>
+            <button className="btn-accent" onClick={abrirIa} disabled={!hayClaveIA || classes.length === 0}
+              title={hayClaveIA ? undefined : t('Para usar la IA hace falta tu clave gratuita de Google. Ponla con «Configurar la IA».')}>
               <Sparkles size={15} />{t('Preparar con IA')}
             </button>
           )}
         </div>
       </div>
+
+      {esEF && !hayClaveIA && <AiKeyNotice message={t('Para usar la IA hace falta la clave gratuita de Google. Puedes ponerla sin salir de aquí.')} action={t('Configurar la IA')} />}
 
       {borrador.restos && (
         <AvisoBorrador borrador={borrador.restos} queEra={t('una sesión')} onContinuar={continuarBorrador} onDescartar={borrador.descartar} />

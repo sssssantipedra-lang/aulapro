@@ -113,6 +113,24 @@ describe('Recursos — editor de fichas', () => {
     expect(screen.getByRole('button', { name: 'Editar' })).toBeTruthy();
   });
 
+  it('«Proyectar» abre la proyección encima de Recursos y, al salir con Esc, el docente sigue en Recursos', async () => {
+    // El lápiz de la proyección mide su tamaño con ResizeObserver, que jsdom no tiene
+    if (typeof ResizeObserver === 'undefined') {
+      (globalThis as { ResizeObserver?: unknown }).ResizeObserver = class { observe() {} unobserve() {} disconnect() {} };
+    }
+    const deEjercicios: Ficha = { ...ficha, content: { ...ficha.content, estilo: 'cuaderno', historia: undefined } };
+    setup(vi.fn(), [deEjercicios]);
+    await userEvent.click(screen.getByText('Rescate en el planeta Fracción'));
+    await userEvent.click(screen.getByRole('button', { name: 'Proyectar' }));
+    const proyeccion = await screen.findByRole('dialog', { name: 'Rescate en el planeta Fracción' });
+    expect(proyeccion.textContent).toContain('2 ejercicios');
+    fireEvent.keyDown(window, { key: 'Escape' });
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Rescate en el planeta Fracción' })).toBeNull());
+    // Sigue en la biblioteca de Recursos
+    expect(screen.getByText('Mis fichas')).toBeTruthy();
+    expect(screen.getByText('Rescate en el planeta Fracción')).toBeTruthy();
+  });
+
   it('una tarjeta interactiva guardada ofrece Memory en su panel', async () => {
     const interactivas: Ficha = {
       ...ficha,

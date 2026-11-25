@@ -74,3 +74,9 @@ section:first-of-type > .dlc-momento { margin-top:2px; }
   .dlc-visor { padding:10px 6px; gap:2px; }
   .dlc-visor-btn { width:40px; height:40px; }
 }
+
+/* La pizarra llena: el plan de «Dar la clase» espera a que se cierre una ventana (`SecClassroom.tsx`) */
+/* `top` lo pone la pantalla, debajo de la barra de arriba y de la de dibujar; por debajo de esas barras (56) y de los
+   paneles de «Fondo» y «Escenas» (57), que se abren a propósito; por encima de las ventanas y del fondo de los menús (54) */
+.pz-espera-plan { position:absolute; top:66px; left:50%; transform:translateX(-50%); z-index:55; width:min(460px, calc(100% - 28px)); }
+.pz-espera-plan .sug { margin:0; box-shadow:0 6px 18px rgba(15,23,42,0.28); }

@@ -1,7 +1,8 @@
-import type { User, Class, Student, ScheduleBlock, CalEvent, Task, Rubric, Evaluation, EvalDiana, DianaProfile, GradeCategory, GradeItem, GradeMap, ClassMark, MarksBlockConfig, OfficialCriterionRef } from '../types';
+import type { User, Class, Student, ScheduleBlock, CalEvent, Task, Rubric, Evaluation, EvalDiana, DianaProfile, GradeCategory, GradeItem, GradeMap, ClassMark, MarksBlockConfig, OfficialCriterionRef, GradeTarget } from '../types';
 import { gradeFromLevels, levelsOf, competencyScoresFor } from '../types';
 import { isoDate, LOMLOE_TO_DIANA } from './utils';
 import { diaDeEjemplo, evaluacionDe } from './periodos';
+import { columnaDeEvaluacion, destinosDe, notaDeDestino } from './objetivos';
 import type { ComunidadId } from './curriculum/comunidades';
 import { translate, type Lang } from '../i18n/core';
 import { nombreDeAlumnoDeEjemplo } from '../i18n/demo';
@@ -165,9 +166,36 @@ function buildDemoEvents(tr: Tr): CalEvent[] {
 const criterios = (...claves: string[]): OfficialCriterionRef[] =>
   claves.map(k => { const [materia, codigo] = k.split('|'); return { materia, codigo }; });
 
+/**
+ * En qué clases se usa cada instrumento de ejemplo: la exposición oral en todas, la resolución de problemas
+ * en las de Matemáticas, el cuaderno de clase en Primaria y la diana del trabajo en equipo en 3º y 4º de ESO
+ * y en 5º y 6º de Primaria. Y en qué categoría del cuaderno cae su nota.
+ */
+const USO: Record<string, { cat: 'pruebas' | 'tareas'; en: (c: ClaseDemo) => boolean }> = {
+  r1: { cat: 'tareas', en: () => true },
+  r2: { cat: 'pruebas', en: c => c.materia === 'matematicas' },
+  r3: { cat: 'tareas', en: c => c.etapa === 'primaria' },
+  d1: { cat: 'tareas', en: c => c.curso >= (c.etapa === 'eso' ? 3 : 5) },
+};
+
+/**
+ * Las clases de un instrumento de ejemplo, con la forma que les da la app al crearlo (`GradeTargetsPicker`):
+ * la primera como clase principal y las demás en `otras_clases`, cada una con su asignatura y la categoría
+ * del cuaderno que se llama igual en ella. Sin esto sus evaluaciones no llegaban al cuaderno y, en «Trabajo
+ * compartido», el instrumento no contaba en ninguna clase (25-11-2026).
+ */
+function destinoDe(tr: Tr, id: string): GradeTarget {
+  const uso = USO[id];
+  const [primera, ...otras] = CLASES.filter(uso.en).map(c => ({
+    class_id: c.id, subject: tr(c.asignatura), category_id: `${c.id}-${uso.cat}`,
+  }));
+  return { ...primera, ...(otras.length ? { otras_clases: otras } : {}) };
+}
+
 function demoRubrics(tr: Tr): Rubric[] {
   return [
     {
+      ...destinoDe(tr, 'r1'),
       id: 'r1',
       name: tr('Exposición oral'),
       context: tr('Presentación de un trabajo de investigación'),
@@ -181,6 +209,7 @@ function demoRubrics(tr: Tr): Rubric[] {
       ],
     },
     {
+      ...destinoDe(tr, 'r2'),
       id: 'r2',
       name: tr('Resolución de problemas'),
       context: tr('Problemas de la unidad, resueltos en clase'),
@@ -195,6 +224,7 @@ function demoRubrics(tr: Tr): Rubric[] {
     },
     // Para Primaria: solo competencias clave, sin criterios oficiales
     {
+      ...destinoDe(tr, 'r3'),
       id: 'r3',
       name: tr('Cuaderno de clase'),
       context: tr('Revisión del cuaderno al final de cada unidad'),
@@ -212,6 +242,7 @@ const frecuencia = (tr: Tr) => ({ 1: tr('Casi nunca'), 2: tr('A veces'), 3: tr('
 /** Una diana de ejemplo: el trabajo en equipo, con competencias clave y criterios oficiales. */
 function demoDianas(tr: Tr): EvalDiana[] {
   return [{
+    ...destinoDe(tr, 'd1'),
     id: 'd1',
     name: tr('Trabajo en equipo'),
     context: tr('Proyecto de estadística por grupos'),
@@ -240,13 +271,9 @@ function logro(n: number, k: number): number {
 }
 
 /**
- * Evaluaciones en todas las clases: la exposición oral en todas, la
- * resolución de problemas en las de Matemáticas, el cuaderno de clase en
- * Primaria y la diana del trabajo en equipo en 3º y 4º de ESO y en 5º y 6º
- * de Primaria. Con sus competencias clave y criterios oficiales calculados,
- * como al evaluar de verdad. Los instrumentos no declaran clase ni
- * categoría: no tocan el cuaderno, pero sí la Diana competencial y la
- * pestaña «Por competencias».
+ * Evaluaciones de cada instrumento en las clases en las que se usa (`USO`), con sus competencias clave y
+ * criterios oficiales calculados, como al evaluar de verdad. Su nota va al cuaderno de su clase
+ * (`columnasDeEvaluaciones`), y cuentan también en la Diana competencial y en «Por competencias».
  */
 function demoEvaluations(alumno: (n: number) => string, rubrics: Rubric[], dianas: EvalDiana[]): Evaluation[] {
   const out: Evaluation[] = [];
@@ -265,14 +292,37 @@ function demoEvaluations(alumno: (n: number) => string, rubrics: Rubric[], diana
     });
   };
   CLASES.forEach((c, i) => {
-    const usa = (r: Rubric) => r.id === 'r1'
-      || (r.id === 'r2' && c.materia === 'matematicas')
-      || (r.id === 'r3' && c.etapa === 'primaria');
+    const usa = (id: string) => USO[id]?.en(c) ?? false;
     // El desfase hace que cada instrumento y cada clase salgan algo distintos
-    rubrics.forEach((r, ri) => { if (usa(r)) for (const n of alumnosDe(i)) evaluar(r, r.criteria, 'rubric', c.id, n, ri * 2 + i); });
-    if (c.curso >= (c.etapa === 'eso' ? 3 : 5)) for (const d of dianas) for (const n of alumnosDe(i)) evaluar(d, d.items, 'diana', c.id, n, 1);
+    rubrics.forEach((r, ri) => { if (usa(r.id)) for (const n of alumnosDe(i)) evaluar(r, r.criteria, 'rubric', c.id, n, ri * 2 + i); });
+    for (const d of dianas) if (usa(d.id)) for (const n of alumnosDe(i)) evaluar(d, d.items, 'diana', c.id, n, 1);
   });
   return out;
+}
+
+/**
+ * Las columnas del cuaderno con las notas de las evaluaciones de ejemplo, como las deja la app al evaluar
+ * (`routeToNotebook`): la columna de cada instrumento en cada clase (`destinosDe`), la de la evaluación de su
+ * fecha (`columnaDeEvaluacion`), con el nombre del instrumento y la nota de la evaluación más reciente.
+ */
+function columnasDeEvaluaciones(evaluations: Evaluation[], instrumentos: (Rubric | EvalDiana)[], categorias: GradeCategory[], base: GradeItem[]) {
+  const items: GradeItem[] = [];
+  const grades: GradeMap = {};
+  const enOrden = [...evaluations].sort((a, b) => a.date.localeCompare(b.date));
+  for (const ev of enOrden) {
+    const inst = instrumentos.find(x => x.id === ev.rubric_id);
+    if (!inst || typeof ev.grade !== 'number') continue;
+    const destinos = destinosDe(inst, ev.class_id);
+    for (const d of destinos) {
+      if (!d.category_id || !categorias.some(c => c.id === d.category_id)) continue;
+      const nota = notaDeDestino(inst, d, ev);
+      if (typeof nota !== 'number') continue;
+      const { id, existe } = columnaDeEvaluacion(d.id, ev.date, [...base, ...items]);
+      if (!existe) items.push({ id, class_id: d.class_id, category_id: d.category_id, name: inst.name, date: ev.date.slice(0, 10) });
+      (grades[id] ??= {})[ev.student_id] = nota;
+    }
+  }
+  return { items, grades };
 }
 
 /**
@@ -400,6 +450,9 @@ export function buildDemoData(lang: Lang = 'es'): DemoData {
   const rubrics = demoRubrics(tr);
   const dianas = demoDianas(tr);
   const evaluations = demoEvaluations(alumno, rubrics, dianas);
+  const gradeCategories = demoCategories(tr);
+  const columnas = buildDemoGradeItems(tr);
+  const deEvaluar = columnasDeEvaluaciones(evaluations, [...rubrics, ...dianas], gradeCategories, columnas);
   return {
     tasks: demoTasks(tr, alumno),
     classes: demoClasses(tr),
@@ -410,9 +463,9 @@ export function buildDemoData(lang: Lang = 'es'): DemoData {
     dianas,
     evaluations,
     dianaProfiles: demoDianaProfiles(tr, evaluations),
-    gradeCategories: demoCategories(tr),
-    gradeItems: buildDemoGradeItems(tr),
-    grades: buildDemoGrades(),
+    gradeCategories,
+    gradeItems: [...columnas, ...deEvaluar.items],
+    grades: { ...buildDemoGrades(), ...deEvaluar.grades },
     classMarks: buildDemoMarks(),
     marksConfigs: demoMarksConfigs(tr),
   };

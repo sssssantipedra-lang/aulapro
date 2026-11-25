@@ -309,8 +309,8 @@ const EN: Record<string, string> = {
   'Descripción opcional…': 'Optional description…',
   'Escanear mi horario': 'Scan my timetable',
   'La IA lee tu horario y crea los bloques por ti': 'The AI reads your timetable and creates the sessions for you',
-  'Para leer el horario hace falta la clave gratuita de Google que se configura en Configuración.':
-    'Reading the timetable needs the free Google key set up in Settings.',
+  'Para leer el horario hace falta la clave gratuita de Google. Puedes ponerla sin salir de esta pantalla.':
+    'Reading the timetable needs the free Google key. You can add it without leaving this screen.',
   'Configurar la IA': 'Set up AI',
   'Se han detectado {n} sesiones.': 'Detected {n} sessions.',
   'Revísalas antes de añadirlas': 'Review them before adding',
@@ -1330,8 +1330,8 @@ const EN: Record<string, string> = {
   'Situación de aprendizaje': 'Learning situation',
   'Diseña una SdA competencial con ayuda de la IA': 'Design a competency-based unit with AI',
   'Empezar otra': 'Start another',
-  'Para redactar situaciones de aprendizaje hace falta la clave gratuita de Google que se configura en Configuración.':
-    'Writing learning situations needs the free Google key set up in Settings.',
+  'Para redactar situaciones de aprendizaje hace falta la clave gratuita de Google. Puedes ponerla sin salir de esta pantalla y sin perder lo que lleves escrito.':
+    'Writing learning situations needs the free Google key. You can add it without leaving this screen or losing what you have written.',
   'Qué quieres diseñar': 'What you want to design',
   'Idea de la situación de aprendizaje': 'The idea behind it',
   'Ej: un mercado sostenible en el patio para trabajar los residuos del centro':
@@ -1979,7 +1979,7 @@ const EN: Record<string, string> = {
   'Mesa {n}': 'Table {n}',
   'No se pudo generar el PDF.': 'Couldn\'t generate the PDF.',
   'Nº de mesas': 'Number of tables',
-  'Para generar grupos equilibrados con IA hace falta la clave gratuita de Google que se configura en Configuración. También puedes sentar al alumnado a mano, sin IA.': 'Generating balanced groups with AI needs the free Google key set up in Settings. You can also seat students by hand, without AI.',
+  'Para generar grupos equilibrados con IA hace falta la clave gratuita de Google. Puedes ponerla sin salir de esta pantalla. También puedes sentar al alumnado a mano, sin IA.': 'Generating balanced groups with AI needs the free Google key. You can add it without leaving this screen. You can also seat students by hand, without AI.',
   'Para repartir grupos, primero crea una clase con sus alumnos.': 'To arrange groups, first create a class with its students.',
   'Portavoz': 'Spokesperson',
   'Reparte, cuida y recoge el material del grupo.': 'Hands out, looks after and collects the group\'s materials.',

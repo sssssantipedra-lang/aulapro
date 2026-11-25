@@ -27,6 +27,8 @@ import {
 } from '../../lib/pizarraEF';
 import { blobABase64, svgAPng } from '../../lib/svgPng';
 import { hasApiKey, type InlineFile } from '../../services/gemini';
+import { useHayClaveIA } from '../../hooks/useClaveIA';
+import { AiKeyNotice } from '../../components/ui/AiKeyNotice';
 import { reconocerPizarra } from '../../services/efIA';
 import type { ComunidadId } from '../../lib/curriculum/comunidades';
 import type { EfData, ElementoPizarra, MaterialPizarraId, PizarraEF, TrazoPizarra } from '../../types/ef';
@@ -78,6 +80,7 @@ export const FORMAS_PARA_IA = 2;
 
 export function EfPizarra({ ef, onChangeEf, comunidad, embebida = false, inicialId, alGuardar }: Props) {
   const { t, lang } = useI18n();
+  const hayClaveIA = useHayClaveIA();
   const { toast } = useToast();
   const [piz, setPiz] = useState<PizarraEF>(() => {
     const inicial = inicialId ? ef.pizarras.find(x => x.id === inicialId) : undefined;
@@ -634,10 +637,11 @@ export function EfPizarra({ ef, onChangeEf, comunidad, embebida = false, inicial
                   <button type="button" className="btn-ghost" onClick={() => resolver(p, false)}><X size={14} />{t('Descartar')}</button>
                 </div>
               ))}
+              {!hayClaveIA && <AiKeyNotice message={t('Para usar la IA hace falta la clave gratuita de Google. Puedes ponerla sin salir de aquí.')} action={t('Configurar la IA')} />}
               <div className="ap-acciones">
                 {propuestas.length > 1 && <button type="button" className="btn-accent" onClick={ponerTodas}><Check size={14} />{t('Poner todas')}</button>}
-                <button type="button" className="btn-ghost" onClick={() => void reconocerConIa()} disabled={pensando || !hasApiKey()}
-                  title={hasApiKey() ? undefined : t('Configura tu clave API gratuita de Google en Configuración para usar la IA.')}>
+                <button type="button" className="btn-ghost" onClick={() => void reconocerConIa()} disabled={pensando || !hayClaveIA}
+                  title={hayClaveIA ? undefined : t('Para usar la IA hace falta tu clave gratuita de Google. Ponla con «Configurar la IA».')}>
                   {pensando ? <span className="spin" /> : <Sparkles size={14} />}{pensando ? t('Mirando el croquis…') : t('Reconocer con IA')}
                 </button>
                 <button type="button" className="btn-ghost" onClick={descartarCroquis}>{t('Descartar el croquis')}</button>

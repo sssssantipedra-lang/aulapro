@@ -1,0 +1,207 @@
+/*
+ * Proyectar una ficha de ejercicios o una comprensión lectora, un ejercicio por pantalla (25-11-2026),
+ * `ProyeccionEjercicios.tsx`. La letra de la zona del ejercicio la pone el código (`.cp-uno-fit`, lo
+ * más grande con lo que cabe), así que dentro de ella todo va en `em`. Lo común con el escape room
+ * (`.cp`, la barra de arriba, la portada y el final) está en `index.css`.
+ */
+
+/* ── Lo que el escape room también usa (en px de su sala) y aquí crece con la letra ── */
+.cp-fr { display:flex; flex-wrap:wrap; gap:.6em; align-items:flex-start; }
+.cp-fr-card { position:relative; display:inline-flex; flex-direction:column; align-items:center; gap:.25em; padding:.35em .55em .45em; border:2px solid #e2e8f0; border-radius:.6em; background:#fff; }
+.cp-fr-card > b { align-self:flex-start; font-size:.8em; color:#334155; }
+.cp-fr-img { display:block; line-height:0; }
+.cp-fr-img svg { display:block; width:4.2em; height:4.2em; }
+.cp-fr-lbl { font-weight:800; }
+.cp-fr-resp { display:inline-flex; align-items:center; gap:.3em; }
+.cp-frac { display:inline-flex; flex-direction:column; align-items:center; gap:.12em; }
+.cp-frac i, .cp-fr-resp i.dec { display:block; width:1.3em; height:1em; border:2px solid #94a3b8; border-radius:.2em; }
+.cp-fr-resp i.dec { width:2.2em; }
+.cp-frac i.raya { height:0; width:1.8em; border:none; border-top:3px solid #1e293b; border-radius:0; }
+.cp-fr-resp em { font-style:normal; font-weight:800; }
+.cp-fr-unir .cp-row { gap:.5em; }
+.cp-fr-unir .cp-fr-img svg { width:2.6em; height:2.6em; }
+
+.cp-rejilla-wrap { display:flex; flex-wrap:wrap; gap:.8em; align-items:flex-start; max-width:100%; }
+.cp-sopa { display:inline-grid; font-size:.82em; border:2px solid #334155; border-radius:.35em; overflow:hidden; font-family:ui-monospace, 'Cascadia Mono', Menlo, monospace; font-weight:700; color:#1e293b; background:#fff; }
+.cp-sopa span { width:1.6em; height:1.6em; display:flex; align-items:center; justify-content:center; text-transform:uppercase; }
+.cp-sopa-palabras { flex:1; min-width:8em; align-content:flex-start; }
+.cp-cruci { display:inline-grid; font-size:.82em; }
+.cp-cruci span { position:relative; width:1.5em; height:1.5em; box-sizing:border-box; }
+.cp-cruci span.casilla { border:1.5px solid #334155; background:#fff; margin:0 -1.5px -1.5px 0; }
+.cp-cruci span small { position:absolute; top:.06em; left:.14em; font-size:.42em; font-weight:800; line-height:1; color:#334155; }
+.cp-pistas { flex:1; min-width:12em; }
+.cp-pistas b { flex:0 0 auto; min-width:1.8em; }
+.cp-dibujar { height:7em; border:3px dashed #cbd5e1; border-radius:.5em; background:#fbfdff; }
+.cp-banco { padding:.35em; border:2px dashed #94a3b8; border-radius:.5em; }
+.cp-picto-fila { width:1.6em; height:1.6em; object-fit:contain; vertical-align:middle; }
+.cp-table-wrap { max-width:100%; overflow-x:auto; }
+/* Una tabla que ni con la letra mínima cabe a lo ancho se desplaza; el borde se difumina para avisar */
+.cp-uno .cp-table-wrap { touch-action:pan-x pan-y; }
+.cp-uno .cp-table-wrap.ancha { -webkit-mask-image:linear-gradient(to right, #000 calc(100% - 2.2em), transparent); mask-image:linear-gradient(to right, #000 calc(100% - 2.2em), transparent); }
+.cp-ex-txt { min-width:0; }
+
+/* ── Un ejercicio por pantalla ── */
+.cp-uno { overscroll-behavior:contain; }
+.cp-uno .cp-top { padding:10px 16px; gap:10px; }
+/* Las barras no desplazan nada: así el dedo no mueve la página de debajo */
+.cp-uno .cp-top, .cp-uno-hd, .cp-uno-pie { touch-action:none; }
+.cp-uno .cp-top-title { min-width:0; }
+.cp-uno .cp-ico.on { background:#fff; color:var(--cp-cd); }
+.cp-lapiz { display:flex; align-items:center; gap:6px; padding-right:10px; margin-right:2px; border-right:1px solid rgba(255,255,255,.25); }
+.cp-color { width:30px; height:30px; flex:0 0 auto; border-radius:50%; border:3px solid rgba(255,255,255,.55); cursor:pointer; padding:0; }
+.cp-color.on { border-color:#fff; box-shadow:0 0 0 3px rgba(255,255,255,.35); }
+
+.cp-uno-hd { position:relative; z-index:2; display:flex; align-items:baseline; justify-content:space-between; gap:14px; padding:0 clamp(60px, 7vw, 100px) 8px; font-size:clamp(13px, 2.3vh, 21px); font-weight:700; }
+.cp-uno-bloque { display:flex; align-items:center; gap:.45em; min-width:0; opacity:.95; }
+.cp-uno-mancha { flex:0 0 auto; width:.75em; height:.75em; border-radius:.2em; box-shadow:0 0 0 2px rgba(255,255,255,.6); }
+.cp-uno-nivel { flex:0 0 auto; display:inline-flex; align-items:center; gap:.35em; margin-left:.4em; font-weight:600; white-space:nowrap; }
+.cp-uno-nivel i { font-style:normal; opacity:.85; }
+.cp-estrellas { letter-spacing:.04em; }
+.cp-estrellas span { color:rgba(255,255,255,.35); }
+.cp-estrellas span.on { color:#fde047; }
+.cp-uno-cuenta { flex:0 0 auto; opacity:.85; white-space:nowrap; font-variant-numeric:tabular-nums; }
+
+.cp-uno-medio { position:relative; z-index:1; flex:1; min-height:0; display:flex; align-items:stretch; padding:0 6px; touch-action:pan-y; }
+.cp-lado { flex:0 0 clamp(50px, 6.5vw, 92px); display:flex; align-items:center; justify-content:center; padding:0; border:none; background:transparent; color:#fff; cursor:pointer; border-radius:20px; -webkit-tap-highlight-color:transparent; }
+.cp-lado svg { box-sizing:content-box; padding:clamp(8px, 1.4vw, 14px); border-radius:50%; background:rgba(255,255,255,.16); transition:background .15s; }
+.cp-lado:hover svg, .cp-lado:focus-visible svg { background:rgba(255,255,255,.3); }
+.cp-lado:active svg { background:rgba(255,255,255,.42); }
+.cp-uno-pantalla { flex:1; min-width:0; min-height:0; display:flex; flex-direction:column; }
+
+/* El ejercicio y, encima en el mismo sitio, el texto de la lectura («Ver el texto») y la franja de la solución */
+.cp-uno-capas { position:relative; flex:1; min-height:0; display:grid; grid-template:minmax(0, 1fr) / minmax(0, 1fr); }
+.cp-uno-capas > .cp-uno-caja { grid-area:1 / 1; }
+/* pan-y: el dedo desplaza hacia abajo un ejercicio largo y, de lado, pasa de ejercicio */
+.cp-uno-caja { position:relative; min-height:0; overflow:hidden; border-radius:22px; background:#fff; color:#1e293b; box-shadow:0 14px 36px rgba(0,0,0,.22); touch-action:pan-y; }
+.cp-uno-caja.oculta { visibility:hidden; pointer-events:none; }
+.cp-sol-franja {
+  position:absolute; left:0; right:0; bottom:0; z-index:5; max-height:55%; overflow-y:auto; box-sizing:border-box;
+  padding:.45em 1em .55em; font-size:clamp(16px, 4.6vh, 46px); font-weight:700; line-height:1.3; white-space:pre-line;
+  background:#dcfce7; color:#14532d; border-top:4px solid #22c55e; border-radius:0 0 22px 22px; box-shadow:0 -10px 26px rgba(15,23,42,.18);
+  touch-action:pan-y;
+}
+/* Si ni con la letra mínima cabe, se desplaza dentro; las sombras arriba y abajo avisan de que hay más */
+.cp-uno-caja.desborda {
+  overflow-y:auto; overscroll-behavior:contain;
+  background:
+    linear-gradient(#fff 30%, rgba(255,255,255,0)) center top / 100% 30px no-repeat local,
+    linear-gradient(rgba(255,255,255,0), #fff 70%) center bottom / 100% 30px no-repeat local,
+    radial-gradient(farthest-side at 50% 0, rgba(15,23,42,.22), transparent) center top / 100% 14px no-repeat scroll,
+    radial-gradient(farthest-side at 50% 100%, rgba(15,23,42,.22), transparent) center bottom / 100% 14px no-repeat scroll,
+    #fff;
+}
+.cp-uno-marco { position:relative; box-sizing:border-box; min-height:100%; display:flex; flex-direction:column; padding:clamp(10px, 2.6vh, 34px) clamp(14px, 2.6vw, 44px); }
+.cp-uno-fit { margin:auto 0; font-size:28px; line-height:1.32; overflow-wrap:break-word; }
+
+.cp-atribucion { flex:0 0 auto; padding:4px 8px 0; font-size:11px; line-height:1.3; text-align:center; opacity:.75; }
+
+/* El ejercicio, sin tarjeta propia: la tarjeta es la zona entera */
+.cp-uno .cp-ex { padding:0; gap:.45em; background:none; border-radius:0; box-shadow:none; }
+.cp-uno .cp-ex-q { font-size:1em; line-height:1.3; font-weight:700; gap:.45em; }
+.cp-uno .cp-ex-n { width:1.45em; height:1.45em; border-radius:.3em; font-size:.85em; margin-top:.02em; }
+.cp-uno .cp-consigna { width:1.7em; height:1.7em; padding:.1em; border-radius:.3em; }
+.cp-uno .cp-dibujos { gap:.35em; margin-top:.2em; }
+.cp-uno .cp-dibujos img { width:2.4em; height:2.4em; padding:.12em; border-radius:.35em; }
+/* La figura crece con la letra: sus medidas son los datos del ejercicio (index.css la limita a 220 px) */
+.cp-uno .cp-fig svg { width:min(11em, 100%); max-width:100%; height:auto; }
+.cp-uno .cp-fig-fila { display:flex; flex-wrap:wrap; align-items:center; gap:.4em 1.2em; }
+.cp-uno .cp-fig-fila .cp-fig { flex:0 1 11em; min-width:0; }
+.cp-uno .cp-fig-fila .cp-fig svg { width:100%; }
+.cp-uno .cp-items-col { flex-direction:column; align-items:flex-start; }
+.cp-uno .cp-ilus { gap:.3em; margin-top:.1em; }
+.cp-uno .cp-ilus img, .cp-uno .cp-ilus-c img { width:2.6em; height:2.6em; }
+.cp-uno .cp-ilus-c { padding:.2em .3em; border-radius:.45em; }
+.cp-uno .cp-ilus-c b { top:-.35em; left:-.35em; width:1.1em; height:1.1em; font-size:.6em; }
+.cp-uno .cp-ilus-c small { font-size:.55em; }
+.cp-uno .cp-contar { gap:.25em; margin-top:.1em; }
+.cp-uno .cp-contar .cp-ilus { padding:.2em .35em; border-radius:.45em; }
+.cp-uno .cp-rel-img { width:1.8em; height:1.8em; }
+.cp-uno .cp-items { gap:.3em; }
+.cp-uno .cp-item { font-size:.86em; padding:.28em .6em; border-radius:.4em; }
+.cp-uno .cp-list, .cp-uno .cp-two > div { gap:.25em; }
+.cp-uno .cp-two { gap:.4em; }
+.cp-uno .cp-row { font-size:.86em; padding:.28em .55em; gap:.45em; border-radius:.35em; }
+.cp-uno .cp-fr-unir .cp-row { font-size:.86em; }
+.cp-uno .cp-fr-unir .cp-fr-img svg { width:3.4em; height:3.4em; }
+/* «Unir» con pizzas, un ejercicio por pantalla: las pizzas en fila, tan grandes como las de «leer» */
+.cp-uno .cp-fr-unir-uno { display:flex; flex-direction:column; gap:.55em; }
+.cp-uno .cp-fr-img svg { width:4.6em; height:4.6em; }
+.cp-uno .cp-table { font-size:.8em; }
+.cp-uno .cp-table th, .cp-uno .cp-table td { padding:.3em .65em; }
+.cp-uno .cp-comic { gap:.4em; }
+.cp-uno .cp-panel { min-height:5em; padding:.35em; gap:.3em; border-radius:.35em; }
+.cp-uno .cp-bubble { font-size:.75em; padding:.3em .4em; border-radius:.6em; }
+.cp-uno .cp-who { font-size:1.6em; }
+.cp-uno .cp-note { font-size:.7em; }
+.cp-uno .cp-sol { font-size:.86em; padding:.35em .6em; border-radius:.4em; }
+
+/* El texto de una comprensión lectora, dentro de la zona */
+.cp-uno .cp-lectura { width:100%; max-width:none; gap:.45em; }
+.cp-uno .cp-lectura-pista { font-size:.68em; padding:.25em .7em; background:var(--cp-cl, #EAF5FE); color:var(--cp-cd); box-shadow:none; }
+.cp-uno .cp-lectura-texto { font-size:1em; line-height:1.6; max-height:none; overflow:visible; padding:.55em .8em; border-radius:.5em; border:1px solid #f1e6c4; box-shadow:none; }
+.cp-uno .cp-ex .cp-lectura-texto { font-size:.9em; }
+.cp-uno .cp-lectura-img { width:4.4em; height:4.4em; margin:0 0 .3em .6em; padding:.18em; border-radius:.6em; }
+.cp-uno.facil .cp-uno-fit { font-family:'Lexend', Verdana, Arial, sans-serif; letter-spacing:.02em; word-spacing:.12em; }
+.cp-uno.facil .cp-lectura-texto { font-family:'Lexend', Verdana, Arial, sans-serif; font-size:1em; line-height:1.85; }
+
+/* Portada y final */
+.cp-uno-pantalla > .cp-cover, .cp-uno-pantalla > .cp-final { overflow-y:auto; max-height:100%; padding:22px 8px; box-sizing:border-box; }
+.cp-uno-portada .cp-h1 { font-size:clamp(30px, min(6vw, 11vh), 84px); }
+.cp-uno-n { font-size:clamp(18px, 3.2vh, 30px); font-weight:700; opacity:.92; }
+.cp-uno .cp-final .cp-badge { width:min(200px, 28vh); height:min(200px, 28vh); }
+.cp-uno .cp-final .cp-badge span { font-size:min(110px, 15vh); }
+
+/* Abajo: los puntos y la solución */
+.cp-uno-pie { position:relative; z-index:2; display:flex; align-items:center; gap:12px; padding:10px clamp(60px, 7vw, 100px) 12px; }
+.cp-puntos { flex:1; min-width:0; display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:8px; }
+.cp-puntos-grupo { display:inline-flex; align-items:center; gap:5px; padding:4px 7px; border-radius:99px; background:rgba(255,255,255,.12); }
+.cp-punto { width:28px; height:28px; flex:0 0 auto; padding:0; border-radius:50%; border:2px solid rgba(255,255,255,.6); background:transparent; cursor:pointer; color:#fff; display:inline-flex; align-items:center; justify-content:center; font-size:12px; line-height:1; }
+.cp-punto.visto { background:var(--pc, #22c55e); border-color:#fff; }
+.cp-punto.cur { background:#fff; border-color:#fff; box-shadow:0 0 0 4px rgba(255,255,255,.3); }
+.cp-punto.texto, .cp-punto.fin { width:34px; height:34px; border-width:2px; }
+/* Con el dedo, los puntos se tocan sin fallar */
+@media (pointer: coarse) {
+  .cp-punto { width:32px; height:32px; }
+  .cp-punto.texto, .cp-punto.fin { width:38px; height:38px; }
+}
+.cp-punto.texto.cur { color:var(--cp-cd); }
+.cp-uno-acciones { display:flex; gap:8px; flex:0 0 auto; }
+.cp-uno-acciones .cp-chip { height:44px; padding:0 18px; font-size:16px; }
+.cp-ver-sol { background:#fff; color:var(--cp-cd); border-color:#fff; }
+.cp-ver-sol.on { background:#dcfce7; color:#14532d; border-color:#dcfce7; }
+
+/* Pantallas bajas (un móvil tumbado): menos marco, más ejercicio */
+@media (max-height: 560px) {
+  .cp-uno .cp-top { padding:6px 10px; }
+  .cp-uno .cp-ico { width:40px; height:40px; border-radius:10px; }
+  .cp-uno .cp-kicker { display:none; }
+  .cp-color { width:26px; height:26px; }
+  .cp-uno-hd { padding-bottom:4px; }
+  .cp-uno-pie { padding-top:6px; padding-bottom:6px; }
+  .cp-uno-acciones .cp-chip { height:36px; padding:0 12px; font-size:14px; }
+  .cp-punto { width:26px; height:26px; }
+  .cp-punto.texto, .cp-punto.fin { width:30px; height:30px; }
+  .cp-puntos { gap:6px; }
+  .cp-puntos-grupo { gap:4px; padding:2px 5px; }
+  .cp-uno-caja { border-radius:14px; }
+  .cp-sol-franja { border-radius:0 0 14px 14px; }
+}
+@media (max-width: 700px) {
+  .cp-uno-hd, .cp-uno-pie { padding-left:52px; padding-right:52px; }
+  .cp-uno-nivel i { display:none; }
+}
+/* Estrecho (un móvil o una tableta de pie): la cabecera y el pie se parten en líneas, y arriba solo los botones */
+@media (max-width: 700px) {
+  .cp-uno-hd { flex-wrap:wrap; row-gap:2px; }
+  .cp-uno-pie { flex-wrap:wrap; justify-content:center; row-gap:8px; }
+  .cp-uno-pie .cp-puntos { flex-basis:100%; }
+}
+@media (max-width: 520px) {
+  .cp-uno .cp-kicker, .cp-uno .cp-top-title { display:none; }
+  .cp-uno .cp-top { gap:6px; padding:8px; }
+  .cp-uno .cp-ico { width:38px; height:38px; }
+  .cp-color { width:26px; height:26px; }
+  .cp-lapiz { gap:4px; padding-right:6px; }
+  .cp-lado { flex-basis:40px; }
+  .cp-uno-hd, .cp-uno-pie { padding-left:12px; padding-right:12px; }
+}

@@ -25,9 +25,11 @@ import { textoLibreParaIA, soloDatosDeSalud } from '../lib/documentoParaIA';
 import { useClaseActiva, useFijarClase } from '../hooks/useClaseActiva';
 import { useEvaluacionElegida } from '../hooks/useEvaluacionElegida';
 import { SelectorEvaluacion } from '../components/SelectorEvaluacion';
-import { asistenciaDelPeriodo, claseDelPeriodo, componerSeguimiento, datosCambiados, notasDelPeriodo, origenDelTexto, recalcular, tieneContenido } from '../lib/informeSeguimiento';
+import { asistenciaDelPeriodo, borradorDeSeguimiento, claseDelPeriodo, componerSeguimiento, conSusReglas, copiasSobrantes, datosCambiados, huellaDeInforme, notasDelPeriodo, origenDelTexto, recalcular, tieneContenido } from '../lib/informeSeguimiento';
 import { cuerpoDeInformeHtml, informeEnTexto, informesHtml, partesDeInforme, textoDePeriodo, type ContextoDeInforme } from '../lib/informeDocumento';
 import { EditorSeguimiento, type BorradorDeSeguimiento } from '../components/informes/EditorSeguimiento';
+import { AvisoBorrador } from '../components/AvisoBorrador';
+import { borrarBorrador, leerBorrador, listarBorradores } from '../services/borradores';
 
 /** Las 8 competencias clave LOMLOE, en inglés, para los informes en ese idioma. */
 const LOMLOE_COMPETENCES_EN = [
@@ -132,6 +134,19 @@ export function Reports(props: Props) {
   const [batch, setBatch]       = useState<{ done: number; total: number } | null>(null);
   const [draft, setDraft]       = useState('');
   const [edicion, setEdicion]   = useState<Edicion | null>(null);
+  /** Para volver a pintar el panel al descartar una copia sin guardar (vive en el dispositivo, no en el estado). */
+  const [, setCopiasDescartadas] = useState(0);
+  // Al entrar se borran las copias sin guardar que ya no sirven: las de un alumno eliminado (llevan su
+  // observación y sus notas) y las de un informe que ha cambiado después por otro camino
+  useEffect(() => {
+    const copias = listarBorradores('informe-seguimiento:').flatMap(tipo => {
+      const b = leerBorrador<BorradorDeSeguimiento>(tipo); // las caducadas se borran al leerlas
+      return b ? [{ tipo, desde: b.datos.desde }] : [];
+    });
+    const huella = (alumno: string, periodo: string) => huellaDeInforme(reports.find(r => r.student_id === alumno && r.period === periodo));
+    copiasSobrantes(copias, students.map(s => s.id), huella).forEach(borrarBorrador);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- una vez, al entrar
+  }, []);
 
   const cls = classes.find(c => c.id === classId) ?? classes[0];
   const clsId = cls?.id ?? '';
@@ -169,7 +184,7 @@ export function Reports(props: Props) {
   };
 
   /** El informe de seguimiento de un alumno recién calculado con las reglas, sin guardar. */
-  const componer = (student: Student) => (clase ? componerSeguimiento({ clase, student, attendance, evaluations, t, locale }) : null);
+  const componer = (student: Student, quitadas?: readonly string[]) => (clase ? componerSeguimiento({ clase, student, attendance, evaluations, t, locale, quitadas }) : null);
 
   /** Reúne todo lo que sabemos del alumno en la evaluación para dárselo a la IA. */
   function buildEvidence(student: Student): { text: string; hasData: boolean; competencias: boolean } {
@@ -388,14 +403,17 @@ export function Reports(props: Props) {
   /** Abre la hoja de seguimiento de un alumno para revisarla: recién calculada, o la que ya tenía guardada. */
   function abrirSeguimiento(student: Student, modo: 'nuevo' | 'editar' | 'recalcular') {
     const previo = reportOf(student.id);
+    const desde = huellaDeInforme(previo);
+    const c = componer(student, previo?.seguimiento?.quitadas);
     if (modo === 'editar' && previo?.seguimiento) {
-      setEdicion({ tipo: 'seguimiento', alumno: student.id, periodo: period, inicial: { text: previo.text, seguimiento: previo.seguimiento, tabla: previo.tabla ?? [] } });
+      // Lo guardado, sin recalcular; las frases de antes del 25-11-2026 toman su regla para poder quitarlas
+      const seguimiento = c ? conSusReglas(previo.seguimiento, c) : previo.seguimiento;
+      setEdicion({ tipo: 'seguimiento', alumno: student.id, periodo: period, inicial: { text: previo.text, seguimiento, tabla: previo.tabla ?? [], desde } });
       return;
     }
-    const c = componer(student);
     if (!c) return;
     const base = previo?.seguimiento ? recalcular(previo, c) : { seguimiento: c.seguimiento, tabla: recalcular({ tabla: previo?.tabla }, c).tabla };
-    setEdicion({ tipo: 'seguimiento', alumno: student.id, periodo: period, inicial: { text: previo?.text ?? '', ...base } });
+    setEdicion({ tipo: 'seguimiento', alumno: student.id, periodo: period, inicial: { text: previo?.text ?? '', ...base, desde } });
   }
 
   function guardarSeguimiento(student: Student, b: BorradorDeSeguimiento) {
@@ -519,9 +537,16 @@ export function Reports(props: Props) {
   let editando: Edicion | null = edicion && edicion.alumno === current?.id && edicion.periodo === period ? edicion : null;
   if (!editando && alLlegar && current && !currentReport) {
     const c = componer(current);
-    if (c?.hayDatos) editando = { tipo: 'seguimiento', alumno: current.id, periodo: period, inicial: { text: '', seguimiento: c.seguimiento, tabla: c.tabla } };
+    if (c?.hayDatos) editando = { tipo: 'seguimiento', alumno: current.id, periodo: period, inicial: { text: '', seguimiento: c.seguimiento, tabla: c.tabla, desde: '' } };
   }
   const elegir = (id: string | null) => { setSelected(id); setEdicion(null); setAlLlegar(false); };
+  // Una hoja de seguimiento que se quedó a medias (se cambió de alumno, de evaluación o de pantalla): se ofrece
+  // continuar desde el panel, sin tener que abrir antes el editor
+  const tipoCopia = current ? borradorDeSeguimiento(current.id, period) : null;
+  // Solo si el informe guardado sigue como estaba al hacer la copia: si después cambió (la IA lo redactó de
+  // nuevo, se eliminó o se creó con los de toda la clase), guardar la copia lo pisaría
+  const leida = tipoCopia && !editando ? leerBorrador<BorradorDeSeguimiento>(tipoCopia) : null;
+  const copia = leida && leida.datos.desde === huellaDeInforme(currentReport) ? leida : null;
   const periodoDe = (r: Pick<CompetencyReport, 'period' | 'seguimiento'>) => textoDePeriodo(r, t, locale);
   const periodoAhora = textoDePeriodo({ period, seguimiento: ev.rango ? { desde: ev.rango.desde, hasta: ev.rango.hasta, notas: [], asistencia: null, positivos: [], mejorar: [], observacion: '' } : undefined }, t, locale);
 
@@ -675,6 +700,11 @@ export function Reports(props: Props) {
                 </div>
               </div>
 
+              {copia && tipoCopia && generating !== current.id && (
+                <AvisoBorrador borrador={copia} queEra={t('un informe de seguimiento')}
+                  onContinuar={() => { setEdicion({ tipo: 'seguimiento', alumno: current.id, periodo: period, inicial: copia.datos }); setAlLlegar(false); }}
+                  onDescartar={() => { borrarBorrador(tipoCopia); setCopiasDescartadas(n => n + 1); }} />
+              )}
               {generating === current.id ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '30px 0', justifyContent: 'center', color: 'var(--text-2)', fontSize: 13.5 }}>
                   <span className="spin" />{t('Redactando el informe…')}
@@ -683,6 +713,7 @@ export function Reports(props: Props) {
                 <EditorSeguimiento
                   key={`${current.id}|${period}`}
                   nombre={nombreDePila(current.name)}
+                  tipoBorrador={borradorDeSeguimiento(current.id, period)}
                   periodo={periodoAhora}
                   inicial={editando.inicial}
                   partes={b => partesDeInforme({ id: '', student_id: current.id, student_name: current.name, class_id: clsId, period, date: isoDate(), ...b }, contexto)}

@@ -10,7 +10,8 @@ import { Modal } from '../ui/Modal';
 import { useToast } from '../ui/Toast';
 import { useI18n } from '../../i18n';
 import { generateSda, MINUTOS_SESION_EF, type SdaRequest } from '../../services/learningSituations';
-import { hasApiKey } from '../../services/gemini';
+import { useHayClaveIA } from '../../hooks/useClaveIA';
+import { AiKeyNotice } from '../ui/AiKeyNotice';
 import { isoDate } from '../../lib/utils';
 import { recursosParaIA } from '../../lib/ef';
 import type { Class, LearningSituation } from '../../types';
@@ -38,6 +39,7 @@ const sinNumero = (titulo: string) => titulo.replace(/^\s*\d+\s*[.)-]\s*/, '').t
 
 export function CrearSdaDeSesiones({ open, onClose, sesiones, clase, comunidad, perfil, ef, numeroSiguiente, onCreada, onAbrirSda }: Props) {
   const { t, lang } = useI18n();
+  const hayClaveIA = useHayClaveIA();
   const { toast } = useToast();
   const [idea, setIdea] = useState('');
   const [generando, setGenerando] = useState(false);
@@ -103,9 +105,10 @@ export function CrearSdaDeSesiones({ open, onClose, sesiones, clase, comunidad, 
             <label className="flabel" htmlFor="ses-sda-idea">{t('Idea o título de la situación (opcional)')}</label>
             <input id="ses-sda-idea" className="finput" value={idea} placeholder={ideaPorDefecto} onChange={e => setIdea(e.target.value)} />
           </div>
+          {!hayClaveIA && <AiKeyNotice message={t('Para usar la IA hace falta la clave gratuita de Google. Puedes ponerla sin salir de aquí.')} action={t('Configurar la IA')} />}
           <div className="ap-acciones">
-            <button type="button" className="btn-accent" onClick={generar} disabled={generando || sesiones.length === 0 || !hasApiKey()}
-              title={hasApiKey() ? undefined : t('Configura tu clave API gratuita de Google en Configuración para usar la IA.')}>
+            <button type="button" className="btn-accent" onClick={generar} disabled={generando || sesiones.length === 0 || !hayClaveIA}
+              title={hayClaveIA ? undefined : t('Para usar la IA hace falta tu clave gratuita de Google. Ponla con «Configurar la IA».')}>
               {generando ? <span className="spin" /> : <Sparkles size={15} />}{generando ? t('Preparando…') : t('Crear la situación de aprendizaje')}
             </button>
             <button type="button" className="btn-ghost" onClick={cerrar}>{t('Cancelar')}</button>

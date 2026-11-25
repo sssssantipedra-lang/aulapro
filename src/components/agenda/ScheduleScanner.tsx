@@ -4,7 +4,8 @@ import {
   AlertTriangle, Table2,
 } from 'lucide-react';
 import type { Class, ScheduleBlock } from '../../types';
-import { callGemini, parseGeminiJson, hasApiKey, type InlineFile } from '../../services/gemini';
+import { callGemini, parseGeminiJson, type InlineFile } from '../../services/gemini';
+import { useHayClaveIA } from '../../hooks/useClaveIA';
 import {
   gridToBlocks, fillMergedCells, SCHEDULE_GRID_SCHEMA, type DetectedBlock, type ScheduleGrid,
 } from '../../services/scheduleGrid';
@@ -34,6 +35,7 @@ const SYSTEM_PROMPT =
 export function ScheduleScanner({ open, classes, existingCount, onClose, onImport }: Props) {
   const { toast } = useToast();
   const { t, locale } = useI18n();
+  const hayClaveIA = useHayClaveIA();
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [fileName, setFileName] = useState('');
@@ -184,11 +186,11 @@ export function ScheduleScanner({ open, classes, existingCount, onClose, onImpor
           <button className="ico-btn" onClick={() => { if (!busy) { reset(); onClose(); } }} aria-label={t('Cerrar')} title={t('Cerrar')}><X size={18} /></button>
         </div>
 
-        {!hasApiKey() ? (
+        {!hayClaveIA ? (
           <div style={{ textAlign: 'center', padding: '26px 20px' }}>
             <Sparkles size={30} color="var(--warn)" style={{ margin: '0 auto 14px' }} />
             <p style={{ fontSize: 13.5, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 20, maxWidth: 400, margin: '0 auto 20px' }}>
-              {t('Para leer el horario hace falta la clave gratuita de Google que se configura en Configuración.')}
+              {t('Para leer el horario hace falta la clave gratuita de Google. Puedes ponerla sin salir de esta pantalla.')}
             </p>
             <button className="btn-accent" onClick={abrirClaveIA}>
               {t('Configurar la IA')}

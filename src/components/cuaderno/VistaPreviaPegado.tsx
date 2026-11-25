@@ -11,7 +11,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { AlertTriangle, ClipboardPaste } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { useI18n } from '../../i18n';
-import { entenderPegado, leerNota, planDePegado, type CambioDeNota, type CeldaDelPlan, type DondePegar, type Pegado } from '../../lib/pegarNotas';
+import { entenderPegado, leerNota, planDePegado, primeraFilaNumera, type CambioDeNota, type CeldaDelPlan, type DondePegar, type Pegado } from '../../lib/pegarNotas';
 
 interface Props {
   /** Lo que venía en el portapapeles, ya partido en filas y columnas (`leerPegado`). */
@@ -41,6 +41,8 @@ export function VistaPreviaPegado({ filas, donde, onAplicar, onClose, pegadoFijo
   const plan = useMemo(() => planDePegado(pegado, donde, aMano), [pegado, donde, aMano]);
   const nombreDe = useMemo(() => new Map(donde.alumnado.map(a => [a.id, a.name])), [donde.alumnado]);
   const primeraConTexto = useMemo(() => (filas[0] ?? []).some(x => leerNota(x).tipo === 'mal'), [filas]);
+  /** Una primera fila que numera las actividades («1 2 3») nunca se toma sola por cabecera: lo dice el docente. */
+  const primeraNumera = useMemo(() => primeraFilaNumera(filas), [filas]);
   const nota = (n: number | null) => (n === null ? '' : lang !== 'en' ? String(n).replace('.', ',') : String(n));
 
   // Al abrirse, el foco pasa a la ventana. Si se quedara en la celda sobre la que se pegó, lo que se tecleara con
@@ -184,13 +186,17 @@ export function VistaPreviaPegado({ filas, donde, onAplicar, onClose, pegadoFijo
           </ul>
         )}
 
-        {/* Solo se pregunta por la cabecera si la primera fila trae algo que no es una nota (o si ya se ha tocado la casilla) */}
-        {!deArchivo && filas.length > 1 && (cabecera !== undefined || pegado.pareceCabecera || primeraConTexto) && (
+        {/* Se pregunta por la cabecera si la primera fila trae algo que no es una nota, o si numera las actividades
+            con números seguidos («1 2 3»), o si ya se ha tocado la casilla. Sin marcar de partida: lo numérico solo es
+            cabecera si el docente lo dice, y unas notas normales («7 8 9» en columna, «7 9») no hacen salir la casilla
+            (25-11-2026) */}
+        {!deArchivo && filas.length > 1 && (cabecera !== undefined || pegado.pareceCabecera || primeraConTexto || primeraNumera) && (
           <label className="pn-cabecera">
             <input type="checkbox" checked={pegado.cabecera} onChange={e => cambiarCabecera(e.target.checked)} />
             <span>
               {t('La primera fila es la cabecera de mi hoja: no es de ningún alumno')}
               {pegado.pareceCabecera && cabecera === undefined && <small>{t('Se ha marcado sola porque esa fila no trae ninguna nota y las de debajo sí.')}</small>}
+              {primeraNumera && !pegado.cabecera && <small>{t('Si esa fila numera las actividades (1, 2, 3…), márcala: sus números serán los títulos de las columnas y no se pondrán como notas.')}</small>}
             </span>
           </label>
         )}

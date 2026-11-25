@@ -8,7 +8,7 @@
  */
 
 import { ocupar } from '../lib/ocupado';
-import { claveCambiada } from '../lib/claveIA';
+import { abrirClaveIA, claveCambiada } from '../lib/claveIA';
 import { codigosDePeticion, currentPseudonymizer, privacyInstruction, type Pseudonymizer } from './privacy';
 
 /** Los correos electrónicos nunca le hacen falta a la IA: se quitan de todo lo que se envía. */
@@ -522,7 +522,10 @@ export async function callGemini(
   try {
     const key = getApiKey();
     if (!key) {
-      callbacks.onError?.('Configura tu clave API gratuita de Google en Configuración para usar la IA.');
+      // Sin clave no se manda al docente a Configuración (saldría de lo que tiene a medias): se abre la ventana
+      // de la clave encima de la pantalla en curso, también desde las que no apagan su botón de IA sin clave.
+      abrirClaveIA();
+      callbacks.onError?.('Para usar la IA hace falta la clave gratuita de Google. Ponla en la ventana que se ha abierto, sin salir de esta pantalla.');
       return null;
     }
 

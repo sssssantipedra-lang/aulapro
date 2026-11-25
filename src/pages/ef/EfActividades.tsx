@@ -23,7 +23,9 @@ import { bancoEF } from '../../lib/bancoEF';
 import { deporteAlternativoDe, textoDe, TRANSVERSALES, type DeporteAlternativo, type ActividadGuia } from '../../lib/deportesAlternativos';
 import { alumnadoParaIA, edadAproximada, MODALIDADES_EF, nuevoIdEF, TIPOS_ACTIVIDAD } from '../../lib/ef';
 import { fotoParaIA } from '../../lib/fotos';
-import { hasApiKey, type InlineFile } from '../../services/gemini';
+import type { InlineFile } from '../../services/gemini';
+import { useHayClaveIA } from '../../hooks/useClaveIA';
+import { AiKeyNotice } from '../../components/ui/AiKeyNotice';
 import { actividadDesdeFoto, actividadesDesdeManual, MAX_ACTIVIDADES_MANUAL, proponerActividades } from '../../services/efIA';
 import type { ComunidadId } from '../../lib/curriculum/comunidades';
 import type { Class, Student } from '../../types';
@@ -70,6 +72,7 @@ const ORIGEN: Record<ActividadEF['origen'], string> = { banco: 'Del banco', prop
 
 export function EfActividades({ classes, students, ef, onChangeEf, comunidad }: Props) {
   const { t, lang } = useI18n();
+  const hayClaveIA = useHayClaveIA();
   const { toast } = useToast();
   // Las ventanas de crear con IA, desde una foto o desde un manual empiezan por la clase activa
   const [claseActiva] = useClaseActiva(classes);
@@ -339,20 +342,22 @@ export function EfActividades({ classes, students, ef, onChangeEf, comunidad }: 
         </div>
         <div className="ap-prog-acc">
           <button className="btn-ghost" onClick={() => { setDelManual(null); setManual({ claseId: claseActiva, paginas: '', nota: '', archivo: null }); }}
-            disabled={!hasApiKey()} title={hasApiKey() ? undefined : t('Configura tu clave API gratuita de Google en Configuración para usar la IA.')}>
+            disabled={!hayClaveIA} title={hayClaveIA ? undefined : t('Para usar la IA hace falta tu clave gratuita de Google. Ponla con «Configurar la IA».')}>
             <FileText size={15} />{t('Desde un manual (PDF)')}
           </button>
           <button className="btn-ghost" onClick={() => { setDeFoto(null); setFoto({ claseId: claseActiva, nota: '', inventario: hayInventario, limitaciones: true, archivo: null }); }}
-            disabled={!hasApiKey()} title={hasApiKey() ? undefined : t('Configura tu clave API gratuita de Google en Configuración para usar la IA.')}>
+            disabled={!hayClaveIA} title={hayClaveIA ? undefined : t('Para usar la IA hace falta tu clave gratuita de Google. Ponla con «Configurar la IA».')}>
             <Camera size={15} />{t('Desde una foto')}
           </button>
           <button className="btn-ghost" onClick={() => { setPropuestas([]); setIa({ tipo: tipo === 'todas' ? 'juego' : tipo, modalidad: modalidad === 'todas' ? '' : modalidad, claseId: claseActiva, tema: '', inventario: hayInventario, limitaciones: true }); }}
-            disabled={!hasApiKey()} title={hasApiKey() ? undefined : t('Configura tu clave API gratuita de Google en Configuración para usar la IA.')}>
+            disabled={!hayClaveIA} title={hayClaveIA ? undefined : t('Para usar la IA hace falta tu clave gratuita de Google. Ponla con «Configurar la IA».')}>
             <Sparkles size={15} />{t('Proponer con IA')}
           </button>
           <button className="btn-accent" onClick={() => setEditando(vacia())}><Plus size={15} />{t('Nueva actividad')}</button>
         </div>
       </div>
+
+      {!hayClaveIA && <AiKeyNotice message={t('Para usar la IA hace falta la clave gratuita de Google. Puedes ponerla sin salir de aquí.')} action={t('Configurar la IA')} />}
 
       <div className="ef-act-barra">
         {enTipo && <button type="button" className="btn-ghost" onClick={volver}><ArrowLeft size={15} />{t('Todas las actividades')}</button>}

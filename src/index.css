@@ -1153,11 +1153,22 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
 @keyframes cp-pulse { 50% { transform:scale(1.06); } }
 .cp-stage { position:relative; z-index:1; flex:1; min-height:0; overflow-y:auto; padding:10px 6vw 20px; display:flex; flex-direction:column; align-items:center; }
 
-.cp-cover, .cp-final { margin:auto; text-align:center; display:flex; flex-direction:column; align-items:center; gap:18px; max-width:980px; }
+/* La portada cabe entera, con el botón de empezar a la vista, también en 1280 x 720 (25-11-2026: el mapa lo tapaba) */
+.cp-cover, .cp-final { margin:auto; text-align:center; display:flex; flex-direction:column; align-items:center; gap:clamp(10px, 2vh, 18px); max-width:980px; }
 .cp-hero { line-height:0; filter:drop-shadow(0 12px 24px rgba(0,0,0,.3)); }
-.cp-hero .theme-art { width:min(30vh, 240px); height:min(30vh, 240px); border-radius:28px; border:5px solid rgba(255,255,255,.85); object-fit:cover; }
-.cp-h1 { font-family:var(--cp-font); font-size:clamp(32px, 5vw, 64px); font-weight:800; margin:0; line-height:1.1; text-shadow:0 4px 18px rgba(0,0,0,.25); }
-.cp-mission { background:#fff; color:#1e293b; border-radius:22px; padding:20px 26px; font-size:clamp(17px, 2vw, 24px); line-height:1.5; text-align:left; box-shadow:0 18px 44px rgba(0,0,0,.25); }
+.cp-hero .theme-art { width:min(22vh, 240px); height:min(22vh, 240px); border-radius:28px; border:5px solid rgba(255,255,255,.85); object-fit:cover; }
+.cp-h1 { font-family:var(--cp-font); font-size:clamp(28px, min(5vw, 8.5vh), 64px); font-weight:800; margin:0; line-height:1.1; text-shadow:0 4px 18px rgba(0,0,0,.25); }
+.cp-mission { background:#fff; color:#1e293b; border-radius:22px; padding:clamp(12px, 2vh, 20px) 26px; font-size:clamp(16px, min(2vw, 3.2vh), 24px); line-height:1.45; text-align:left; box-shadow:0 18px 44px rgba(0,0,0,.25); }
+@media (max-height: 520px) {
+  .cp-hero { display:none; }
+  .cp-top { padding:8px 14px; }
+  .cp-stage { padding-top:0; padding-bottom:8px; }
+  .cp-start { height:48px; font-size:19px; }
+  .cp-chip { height:32px; padding:0 12px; font-size:13px; }
+  .cp-map { padding:4px 12px 8px; }
+  .cp-dot { width:40px; height:40px; font-size:19px; }
+  .cp-nav { width:38px; height:38px; }
+}
 .cp-mission-who { font-family:var(--cp-font); font-weight:800; text-transform:uppercase; letter-spacing:.06em; font-size:14px; color:var(--cp-cd); margin-bottom:6px; }
 .cp-time-pick { display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:center; font-weight:700; }
 .cp-chip { display:inline-flex; align-items:center; gap:6px; height:38px; padding:0 16px; border-radius:99px; border:2px solid rgba(255,255,255,.35); background:transparent; color:#fff; font-family:var(--font); font-size:14px; font-weight:700; cursor:pointer; }

@@ -35,7 +35,7 @@ import { buildSdaPosterHtml, saveSdaPosterPdf, type AudienciaCartel } from '../s
 import { useThemeArt } from '../lib/themeArtDoc';
 import { FICHA_THEMES, type FichaThemeId } from '../lib/fichaThemes';
 import { ThemeArt } from '../components/fichas/ThemeArt';
-import { cupoAgotadoHasta, hasApiKey, horaCorta, modelosParaSda, nombreModelo, SDA_MODELS, type InlineFile } from '../services/gemini';
+import { cupoAgotadoHasta, horaCorta, modelosParaSda, nombreModelo, SDA_MODELS, type InlineFile } from '../services/gemini';
 import { fileToBase64, isoDate } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
 import { useI18n } from '../i18n';
@@ -45,6 +45,7 @@ import { CopiarAClases } from '../components/CopiarAClases';
 import { DocPreview } from '../components/DocPreview';
 import { clonarSda } from '../lib/clonar';
 import { AiKeyNotice } from '../components/ui/AiKeyNotice';
+import { useHayClaveIA } from '../hooks/useClaveIA';
 import { isDesktop } from '../services/storage';
 import { groupSituations, filterSituations, sdaAreas, type SdaGroupBy } from '../lib/sdaLibrary';
 import { alumnosConBarreras, barrerasDeClases, palabrasDeNombres } from '../lib/barreras';
@@ -230,6 +231,8 @@ export function LearningSituations({
 }: Props) {
   const { toast } = useToast();
   const { t, lang, locale } = useI18n();
+  // Se vuelve a pintar al poner la clave en la ventana de «Configurar la IA», con lo escrito intacto
+  const hayClaveIA = useHayClaveIA();
 
   /* ── Formulario ── */
   const [classId, setClassId] = useState('');
@@ -1003,7 +1006,7 @@ export function LearningSituations({
     return anexo;
   }
 
-  const sinClave = !hasApiKey();
+  const sinClave = !hayClaveIA;
 
   /* ── Índice del documento: qué apartado se está leyendo ── */
   const SECTIONS = [
@@ -1058,7 +1061,7 @@ export function LearningSituations({
       </div>
 
       {sinClave && (
-        <AiKeyNotice message={t('Para redactar situaciones de aprendizaje hace falta la clave gratuita de Google que se configura en Configuración.')} action={t('Configurar la IA')} />
+        <AiKeyNotice message={t('Para redactar situaciones de aprendizaje hace falta la clave gratuita de Google. Puedes ponerla sin salir de esta pantalla y sin perder lo que lleves escrito.')} action={t('Configurar la IA')} />
       )}
 
       <div className="card sda-form">
@@ -1449,7 +1452,7 @@ export function LearningSituations({
       </div>
 
       {sinClave && (
-        <AiKeyNotice message={t('Para redactar situaciones de aprendizaje hace falta la clave gratuita de Google que se configura en Configuración.')} action={t('Configurar la IA')} />
+        <AiKeyNotice message={t('Para redactar situaciones de aprendizaje hace falta la clave gratuita de Google. Puedes ponerla sin salir de esta pantalla y sin perder lo que lleves escrito.')} action={t('Configurar la IA')} />
       )}
 
       {borrador.encontrado && (

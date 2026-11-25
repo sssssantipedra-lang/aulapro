@@ -53,7 +53,7 @@ import { alumnadoParaIA, exentosDelDia, LIMITACIONES, pruebasDe, recursosParaIA 
 import type { SesionEF } from './types/ef';
 import { isoDate, nombresCortos } from './lib/utils';
 import { buildDemoApoyo } from './lib/demoApoyo';
-import type { Section, Ficha, Evaluation } from './types';
+import type { Section, Evaluation } from './types';
 import { X, Menu, Search } from 'lucide-react';
 import { DEMO_USER, DEMO_COMMUNITY } from './lib/demoData';
 import { useI18n, priorityLabel } from './i18n';
@@ -153,8 +153,6 @@ function AppInner() {
     if (r.tipo === 'rubrica' || r.tipo === 'sda') setBusquedaPedida(p => ({ section: r.section, texto: r.titulo, n: p.n + 1 }));
     setSection(r.section);
   };
-  /** Ficha que Recursos manda proyectar en Aula Live. */
-  const [liveFicha, setLiveFicha]     = useState<Ficha | null>(null);
   // Volver a un apartado del menú abre la pestaña en la que se estaba
   useEffect(() => { rememberTab(section); }, [section]);
   // El calendario escolar publicado, al abrir un perfil de una comunidad que lo tiene (solo descarga)
@@ -364,7 +362,6 @@ function AppInner() {
     const sustituir = repetida && (esEscala || window.confirm(t('Hoy ya has evaluado a {name} con «{instrumento}». Si estás corrigiendo esa evaluación, pulsa Aceptar y esta la sustituirá. Si es otro trabajo, pulsa Cancelar y se guardarán las dos.', { name: ev.student_name, instrumento: ev.rubric_name })));
     addEvaluation(ev, { sustituir });
   }, [evaluacionesHechas, dianasHechas, addEvaluation, t]);
-  const alTerminarDeProyectar = useCallback(() => setLiveFicha(null), [setLiveFicha]);
 
   /**
    * «Dar la clase» (20-11-2026, `lib/darLaClase.ts`): abre la pizarra con esa clase y la sesión montada en
@@ -938,7 +935,6 @@ function AppInner() {
                 fichas={st.fichas}
                 onSave={f => { st.saveFicha(f); }}
                 onDelete={id => { st.deleteFicha(id); toast(t('Ficha eliminada')); }}
-                onProject={f => { setLiveFicha(f); setSection('sec-classroom'); }}
                 onNav={s => setSection(s as Section)}
                 apoyo={especialista ? st.apoyo : undefined}
                 students={st.students} acsAula={st.apoyo.acsAula} comunidad={st.currentUser?.community}
@@ -1060,8 +1056,6 @@ function AppInner() {
                   clases={ruletaClases}
                   claseInicial={clasePizarra}
                   fichas={st.fichas}
-                  projectFicha={liveFicha}
-                  onProjectDone={alTerminarDeProyectar}
                   sesiones={fuenteDeSesiones}
                   onSesionDada={marcarSesionDada}
                 />

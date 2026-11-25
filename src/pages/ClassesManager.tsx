@@ -517,7 +517,7 @@ export function ClassesManager({
               className="ico-btn"
               title={t('Eliminar clase')}
               onClick={() => {
-                if (!window.confirm(t('¿Eliminar la clase "{name}"? Se perderán todos sus datos.', { name: activeClass.name }))) return;
+                if (!window.confirm(t('¿Eliminar la clase "{name}"? Se borran también su alumnado, su cuaderno, sus evaluaciones, su asistencia, sus anotaciones de actitud, sus informes, sus horas del horario semanal y su distribución de aula.', { name: activeClass.name }))) return;
                 onDeleteClass(activeClass.id);
                 // Vuelve a la portada, o a la única clase que quede
                 const quedan = classes.filter(c => c.id !== activeClassId);
