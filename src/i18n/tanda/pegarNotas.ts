@@ -65,6 +65,8 @@ export const EN: Record<string, string> = {
     '{n} columns too many: there are no more activities to the right of «{actividad}». They are left out.',
   'La primera fila es la cabecera de mi hoja: no es de ningún alumno': 'The first row is my sheet\'s header: it does not belong to any student',
   'Se ha marcado sola porque esa fila no trae ninguna nota y las de debajo sí.': 'It was ticked automatically because that row has no marks and the rows below do.',
+  'Si esa fila numera las actividades (1, 2, 3…), márcala: sus números serán los títulos de las columnas y no se pondrán como notas.':
+    'If that row numbers the activities (1, 2, 3…), tick it: its numbers will be the column titles and will not be entered as marks.',
   'La columna con el número de lista (1, 2, 3…) no se cuenta como nota.': 'The column with the list number (1, 2, 3…) is not counted as a mark.',
   'Los nombres de tu hoja salen junto a cada alumno para que compruebes el orden; no se usan para colocar las notas.':
     'The names in your sheet are shown next to each student so that you can check the order; they are not used to place the marks.',
@@ -290,6 +292,8 @@ export const CA: Record<string, string> = {
     'Sobren {n} columnes: no hi ha més activitats a la dreta de «{actividad}». No entren.',
   'La primera fila es la cabecera de mi hoja: no es de ningún alumno': 'La primera fila és la capçalera del meu full: no és de cap alumne',
   'Se ha marcado sola porque esa fila no trae ninguna nota y las de debajo sí.': 'S\'ha marcat sola perquè aquesta fila no porta cap nota i les de sota sí.',
+  'Si esa fila numera las actividades (1, 2, 3…), márcala: sus números serán los títulos de las columnas y no se pondrán como notas.':
+    'Si aquesta fila numera les activitats (1, 2, 3…), marca-la: els seus números seran els títols de les columnes i no es posaran com a notes.',
   'La columna con el número de lista (1, 2, 3…) no se cuenta como nota.': 'La columna amb el número de llista (1, 2, 3…) no es compta com a nota.',
   'Los nombres de tu hoja salen junto a cada alumno para que compruebes el orden; no se usan para colocar las notas.':
     'Els noms del teu full surten al costat de cada alumne perquè comprovis l\'ordre; no es fan servir per col·locar les notes.',

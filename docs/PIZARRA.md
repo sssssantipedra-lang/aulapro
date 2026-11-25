@@ -101,7 +101,8 @@ la interfaz pública que se conocía, no de una comparación pantalla a pantalla
 - El plan no tapa otras ventanas: se minimizan solo las necesarias, el temporizador y el cronómetro los últimos (`sitioParaPlan`); en el móvil, todas.
 - La ventana vacía propone la sesión de hoy de la clase elegida o la siguiente sin dar, y al marcar la última actividad sugiere darla por dada.
 - La pizarra viva va en su propio `Suspense`, fuera del de las páginas (`App.tsx`): dentro, al abrir otra pantalla por primera vez las ventanas quedaban desplazadas al doble de su sitio.
-- Pendiente: con las 24 ventanas ocupadas, «Dar la clase» abre la pizarra sin plan y sin avisar; «Traer la sesión de hoy» en un plan abierto a mano en el móvil se queda encima de otras ventanas; lo guardado en las ventanas es del dispositivo, no del perfil; al recuperar una escena, una ventana con el mismo identificador puede seguir enseñando su sesión hasta recargar (deducido del código).
+- Con las 24 ventanas ocupadas (25-11-2026), «Dar la clase» no cierra nada: si no hay un «Plan del día» que le sirva, la pizarra avisa de que no caben más ventanas y el plan entra en el hueco de la próxima que cierre el docente o, si deja sitio, al cargar una escena (`sitioDelPlan`, `planEnEspera`, `cargarEscena`); con una escena de 24 ventanas sigue esperando y el aviso sigue. El aviso se coloca debajo de la barra de arriba (en el móvil, de todas sus filas) y de la de dibujar, y por debajo de los paneles de «Fondo» y «Escenas».
+- Pendiente: «Traer la sesión de hoy» en un plan abierto a mano en el móvil se queda encima de otras ventanas; lo guardado en las ventanas es del dispositivo, no del perfil; al recuperar una escena, una ventana con el mismo identificador puede seguir enseñando su sesión hasta recargar (deducido del código).
 
 ## La pizarra sigue viva al cambiar de pantalla (19-11-2026)
 

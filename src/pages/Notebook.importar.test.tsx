@@ -75,6 +75,38 @@ describe('importar notas de un archivo', () => {
     expect([de(nueva.id, 's0'), de(nueva.id, 's1'), de(nueva.id, 's2')]).toEqual([10, 6.5, 7]);
   });
 
+  it('una cabecera solo de números se marca a mano y sus números son los títulos, no notas (25-11-2026)', async () => {
+    const p = pinta();
+    subir(';1;2\nRuiz Mora, Ana;9;7\nGil Soler, Marcos;4;6\n');
+    await waitFor(() => expect(within(ventana()).getByText('Importar notas de un archivo')).toBeTruthy());
+    const elegir = ventana();
+    const casilla = within(elegir).getByRole('checkbox', { name: /cabecera/ }) as HTMLInputElement;
+    expect(casilla.checked).toBe(false);
+    expect(within(elegir).getByText(/Si esa fila numera las actividades/)).toBeTruthy();
+    fireEvent.click(casilla);
+    expect(within(elegir).queryByText(/Si esa fila numera las actividades/)).toBeNull();
+    // Las columnas se llaman como en la hoja y se proponen como actividades nuevas con ese nombre
+    expect((within(elegir).getByRole('combobox', { name: /columna «1»/ }) as HTMLSelectElement).value).toBe('nueva');
+    fireEvent.click(within(elegir).getByRole('button', { name: 'Ver cómo quedan' }));
+    const previa = ventana();
+    // En la vista previa de un archivo no se repite la casilla: ya se decidió antes
+    expect(within(previa).queryByRole('checkbox', { name: /cabecera/ })).toBeNull();
+    fireEvent.click(within(previa).getByRole('button', { name: 'Poner 4 notas' }));
+    expect(p.onAddItem).toHaveBeenCalledTimes(2);
+    expect((p.onAddItem.mock.calls as [GradeItem][]).map(c => c[0].name)).toEqual(['1', '2']);
+    const [cambios] = p.onSetGrades.mock.calls[0] as [{ studentId: string; value: number }[]];
+    expect(cambios.map(c => c.value).sort()).toEqual([4, 6, 7, 9]);
+  });
+
+  it('una hoja sin cabecera, con notas en la primera fila, no invita a marcarla como cabecera (25-11-2026)', async () => {
+    pinta();
+    subir('Ruiz Mora, Ana;7;8\nGil Soler, Marcos;9;6\n');
+    await waitFor(() => expect(within(ventana()).getByText('Importar notas de un archivo')).toBeTruthy());
+    const elegir = ventana();
+    expect((within(elegir).getByRole('checkbox', { name: /cabecera/ }) as HTMLInputElement).checked).toBe(false);
+    expect(within(elegir).queryByText(/Si esa fila numera las actividades/)).toBeNull();
+  });
+
   it('cancelar no cambia nada, y un archivo que no es una hoja se rechaza', async () => {
     const p = pinta();
     subir('Alumno;Examen de invierno\nRuiz Mora, Ana;9\n');

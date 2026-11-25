@@ -126,6 +126,10 @@ export const EN: Record<string, string> = {
   'Texto de presentación (opcional)': 'Opening text (optional)',
   'Un párrafo al principio del informe. Puedes dejarlo vacío, escribirlo tú o pedir a la IA que lo redacte cuando el informe esté guardado.': 'A paragraph at the start of the report. You can leave it empty, write it yourself or ask the AI to write it once the report is saved.',
   'Informe de {nombre}. Nada de esto sale de tu dispositivo.': 'Report for {nombre}. None of this leaves your device.',
+  'Has quitado 1 frase que sale de las reglas: no volverá al actualizar los datos.': 'You have removed 1 sentence that comes from the rules: it will not come back when you update the data.',
+  'Has quitado {n} frases que salen de las reglas: no volverán al actualizar los datos.': 'You have removed {n} sentences that come from the rules: they will not come back when you update the data.',
+  'Volver a ofrecerlas': 'Offer them again',
+  'Las frases quitadas volverán a salir la próxima vez que actualices los datos, si sus datos siguen ahí.': 'The removed sentences will appear again the next time you update the data, if their data is still there.',
 
   // El documento
   'Informe elaborado por el docente a partir de las calificaciones, la asistencia, las anotaciones de clase y las evaluaciones registradas en el periodo.': 'Report prepared by the teacher from the grades, attendance, class notes and assessments recorded in the period.',
@@ -261,6 +265,10 @@ export const CA: Record<string, string> = {
   'Texto de presentación (opcional)': 'Text de presentació (opcional)',
   'Un párrafo al principio del informe. Puedes dejarlo vacío, escribirlo tú o pedir a la IA que lo redacte cuando el informe esté guardado.': 'Un paràgraf al principi de l’informe. El pots deixar buit, escriure’l tu o demanar a la IA que el redacti quan l’informe estigui desat.',
   'Informe de {nombre}. Nada de esto sale de tu dispositivo.': 'Informe de {nombre}. Res d’això surt del teu dispositiu.',
+  'Has quitado 1 frase que sale de las reglas: no volverá al actualizar los datos.': 'Has tret 1 frase que surt de les regles: no tornarà en actualitzar les dades.',
+  'Has quitado {n} frases que salen de las reglas: no volverán al actualizar los datos.': 'Has tret {n} frases que surten de les regles: no tornaran en actualitzar les dades.',
+  'Volver a ofrecerlas': 'Tornar a oferir-les',
+  'Las frases quitadas volverán a salir la próxima vez que actualices los datos, si sus datos siguen ahí.': 'Les frases tretes tornaran a sortir la propera vegada que actualitzis les dades, si les seves dades encara hi són.',
 
   // El documento
   'Informe elaborado por el docente a partir de las calificaciones, la asistencia, las anotaciones de clase y las evaluaciones registradas en el periodo.': 'Informe elaborat pel docent a partir de les qualificacions, l’assistència, les anotacions de classe i les avaluacions registrades en el període.',

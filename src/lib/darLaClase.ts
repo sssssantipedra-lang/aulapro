@@ -9,7 +9,8 @@
  *    el título de la sesión y el título y la descripción de cada actividad. Nunca el objetivo, el material,
  *    las medidas de inclusión, el plan B ni nada del alumnado;
  *  - qué sesión se propone en una ventana vacía y por qué (`sesionesParaProponer`);
- *  - a qué ventana va un plan sin borrar lo que hubiera (`ventanaParaPlan`, `fusionarPlan`);
+ *  - a qué ventana va un plan sin borrar lo que hubiera (`ventanaParaPlan`, `fusionarPlan`) y, con la pizarra
+ *    llena, que espera a que se cierre una ventana (`sitioDelPlan`);
  *  - el encargo que deja quien pulsa «Dar la clase» en otra pantalla y que la pizarra recoge al enseñarse
  *    (`encargarClase`, `tomarEncargo`), porque la pizarra sigue montada entre pantallas (`PizarraViva`).
  *
@@ -19,7 +20,7 @@
 import type { LearningSituation } from '../types';
 import type { ImagenSesion, PizarraEF, SesionEF } from '../types/ef';
 import { imagenesDeSesionSda } from './imagenesSesion';
-import { claveDatos, huecoLibre, rectVisible, type Rect } from './pizarraAula';
+import { MAX_VENTANAS, claveDatos, huecoLibre, rectVisible, type Rect } from './pizarraAula';
 import { activas, agruparPorSda } from './sesiones';
 
 /* ── El plan ── */
@@ -311,6 +312,20 @@ export function ventanaParaPlan(ventanas: readonly VentanaDePlan[], origen: Orig
   const vacia = ventanas.find(v => v.tareas.length === 0 && !v.sesion);
   if (vacia) return { id: vacia.id, modo: 'vacia' };
   return !origen && ventanas[0] ? { id: ventanas[0].id, modo: 'misma' } : null;
+}
+
+/**
+ * Dónde va el plan con las ventanas que hay (`total`, de cualquier herramienta): a una «Plan del día» que ya
+ * está (`ventanaParaPlan`), a una ventana nueva si queda sitio (`nueva`) o a ninguna (`llena`): la pizarra ya
+ * tiene `max` ventanas y ninguna le sirve. Con `llena` no se cierra ni se vacía nada del docente: el plan
+ * espera, la pizarra lo dice y se pone en cuanto el docente cierra una ventana.
+ */
+export function sitioDelPlan(
+  ventanas: readonly VentanaDePlan[], origen: OrigenPlan | null, total: number, max = MAX_VENTANAS,
+): { id: string; modo: 'misma' | 'vacia' } | 'nueva' | 'llena' {
+  const destino = ventanaParaPlan(ventanas, origen);
+  if (destino) return destino;
+  return total >= max ? 'llena' : 'nueva';
 }
 
 /**

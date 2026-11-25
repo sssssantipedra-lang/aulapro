@@ -3,10 +3,10 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import {
   claseParaSda, claveSesionDada, crecerEnSuSitio, encargarClase, ENCARGO_VALE_MS, escribirPlanDeVentana, esDeSesion, esSesionEnPizarra, esTareas,
   fusionarPlan, hayEncargo, huecoParaPlan, leerPlanDeVentana, mismoOrigen, partirActividad, planDeOrigen, planDeSesion, planDeSesionSda,
-  sesionesDeHoy, sesionesParaProponer, sesionRecorrida, sesionViva, sitioParaPlan, suscribirEncargo, tomarEncargo, ventanaParaPlan,
+  sesionesDeHoy, sesionesParaProponer, sesionRecorrida, sesionViva, sitioDelPlan, sitioParaPlan, suscribirEncargo, tomarEncargo, ventanaParaPlan,
   MAX_ACTIVIDADES_POR_MOMENTO, type TareaPlan,
 } from './darLaClase';
-import { borrarDatosDeVentana, claveDatos } from './pizarraAula';
+import { borrarDatosDeVentana, claveDatos, MAX_VENTANAS } from './pizarraAula';
 import { sesionesDeSda } from './sesiones';
 import type { LearningSituation } from '../types';
 import type { SesionEF } from '../types/ef';
@@ -350,6 +350,27 @@ describe('ventanaParaPlan', () => {
     expect(mismoOrigen({ tipo: 'sda', id: 'a', indice: 1 }, { tipo: 'sda', id: 'a', indice: 1 })).toBe(true);
     expect(mismoOrigen({ tipo: 'sesion', id: 'a' }, { tipo: 'sda', id: 'a', indice: 0 })).toBe(false);
     expect(mismoOrigen(null, o1)).toBe(false);
+  });
+});
+
+describe('sitioDelPlan: la pizarra llena', () => {
+  const o1 = { tipo: 'sesion', id: 's1' } as const;
+  const plan = (id: string, sesionId?: string, tareas: TareaPlan[] = [{ id: 't1', texto: 'a mano', hecha: false }]) => ({
+    id, tareas, sesion: sesionId ? { origen: { tipo: 'sesion' as const, id: sesionId }, titulo: 'x', ef: false } : null,
+  });
+
+  it('con sitio, una ventana nueva', () => {
+    expect(sitioDelPlan([], o1, MAX_VENTANAS - 1)).toBe('nueva');
+  });
+  it('con las 24 ocupadas y ningún plan que le sirva, espera: no se pisa ni se cierra nada', () => {
+    expect(sitioDelPlan([], o1, MAX_VENTANAS)).toBe('llena');
+    expect(sitioDelPlan([plan('agenda', 's9')], o1, MAX_VENTANAS)).toBe('llena');
+    expect(sitioDelPlan([], null, MAX_VENTANAS)).toBe('llena');
+  });
+  it('llena, pero con un «Plan del día» que ya la tiene o vacío, va a ese', () => {
+    expect(sitioDelPlan([plan('agenda', 's1')], o1, MAX_VENTANAS)).toEqual({ id: 'agenda', modo: 'misma' });
+    expect(sitioDelPlan([plan('agenda', 's9'), plan('agenda-2', undefined, [])], o1, MAX_VENTANAS)).toEqual({ id: 'agenda-2', modo: 'vacia' });
+    expect(sitioDelPlan([plan('agenda', 's9')], null, MAX_VENTANAS)).toEqual({ id: 'agenda', modo: 'misma' });
   });
 });
 

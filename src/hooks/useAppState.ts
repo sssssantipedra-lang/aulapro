@@ -514,6 +514,19 @@ export function useAppState() {
     setClassMarks(prev => prev.filter(m => m.class_id !== id));
     setMarksConfigs(prev => Object.fromEntries(Object.entries(prev).filter(([k]) => !k.startsWith(id + '|'))));
     setEf(prev => sinClaseEF(prev, id, cascadeStudentIds));
+    // Con la clase se van sus horas del horario semanal, su distribución de aula y la Diana de su alumnado
+    // (25-11-2026; antes se quedaban: el horario seguía enseñando horas de una clase que ya no existía).
+    // Un bloque sin clase (class_id vacío) no es de ninguna y no se toca.
+    setScheduleBlocks(prev => (prev.some(b => b.class_id === id) ? prev.filter(b => b.class_id !== id) : prev));
+    setSeatingPlans(prev => { if (!(id in prev)) return prev; const n = { ...prev }; delete n[id]; return n; });
+    if (cascadeStudentIds.length) {
+      setDianaProfiles(prev => {
+        if (!cascadeStudentIds.some(s => s in prev)) return prev;
+        const n = { ...prev };
+        cascadeStudentIds.forEach(s => delete n[s]);
+        return n;
+      });
+    }
     if (cascadeItemIds.length) {
       const removed = new Set(cascadeItemIds);
       setGrades(g => {

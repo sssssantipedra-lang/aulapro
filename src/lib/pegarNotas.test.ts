@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   cambiosDeRelleno, cambiosReales, conCambios, emparejarPorNombre, entenderPegado, esBloque, leerNota, leerPegado, nombresParecidos,
-  esMarcaSinNota, parecidoDeNombres, pareceCabecera, planDePegado, puedeSerTitulo, sinNota, MAX_FILAS,
+  esMarcaSinNota, parecidoDeNombres, pareceCabecera, planDePegado, primeraFilaNumera, puedeSerTitulo, sinNota, MAX_FILAS,
 } from './pegarNotas';
 import type { GradeMap } from '../types';
 
@@ -222,6 +222,47 @@ describe('entenderPegado', () => {
   it('si todo es texto no queda ninguna columna de notas', () => {
     const p = entenderPegado(leerPegado('Alumno 1\nAlumno 2'));
     expect(p.celdas).toEqual([[], []]);
+  });
+});
+
+describe('una cabecera hecha solo de números (25-11-2026)', () => {
+  const hoja = leerPegado('\t1\t2\t3\nAlumno 1\t7\t8\t9\nAlumno 2\t5\t6\t4');
+
+  it('sola no se toma por cabecera: podría ser la fila del primer alumno', () => {
+    expect(pareceCabecera(hoja)).toBe(false);
+    expect(entenderPegado(hoja).cabecera).toBe(false);
+    expect(pareceCabecera(leerPegado('1\t2\n7\t8\n5\t6'))).toBe(false);
+  });
+
+  it('se reconoce para ofrecer la casilla: números enteros seguidos desde el 1', () => {
+    expect(primeraFilaNumera(hoja)).toBe(true);
+    expect(primeraFilaNumera(leerPegado('1\t2\n7\t8\n9\t6'))).toBe(true);
+    expect(primeraFilaNumera(leerPegado('1.\t2.\t3.\n7\t8\t9'))).toBe(true);
+    expect(primeraFilaNumera(leerPegado('Ej. 1\tEj. 2\n7\t8'))).toBe(false);
+    expect(primeraFilaNumera(leerPegado('Alumno 1\t7\nAlumno 2\t8'))).toBe(false);
+    expect(primeraFilaNumera(leerPegado('1\t2'))).toBe(false); // una sola fila: no hay cabecera posible
+    expect(primeraFilaNumera([['', ''], ['7', '8']])).toBe(false);
+  });
+
+  it('unas notas normales no son una numeración: no se ofrece la casilla en cada pegado', () => {
+    // Una columna de notas sin nombres, dos columnas, decimales, una nota mal escrita
+    for (const texto of ['7\n8\n9', '1\n2\n3', '7\t8\n9\t6', '7,5\n8', '11\t7\n8\t9', '7\t9\t8\n5\t6\t4', '2\t1\n7\t8', '7\t8\t9\n5\t6\t4']) {
+      expect(primeraFilaNumera(leerPegado(texto)), texto).toBe(false);
+    }
+  });
+
+  it('cuando el docente lo dice, esa fila son los títulos y sus números no se ponen como notas', () => {
+    const p = entenderPegado(hoja, { cabecera: true });
+    expect(p.cabecera).toBe(true);
+    expect(p.titulos).toEqual(['1', '2', '3']);
+    expect(p.celdas).toEqual([['7', '8', '9'], ['5', '6', '4']]);
+    expect(p.etiquetas).toEqual(['Alumno 1', 'Alumno 2']);
+    const plan = planDePegado(p, { alumnado, actividades, notas: {}, alumnoId: 's1', actividadId: 'i1' })!;
+    expect(plan.columnas.map(c => c.titulo)).toEqual(['1', '2', '3']);
+    expect(plan.cambios).toEqual([
+      { itemId: 'i1', studentId: 's1', value: 7 }, { itemId: 'i2', studentId: 's1', value: 8 }, { itemId: 'i3', studentId: 's1', value: 9 },
+      { itemId: 'i1', studentId: 's2', value: 5 }, { itemId: 'i2', studentId: 's2', value: 6 }, { itemId: 'i3', studentId: 's2', value: 4 },
+    ]);
   });
 });
 

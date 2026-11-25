@@ -19,6 +19,12 @@ export const PIZARRA_EN: Record<string, string> = {
   'Escenas': 'Scenes',
   'Añadir {title}': 'Add {title}',
   'Hay demasiadas ventanas abiertas. Cierra alguna.': 'Too many windows are open. Close one.',
+  // «Dar la clase» con la pizarra llena
+  'No caben más ventanas en la pizarra': 'There is no room for more windows on the board',
+  'Ya hay {n} ventanas abiertas, el máximo. Cierra una y se abrirá «Plan del día» con la sesión.':
+    'There are already {n} windows open, the maximum. Close one and “Plan for the day” will open with the session.',
+  'Ya hay {n} ventanas abiertas, el máximo. Cierra una y se abrirá «Plan del día».':
+    'There are already {n} windows open, the maximum. Close one and “Plan for the day” will open.',
   'Guardar y recuperar la disposición de la pizarra': 'Save and restore the board layout',
   'Una escena guarda qué herramientas hay abiertas, dónde están y el fondo. Úsalas para pasar de la entrada a la tarea y al cierre con un clic.':
     'A scene saves which tools are open, where they are and the background. Use them to move from the starter to the task and the plenary in one click.',
@@ -112,6 +118,11 @@ export const PIZARRA_CA: Record<string, string> = {
   'Escenas': 'Escenes',
   'Añadir {title}': 'Afegir {title}',
   'Hay demasiadas ventanas abiertas. Cierra alguna.': 'Hi ha massa finestres obertes. Tanca’n alguna.',
+  'No caben más ventanas en la pizarra': 'No hi caben més finestres a la pissarra',
+  'Ya hay {n} ventanas abiertas, el máximo. Cierra una y se abrirá «Plan del día» con la sesión.':
+    'Ja hi ha {n} finestres obertes, el màxim. Tanca’n una i s’obrirà «Pla del dia» amb la sessió.',
+  'Ya hay {n} ventanas abiertas, el máximo. Cierra una y se abrirá «Plan del día».':
+    'Ja hi ha {n} finestres obertes, el màxim. Tanca’n una i s’obrirà «Pla del dia».',
   'Guardar y recuperar la disposición de la pizarra': 'Desar i recuperar la disposició de la pissarra',
   'Una escena guarda qué herramientas hay abiertas, dónde están y el fondo. Úsalas para pasar de la entrada a la tarea y al cierre con un clic.':
     'Una escena desa quines eines hi ha obertes, on són i el fons. Fes-les servir per passar de l’entrada a la tasca i al tancament amb un clic.',

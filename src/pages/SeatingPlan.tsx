@@ -21,7 +21,7 @@ import { seatStudentId } from '../types';
 import { weightedAverage, attendanceRate } from '../services/aiContext';
 import { generateBalancedGroups, type StudentForGrouping } from '../services/classGroups';
 import { aplicarReparto, estructuraParaTodos, huecosDelPlan, mesasConEstructura, rolesSinCambiarDeRol } from '../lib/repartoMesas';
-import { hasApiKey } from '../services/gemini';
+import { useHayClaveIA } from '../hooks/useClaveIA';
 import { buildTableSvg, type FormaMesa } from '../lib/seatingLayout';
 
 const FORMAS: { id: FormaMesa; label: string; texto: string }[] = [
@@ -102,6 +102,7 @@ export function SeatingPlan({
 }: Props) {
   const { toast } = useToast();
   const { t, lang } = useI18n();
+  const hayClaveIA = useHayClaveIA();
   const [classId, setClassId, llevarClase] = useClaseActiva(classes);
   const [notasDocente, setNotasDocente] = useState('');
   const [generating, setGenerating] = useState(false);
@@ -658,10 +659,10 @@ export function SeatingPlan({
 
       {/* ── Repartir con IA ── */}
       <Modal open={aiOpen} onClose={() => setAiOpen(false)} title={<span className="seat-modal-ttl"><Sparkles size={16} color="var(--accent-d)" />{t('Repartir con IA')}</span>}>
-        {!hasApiKey() ? (
+        {!hayClaveIA ? (
           <>
             <p className="seat-modal-p">
-              {t('Para generar grupos equilibrados con IA hace falta la clave gratuita de Google que se configura en Configuración. También puedes sentar al alumnado a mano, sin IA.')}
+              {t('Para generar grupos equilibrados con IA hace falta la clave gratuita de Google. Puedes ponerla sin salir de esta pantalla. También puedes sentar al alumnado a mano, sin IA.')}
             </p>
             <button className="btn-accent" onClick={abrirClaveIA}>
               {t('Configurar la IA')}

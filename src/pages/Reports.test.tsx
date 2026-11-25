@@ -307,3 +307,77 @@ describe('Informes con la IA como opción', () => {
     confirmar.mockRestore();
   });
 });
+
+describe('Informes: la hoja a medias y las frases quitadas', () => {
+  const copias = () => Object.keys(localStorage).filter(k => k.includes('informe-seguimiento'));
+
+  it('una hoja a medias no se pierde al cambiar de alumno: al volver, «Continuar» la recupera, y al guardar la copia se va', () => {
+    render(<Pantalla />);
+    elegir('Alumno 2');
+    fireEvent.click(screen.getByRole('button', { name: 'Informe de seguimiento' }));
+    fireEvent.change(screen.getByLabelText('Observaciones del docente'), { target: { value: 'Lo dejo a medias.' } });
+    elegir('Alumno 1');
+    expect(guardados).toHaveLength(0);
+    expect(copias()).toHaveLength(1);
+    // Es de su alumno y de su evaluación: ni el alumno 1 ni la 1.ª evaluación la ofrecen
+    expect(screen.queryByText(/Te quedó un informe de seguimiento sin guardar/)).toBeNull();
+    elegir('Alumno 2');
+    expect(screen.getByText(/Te quedó un informe de seguimiento sin guardar: «Alumno 2»/)).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: '1ª evaluación' }));
+    expect(screen.queryByText(/Te quedó un informe de seguimiento sin guardar/)).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: /^2ª evaluación/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Continuar' }));
+    expect((screen.getByLabelText('Observaciones del docente') as HTMLTextAreaElement).value).toBe('Lo dejo a medias.');
+    // Ya en el editor, no se ofrece otra vez
+    expect(screen.queryByText(/Te quedó un informe de seguimiento sin guardar/)).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar informe' }));
+    expect(guardados[0].seguimiento?.observacion).toBe('Lo dejo a medias.');
+    expect(copias()).toHaveLength(0);
+    expect(screen.queryByText(/Te quedó un informe de seguimiento sin guardar/)).toBeNull();
+  });
+
+  it('si se abre el editor sin pasar por el aviso, la copia se ofrece dentro; «Cancelar» la descarta, y abrirlo sin tocar nada no deja copia', () => {
+    render(<Pantalla />);
+    elegir('Alumno 2');
+    fireEvent.click(screen.getByRole('button', { name: 'Informe de seguimiento' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
+    expect(copias()).toHaveLength(0);
+    fireEvent.click(screen.getByRole('button', { name: 'Informe de seguimiento' }));
+    fireEvent.change(screen.getByLabelText('Observaciones del docente'), { target: { value: 'A medias.' } });
+    elegir('Alumno 1');
+    elegir('Alumno 2');
+    fireEvent.click(screen.getByRole('button', { name: 'Informe de seguimiento' }));
+    const editor = within(document.querySelector('.inf-editor') as HTMLElement);
+    expect(editor.getByText(/Te quedó un informe de seguimiento sin guardar/)).toBeTruthy();
+    fireEvent.click(editor.getByRole('button', { name: 'Continuar' }));
+    expect((screen.getByLabelText('Observaciones del docente') as HTMLTextAreaElement).value).toBe('A medias.');
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
+    expect(copias()).toHaveLength(0);
+    expect(guardados).toHaveLength(0);
+    expect(screen.queryByText(/Te quedó un informe de seguimiento sin guardar/)).toBeNull();
+  });
+
+  it('una frase quitada no vuelve con «Actualizar los datos», aunque su nota cambie', () => {
+    const { rerender } = render(<Pantalla />);
+    elegir('Alumno 1');
+    fireEvent.click(screen.getByRole('button', { name: 'Informe de seguimiento' }));
+    const i = frases().indexOf('En Matemáticas su nota es de 8,5 sobre 10, un buen resultado.');
+    expect(i).toBeGreaterThanOrEqual(0);
+    fireEvent.click(screen.getAllByRole('button', { name: 'Quitar esta frase' })[i]);
+    expect(screen.getByText(/Has quitado 1 frase que sale de las reglas/)).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar informe' }));
+    expect(guardados[0].seguimiento?.quitadas).toEqual(['Media de {nota} en {asignatura}|Matemáticas']);
+    // Cambia la nota de febrero: la frase sería otra, pero el docente ya dijo que no la quiere
+    rerender(<Pantalla grades={{ ...notas, i2: { s1: 9.5, s2: 3 } }} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Actualizar los datos' }));
+    expect(document.querySelector('.inf-partes')?.textContent).toContain('9,5');
+    expect(frases().some(x => x.startsWith('En Matemáticas su nota es de'))).toBe(false);
+    expect(frases()).toContain('Su nota en Matemáticas ha subido 5,5 puntos respecto a la evaluación anterior.');
+    // «Volver a ofrecerlas» la deja salir otra vez en la siguiente actualización
+    fireEvent.click(screen.getByRole('button', { name: 'Volver a ofrecerlas' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }));
+    expect(guardados[0].seguimiento && 'quitadas' in guardados[0].seguimiento).toBe(false);
+    fireEvent.click(screen.getByRole('button', { name: 'Actualizar los datos' }));
+    expect(frases()).toContain('En Matemáticas su nota es de 9,5 sobre 10, un buen resultado.');
+  });
+});

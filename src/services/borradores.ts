@@ -9,7 +9,9 @@
  * hay cambios sin guardar, y al volver ofrece «Continuar» o «Descartar».
  *
  * Una sola copia por perfil y por tipo: cada una sustituye a la anterior,
- * así que nunca se acumulan. Va en localStorage y no en los datos del
+ * así que nunca se acumulan. El informe de seguimiento lleva una por alumno
+ * y evaluación, y las que sobran las borra Informes al abrirse
+ * (`listarBorradores`, `copiasSobrantes`). Va en localStorage y no en los datos del
  * perfil a propósito: es una red de seguridad aparte, que no depende del
  * guardado normal. Lo de Reuniones y Formaciones tiene su propio autoguardado
  * (`draftAutosave.ts`), anterior a este.
@@ -18,7 +20,9 @@ import { getActiveProfileId } from './storage';
 
 /** Lo que se puede autoguardar: cada pantalla tiene su tipo, y por tanto su copia. */
 export type TipoBorrador =
-  | 'ficha' | 'sda' | 'rubrica' | 'diana' | 'sesion-ef' | 'evaluacion-foto';
+  | 'ficha' | 'sda' | 'rubrica' | 'diana' | 'sesion-ef' | 'evaluacion-foto'
+  /** El informe de seguimiento lleva una copia por alumno y evaluación (`borradorDeSeguimiento`): editar a otro no pisa la del primero. */
+  | `informe-seguimiento:${string}`;
 
 export interface Borrador<T> {
   datos: T;
@@ -64,4 +68,22 @@ export function leerBorrador<T>(tipo: TipoBorrador, ahora: number = Date.now()):
 
 export function borrarBorrador(tipo: TipoBorrador): void {
   try { localStorage.removeItem(clave(tipo)); } catch { /* sin almacenamiento */ }
+}
+
+/**
+ * Los tipos de las copias que hay en el dispositivo para el perfil activo y que empiezan por `prefijo`
+ * («informe-seguimiento:»): las que llevan una copia por cosa se acumulan, y quien las crea las limpia.
+ */
+export function listarBorradores(prefijo: string): TipoBorrador[] {
+  const base = clave(prefijo as TipoBorrador);
+  try {
+    const out: TipoBorrador[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k?.startsWith(base)) out.push(k.slice(base.length - prefijo.length) as TipoBorrador);
+    }
+    return out;
+  } catch {
+    return [];
+  }
 }

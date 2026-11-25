@@ -11,7 +11,7 @@ import { translate, EN_DICT } from '../i18n';
 import { CA } from '../i18n/ca';
 import {
   asistenciaDelPeriodo, claseDelPeriodo, componerSeguimiento, cuentasDePeriodo, datosCambiados, fraseParaFamilia, FRASE_FAMILIA,
-  MAX_DE_COMPETENCIAS, MAX_FRASES, notasDelPeriodo, origenDelTexto, periodoAnterior, recalcular, seguimientoLimpio, tablaPorReglas,
+  MAX_DE_COMPETENCIAS, MAX_FRASES, notasDelPeriodo, origenDelTexto, periodoAnterior, quitarFrase, recalcular, reglaDe, seguimientoLimpio, tablaPorReglas,
   textosParaTraducir, tieneContenido,
 } from './informeSeguimiento';
 import type { DatoResumen } from './resumenAlumno';
@@ -326,6 +326,63 @@ describe('guardar, recalcular y saber si está al día', () => {
     expect(new Set(r.seguimiento.positivos.map(f => f.origen)).size).toBe(r.seguimiento.positivos.length);
   });
 
+  it('una frase que el docente quitó no vuelve al actualizar, aunque cambien sus números', () => {
+    const evs = [evaluacion('e1', 'a', '2027-01-20', { CCL: 3.8 })];
+    const c = componer(cuaderno(), P2, 'a', { evaluations: evs });
+    const i = c.seguimiento.positivos.findIndex(f => f.origen?.includes('Media de'));
+    expect(i).toBeGreaterThanOrEqual(0);
+    const regla = c.seguimiento.positivos[i].regla;
+    expect(regla).toBe('Media de {nota} en {asignatura}|Lengua');
+    const sinElla = quitarFrase(c.seguimiento, 'positivos', i);
+    expect(sinElla.quitadas).toEqual([regla]);
+    // Se guarda y, después, la nota de Lengua cambia: la frase sería otra (otro texto, otro origen), pero es la misma regla
+    const antes = { seguimiento: seguimientoLimpio(sinElla), tabla: c.tabla };
+    const d = cuaderno();
+    d.grades.ex2 = { ...d.grades.ex2, a: 9.5 };
+    const r = recalcular(antes, componer(d, P2, 'a', { evaluations: evs }));
+    expect(r.seguimiento.positivos.some(f => f.texto.startsWith('En Lengua su nota es de'))).toBe(false);
+    expect(r.seguimiento.positivos.some(f => f.regla?.startsWith('Destaca en'))).toBe(true);
+    expect(r.seguimiento.quitadas).toEqual([regla]);
+    // Y lo sigue recordando en la siguiente actualización
+    expect(recalcular(r, componer(d, P2, 'a', { evaluations: evs })).seguimiento.quitadas).toEqual([regla]);
+    // Otra regla de la misma asignatura sí sale: quitar «buen resultado» no calla que no llega al 5
+    const mal = cuaderno();
+    mal.grades.ex2 = { ...mal.grades.ex2, a: 2 };
+    expect(recalcular(antes, componer(mal, P2, 'a', { evaluations: evs })).seguimiento.mejorar.some(f => f.texto.includes('todavía no llega al 5'))).toBe(true);
+  });
+
+  it('la regla de una frase no lleva los números ni la actividad, y lo singular y lo plural son la misma', () => {
+    expect(reglaDe({ clave: '1 falta sin justificar' })).toBe(reglaDe({ clave: '{n} faltas sin justificar', vars: { n: 4 } }));
+    expect(reglaDe({ clave: '1 anotación negativa' })).toBe(reglaDe({ clave: '{n} anotaciones negativas', vars: { n: 3 } }));
+    expect(reglaDe({ clave: 'Mejor nota: {nota} en «{actividad}»', vars: { nota: 9, actividad: 'Examen 1' } }))
+      .toBe(reglaDe({ clave: 'Mejor nota: {nota} en «{actividad}»', vars: { nota: 8.5, actividad: 'Examen 2' } }));
+    expect(reglaDe({ clave: 'Media de {nota} en {asignatura}', vars: { nota: 8, asignatura: 'Lengua' } }))
+      .not.toBe(reglaDe({ clave: 'Media de {nota} en {asignatura}', vars: { nota: 8, asignatura: 'Plástica' } }));
+    expect(reglaDe({ clave: '{n} faltas sin justificar' })).not.toBe(reglaDe({ clave: '{n} retrasos' }));
+  });
+
+  it('quitar una frase escrita a mano no apunta nada; quitar dos veces la misma regla, una sola vez', () => {
+    const s = { notas: [], asistencia: null, observacion: '', mejorar: [], positivos: [{ texto: 'Mía.' }, { texto: 'A', regla: 'r' }, { texto: 'B', regla: 'r' }] };
+    expect('quitadas' in quitarFrase(s, 'positivos', 0)).toBe(false);
+    expect(quitarFrase(quitarFrase(s, 'positivos', 1), 'positivos', 1).quitadas).toEqual(['r']);
+    expect(quitarFrase(s, 'positivos', 9)).toBe(s);
+  });
+
+  it('un informe guardado antes de recordar las frases quitadas se sigue leyendo y actualizando igual', () => {
+    // Como se guardaban antes del 25-11-2026: frases con su origen, sin `regla`, y sin `quitadas`
+    const c = componer(cuaderno(), P2, 'a', { evaluations: [evaluacion('e1', 'a', '2027-01-20', { CCL: 3.8 })] });
+    const viejo: Pick<CompetencyReport, 'seguimiento' | 'tabla'> = {
+      seguimiento: { ...c.seguimiento, positivos: c.seguimiento.positivos.map(({ regla: _r, ...f }) => { void _r; return { ...f }; }), mejorar: [] },
+      tabla: c.tabla,
+    };
+    expect(viejo.seguimiento?.positivos.every(f => !('regla' in f))).toBe(true);
+    const r = recalcular(viejo, c);
+    expect(r.seguimiento.positivos.map(f => f.texto)).toEqual(c.seguimiento.positivos.map(f => f.texto));
+    expect('quitadas' in r.seguimiento).toBe(false);
+    expect(datosCambiados(viejo, c)).toBe(false);
+    expect('quitadas' in seguimientoLimpio(viejo.seguimiento!)).toBe(false);
+  });
+
   it('sabe si los datos han cambiado desde que se guardó', () => {
     const antes = guardado();
     const igual = componer(cuaderno(), P2, 'a', { evaluations: [evaluacion('e1', 'a', '2027-01-20', { CCL: 3.8 })] });
@@ -345,8 +402,9 @@ describe('guardar, recalcular y saber si está al día', () => {
     const s = seguimientoLimpio({
       notas: [], asistencia: null,
       positivos: [{ texto: '  Trabaja   bien.  ' }, { texto: '   ' }], mejorar: [{ texto: '' }],
-      observacion: '  Hablamos en enero.\n', ocultar: ['notas', 'notas'],
+      observacion: '  Hablamos en enero.\n', ocultar: ['notas', 'notas'], quitadas: ['r1', 'r1', 'r2'],
     });
+    expect(s.quitadas).toEqual(['r1', 'r2']);
     expect(s.positivos).toEqual([{ texto: 'Trabaja bien.' }]);
     expect(s.mejorar).toEqual([]);
     expect(s.observacion).toBe('Hablamos en enero.');

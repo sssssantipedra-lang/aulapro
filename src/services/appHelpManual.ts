@@ -326,7 +326,8 @@ Tiene TRES PESTAÑAS arriba:
    notas (o varias seguidas) y se pegan en la columna de la actividad. Cada nota
    va al alumno que se llama así, aunque la hoja esté en otro orden o escrita de
    otra forma («Apellidos, Nombre», sin tildes, en mayúsculas, sin el segundo
-   apellido; también el número de lista con «12 Marta»). Antes de poner nada
+   apellido; también el número de lista, si el alumnado de la app lo lleva
+   delante del nombre). Antes de poner nada
    sale una vista previa con lo que es nuevo, lo que cambia una nota que ya
    estaba y lo que no entra. Una fila que no se parece a nadie de la clase, o
    que se parece igual a dos, no se coloca: sale aparte y se elige a quién va;

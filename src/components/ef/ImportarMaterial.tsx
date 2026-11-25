@@ -15,7 +15,8 @@ import { nuevoIdEF } from '../../lib/ef';
 import { aplicarImportacion, prepararImportacion, type MaterialPorImportar } from '../../lib/importarMaterial';
 import { EXTENSIONES_MATERIAL, MAX_BYTES_MATERIAL, leerDocumentoMaterial, type DocumentoLeido } from '../../lib/leerMaterial';
 import { materialDesdeDocumento } from '../../services/efIA';
-import { hasApiKey } from '../../services/gemini';
+import { useHayClaveIA } from '../../hooks/useClaveIA';
+import { AiKeyNotice } from '../ui/AiKeyNotice';
 import type { EfData } from '../../types/ef';
 
 interface Props {
@@ -27,6 +28,7 @@ interface Props {
 
 export function ImportarMaterial({ open, onClose, ef, onChangeEf }: Props) {
   const { t } = useI18n();
+  const hayClaveIA = useHayClaveIA();
   const { toast } = useToast();
   const entrada = useRef<HTMLInputElement>(null);
   const [archivo, setArchivo] = useState('');
@@ -113,8 +115,9 @@ export function ImportarMaterial({ open, onClose, ef, onChangeEf }: Props) {
           <p style={{ margin: '0 0 8px' }}>
             {t('Este documento no se puede leer en tu equipo (un PDF o un texto sin forma de lista). Se puede leer con la IA: el documento se envía a Google con tu clave, igual que el resto de funciones de IA. No lo uses si lleva datos personales del alumnado.')}
           </p>
-          <button type="button" className="btn-accent" onClick={leerConIA} disabled={!hasApiKey()}
-            title={hasApiKey() ? undefined : t('Configura tu clave API gratuita de Google en Configuración para usar la IA.')}>
+          {!hayClaveIA && <AiKeyNotice message={t('Para usar la IA hace falta la clave gratuita de Google. Puedes ponerla sin salir de aquí.')} action={t('Configurar la IA')} />}
+          <button type="button" className="btn-accent" onClick={leerConIA} disabled={!hayClaveIA}
+            title={hayClaveIA ? undefined : t('Para usar la IA hace falta tu clave gratuita de Google. Ponla con «Configurar la IA».')}>
             <Sparkles size={14} />{t('Leer con la IA')}
           </button>
         </div>

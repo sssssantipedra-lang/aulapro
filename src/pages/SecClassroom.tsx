@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ocupar } from '../lib/ocupado';
 import { Rnd } from 'react-rnd';
 import {
@@ -33,9 +33,10 @@ import {
 import { useRecordarClase } from '../hooks/useClaseActiva';
 import { VisorDeClase } from '../components/live/VisorDeClase';
 import {
-  crecerEnSuSitio, escribirPlanDeVentana, fusionarPlan, leerPlanDeVentana, sitioParaPlan, suscribirEncargo, hayEncargo, tomarEncargo, ventanaParaPlan,
-  type FuenteDeSesiones, type ImagenDeVisor, type OrigenPlan,
+  crecerEnSuSitio, escribirPlanDeVentana, fusionarPlan, leerPlanDeVentana, sitioDelPlan, sitioParaPlan, suscribirEncargo, hayEncargo, tomarEncargo,
+  type EncargoDeClase, type FuenteDeSesiones, type ImagenDeVisor, type OrigenPlan,
 } from '../lib/darLaClase';
+import { Sugerencia } from '../components/ui/Sugerencia';
 
 /* ════════════════════════════════════════════════════════════
    Aula Live — panel de herramientas para proyectar en clase
@@ -1744,20 +1745,43 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
    * no tienen fondo, así que no se pone encima de otras: los demás planes del día pasan a su icono y, si aun
    * así no hay hueco, las ventanas que haga falta y no más (`sitioParaPlan`; en un móvil, todas). Minimizadas
    * siguen con lo suyo (un temporizador sigue contando) y vuelven con un toque.
+   *
+   * Con las `MAX_VENTANAS` ocupadas y ninguna «Plan del día» que le sirva, no se cierra nada del docente: el
+   * plan espera (`planEnEspera`), la pizarra lo dice y se pone solo en el hueco de la próxima ventana que se
+   * cierre (`cerrar`).
    */
-  const atenderEncargo = useCallback(() => {
-    if (!hayEncargo() || estaOculta(rootRef.current)) return;
-    const encargo = tomarEncargo();
-    if (!encargo) return;
-    if (encargo.claseId) { setClaseId(encargo.claseId); recordarClase(encargo.claseId); }
-    setBarrasOcultas(false);
+  const [planEnEspera, setPlanEnEspera] = useState<EncargoDeClase | null>(null);
+  /**
+   * Dónde va el aviso del plan que espera: justo debajo de lo que haya arriba (la barra, que en el móvil ocupa varias
+   * filas, y la de dibujar si está a la vista), para no tapar ningún botón. Los paneles de «Fondo» y «Escenas» van
+   * por encima de él (`z-index`): se abren a propósito y se cierran enseguida.
+   */
+  const [arribaDelAviso, setArribaDelAviso] = useState(66);
+  useLayoutEffect(() => {
+    if (!planEnEspera) return;
+    const medir = () => {
+      const raiz = rootRef.current?.getBoundingClientRect();
+      if (!raiz) return;
+      const bajos = ['.pz-top', '.pz-dibujo']
+        .map(sel => rootRef.current?.querySelector(sel)?.getBoundingClientRect())
+        .filter((r): r is DOMRect => !!r && r.height > 0)
+        .map(r => r.bottom - raiz.top + 10);
+      setArribaDelAviso(bajos.length ? Math.max(...bajos) : 14);
+    };
+    medir();
+    window.addEventListener('resize', medir);
+    return () => window.removeEventListener('resize', medir);
+  }, [planEnEspera, penOn, barrasOcultas, telefono]);
+  /** Pone el encargo en su ventana, contando con las ventanas `base`. `false`, sin tocar nada, si no cabe. */
+  const montarEncargo = useCallback((encargo: EncargoDeClase, base: readonly Ventana[] = alDia.current.ventanas): boolean => {
     // Las ventanas, ya dentro del área de ahora: si la pantalla cambió de tamaño con la pizarra oculta (una
     // tableta que se gira en otra pantalla), lo de aquí sustituye al ajuste que se acaba de pedir al enseñarse
     const area = areaPizarra();
-    const actuales: Ventana[] = alDia.current.ventanas.map(v => ({ ...v, rect: ajustarRect(v.rect, area, minDe(v.tipo)) }));
+    const actuales: Ventana[] = base.map(v => ({ ...v, rect: ajustarRect(v.rect, area, minDe(v.tipo)) }));
     const planes = actuales.filter(v => v.tipo === 'agenda').map(v => leerPlanDeVentana(v.id));
-    const destino = ventanaParaPlan(planes, encargo.plan?.sesion.origen ?? null);
-    if (!destino && actuales.length >= MAX_VENTANAS) return;
+    const lugar = sitioDelPlan(planes, encargo.plan?.sesion.origen ?? null, actuales.length);
+    if (lugar === 'llena') return false;
+    const destino = lugar === 'nueva' ? null : lugar;
     const id = destino?.id ?? siguienteId('agenda', actuales.map(v => v.id));
     if (encargo.plan) {
       const antes = planes.find(p => p.id === id);
@@ -1769,7 +1793,7 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
     if (esta && (destino?.modo === 'misma' || !encargo.plan)) {
       // Ya estaba donde el docente la puso: delante y a la vista
       setVentanas([...resto, { ...esta, min: undefined }]);
-      return;
+      return true;
     }
     // Una ventana nueva, o una vacía que crece para la sesión: se le busca sitio
     const margenes = alDia.current.margenesLibres();
@@ -1781,7 +1805,17 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
     const otras = sinPlanes.map(v => (sitio.minimizar.includes(v.id) ? { ...v, min: true } : v));
     const rect = sitio.rect ?? ajustarRect({ ...tam, x: margenes.lados, y: margenes.arriba }, area, minimo);
     setVentanas([...otras, { id, tipo: 'agenda', rect }]);
-  }, [areaPizarra, recordarClase]);
+    return true;
+  }, [areaPizarra]);
+  const atenderEncargo = useCallback(() => {
+    if (!hayEncargo() || estaOculta(rootRef.current)) return;
+    const encargo = tomarEncargo();
+    if (!encargo) return;
+    if (encargo.claseId) { setClaseId(encargo.claseId); recordarClase(encargo.claseId); }
+    setBarrasOcultas(false);
+    // Uno nuevo sustituye al que esperaba: el docente ha pedido otra sesión
+    setPlanEnEspera(montarEncargo(encargo) ? null : encargo);
+  }, [montarEncargo, recordarClase]);
   /** El docente ha traído una sesión a un «Plan del día» que tenía abierto: la ventana crece, sin moverse ni tapar a otra. */
   const hacerSitioAlPlan = useCallback((id: string) => {
     const area = areaPizarra();
@@ -1796,6 +1830,11 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
   }, [atenderEncargo]);
   const cerrar = (id: string) => {
     borrarDatosDeVentana(id);
+    // El plan que esperaba sitio («Dar la clase» con la pizarra llena) entra en el hueco que deja esta
+    if (planEnEspera && montarEncargo(planEnEspera, alDia.current.ventanas.filter(v => v.id !== id))) {
+      setPlanEnEspera(null);
+      return;
+    }
     setVentanas(prev => prev.filter(v => v.id !== id));
   };
   /** Minimiza una ventana a su icono, o la restaura; no pierde lo que estuviera haciendo. */
@@ -1829,13 +1868,19 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
     ventanas.forEach(v => borrarDatosDeVentana(v.id));
     elegirFondo(e.fondo);
     const ids: string[] = [];
-    setVentanas(e.ventanas.map(v => {
+    const nuevas: Ventana[] = e.ventanas.map(v => {
       const tipo = v.tipo as WidgetType;
       const id = siguienteId(tipo, ids);
       ids.push(id);
       return { id, tipo, rect: ajustarRect(v.rect, area, minDe(tipo)), ...(v.min ? { min: true } : {}) };
-    }));
+    });
     setMenu(null);
+    // El plan que esperaba sitio entra si la escena deja hueco; si no, sigue esperando (y el aviso sigue siendo cierto)
+    if (planEnEspera && montarEncargo(planEnEspera, nuevas)) {
+      setPlanEnEspera(null);
+      return;
+    }
+    setVentanas(nuevas);
   }
 
   /* ── Pantalla completa ── */
@@ -1984,7 +2029,7 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
       {/* Herramientas de dibujo: aparte y solo mientras se dibuja */}
       {penOn && (
         <div
-          className="absolute flex flex-wrap items-center justify-center gap-1 rounded-2xl p-1.5"
+          className="pz-dibujo absolute flex flex-wrap items-center justify-center gap-1 rounded-2xl p-1.5"
           style={{ top: 66, left: '50%', transform: 'translateX(-50%)', zIndex: 56, maxWidth: 'calc(100% - 28px)', ...SUPERFICIE }}
           role="toolbar"
           aria-label={t('Dibujar sobre la pantalla')}
@@ -2127,6 +2172,19 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
 
       {/* Ventanas */}
       {enOrdenFijo.map(({ v, i }) => renderWidget(v, i))}
+
+      {/* «Dar la clase» con la pizarra llena: el plan espera a que se cierre una ventana (no se cierra nada solo) */}
+      {planEnEspera && (
+        <div className="pz-espera-plan" style={{ top: arribaDelAviso }}>
+          <Sugerencia
+            titulo={t('No caben más ventanas en la pizarra')}
+            porque={t(planEnEspera.plan
+              ? 'Ya hay {n} ventanas abiertas, el máximo. Cierra una y se abrirá «Plan del día» con la sesión.'
+              : 'Ya hay {n} ventanas abiertas, el máximo. Cierra una y se abrirá «Plan del día».', { n: MAX_VENTANAS })}
+            onCerrar={() => setPlanEnEspera(null)}
+          />
+        </div>
+      )}
 
       {visor && <VisorDeClase imagenes={visor.imagenes} indice={visor.indice} onCambiar={cambiarVisor} onCerrar={cerrarVisor} />}
       {picking && <ChallengePicker fichas={fichas} onClose={() => setPicking(false)} onPick={f => { setPicking(false); setPresenting(f); }} />}

@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { I18nProvider } from '../i18n';
 import { ToastProvider } from './ui/Toast';
 import { ApiKeySettings } from './ApiKeySettings';
+import { PuntosUsoIA } from './AceptarUsoIA';
 import { usoIaAceptado, fechaUsoIa, VERSION_USO_IA } from '../lib/usoIA';
 
 afterEach(() => { cleanup(); localStorage.clear(); vi.restoreAllMocks(); });
@@ -60,5 +61,16 @@ describe('aceptar el uso de la IA la primera vez que se va a conseguir la clave 
     await userEvent.click(screen.getByRole('button', { name: 'Cómo trata AulaPro lo que envías a la IA' }));
     expect(dialogo().textContent).toMatch(/Espacio Económico Europeo/);
     expect(abrir).not.toHaveBeenCalled();
+  });
+});
+
+describe('la recomendación sobre los nombres no pone un nombre de persona de ejemplo (regla 7, 25-11-2026)', () => {
+  it.each(['es', 'ca', 'en'])('en %s: número de lista con el nombre de pila o con las iniciales, sin «12 Marta»', lang => {
+    localStorage.setItem('aulapro_lang', lang);
+    const { container } = render(<I18nProvider><PuntosUsoIA /></I18nProvider>);
+    const nombres = container.querySelector('li')!.textContent!;
+    expect(nombres).not.toMatch(/Marta/);
+    expect(nombres).toMatch(/12 M\. P\./);
+    expect(nombres).toMatch({ es: /solo el nombre de pila/, ca: /només el nom de pila/, en: /first name only/ }[lang]!);
   });
 });
