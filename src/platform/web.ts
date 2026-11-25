@@ -172,8 +172,9 @@ function docenteOcupado(): boolean {
   // Una generación de IA a medias (se perdería la respuesta y el cupo ya gastado) o la pizarra viva, con su
   // temporizador, sus grupos y su dibujo: recargar se los llevaría. La versión nueva espera a otra vuelta.
   // Tampoco con una ficha proyectada (`.cp`, desde Recursos, encima de la pantalla): se perderían el
-  // ejercicio por el que se va y lo escrito con el lápiz.
-  return ocupado() || !!document.querySelector('.pz-raiz, .cp');
+  // ejercicio por el que se va y lo escrito con el lápiz. Ni con «Tirar de la cuerda» abierto (`.cuerda`, 25-11-2026):
+  // se cortaría la partida.
+  return ocupado() || !!document.querySelector('.pz-raiz, .cp, .cuerda');
 }
 
 function createUpdate(): UpdateBridge {

@@ -16,7 +16,14 @@ export function racha(
   suma: (tipo: ClassMarkType) => boolean,
 ): number {
   const dias = [...new Set(marcas.map(m => m.date).filter(d => d <= hasta))].sort().reverse();
-  const deAlumno = (dia: string) => marcas.filter(m => m.student_id === alumno && m.date === dia);
+  // Las del alumno, por día, de una vez: con un curso de anotaciones, filtrarlas día a día era lo más lento del radar
+  const porDia = new Map<string, ClassMark[]>();
+  for (const m of marcas) {
+    if (m.student_id !== alumno) continue;
+    const l = porDia.get(m.date);
+    if (l) l.push(m); else porDia.set(m.date, [m]);
+  }
+  const deAlumno = (dia: string) => porDia.get(dia) ?? [];
 
   let n = 0;
   for (const [i, dia] of dias.entries()) {

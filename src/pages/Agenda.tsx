@@ -22,6 +22,9 @@ import { useI18n, monthLabel, weekdayLabel, eventTypeLabel, urgencyLabel } from 
 import type { ProvinciaId } from '../lib/provincias';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
 import { useCalendarioEscolar } from '../hooks/useCalendarioEscolar';
+import { useHoy } from '../hooks/useHoy';
+import { diasSiCerca, textoDeFalta } from '../lib/notificaciones';
+import { CLASE_CERCA, MarcaCerca } from '../components/MarcaCerca';
 import {
   calendarioDe, citarCalendario, cursoDe, diaEscolar, faltaProvincia, marcasDelDia, tieneCalendario, type EtapaCalendario,
 } from '../lib/calendarioEscolar';
@@ -125,6 +128,8 @@ interface Props {
   tienePantalla?: (s: Section) => boolean;
   /** Al crear una entrega con clase se ofrece crear también su columna en el cuaderno. Sin esto, no se ofrece. */
   onAddGradeItem?: (i: GradeItem) => void;
+  /** Se abre en el mes con ese día elegido (desde un aviso de la campana), en vez de en la portada. */
+  diaInicial?: string | null;
 }
 
 const SIEMPRE = () => true;
@@ -145,11 +150,16 @@ export function Agenda({
   onNav,
   comunidad,
   provincia,
-  sesiones, gradeItems, gradeCategories, workSessions, marcas, pruebas, students, esEF = false, tienePantalla = SIEMPRE, onAddGradeItem,
+  sesiones, gradeItems, gradeCategories, workSessions, marcas, pruebas, students, esEF = false, tienePantalla = SIEMPRE, onAddGradeItem, diaInicial,
 }: Props) {
   const { toast } = useToast();
   const { t, locale, lang } = useI18n();
-  const today = useMemo(() => new Date(), []);
+  /**
+   * Hoy, para los eventos cercanos (a 5 días o menos), que parpadean al entrar y después se quedan marcados, y para
+   * el día de hoy del calendario y el próximo evento: cambia a medianoche con la Agenda abierta.
+   */
+  const hoyIso = useHoy();
+  const today = useMemo(() => fromIsoDate(hoyIso), [hoyIso]);
   const [scannerOpen, setScannerOpen] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
   const shortDayLabels = useMemo(() => Array.from({ length: 7 }, (_, i) => weekdayLabel(i, locale, 'short')), [locale]);
@@ -158,13 +168,15 @@ export function Agenda({
   // ---- view state ----
   // Se abre en una portada con dos tarjetas, una por espacio: la agenda del mes y el horario de la semana
   // (decisión del dueño, 18-10-2026; antes se abría directamente en la semana)
-  const [view, setView] = useState<'inicio' | 'mensual' | 'semanal'>('inicio');
+  // Desde un aviso de la campana se abre directamente en el mes, con su día elegido
+  const diaPedido = diaInicial && /^\d{4}-\d{2}-\d{2}$/.test(diaInicial) ? fromIsoDate(diaInicial) : null;
+  const [view, setView] = useState<'inicio' | 'mensual' | 'semanal'>(diaPedido ? 'mensual' : 'inicio');
   const [menuHorario, setMenuHorario] = useState(false);
 
   // ---- monthly state ----
-  const [calYear, setCalYear] = useState(today.getFullYear());
-  const [calMonth, setCalMonth] = useState(today.getMonth());
-  const [selectedDate, setSelectedDate] = useState<string>(isoDate(today));
+  const [calYear, setCalYear] = useState((diaPedido ?? today).getFullYear());
+  const [calMonth, setCalMonth] = useState((diaPedido ?? today).getMonth());
+  const [selectedDate, setSelectedDate] = useState<string>(isoDate(diaPedido ?? today));
 
   // ---- weekly state ----
   const [weekAnchor, setWeekAnchor] = useState<Date>(today);
@@ -245,6 +257,12 @@ export function Agenda({
     const hoy = isoDate(today);
     return [...calEvents].filter(e => e.date >= hoy).sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`))[0];
   }, [calEvents, today]);
+
+  // ---- los días con eventos a 5 días o menos, escritos debajo del mes ----
+  const diasCercanos = useMemo(() => Object.keys(eventsByDate)
+    .map(ds => ({ ds, dias: diasSiCerca(ds, hoyIso), evs: eventsByDate[ds] }))
+    .filter((x): x is { ds: string; dias: number; evs: CalEvent[] } => x.dias !== null)
+    .sort((a, b) => a.ds.localeCompare(b.ds)), [eventsByDate, hoyIso]);
 
   // ---- week dates ----
   const currentWeekDates = useMemo(() => weekDates(weekAnchor), [weekAnchor]);
@@ -424,7 +442,8 @@ export function Agenda({
             <span className="ev-card-ft">
               <span className="ev-card-dato">{proximoEvento
                 ? t('Próximo: {nombre}, {dia}', { nombre: proximoEvento.name, dia: fromIsoDate(proximoEvento.date).toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' }) })
-                : t('Sin eventos próximos')}</span>
+                : t('Sin eventos próximos')}
+                {proximoEvento && diasSiCerca(proximoEvento.date, hoyIso) !== null && <> <MarcaCerca dias={diasSiCerca(proximoEvento.date, hoyIso)!} /></>}</span>
               <span className="ev-card-go">{t('Abrir')}<ArrowRight size={15} /></span>
             </span>
           </button>
@@ -486,6 +505,10 @@ export function Agenda({
                 const capasDelDia = [...new Set((apuntesPorFecha[ds] ?? []).map(a => a.capa))];
                 const escolar = diaEscolar(calEscolar, ds);
                 const finde = d.getDay() === 0 || d.getDay() === 6;
+                // Un día con eventos a 5 días o menos: el anillo parpadea al entrar y se queda; el título dice cuánto falta
+                const cerca = dots.length > 0 ? diasSiCerca(ds, hoyIso) : null;
+                const tituloEscolar = escolar && !(escolar.tipo === 'no-lectivo' && finde) ? t(escolar.nombre) : '';
+                const tituloCerca = cerca !== null ? `${textoDeFalta(cerca, t)}: ${dots.map(ev => ev.name).join(', ')}` : '';
 
                 let cls = 'cal-day';
                 if (escolar?.tipo === 'no-lectivo' && !finde) cls += ' no-lectivo';
@@ -500,6 +523,7 @@ export function Agenda({
                 if (isToday) cls += ' today';
                 if (isSelected) cls += ' selected';
                 if (isOtherMonth) cls += ' other-month';
+                if (cerca !== null) cls += ` cal-cerca ${CLASE_CERCA}`;
 
                 return (
                   <div
@@ -507,7 +531,7 @@ export function Agenda({
                     className={cls}
                     onClick={() => setSelectedDate(ds)}
                     style={{ cursor: 'pointer' }}
-                    title={escolar && !(escolar.tipo === 'no-lectivo' && finde) ? t(escolar.nombre) : undefined}
+                    title={[tituloEscolar, tituloCerca].filter(Boolean).join(' · ') || undefined}
                   >
                     <span>{d.getDate()}</span>
                     {(dots.length > 0 || capasDelDia.length > 0) && (
@@ -526,6 +550,27 @@ export function Agenda({
                 );
               })}
             </div>
+            {/* El anillo del día no lo dice con palabras (ni se alcanza con el teclado): aquí, escrito y pulsable */}
+            {diasCercanos.length > 0 && (
+              <section className="cal-cerca-lista" aria-labelledby="cal-cerca-ttl">
+                <h3 id="cal-cerca-ttl">{t('Eventos próximos')}</h3>
+                {diasCercanos.map(x => (
+                  <button
+                    key={x.ds} type="button" className="cal-cerca-dia" aria-pressed={x.ds === selectedDate}
+                    onClick={() => {
+                      const f = fromIsoDate(x.ds);
+                      setCalYear(f.getFullYear()); setCalMonth(f.getMonth()); setSelectedDate(x.ds);
+                    }}
+                  >
+                    <MarcaCerca dias={x.dias} latido={false} />
+                    <span>
+                      {[...x.evs].sort((a, b) => a.time.localeCompare(b.time)).map(ev => ev.name).join(', ')}
+                      {' '}<small>{fromIsoDate(x.ds).toLocaleDateString(locale, { weekday: 'long', day: 'numeric' })}</small>
+                    </span>
+                  </button>
+                ))}
+              </section>
+            )}
             {conCalendario && (
               <p className="cal-escolar-fuente">
                 {calEscolar ? (
@@ -590,13 +635,14 @@ export function Agenda({
                   <div
                     key={ev.id}
                     onClick={() => openEditEvent(ev)}
+                    className={diasSiCerca(ev.date, hoyIso) !== null ? `ag-ev-cerca ${CLASE_CERCA}` : undefined}
                     style={{
                       display: 'flex',
                       alignItems: 'flex-start',
                       gap: 12,
                       padding: '10px 12px',
                       borderRadius: 10,
-                      background: 'var(--bg-2, #f9fafb)',
+                      background: 'var(--surface-2)',
                       cursor: 'pointer',
                       borderLeft: `4px solid ${ev.color}`,
                     }}
@@ -605,7 +651,10 @@ export function Agenda({
                       {ev.time}
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 600, fontSize: 14 }}>{ev.name}</div>
+                      <div style={{ fontWeight: 600, fontSize: 14 }}>
+                        {ev.name}
+                        {diasSiCerca(ev.date, hoyIso) !== null && <> <MarcaCerca dias={diasSiCerca(ev.date, hoyIso)!} className="ag-ev-pill" latido={false} /></>}
+                      </div>
                       <div style={{ fontSize: 12, color: 'var(--text-2, #6b7280)', marginTop: 2 }}>
                         {eventTypeLabel(ev.type, lang)} · {t('Urgencia')} {urgencyLabel(ev.urgency, lang)}
                         {nombreDeClase(ev.classId) && <> · {nombreDeClase(ev.classId)}</>}
@@ -626,8 +675,8 @@ export function Agenda({
       {/* ===== WEEKLY VIEW ===== */}
       {view === 'semanal' && (
         <div className="card" style={{ overflowX: 'auto' }}>
-          {/* Week navigation */}
-          <div className="card-hd" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          {/* Week navigation: en el móvil la semana se desplaza a los lados y las flechas se quedan a la vista */}
+          <div className="card-hd wk-nav" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
             <button className="ico-btn" onClick={prevWeek} aria-label={t('Anterior')} title={t('Anterior')}><ChevronLeft size={18} /></button>
             <span className="card-ttl" style={{ margin: 0 }}>
               {currentWeekDates[0].toLocaleDateString(locale, { day: 'numeric', month: 'short' })}
@@ -638,7 +687,7 @@ export function Agenda({
           </div>
 
           <HorarioSemana
-            dias={currentWeekDates} etiquetas={weekDayLabels} hoy={isoDate(today)} isoDe={isoDate}
+            dias={currentWeekDates} etiquetas={weekDayLabels} hoy={hoyIso} isoDe={isoDate}
             bloques={scheduleBlocks} apoyo={apoyoBlocks} eventosPorFecha={eventsByDate}
             onEditar={openEditBlock} onMover={onUpdateBlock} onEditarEvento={openEditEvent}
             apuntesPorFecha={apuntesPorFecha} onAbrirApunte={abrirApunte} claseResaltada={claseFiltrada || undefined}

@@ -39,6 +39,8 @@ import { semanaConAlgo, type Semana } from '../lib/semana';
 import { BotonDarLaClase } from '../components/darLaClase/BotonDarLaClase';
 import { SesionesDeHoy, type SesionDeHoy } from '../components/darLaClase/SesionesDeHoy';
 import { useFijarClase } from '../hooks/useClaseActiva';
+import { diasSiCerca } from '../lib/notificaciones';
+import { CLASE_CERCA, MarcaCerca } from '../components/MarcaCerca';
 
 interface Props {
   user: User | null;
@@ -103,6 +105,8 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
   const dateLabel = prettyDate(isoDate(now), locale);
 
   const todayDay = now.getDay() === 0 ? 7 : now.getDay();
+  /** Hoy en AAAA-MM-DD local, para lo que falta a cada evento. */
+  const hoy = isoDate(now);
 
   /**
    * Si un día hay clase según el calendario escolar de la comunidad (festivos,
@@ -333,15 +337,20 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
               <div>
                 <h4>{t('Entregas, reuniones y eventos')}</h4>
                 <ul className="home-list">
-                  {semana.eventos.slice(0, 6).map(ev => (
-                    <li key={ev.id} className="home-event">
-                      <span className={`home-alert-dot ${ev.urgency === 'alta' ? 'danger' : ev.type === 'deadline' ? 'warn' : 'info'}`} />
-                      <span className="home-event-txt">
-                        <span className="home-event-name">{ev.name}</span>
-                        <span className="home-tl-room">{[fromIsoDate(ev.date).toLocaleDateString(locale, { weekday: 'long', day: 'numeric' }), ev.time].filter(Boolean).join(' · ')}</span>
-                      </span>
-                    </li>
-                  ))}
+                  {semana.eventos.slice(0, 6).map(ev => {
+                    // A 5 días o menos: la píldora parpadea al entrar y se queda con el color del tema
+                    const cerca = diasSiCerca(ev.date, hoy);
+                    return (
+                      <li key={ev.id} className="home-event">
+                        <span className={`home-alert-dot ${ev.urgency === 'alta' ? 'danger' : ev.type === 'deadline' ? 'warn' : 'info'}`} />
+                        <span className="home-event-txt">
+                          <span className="home-event-name">{ev.name}</span>
+                          <span className="home-tl-room">{[fromIsoDate(ev.date).toLocaleDateString(locale, { weekday: 'long', day: 'numeric' }), ev.time].filter(Boolean).join(' · ')}</span>
+                        </span>
+                        {cerca !== null && <MarcaCerca dias={cerca} />}
+                      </li>
+                    );
+                  })}
                   {semana.eventos.length > 6 && <li className="home-muted">{t('y {n} más', { n: semana.eventos.length - 6 })}</li>}
                 </ul>
                 <button type="button" className="home-link" onClick={() => nav('agenda')}>{t('Ver la agenda')}</button>
@@ -403,15 +412,22 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
             <ul className="home-list">
               {upcomingEvents.slice(0, 4).map(ev => {
                 const d = fromIsoDate(ev.date);
+                // A 5 días o menos: el recuadro del día lleva el anillo (parpadea al entrar) y la píldora dice cuánto falta
+                const cerca = diasSiCerca(ev.date, hoy);
                 return (
                   <li key={ev.id} className="home-event">
-                    <span className="home-date">
+                    <span className={`home-date${cerca !== null ? ` ${CLASE_CERCA}` : ''}`}>
                       <b>{d.getDate()}</b>
                       <small>{weekdayLabel((d.getDay() + 6) % 7, locale, 'short')}</small>
                     </span>
                     <span className="home-event-txt">
                       <span className="home-event-name">{ev.name}</span>
-                      {ev.time && <span className="home-tl-room">{ev.time}</span>}
+                      {(ev.time || cerca !== null) && (
+                        <span className="home-tl-room home-ev-falta">
+                          {ev.time}
+                          {cerca !== null && <MarcaCerca dias={cerca} latido={false} />}
+                        </span>
+                      )}
                     </span>
                     {ev.urgency === 'alta' && <span className="home-pill warn">{t('Urgente')}</span>}
                   </li>

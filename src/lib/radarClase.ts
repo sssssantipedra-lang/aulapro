@@ -13,7 +13,7 @@
  * `UMBRAL_DESTACA`, una media de 8, una subida de un punto o una racha.
  */
 import type { AttendanceMap, Class, ClassMark, Evaluation, GradeCategory, GradeItem, GradeMap, Student } from '../types';
-import { resumenAlumno, type DatoResumen } from './resumenAlumno';
+import { cuentasDe, resumenAlumno, type DatoResumen } from './resumenAlumno';
 
 /** Peso mínimo de un dato para que su alumno salga en «Necesitan atención» y en «Van especialmente bien». */
 export const UMBRAL_ATENCION = 80;
@@ -50,11 +50,27 @@ export interface DatosParaRadar {
 
 export function radar(d: DatosParaRadar): Radar {
   const atencion: AlumnoEnRadar[] = [], destacan: AlumnoEnRadar[] = [];
+  // Se calcula en todas las pantallas (la campana de avisos, 25-11-2026): lo de cada clase y cada alumno se separa
+  // una vez y las fechas del periodo se leen una vez, en vez de recorrer todo el perfil por cada alumno
+  const cuenta = cuentasDe('semanas', d.hoy);
+  const porClase = <T extends { class_id: string }>(xs: T[]) => {
+    const m = new Map<string, T[]>();
+    for (const x of xs) { const l = m.get(x.class_id); if (l) l.push(x); else m.set(x.class_id, [x]); }
+    return m;
+  };
+  const alumnado = porClase(d.students), categorias = porClase(d.gradeCategories), actividades = porClase(d.gradeItems);
+  const marcas = porClase(d.classMarks);
+  const evaluaciones = new Map<string, Evaluation[]>();
+  for (const e of d.evaluations) { const l = evaluaciones.get(e.student_id); if (l) l.push(e); else evaluaciones.set(e.student_id, [e]); }
   for (const cls of d.classes) {
-    const suyos = d.students.filter(s => s.class_id === cls.id);
+    const suyos = alumnado.get(cls.id) ?? [];
     const companeros = suyos.map(s => s.id);
+    const deLaClase = {
+      ...d, gradeCategories: categorias.get(cls.id) ?? [], gradeItems: actividades.get(cls.id) ?? [], classMarks: marcas.get(cls.id) ?? [],
+      cls, companeros, periodo: 'semanas' as const, cuenta, mediasDeLaClase: new Map<string, number | null>(),
+    };
     for (const student of suyos) {
-      const r = resumenAlumno({ ...d, student, cls, companeros, periodo: 'semanas' });
+      const r = resumenAlumno({ ...deLaClase, student, evaluations: evaluaciones.get(student.id) ?? [] });
       const malos = r.atencion.filter(x => x.peso >= UMBRAL_ATENCION);
       const buenos = r.positivos.filter(x => x.peso >= UMBRAL_DESTACA);
       if (malos.length) atencion.push({ student, cls, dato: malos[0], cuantos: malos.length });

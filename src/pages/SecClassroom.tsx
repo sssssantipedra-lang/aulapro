@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ocupar } from '../lib/ocupado';
 import { Rnd } from 'react-rnd';
 import {
@@ -8,7 +8,7 @@ import {
   Timer as TimerIcon, Dices, Car, Hand, StickyNote, Medal, QrCode, ListChecks, Image as ImageIcon,
   Maximize, Minimize, LayoutTemplate, Save, Trash2, GripHorizontal,
   Highlighter, PenTool, Pencil, Undo2, Redo2, Minus as MinusIcon, ChevronsDownUp, ChevronsUpDown, PanelTopClose, PanelTop,
-  ChevronDown, LayoutGrid,
+  ChevronDown, LayoutGrid, Gamepad2,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
@@ -32,6 +32,8 @@ import {
 } from '../lib/pizarraAula';
 import { useRecordarClase } from '../hooks/useClaseActiva';
 import { VisorDeClase } from '../components/live/VisorDeClase';
+/** «Tirar de la cuerda» (25-11-2026): se carga al abrirlo, encima de la pizarra, que sigue viva debajo. */
+const TirarDeLaCuerda = lazy(() => import('../components/juegos/TirarDeLaCuerda'));
 import {
   crecerEnSuSitio, escribirPlanDeVentana, fusionarPlan, leerPlanDeVentana, sitioDelPlan, sitioParaPlan, suscribirEncargo, hayEncargo, tomarEncargo,
   type EncargoDeClase, type FuenteDeSesiones, type ImagenDeVisor, type OrigenPlan,
@@ -1458,7 +1460,7 @@ interface ClassroomProps {
   /** Nombres para la ruleta cuando no hay clases (el de PT y AL: su alumnado de apoyo). */
   studentNames?: string[];
   /** Las clases, cada una con los nombres de su alumnado: la ruleta es de la clase elegida. */
-  clases?: { id: string; name: string; nombres: string[] }[];
+  clases?: { id: string; name: string; nombres: string[]; etapa?: string; curso?: number }[];
   /** La clase con que se abre: la que toca según el horario. */
   claseInicial?: string;
   /** Fichas guardadas, para proyectarlas como reto. */
@@ -1588,6 +1590,7 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
   const clase = clases.find(c => c.id === claseId) ?? clases[0];
   const [picking, setPicking] = useState(false);
   const [presenting, setPresenting] = useState<Ficha | null>(projectFicha);
+  const [jugando, setJugando] = useState(false);
   // La pizarra sigue montada al cambiar de pantalla, así que una ficha mandada a proyectar después llega
   // como cambio de la propiedad: se atiende durante el pintado, como recomienda React, y no en un efecto
   const [fichaPedida, setFichaPedida] = useState<Ficha | null>(projectFicha);
@@ -2189,6 +2192,11 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
       {visor && <VisorDeClase imagenes={visor.imagenes} indice={visor.indice} onCambiar={cambiarVisor} onCerrar={cerrarVisor} />}
       {picking && <ChallengePicker fichas={fichas} onClose={() => setPicking(false)} onPick={f => { setPicking(false); setPresenting(f); }} />}
       {presenting && <ChallengePresenter ficha={presenting} onClose={closePresenter} />}
+      {jugando && (
+        <Suspense fallback={null}>
+          <TirarDeLaCuerda clase={clase} onClose={() => setJugando(false)} />
+        </Suspense>
+      )}
 
       {!barrasOcultas && (
         <>
@@ -2226,6 +2234,7 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
           ))}
           <Separador />
           <BotonBarra icono={<Flag size={19} />} nombre={t('Proyectar una ficha, un escape room o unas tarjetas')} color="#fb923c" onClick={() => setPicking(true)} />
+          <BotonBarra icono={<Gamepad2 size={19} />} nombre={t('Jugar a «Tirar de la cuerda»: dos equipos, cuentas y una cuerda')} color="#f87171" onClick={() => setJugando(true)} />
           {telefono && <BotonBarra icono={<ChevronDown size={19} />} nombre={t('Plegar las herramientas')} onClick={() => plegarHerramientas(true)} />}
         </div>
       </div>

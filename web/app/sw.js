@@ -145,6 +145,9 @@ self.addEventListener('fetch', event => {
   const url = new URL(req.url);
   // Solo lo de la app; la licencia (/api/) y lo de fuera (Gemini, el calendario) van a la red
   if (url.origin !== self.location.origin || !url.pathname.startsWith(new URL('./', self.location).pathname)) return;
+  // La música de los juegos va siempre a la red: no se precarga (vite.config.ts) y el navegador la pide a trozos (Range),
+  // que una respuesta guardada entera no atiende bien en Safari. Sin conexión, el juego sigue sin música.
+  if (/\.mp3$/.test(url.pathname)) return;
 
   if (req.mode === 'navigate') {
     // La app es una sola página: si está guardada, esa; si no, o si algo falla, la de la red

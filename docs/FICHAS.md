@@ -238,6 +238,10 @@ Aviso del dueño: «proyectar las actividades en la pizarra no sale bien». Proy
 - **Escape room**: el título de una sala que ya empieza por «Sala 1» no se repite («Sala 1 · Sala 1: la compuerta», `cabeceraDeBloque`), y la portada cabe entera en 1280 x 720 con el botón de empezar a la vista (dibujo y letra que siguen al alto de la pantalla; en un móvil tumbado, sin el dibujo).
 - **Sin comprobar**: un dedo y un lápiz reales en una tableta conectada a un proyector (se probó con toques simulados del navegador), Safari en el iPad y el iPhone, y la pantalla completa en el iPhone (Safari no la permite fuera de los vídeos).
 
+## Juegos para la clase (25-11-2026)
+
+Debajo de «¿Qué quieres crear?», la tarjeta «Tirar de la cuerda» abre el juego de cuentas para dos equipos encima de Recursos, como la proyección de una ficha (`jugando` en `pages/Resources.tsx`); no se crea ni se guarda nada. Todo lo del juego, en `docs/PIZARRA.md`, «Tirar de la cuerda».
+
 ## Lo que falta
 
 1. Fase 2: más material dibujado por área (fracciones, ábaco, mapas, cuerpo humano…) y más cabeceras.

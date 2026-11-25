@@ -1,0 +1,235 @@
+/*
+ * «Tirar de la cuerda» (25-11-2026): el juego a pantalla completa (components/juegos/TirarDeLaCuerda.tsx).
+ * Lleva su propio fondo oscuro, igual en el modo claro y en el oscuro. Las medidas crecen con la pantalla
+ * (vmin): en una pantalla digital se lee desde el fondo del aula; en el móvil, ninguna tecla baja de 44 px.
+ */
+.cuerda {
+  --cu-rojo:#dc2626; --cu-rojo-q:#b71c1c; --cu-azul:#2563eb; --cu-azul-q:#1a237e;
+  position:fixed; inset:0; z-index:99995; display:flex; flex-direction:column; overflow:hidden;
+  color:#fff; font-family:var(--font, system-ui, sans-serif);
+  background:
+    radial-gradient(circle at 15% 20%, rgba(220,38,38,.28), transparent 45%),
+    radial-gradient(circle at 85% 80%, rgba(37,99,235,.32), transparent 45%),
+    #0b1226;
+  /* Ni zoom ni desplazamiento con los dedos: cada dedo es una tecla */
+  touch-action:none; user-select:none; -webkit-user-select:none; -webkit-touch-callout:none;
+  -webkit-tap-highlight-color:transparent; overscroll-behavior:none;
+  padding:env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+}
+.cuerda *, .cuerda *::before, .cuerda *::after { box-sizing:border-box; }
+.cuerda img { -webkit-user-drag:none; user-select:none; pointer-events:none; }
+.cuerda button { font-family:inherit; cursor:pointer; touch-action:manipulation; }
+.cuerda button:disabled { cursor:default; }
+/* Las teclas responden al tocarlas (pointerdown): sin gestos del navegador encima */
+.cuerda .cu-tecla, .cuerda .cu-letra { touch-action:none; }
+.cu-confeti { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:20; }
+.cuerda button:focus-visible { outline:3px solid #fde047; outline-offset:2px; }
+
+/* ── Controles: arriba a la derecha (portada y ajustes) o en el centro (partida) ── */
+.cu-barra { position:relative; display:flex; align-items:center; justify-content:flex-end; gap:6px; flex-wrap:wrap; }
+.cu-ico.armada { background:#fde047; border-color:#fde047; color:#1e1b4b; }
+/* «Toca otra vez»: debajo de los controles, sin moverlos */
+.cu-confirmar { position:absolute; top:calc(100% + 6px); left:50%; transform:translateX(-50%); z-index:7; padding:6px 12px; border-radius:10px; background:#fde047; color:#1e1b4b; font-size:clamp(14px, 1.8vmin, 20px); font-weight:800; white-space:nowrap; box-shadow:0 6px 18px rgba(0,0,0,.4); pointer-events:none; }
+.cu-barra-hueco { height:48px; }
+.cu-barra-fija { position:absolute; top:calc(10px + env(safe-area-inset-top, 0px)); right:calc(10px + env(safe-area-inset-right, 0px)); z-index:3; }
+.cu-ico { display:inline-flex; align-items:center; justify-content:center; width:48px; height:48px; border-radius:14px; border:1px solid rgba(255,255,255,.22); background:rgba(255,255,255,.1); color:#fff; }
+.cu-ico:hover { background:rgba(255,255,255,.2); }
+.cu-ico.salir { background:rgba(255,255,255,.16); }
+.cu-ico.pulsada, .cu-ico:active { transform:scale(.94); }
+
+/* ── Portada ── */
+.cu-inicio { flex:1; min-height:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:clamp(8px, 2.4vmin, 28px); padding:clamp(56px, 8vmin, 90px) 16px clamp(10px, 2vmin, 24px); text-align:center; }
+.cu-titulo { margin:auto 0 0; font-size:clamp(30px, 8vmin, 104px); font-weight:900; line-height:1; letter-spacing:.01em; color:#fff; text-shadow:0 4px 0 #7f1d1d, 0 8px 24px rgba(0,0,0,.5); }
+.cu-sub { margin:0; font-size:clamp(14px, 2.4vmin, 28px); color:rgba(255,255,255,.75); }
+.cu-equipos { position:relative; display:flex; align-items:flex-end; justify-content:center; gap:clamp(24px, 9vmin, 140px); width:100%; }
+.cu-equipo { display:flex; flex-direction:column; align-items:center; gap:clamp(6px, 1.4vmin, 16px); min-width:0; }
+.cu-equipo img { width:auto; height:auto; max-height:clamp(100px, 36vh, 400px); max-width:40vw; filter:drop-shadow(0 10px 18px rgba(0,0,0,.5)); }
+.cu-equipo-nombre { display:inline-flex; align-items:center; gap:8px; min-height:48px; max-width:46vw; padding:8px clamp(12px, 2vmin, 24px); border-radius:999px; border:3px solid var(--cu-c); background:rgba(255,255,255,.95); color:#0f172a; font-size:clamp(15px, 2.8vmin, 34px); font-weight:800; text-transform:uppercase; }
+.cu-equipo-nombre span { min-width:0; overflow:hidden; overflow-wrap:anywhere; line-height:1.1; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+.cu-equipo.rojo { --cu-c:var(--cu-rojo); }
+.cu-equipo.azul { --cu-c:var(--cu-azul); }
+.cu-vs { position:absolute; left:50%; top:40%; transform:translate(-50%, -50%); font-size:clamp(22px, 6vmin, 72px); font-weight:900; color:#fde047; text-shadow:0 3px 0 #92400e, 0 0 24px rgba(253,224,71,.5); }
+.cu-jugar { display:inline-flex; align-items:center; justify-content:center; gap:10px; min-height:56px; padding:clamp(10px, 1.8vmin, 20px) clamp(28px, 5vmin, 64px); border:none; border-radius:999px; background:linear-gradient(180deg, #22c55e, #15803d); color:#fff; font-size:clamp(20px, 4vmin, 48px); font-weight:900; letter-spacing:.02em; box-shadow:0 6px 0 #14532d, 0 12px 28px rgba(0,0,0,.4); }
+.cu-jugar.pulsada, .cu-jugar:active { transform:translateY(3px); box-shadow:0 3px 0 #14532d, 0 8px 18px rgba(0,0,0,.4); }
+.cu-credito { margin:auto 0 0; font-size:clamp(12px, 1.6vmin, 18px); color:rgba(255,255,255,.55); }
+
+/*
+ * ── Ajustes: la lista se desplaza con el dedo si no cabe, entre los controles de arriba y el pie con «Empezar», que no
+ * la tapan. Una sombra arriba o abajo dice que hay más (se va al llegar al final).
+ */
+.cu-ajustes { flex:1; min-height:0; display:flex; flex-direction:column; padding:clamp(64px, 9vmin, 96px) 16px 0; }
+.cu-ajustes-lista {
+  flex:1; min-height:0; overflow-y:auto; touch-action:pan-y; overscroll-behavior:contain; padding-bottom:12px;
+  background:
+    linear-gradient(#0b1226 30%, rgba(11,18,38,0)) top / 100% 36px no-repeat local,
+    linear-gradient(rgba(11,18,38,0), #0b1226 70%) bottom / 100% 36px no-repeat local,
+    radial-gradient(farthest-side at 50% 0, rgba(253,224,71,.45), transparent) top / 100% 14px no-repeat scroll,
+    radial-gradient(farthest-side at 50% 100%, rgba(253,224,71,.45), transparent) bottom / 100% 14px no-repeat scroll;
+}
+.cu-ajustes-in { max-width:1100px; margin:0 auto; display:flex; flex-direction:column; gap:clamp(8px, 1.6vmin, 18px); }
+.cu-h2 { margin:6px 0 0; font-size:clamp(18px, 3.4vmin, 40px); font-weight:800; }
+.cu-pista { margin:0; font-size:clamp(13px, 2vmin, 22px); color:#fde047; }
+.cu-opciones { display:flex; flex-wrap:wrap; gap:clamp(8px, 1.4vmin, 16px); }
+.cu-opcion { display:inline-flex; align-items:center; gap:10px; min-height:52px; padding:10px clamp(14px, 2.4vmin, 28px); border-radius:16px; border:2px solid rgba(255,255,255,.25); background:rgba(255,255,255,.08); color:#fff; font-size:clamp(15px, 2.6vmin, 30px); font-weight:700; }
+.cu-opcion.corta { min-width:clamp(56px, 9vmin, 100px); justify-content:center; }
+.cu-opcion.sel { background:#fde047; border-color:#fde047; color:#1e1b4b; }
+.cu-signo { display:inline-flex; align-items:center; justify-content:center; min-width:1.6em; font-weight:900; }
+/* «Empezar» siempre a la vista, aunque las opciones no quepan (un móvil tumbado) */
+.cu-ajustes-pie { flex:none; width:100%; max-width:1100px; margin:0 auto; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; padding:clamp(8px, 1.6vmin, 18px) 0 calc(clamp(10px, 2vmin, 24px) + env(safe-area-inset-bottom, 0px)); border-top:1px solid rgba(255,255,255,.14); }
+.cu-secundario { display:inline-flex; align-items:center; gap:8px; min-height:52px; padding:10px 20px; border-radius:999px; border:2px solid rgba(255,255,255,.4); background:transparent; color:#fff; font-size:clamp(15px, 2.4vmin, 26px); font-weight:700; }
+
+/* ── La partida ── */
+.cu-juego { position:relative; flex:1; min-height:0; display:grid; gap:clamp(6px, 1.4vmin, 22px); padding:clamp(6px, 1.4vmin, 22px); }
+.cu-juego[data-vista="columnas"] { grid-template-columns:minmax(0, 1fr) minmax(0, 1.15fr) minmax(0, 1fr); grid-template-areas:"rojo centro azul"; }
+.cu-juego[data-vista="cara"] { grid-template-rows:minmax(0, 1fr) auto minmax(0, 1fr); grid-template-areas:"azul" "centro" "rojo"; }
+.cu-tarjeta.rojo { grid-area:rojo; --cu-c:var(--cu-rojo); --cu-q:var(--cu-rojo-q); }
+.cu-tarjeta.azul { grid-area:azul; --cu-c:var(--cu-azul); --cu-q:var(--cu-azul-q); }
+.cu-centro { grid-area:centro; min-width:0; min-height:0; display:flex; flex-direction:column; align-items:stretch; gap:clamp(6px, 1.2vmin, 16px); }
+/* Cara a cara: el equipo azul, arriba y girado, mira a su teclado */
+.cu-juego[data-vista="cara"] .cu-tarjeta.azul { transform:rotate(180deg); }
+
+.cu-tarjeta { min-width:0; min-height:0; display:flex; flex-direction:column; gap:clamp(5px, 1vmin, 14px); padding:clamp(6px, 1.2vmin, 18px); border-radius:clamp(14px, 2vmin, 26px); background:#f8fafc; color:#0f172a; border:clamp(3px, .5vmin, 6px) solid var(--cu-c); box-shadow:0 10px 30px rgba(0,0,0,.35); transition:border-color .15s, background-color .15s; }
+.cu-tarjeta.mal { border-color:#fca5a5; background:#fee2e2; }
+.cu-nombre { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:0 4px; font-weight:900; text-transform:uppercase; color:var(--cu-c); font-size:clamp(14px, 3vmin, 40px); line-height:1.1; }
+.cu-nombre-t { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cu-aciertos { flex-shrink:0; font-size:.75em; color:#475569; }
+.cu-qa { display:flex; flex-direction:column; gap:clamp(5px, 1vmin, 14px); }
+.cu-pregunta { container-type:inline-size; display:flex; align-items:center; justify-content:center; min-height:clamp(44px, 11vmin, 150px); padding:6px 10px; border-radius:clamp(10px, 1.4vmin, 18px); background:var(--cu-q); color:#fff; text-align:center; }
+/* La letra más grande con la que la pregunta cabe en su caja: según lo larga que es (--cu-len) */
+/* (En la pantalla, `TextoPregunta` la mide y la ajusta; esto es para el primer pintado) */
+.cu-pregunta-t { font-weight:800; line-height:1.15; font-variant-numeric:tabular-nums; font-size:clamp(16px, min(calc(100cqw / (var(--cu-len) * .5)), 8vmin), 104px); overflow-wrap:break-word; }
+.cu-pregunta-t sup { position:relative; top:-.72em; font-size:.62em; line-height:0; vertical-align:baseline; font-weight:800; }
+.cu-pregunta.fallada { background:#b91c1c; }
+.cu-pregunta.oculta { opacity:.45; }
+.cu-teclado.espera { opacity:.5; }
+.cu-respuesta { container-type:inline-size; display:flex; align-items:center; justify-content:center; min-height:clamp(40px, 8vmin, 110px); border-radius:clamp(10px, 1.4vmin, 18px); border:2px solid #cbd5e1; background:#fff; color:#0f172a; font-size:clamp(24px, 6.4vmin, 84px); font-weight:900; font-variant-numeric:tabular-nums; letter-spacing:.03em; }
+.cu-respuesta.vacia { color:#cbd5e1; }
+/* Seis caracteres («−12345») caben siempre en la casilla */
+.cu-respuesta-t { font-size:min(1em, calc(100cqw / 4.3)); white-space:nowrap; }
+.cu-teclado { flex:1; min-height:0; display:grid; grid-template-columns:repeat(var(--cu-cols), minmax(0, 1fr)); grid-auto-rows:minmax(44px, 1fr); gap:clamp(4px, .9vmin, 12px); }
+.cu-tecla { min-width:44px; min-height:44px; border:none; border-radius:clamp(10px, 1.4vmin, 18px); background:#e2e8f0; color:#0f172a; font-size:clamp(20px, 4.6vmin, 64px); font-weight:800; box-shadow:0 3px 0 #94a3b8; }
+.cu-tecla.borrar { background:#ef4444; color:#fff; box-shadow:0 3px 0 #991b1b; }
+.cu-tecla.signo { background:#f59e0b; color:#1f2937; box-shadow:0 3px 0 #b45309; }
+.cu-tecla.go { grid-column:span var(--cu-go); background:#2563eb; color:#fff; box-shadow:0 3px 0 #1e3a8a; }
+.cu-tarjeta.rojo .cu-tecla.go { background:#16a34a; box-shadow:0 3px 0 #14532d; }
+.cu-tarjeta.azul .cu-tecla.go { background:#16a34a; box-shadow:0 3px 0 #14532d; }
+.cu-tecla.pulsada { transform:translateY(2px); box-shadow:0 1px 0 #64748b; filter:brightness(.92); }
+
+/* Centro: el título, los robots y la marca de cómo va */
+.cu-centro .cu-barra { justify-content:center; }
+.cu-centro-titulo { text-align:center; font-size:clamp(18px, 4.4vmin, 60px); font-weight:900; text-shadow:0 3px 0 #7f1d1d; }
+.cu-zona { position:relative; flex:1; min-height:clamp(70px, 14vmin, 200px); display:flex; align-items:center; justify-content:center; overflow:hidden; border-radius:18px; background:rgba(255,255,255,.05); }
+.cu-zona::before { content:""; position:absolute; top:6%; bottom:6%; left:50%; border-left:3px dashed rgba(253,224,71,.65); }
+/* La cuerda se mueve hasta un 18 % de su ancho a cada lado: con un 72 % del escenario, el robot nunca se corta */
+.cu-cuerda { position:relative; width:min(72%, 760px); max-height:100%; aspect-ratio:676 / 369; display:flex; transform:translateX(calc(var(--cu-b, 0) * 18%)); transition:transform .5s cubic-bezier(.34, 1.56, .64, 1); }
+.cu-cuerda img { width:100%; height:100%; object-fit:contain; }
+.cu-pista-marcador { display:grid; grid-auto-flow:column; grid-auto-columns:minmax(0, 1fr); gap:4px; padding:0 4px; }
+.cu-marca { height:clamp(8px, 1.4vmin, 16px); border-radius:6px; background:rgba(255,255,255,.18); }
+.cu-marca.rojo { background:rgba(239,68,68,.35); }
+.cu-marca.azul { background:rgba(59,130,246,.35); }
+.cu-marca.aqui { background:#fde047; box-shadow:0 0 12px rgba(253,224,71,.8); }
+.cu-ayuda { text-align:center; font-size:clamp(14px, 2.6vmin, 34px); font-weight:700; color:rgba(255,255,255,.8); }
+
+/* Cara a cara: pregunta y respuesta en una fila; las teclas, en dos filas */
+.cu-juego[data-vista="cara"] .cu-qa { flex-direction:row; }
+.cu-juego[data-vista="cara"] .cu-pregunta { flex:1; min-width:0; min-height:clamp(48px, 9vmin, 120px); }
+.cu-juego[data-vista="cara"] .cu-respuesta { width:34%; flex-shrink:0; min-height:clamp(48px, 9vmin, 120px); }
+.cu-juego[data-vista="cara"] .cu-centro { flex-direction:column; gap:6px; }
+.cu-juego[data-vista="cara"] .cu-zona { flex:none; height:clamp(80px, 15vh, 220px); }
+.cu-juego[data-vista="cara"] .cu-cuerda { height:100%; width:auto; max-width:72%; }
+.cu-juego[data-vista="cara"] .cu-barra .cu-ico { width:44px; height:44px; }
+.cu-juego[data-vista="cara"] .cu-barra-hueco { height:44px; }
+
+/* Poco alto (un móvil tumbado): pregunta y respuesta en una fila, y menos aire */
+@media (max-height: 560px) {
+  .cu-juego[data-vista="columnas"] .cu-qa { flex-direction:row; }
+  .cu-juego[data-vista="columnas"] .cu-pregunta { flex:1; min-width:0; min-height:44px; padding:4px 8px; }
+  .cu-juego[data-vista="columnas"] { grid-template-columns:minmax(0, 1fr) minmax(0, .85fr) minmax(0, 1fr); }
+  .cu-juego[data-vista="columnas"] .cu-respuesta { width:32%; flex-shrink:0; min-height:44px; font-size:24px; }
+  .cu-juego[data-vista="columnas"] .cu-teclado { gap:4px; }
+  .cu-juego[data-vista="columnas"] .cu-tecla { font-size:20px; }
+  .cu-juego[data-vista="columnas"] .cu-centro-titulo { display:none; }
+  .cu-juego[data-vista="columnas"] .cu-ayuda { display:none; }
+  .cu-juego[data-vista="columnas"] .cu-barra .cu-ico { width:44px; height:44px; }
+  .cu-nombre { font-size:15px; }
+  .cu-inicio { padding-top:12px; gap:6px; }
+  .cu-equipo img { max-height:clamp(80px, 34vh, 200px); }
+  .cu-ajustes { padding-top:60px; }
+  .cu-ajustes-pie { padding-top:6px; padding-bottom:calc(6px + env(safe-area-inset-bottom, 0px)); }
+  .cu-ajustes-pie .cu-jugar, .cu-ajustes-pie .cu-secundario { min-height:48px; padding-top:6px; padding-bottom:6px; font-size:18px; }
+  .cu-opcion { min-height:46px; padding-top:6px; padding-bottom:6px; }
+}
+
+/* ── Cuenta atrás y ganador ── */
+.cu-cuenta, .cu-fin { position:absolute; inset:0; z-index:5; display:flex; align-items:center; justify-content:center; background:rgba(5,10,25,.72); }
+.cu-cuenta-n { font-size:clamp(80px, 30vmin, 360px); font-weight:900; color:#fde047; text-shadow:0 8px 0 #92400e, 0 0 60px rgba(253,224,71,.6); animation:cu-pop .8s ease-out both; }
+@keyframes cu-pop { 0% { transform:scale(.4); opacity:0; } 30% { transform:scale(1.15); opacity:1; } 100% { transform:scale(1); opacity:1; } }
+/* Cara a cara: la cuenta, dos veces, una girada para el equipo azul */
+.cu-juego[data-vista="cara"] .cu-cuenta { flex-direction:column; justify-content:space-around; }
+.cu-juego[data-vista="cara"] .cu-cuenta-n { font-size:clamp(64px, 20vmin, 260px); }
+.cu-cuenta-n.girada { rotate:180deg; }
+.cu-fin-caja { display:flex; flex-direction:column; align-items:center; gap:clamp(6px, 1.4vmin, 18px); max-width:min(720px, calc(100% - 24px)); max-height:calc(100% - 16px); overflow:hidden; padding:clamp(14px, 3vmin, 40px); border-radius:26px; background:#fff; color:#0f172a; text-align:center; border:6px solid var(--cu-c); box-shadow:0 20px 60px rgba(0,0,0,.5); animation:cu-pop .5s ease-out both; }
+.cu-fin-caja.rojo, .cu-fin-espejo.rojo { --cu-c:var(--cu-rojo); }
+.cu-fin-caja.azul, .cu-fin-espejo.azul { --cu-c:var(--cu-azul); }
+/* Los botones tardan un momento en poder pulsarse: quien seguía tecleando no empieza otra partida sin querer */
+.cu-fin-caja.espera .cu-fin-botones { opacity:.45; }
+/* Cara a cara: el ganador también derecho para el azul, arriba y girado; en medio, los controles */
+.cu-fin-espejo { display:none; }
+/* En columnas, los controles del ganador, arriba en el centro, donde estaban */
+.cu-fin > .cu-barra-fija { left:50%; right:auto; transform:translateX(-50%); }
+.cu-juego[data-vista="cara"] .cu-fin { flex-direction:column; justify-content:space-around; gap:8px; padding:8px; }
+.cu-juego[data-vista="cara"] .cu-fin-espejo { order:0; rotate:180deg; display:flex; flex-direction:column; align-items:center; gap:4px; max-width:calc(100% - 16px); padding:10px 22px; border-radius:22px; background:#fff; color:#0f172a; text-align:center; border:5px solid var(--cu-c); }
+.cu-juego[data-vista="cara"] .cu-fin-espejo .cu-trofeo { font-size:clamp(32px, 7vmin, 80px); }
+.cu-juego[data-vista="cara"] .cu-fin .cu-barra-fija { order:1; position:static; transform:none; }
+.cu-juego[data-vista="cara"] .cu-fin .cu-barra { justify-content:center; }
+.cu-juego[data-vista="cara"] .cu-fin-caja { order:2; max-height:none; }
+.cu-juego[data-vista="cara"] .cu-fin-caja .cu-trofeo, .cu-juego[data-vista="cara"] .cu-fin-img { display:none; }
+.cu-trofeo { font-size:clamp(40px, 10vmin, 120px); line-height:1; }
+.cu-fin-img { height:clamp(60px, 18vh, 220px); object-fit:contain; }
+.cu-fin-t { display:block; margin:0; font-size:clamp(22px, 5.6vmin, 72px); font-weight:900; color:var(--cu-c); text-transform:uppercase; overflow-wrap:anywhere; }
+.cu-fin-datos { margin:0; display:flex; flex-wrap:wrap; justify-content:center; gap:4px 18px; font-size:clamp(13px, 2.2vmin, 26px); color:#475569; }
+.cu-fin-botones { display:flex; flex-wrap:wrap; justify-content:center; gap:12px; }
+.cu-fin-caja .cu-secundario { border-color:#cbd5e1; color:#0f172a; }
+@media (max-height: 560px) { .cu-fin-img { display:none; } }
+
+/* ── El teclado de los nombres ── */
+.cu-editor { position:absolute; inset:0; z-index:10; display:flex; align-items:center; justify-content:center; padding:12px; background:rgba(5,10,25,.75); }
+.cu-editor-caja { width:min(980px, 100%); max-height:100%; overflow:hidden; display:flex; flex-direction:column; gap:10px; padding:clamp(10px, 2vmin, 24px); border-radius:22px; background:#f8fafc; color:#0f172a; border:5px solid var(--cu-c); }
+.cu-editor-hd { display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:clamp(16px, 2.6vmin, 30px); font-weight:800; }
+.cu-editor-hd .cu-ico { background:#e2e8f0; color:#0f172a; border-color:#cbd5e1; }
+.cu-editor-vista { min-height:clamp(48px, 8vmin, 90px); display:flex; align-items:center; justify-content:center; padding:6px 12px; border-radius:14px; border:3px solid var(--cu-c); background:#fff; font-size:clamp(22px, 5vmin, 60px); font-weight:900; letter-spacing:.04em; white-space:pre; overflow:hidden; }
+.cu-cursor { color:var(--cu-c); animation:cu-parpadeo 1s steps(1) infinite; }
+@keyframes cu-parpadeo { 50% { opacity:0; } }
+.cu-editor-cuenta { text-align:center; font-size:13px; color:#64748b; }
+.cu-letras { display:flex; flex-direction:column; gap:6px; }
+.cu-letras-fila { display:flex; justify-content:center; gap:6px; }
+.cu-letras-fila .cu-letra { flex:0 1 calc((100% - 54px) / 10); }
+.cu-letras.abc { display:grid; grid-template-columns:repeat(auto-fill, minmax(46px, 1fr)); gap:6px; }
+.cu-letra { min-width:44px; min-height:clamp(44px, 7vmin, 72px); border:none; border-radius:12px; background:#e2e8f0; color:#0f172a; font-size:clamp(18px, 3vmin, 34px); font-weight:800; box-shadow:0 3px 0 #94a3b8; display:inline-flex; align-items:center; justify-content:center; }
+.cu-letra.pulsada { transform:translateY(2px); box-shadow:0 1px 0 #94a3b8; }
+.cu-editor-pie { display:grid; grid-template-columns:minmax(56px, 1fr) minmax(0, 3fr) minmax(0, 2fr); gap:6px; }
+.cu-letra.espacio { font-size:clamp(15px, 2.2vmin, 24px); }
+.cu-letra.listo { background:#16a34a; color:#fff; box-shadow:0 3px 0 #14532d; font-size:clamp(16px, 2.4vmin, 26px); }
+
+/* Poco alto: el teclado de los nombres sin título ni cuenta, y la X junto al nombre */
+@media (max-height: 560px) {
+  .cu-editor { padding:6px; }
+  .cu-editor-caja { position:relative; gap:5px; padding:8px; border-width:3px; }
+  .cu-editor-hd { position:absolute; top:8px; right:8px; }
+  .cu-editor-hd > span, .cu-editor-cuenta { display:none; }
+  .cu-editor-vista { min-height:44px; margin-right:56px; font-size:24px; }
+  .cu-letras, .cu-letras-fila, .cu-letras.abc, .cu-editor-pie { gap:4px; }
+  .cu-letra { min-height:44px; font-size:18px; }
+}
+
+/* «Reducir movimiento»: sin rebotes, sin la cuenta que salta y sin parpadeos */
+.cuerda.quieta .cu-cuerda { transition:transform .2s linear; }
+.cuerda.quieta .cu-cuenta-n, .cuerda.quieta .cu-fin-caja, .cuerda.quieta .cu-cursor { animation:none; }
+@media (prefers-reduced-motion: reduce) {
+  .cu-cuerda { transition:transform .2s linear; }
+  .cu-cuenta-n, .cu-fin-caja, .cu-cursor { animation:none; }
+}
+
+/* La tarjeta de Recursos que abre el juego */
+.cu-recursos .fe-paso { display:flex; align-items:center; gap:8px; }
+.cu-recursos-cards.ev-cards { grid-template-columns:repeat(auto-fit, minmax(240px, 420px)); }

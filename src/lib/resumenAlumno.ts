@@ -68,6 +68,12 @@ export interface DatosParaResumen {
    * sube o baja. Con esto no se usan las fechas de `periodo`.
    */
   cuenta?: Cuentas;
+  /**
+   * Las medias de la clase ya calculadas, para no repetirlas alumno a alumno (25-11-2026, el radar de toda la
+   * clase, `lib/radarClase.ts`): se comparte entre el alumnado de una misma clase y un mismo periodo, nunca entre
+   * clases ni periodos distintos. Sin ella se calculan cada vez, con el mismo resultado.
+   */
+  mediasDeLaClase?: Map<string, number | null>;
 }
 
 /** Si algo con esa fecha entra en el periodo; lo que no tiene fecha llega como `undefined`. */
@@ -112,7 +118,7 @@ export function rangoDe(
 const dentro = (fecha: string, r: Rango) => fecha >= r.desde && fecha <= r.hasta;
 
 /** Las cuentas de un periodo de la ficha: una nota sin fecha solo cuenta al mirar todo el curso. */
-function cuentasDe(periodo: PeriodoResumen, hoy: string): Cuentas {
+export function cuentasDe(periodo: PeriodoResumen, hoy: string): Cuentas {
   const { actual, anterior } = rangoDe(periodo, hoy);
   return {
     actual: f => (f ? dentro(f, actual) : periodo === 'curso'),
@@ -161,7 +167,13 @@ function datosDeNotas(d: DatosParaResumen, actual: Cuenta, anterior: Cuenta | nu
     if (media < 5) neg.push({ tipo: 'notas', clave: 'Media de {nota} en {asignatura}, por debajo del 5', vars: { nota, asignatura }, peso: 90 + (5 - media) * 10 });
 
     // Frente a la clase, si hay con quién comparar y la media no lo ha dicho ya (para no repetir lo mismo dos veces)
-    const otras = d.companeros.map(id => mediaDeAsignatura(d, asignatura, items, id)).filter((m): m is number => m !== null);
+    const mediaDe = (id: string) => {
+      if (!d.mediasDeLaClase) return mediaDeAsignatura(d, asignatura, items, id);
+      const k = `${asignatura}\u0000${id}`;
+      if (!d.mediasDeLaClase.has(k)) d.mediasDeLaClase.set(k, mediaDeAsignatura(d, asignatura, items, id));
+      return d.mediasDeLaClase.get(k)!;
+    };
+    const otras = d.companeros.map(mediaDe).filter((m): m is number => m !== null);
     if (otras.length >= 3) {
       const dif = r1(media - otras.reduce((a, b) => a + b, 0) / otras.length);
       if (dif >= 1 && media < 7) pos.push({ tipo: 'notas', clave: '{d} puntos por encima de la media de la clase en {asignatura}', vars: { d: dif, asignatura }, peso: 50 + dif * 5 });

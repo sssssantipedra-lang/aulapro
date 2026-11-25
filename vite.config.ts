@@ -87,7 +87,10 @@ function appWeb(): Plugin {
       }
       recorrer(salida)
       // La página va como './': Cloudflare redirige index.html a la carpeta (ver web/app/sw.js)
-      const todo = todos.filter(f => !['sw.js', 'version.json', 'publico.json'].includes(f) && !f.endsWith('.map'))
+      // La música de los juegos (25-11-2026, «Tirar de la cuerda»: unos 2,4 MB) no se guarda al instalar: se pide al abrir
+      // el juego, como los vídeos de ayuda, y el service worker la deja pasar a la red (ver web/app/sw.js)
+      const bajoDemanda = (f: string) => /\.mp3$/.test(f)
+      const todo = todos.filter(f => !['sw.js', 'version.json', 'publico.json'].includes(f) && !f.endsWith('.map') && !bajoDemanda(f))
         .map(f => (f === 'index.html' ? './' : f)).sort()
       // Lo imprescindible se instala antes de activar; los dibujos, los pictogramas y el lector de PDF, después (ver web/app/sw.js)
       const esExtra = (f: string) => f.startsWith('ilustraciones/') || f.startsWith('pictos/') || /pdf\.worker/.test(f)

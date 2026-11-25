@@ -1,0 +1,164 @@
+/*
+ * Avisos y eventos cercanos (25-11-2026, petición del dueño).
+ * La marca de un evento a 5 días o menos (components/MarcaCerca.tsx) y la campana con su panel
+ * (components/Notificaciones.tsx). Todo con el color del tema que elige el docente (--accent, --accent-d,
+ * --accent-rgb, que fija lib/utils.ts), en claro y en oscuro.
+ */
+
+/*
+ * El color de la marca (texto y anillo): el del tema, más oscuro en claro y más claro en oscuro, para que se lea.
+ * Medido contra la tarjeta y la propia píldora con los seis temas: el texto pasa de 5:1 en claro y de 6,6:1 en
+ * oscuro, y el anillo, de 3:1 (lo que pide una marca que no es texto).
+ */
+:root { --cerca-c: color-mix(in srgb, var(--accent-d) 60%, #000); }
+:root[data-theme="dark"] { --cerca-c: color-mix(in srgb, var(--accent) 78%, #fff); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --cerca-c: color-mix(in srgb, var(--accent) 78%, #fff); }
+}
+
+/*
+ * La marca: un anillo del color del tema. Al montarse, late 5 veces (un latido por segundo, muy por debajo de
+ * los 3 destellos por segundo) y después se queda quieta. Con «reducir movimiento», solo la marca quieta.
+ * Cada sitio ajusta la tinta, el grosor y el brillo con las variables: lo que va en rejilla (los días del mes,
+ * los eventos de la semana) brilla hacia dentro, para que los vecinos no se junten en una mancha de color.
+ */
+.cerca-latido {
+  --cerca-tinta: var(--cerca-c);
+  --cerca-ancho: 2px;
+  --cerca-ancho-pico: 3px;
+  --cerca-brillo-0: 0 0 0 0 transparent;
+  --cerca-brillo: 0 0 0 5px color-mix(in srgb, var(--cerca-tinta) 34%, transparent);
+  box-shadow: inset 0 0 0 var(--cerca-ancho) var(--cerca-tinta);
+  animation: cerca-latido 1s ease-in-out 5;
+}
+@keyframes cerca-latido {
+  0%, 100% { box-shadow: inset 0 0 0 var(--cerca-ancho) var(--cerca-tinta), var(--cerca-brillo-0); }
+  50% { box-shadow: inset 0 0 0 var(--cerca-ancho-pico) var(--cerca-tinta), var(--cerca-brillo); }
+}
+@media (prefers-reduced-motion: reduce) { .cerca-latido { animation: none; } }
+
+/* La píldora «Hoy», «Mañana», «Faltan 3 días» */
+.cerca-pill {
+  display: inline-flex; align-items: center; flex-shrink: 0; vertical-align: middle;
+  padding: 2px 8px; border-radius: 99px; white-space: nowrap;
+  font-family: var(--font); font-size: 10.5px; font-weight: 800; line-height: 1.3;
+  color: var(--cerca-c); background: rgba(var(--accent-rgb), .13);
+}
+.cerca-pill:not(.cerca-latido) { box-shadow: inset 0 0 0 1.5px var(--cerca-c); }
+.cerca-pill.cerca-latido { --cerca-ancho: 1.5px; --cerca-ancho-pico: 2px; }
+
+/* Agenda: el día del mes, el evento del día elegido y la semana */
+/* Lo que va en rejilla brilla hacia dentro: los días vecinos y los eventos apilados no se juntan */
+.cal-day.cerca-latido, .wk-event.cerca-latido {
+  --cerca-brillo-0: inset 0 0 0 0 transparent;
+  --cerca-brillo: inset 0 0 10px 1px color-mix(in srgb, var(--cerca-tinta) 45%, transparent);
+}
+.cal-day.cal-cerca { font-weight: 800; }
+/* El día elegido ya es del color del tema: su anillo, en blanco también mientras late */
+.cal-day.selected.cal-cerca { --cerca-tinta: #fff; }
+.ag-ev-pill { margin-left: 6px; }
+.wk-cerca { display: flex; width: max-content; max-width: 100%; margin: 3px auto 0; }
+.wk-event.cerca-latido { --cerca-ancho: 1.5px; --cerca-ancho-pico: 2.5px; }
+/* La semana se coloca en el día con algo cercano: las flechas y las fechas de la semana no se van con ella */
+.wk-nav { position: sticky; left: 0; }
+
+/* Debajo del mes: los días con eventos cercanos, escritos (el anillo del día no lo dice con palabras) */
+.cal-cerca-lista { list-style: none; margin: 12px 0 0; padding: 10px 0 0; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; }
+.cal-cerca-lista h3 { margin: 0 0 2px; font-size: 11.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--text-2); }
+.cal-cerca-dia {
+  width: 100%; display: flex; align-items: center; gap: 8px; padding: 6px 8px; border: none; border-radius: 8px;
+  background: none; font-family: var(--font); font-size: 13px; text-align: left; color: var(--text); cursor: pointer;
+}
+.cal-cerca-dia:hover, .cal-cerca-dia[aria-pressed="true"] { background: var(--surface); }
+.cal-cerca-dia:focus-visible { outline: 2px solid var(--cerca-c); outline-offset: 0; }
+.cal-cerca-dia > span:last-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cal-cerca-dia small { color: var(--text-3); font-size: 12px; }
+
+/* Inicio: el recuadro del día de «Próximos eventos» lleva el anillo de siempre, y la píldora va junto a la hora */
+.home-ev-falta { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+
+/* ── La campana ── */
+.ntf-campana { position: relative; display: flex; align-items: center; justify-content: center; cursor: pointer; font-family: var(--font); }
+.ntf-num {
+  position: absolute; top: -6px; right: -6px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 99px;
+  display: flex; align-items: center; justify-content: center;
+  /* Más oscuro que el tema, para que el número blanco se lea con todos (5,4:1 o más) */
+  background: color-mix(in srgb, var(--accent-d) 65%, #000); color: #fff; font-size: 10.5px; font-weight: 800; line-height: 1;
+  box-shadow: 0 0 0 2px var(--nav-bg);
+}
+.m-top-campana .ntf-num { top: 2px; right: 1px; }
+
+/* En el menú, junto a «Buscar»; plegado, una debajo de la otra */
+.sb-acciones { flex-shrink: 0; display: flex; gap: 6px; margin: 0 10px 6px; }
+.sb-acciones .sb-buscar { margin: 0; width: auto; flex: 1; min-width: 0; }
+.sb-campana { width: 38px; flex-shrink: 0; background: var(--nav-hover); border: 1px solid var(--nav-border); border-radius: 10px; color: var(--nav-muted); }
+.sb-campana:hover, .sb-campana.con { color: var(--nav-strong); }
+.sb-campana:focus-visible { outline: 2px solid var(--accent-d); outline-offset: 1px; }
+.sidebar.mini .sb-acciones { flex-direction: column; }
+.sidebar.mini .sb-campana { width: auto; height: 36px; }
+
+/* ── El panel ── */
+.ntf-fondo { position: fixed; inset: 0; z-index: 300; display: flex; background: rgba(15, 23, 42, .38); }
+.ntf {
+  margin-left: auto; width: min(430px, 100%); height: 100%; display: flex; flex-direction: column;
+  background: var(--card); border-left: 1px solid var(--border); box-shadow: -18px 0 50px rgba(15, 23, 42, .22);
+  animation: ntf-entra .18s ease-out;
+}
+.ntf:focus { outline: none; }
+@keyframes ntf-entra { from { transform: translateX(18px); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .ntf { animation: none; } }
+
+.ntf-hd { display: flex; align-items: center; gap: 9px; padding: 16px 14px 4px 18px; color: var(--text); }
+.ntf-hd > svg { color: var(--cerca-c); }
+.ntf-ttl { margin: 0; font-size: 17px; font-weight: 800; }
+.ntf-cuenta { font-size: 11.5px; font-weight: 800; padding: 2px 8px; border-radius: 99px; background: rgba(var(--accent-rgb), .14); color: var(--cerca-c); }
+.ntf-x { margin-left: auto; }
+.ntf-intro { margin: 0; padding: 0 18px 12px; font-size: 12.5px; color: var(--text-3); border-bottom: 1px solid var(--border); }
+/* Con el panel abierto, el botón flotante de la ayuda se aparta: taparía los avisos de abajo y abriría otra ventana encima */
+body:has(.ntf-fondo) .help-fab { display: none; }
+.ntf-cuerpo { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 12px 16px; }
+
+.ntf-grupo { padding-top: 14px; }
+.ntf-g-ttl { display: flex; align-items: center; gap: 7px; margin: 0 6px; font-size: 11.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--text-2); }
+.ntf-evento .ntf-g-ttl svg { color: var(--cerca-c); }
+.ntf-alumno .ntf-g-ttl svg { color: var(--danger); }
+.ntf-notas .ntf-g-ttl svg { color: var(--ok); }
+.ntf-tarea .ntf-g-ttl svg { color: #8b5cf6; }
+.ntf-g-n { margin-left: auto; font-size: 11px; color: var(--text-3); }
+.ntf-porque { margin: 3px 6px 6px; font-size: 12px; line-height: 1.4; color: var(--text-3); }
+
+.ntf-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.ntf-item { display: flex; align-items: center; gap: 4px; padding: 2px; border-radius: 10px; }
+.ntf-item:hover { background: var(--surface); }
+.ntf-abrir {
+  flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; padding: 8px; border: none; border-radius: 8px;
+  background: none; font-family: var(--font); text-align: left; color: var(--text); cursor: pointer;
+}
+.ntf-abrir:focus-visible, .ntf-visto:focus-visible { outline: 2px solid var(--accent-d); outline-offset: 0; }
+.ntf-quieto { cursor: default; }
+.ntf-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.ntf-txt b { font-size: 13.5px; font-weight: 700; overflow-wrap: anywhere; }
+.ntf-txt small { font-size: 12px; line-height: 1.35; color: var(--text-2); }
+.ntf-abrir:hover b { color: var(--cerca-c); }
+.ntf-visto {
+  flex-shrink: 0; display: flex; align-items: center; gap: 5px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px;
+  background: var(--card); font-family: var(--font); font-size: 11.5px; font-weight: 700; color: var(--text-3); cursor: pointer;
+}
+.ntf-visto:hover { color: var(--text); border-color: var(--border-strong); }
+/* La casilla, con una zona de 36 px alrededor para acertar con el dedo */
+.ntf-check-zona { flex-shrink: 0; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; cursor: pointer; }
+.ntf-check { width: 20px; height: 20px; margin: 0; accent-color: var(--accent-d); cursor: pointer; }
+.ntf-check:focus-visible { outline: 2px solid var(--accent-d); outline-offset: 2px; }
+.ntf-hecho { margin: 0; padding: 10px 18px; border-top: 1px solid var(--border); font-size: 12.5px; color: var(--text-2); }
+.ntf-hecho:empty { padding: 0; border: none; }
+
+.ntf-vacio { display: flex; align-items: center; gap: 10px; margin: 0; padding: 30px 8px; font-size: 14px; color: var(--text-2); }
+.ntf-vacio svg { color: var(--ok); flex-shrink: 0; }
+.ntf-pie { margin: 0; padding: 11px 18px; border-top: 1px solid var(--border); font-size: 12.5px; color: var(--text-3); }
+.ntf-link { padding: 0; border: none; background: none; font: inherit; font-weight: 700; color: var(--cerca-c); text-decoration: underline; cursor: pointer; }
+
+/* En el móvil, el panel ocupa la pantalla; «Ya lo he visto» sigue escrito (con el dedo no hay título que lo diga) */
+@media (max-width: 640px) {
+  .ntf { width: 100%; border-left: none; }
+  .ntf-visto { padding: 8px; max-width: 84px; text-align: left; line-height: 1.2; }
+}

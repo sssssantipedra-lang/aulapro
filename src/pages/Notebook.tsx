@@ -89,6 +89,8 @@ interface Props {
   aiData: TeacherData;
   chat: ChatMessage[];
   onChatChange: (next: ChatMessage[]) => void;
+  /** La asignatura en la que se abre (un aviso de notas a medio poner de la campana); sin ella, la primera de la clase. */
+  asignaturaInicial?: string | null;
 }
 
 /* ══════════════════ Utilidades de cálculo ══════════════════ */
@@ -219,7 +221,7 @@ function GradesTab({
   classes, students, gradeCategories: todasLasCategorias, gradeItems: todasLasActividades, grades: notasGuardadas,
   classMarks, marksConfigs, onSaveMarksConfig,
   onAddCategory, onUpdateCategory, onDeleteCategory,
-  onAddItem, onUpdateItem, onDeleteItem, onSetGrade, onSetGrades, onNav, acsAula = [], comunidad, clase, ev,
+  onAddItem, onUpdateItem, onDeleteItem, onSetGrade, onSetGrades, onNav, acsAula = [], comunidad, clase, ev, asignaturaInicial,
 }: Omit<Props, 'lawDocument' | 'onLawDocumentChange'> & { clase: ReturnType<typeof useClaseActiva>; ev: EvaluacionElegida }) {
   const { toast } = useToast();
   const { t, locale, lang } = useI18n();
@@ -264,7 +266,7 @@ function GradesTab({
     () => (cls?.subjects?.length ? cls.subjects : cls ? [cls.subject] : []),
     [cls],
   );
-  const [subject, setSubject] = useState('');
+  const [subject, setSubject] = useState(asignaturaInicial ?? '');
   // Al cambiar de clase, la asignatura elegida puede no existir en la nueva
   const activeSubject = subjects.includes(subject) ? subject : (subjects[0] ?? '');
 

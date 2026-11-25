@@ -10,11 +10,13 @@
  * minutos). Un toque, o Intro, abre el bloque para editarlo, como siempre. Lo
  * de apoyo (PT y AL) no se mueve aquí: se cambia en su grupo.
  */
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { GripVertical } from 'lucide-react';
 import type { CalEvent, ScheduleBlock } from '../../types';
 import { colorDeCapa, type ApunteDeAgenda } from '../../lib/capasAgenda';
 import { useI18n } from '../../i18n';
+import { diasSiCerca, textoDeFalta } from '../../lib/notificaciones';
+import { CLASE_CERCA, MarcaCerca } from '../MarcaCerca';
 import {
   PASO_MIN, PX_POR_MIN, aMin, cambioDeArrastre, colocarDia, deMin, moverBloque, rangoHorario,
 } from '../../lib/horarioSemana';
@@ -54,6 +56,26 @@ export function HorarioSemana({
   const apoyoIds = new Set(apoyo.map(b => b.id));
 
   const columnas = useRef<(HTMLDivElement | null)[]>([]);
+  const cabeceras = useRef<(HTMLDivElement | null)[]>([]);
+
+  // En el móvil la semana no cabe y se desplaza a los lados: al entrar (y al cambiar de semana) se coloca en el primer
+  // día con un evento cercano o, si no hay, en hoy, para que lo que parpadea se vea mientras parpadea
+  const semana = dias.map(isoDe).join(',');
+  useEffect(() => {
+    const isos = semana.split(',');
+    const i = isos.findIndex(ds => (eventosPorFecha[ds] ?? []).length > 0 && diasSiCerca(ds, hoy) !== null);
+    const el = cabeceras.current[i >= 0 ? i : isos.indexOf(hoy)];
+    if (!el) return;
+    let caja = el.parentElement;
+    while (caja && !(caja.scrollWidth > caja.clientWidth + 1 && /auto|scroll/.test(getComputedStyle(caja).overflowX))) caja = caja.parentElement;
+    if (!caja) return;
+    // Solo si no se ve entero; entonces lo deja junto a la columna de las horas (56 px), con el día de antes asomando
+    const r = el.getBoundingClientRect(), c = caja.getBoundingClientRect();
+    if (r.left >= c.left + 56 && r.right <= c.right) return;
+    caja.scrollLeft += r.left - c.left - 56 - 24;
+    // Solo al entrar y al cambiar de semana: un evento nuevo no mueve la vista que el docente ha elegido
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [semana]);
   const gesto = useRef<{ b: ScheduleBlock; x: number; y: number; activo: boolean; cols: { izq: number; der: number }[]; nuevo?: ScheduleBlock } | null>(null);
   const sinClic = useRef(false);
   const [arrastre, setArrastre] = useState<Arrastre | null>(null);
@@ -133,15 +155,19 @@ export function HorarioSemana({
       <div />
       {dias.map((d, di) => {
         const ds = isoDe(d);
+        // Los eventos a 5 días o menos parpadean al entrar y se quedan marcados; el día dice cuánto falta
+        const cerca = (eventosPorFecha[ds] ?? []).length > 0 ? diasSiCerca(ds, hoy) : null;
         return (
-          <div key={di} className={`wk-dia${ds === hoy ? ' hoy' : ''}`}>
+          <div key={di} ref={el => { cabeceras.current[di] = el; }} className={`wk-dia${ds === hoy ? ' hoy' : ''}`}>
             <div className="wk-dia-n">{etiquetas[di]}</div>
             <div className="wk-dia-f">{d.getDate()}</div>
+            {cerca !== null && <MarcaCerca dias={cerca} latido={false} className="wk-cerca" />}
             {(eventosPorFecha[ds] ?? []).map(ev => (
               <button
-                key={ev.id} type="button" className="wk-event"
+                key={ev.id} type="button" className={`wk-event${cerca !== null ? ` ${CLASE_CERCA}` : ''}`}
                 style={{ '--ev-c': ev.color || 'var(--accent-d)' } as React.CSSProperties}
-                onClick={() => onEditarEvento(ev)} title={ev.desc || ev.name}
+                onClick={() => onEditarEvento(ev)}
+                title={[cerca !== null ? textoDeFalta(cerca, t) : '', ev.desc || ev.name].filter(Boolean).join(': ')}
               >
                 {ev.time && <b>{ev.time}</b>} {ev.name}
               </button>

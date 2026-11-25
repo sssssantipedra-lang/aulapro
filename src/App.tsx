@@ -55,12 +55,18 @@ import { isoDate, nombresCortos } from './lib/utils';
 import { buildDemoApoyo } from './lib/demoApoyo';
 import type { Section, Evaluation } from './types';
 import { X, Menu, Search } from 'lucide-react';
+import { Campana, PanelAvisos } from './components/Notificaciones';
+import { avisosDe, leerOcultos, ocultarAviso, separar, volverAEnsenar, type Aviso } from './lib/notificaciones';
+import { CURSO_ENTERO, cuentaEn, guardarPeriodoElegido, periodoDeHoy, periodoElegido, rangosGuardados } from './lib/periodos';
+import { useHoy } from './hooks/useHoy';
 import { DEMO_USER, DEMO_COMMUNITY } from './lib/demoData';
 import { useI18n, priorityLabel } from './i18n';
 import { isAndroidApp, isWebApp } from './lib/platform';
 import { compararAlumnos } from './lib/alumnado';
 import { AvisoGuardado, type AccionesGuardado } from './components/AvisoGuardado';
 
+/** Lo que espera el radar del número de la campana, fuera del Inicio y de Mis clases, a que el docente deje de tocar datos. */
+const ESPERA_RADAR = 1500;
 const AcsDeAlumno = lazy(() => import('./components/clases/AcsDeAlumno').then(m => ({ default: m.AcsDeAlumno })));
 const Buscador = lazy(() => import('./components/Buscador').then(m => ({ default: m.Buscador })));
 const ResumenDeAlumno = lazy(() => import('./components/clases/ResumenDeAlumno').then(m => ({ default: m.ResumenDeAlumno })));
@@ -136,10 +142,12 @@ function AppInner() {
    * clase su alumnado, y una rúbrica o una situación de aprendizaje llevan a su pantalla con lo buscado ya escrito.
    */
   const [buscando, setBuscando] = useState(false);
+  /** El panel de los avisos (la campana, 25-11-2026): abrir el buscador lo cierra, y al revés. */
+  const [avisosAbiertos, setAvisosAbiertos] = useState(false);
   const [busquedaPedida, setBusquedaPedida] = useState<{ section: Section | null; texto: string; n: number }>({ section: null, texto: '', n: 0 });
   useEffect(() => {
     const tecla = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === 'k') { e.preventDefault(); setBuscando(v => !v); }
+      if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === 'k') { e.preventDefault(); setAvisosAbiertos(false); setBuscando(v => !v); }
     };
     window.addEventListener('keydown', tecla);
     return () => window.removeEventListener('keydown', tecla);
@@ -197,6 +205,9 @@ function AppInner() {
     () => (especialista ? [] : st.classes.map(c => ({
       id: c.id,
       name: c.name,
+      // La etapa y el curso, para el nivel que propone «Tirar de la cuerda» (25-11-2026)
+      etapa: c.etapa,
+      curso: c.curso,
       nombres: nombresCortos(st.students
         .filter(s => s.class_id === c.id)
         .sort(compararAlumnos)
@@ -274,12 +285,94 @@ function AppInner() {
     });
   }, [section, st.ef.sesiones, st.classes]);
 
-  /** El radar del alumnado, para el Inicio y Mis clases: solo se calcula en esas dos pantallas. */
-  const conRadar = section === 'dashboard' || section === 'classes';
-  const radarAlumnado = useMemo(() => (conRadar ? radar({
+  /**
+   * El radar del alumnado, para el Inicio, Mis clases y los avisos de la campana. En esas dos pantallas y con el
+   * panel de avisos abierto se calcula al momento; en las demás, solo para el número de la campana, cuando el
+   * docente deja de tocar datos (`ESPERA_RADAR`): su coste crece con el alumnado y las anotaciones (unos 25 ms con
+   * 300 alumnos y un curso de anotaciones en un ordenador), y no debe pagarse en cada toque de «Anotar actitud»,
+   * de Asistencia o del Cuaderno, que responden al instante. Con el día de `useHoy`.
+   */
+  const hoy = useHoy();
+  const datosRadar = useMemo(() => ({
     classes: st.classes, students: st.students, gradeCategories: gradeView.gradeCategories, gradeItems: gradeView.gradeItems,
-    grades: gradeView.grades, attendance: st.attendance, classMarks: st.classMarks, evaluations: st.evaluations, hoy: isoDate(),
-  }) : undefined), [conRadar, st.classes, st.students, gradeView, st.attendance, st.classMarks, st.evaluations]);
+    grades: gradeView.grades, attendance: st.attendance, classMarks: st.classMarks, evaluations: st.evaluations, hoy,
+  }), [st.classes, st.students, gradeView, st.attendance, st.classMarks, st.evaluations, hoy]);
+  const radarAlMomento = section === 'dashboard' || section === 'classes' || avisosAbiertos;
+  const radarAhora = useMemo(() => (radarAlMomento ? radar(datosRadar) : undefined), [radarAlMomento, datosRadar]);
+  // El último calculado, por cualquiera de los dos caminos: mientras llega el nuevo, la campana cuenta con él (al salir
+  // del Inicio el número no baja de golpe para volver a subir)
+  const [radarEnEspera, setRadarEnEspera] = useState<ReturnType<typeof radar> | null>(null);
+  useEffect(() => {
+    const ya = radarAhora;
+    const id = ya
+      ? window.setTimeout(() => setRadarEnEspera(ya), 0)
+      : window.setTimeout(() => setRadarEnEspera(radar(datosRadar)), ESPERA_RADAR);
+    return () => window.clearTimeout(id);
+  }, [radarAhora, datosRadar]);
+  const radarAlumnado = radarAhora ?? radarEnEspera ?? undefined;
+
+  /**
+   * Los avisos de la campana (25-11-2026, `lib/notificaciones.ts`): eventos a 5 días o menos, alumnado que necesita
+   * atención, notas a medio poner y tareas sin hacer. Lo que el docente oculta con «Ya lo he visto» se guarda en el
+   * dispositivo, por perfil; `versionOcultos` hace volver a leerlo tras ocultar o volver a enseñar.
+   */
+  const [versionOcultos, setVersionOcultos] = useState(0);
+  const perfilDeAvisos = st.profileId ?? '';
+  const ocultosGuardados = useMemo(
+    () => (versionOcultos >= 0 && perfilDeAvisos ? leerOcultos(perfilDeAvisos) : {}),
+    [perfilDeAvisos, versionOcultos],
+  );
+  // Las fechas de las evaluaciones viven en el dispositivo, no en el estado: se leen en cada pintado (es poco) para que
+  // un cambio hecho en el Cuaderno o en Actas cuente al cambiar de pantalla o al abrir el panel
+  const rangosDeHoy = JSON.stringify(rangosGuardados(hoy));
+  const todosLosAvisos = useMemo(() => {
+    const rangos = JSON.parse(rangosDeHoy) as ReturnType<typeof rangosGuardados>;
+    const periodo = periodoDeHoy(hoy, rangos);
+    return avisosDe({
+      hoy, calEvents: st.calEvents, classes: st.classes, students: st.students, radar: radarAlumnado,
+      gradeItems: st.gradeItems, gradeCategories: st.gradeCategories, grades: st.grades, tasks: st.tasks,
+      enEvaluacion: f => cuentaEn(f, periodo, hoy, rangos),
+      conCuaderno: enMenu('notebook', tipo), conAlumnado: enMenu('classes', tipo),
+      // En Educación Física, quien estaba exento el día de la prueba no tendrá marca: no deja la actividad a medias
+      exentoEn: st.ef.exentos.length ? (id, f) => st.ef.exentos.some(e => e.alumnoId === id && e.desde <= f && (!e.hasta || e.hasta >= f)) : undefined,
+    });
+  }, [hoy, st.calEvents, st.classes, st.students, radarAlumnado, st.gradeItems, st.gradeCategories, st.grades, st.tasks, st.ef.exentos, tipo, rangosDeHoy]);
+  const avisos = useMemo(() => separar(todosLosAvisos, ocultosGuardados, hoy), [todosLosAvisos, ocultosGuardados, hoy]);
+  /** El día de la Agenda que se abre desde un aviso de evento; `n` la monta de nuevo si ya estaba abierta. */
+  const [agendaPedida, setAgendaPedida] = useState<{ fecha: string | null; n: number }>({ fecha: null, n: 0 });
+  /** Para abrir el Cuaderno en otra clase (y en la asignatura de la actividad) aunque ya estuviera abierto. */
+  const [cuadernoPedido, setCuadernoPedido] = useState<{ asignatura: string | null; n: number }>({ asignatura: null, n: 0 });
+  // El día pedido vale para esa visita a la Agenda: la siguiente se abre en su portada, como siempre
+  if (section !== 'agenda' && agendaPedida.fecha) setAgendaPedida(p => ({ ...p, fecha: null }));
+  const cerrarAvisos = useCallback(() => setAvisosAbiertos(false), []);
+  const abrirAvisos = () => { setMenuOpen(false); setBuscando(false); setAvisosAbiertos(true); };
+  /** Cada aviso abre donde vive: el día en la Agenda, la ficha del alumno, el cuaderno en su clase o el Inicio. */
+  const abrirAviso = (a: Aviso) => {
+    setAvisosAbiertos(false);
+    setMenuOpen(false);
+    if (a.tipo === 'evento') { setAgendaPedida(p => ({ fecha: a.evento.date, n: p.n + 1 })); setSection('agenda'); }
+    else if (a.tipo === 'alumno') abrirAlumno(a.student.id);
+    else if (a.tipo === 'notas') {
+      pedirClase(a.cls.id);
+      if (st.profileId) recordarClase(st.profileId, a.cls.id);
+      // La actividad es de la evaluación de hoy: si el cuaderno se dejó en otra, se abre en la de hoy
+      const rangos = rangosGuardados(hoy);
+      const elegida = periodoElegido(hoy, rangos);
+      if (elegida !== CURSO_ENTERO && !cuentaEn(a.item.date, elegida, hoy, rangos)) guardarPeriodoElegido(periodoDeHoy(hoy, rangos), hoy, rangos);
+      setCuadernoPedido(p => ({ asignatura: a.asignatura, n: p.n + 1 }));
+      setSection('notebook');
+    } else setSection('dashboard');
+  };
+  const ocultar = (a: Aviso) => {
+    if (!perfilDeAvisos) return;
+    ocultarAviso(perfilDeAvisos, a.clave, hoy);
+    setVersionOcultos(v => v + 1);
+  };
+  const ensenarOcultos = () => {
+    if (!perfilDeAvisos) return;
+    volverAEnsenar(perfilDeAvisos, avisos.ocultos.map(a => a.clave));
+    setVersionOcultos(v => v + 1);
+  };
 
   /**
    * Lo que el asistente del cuaderno puede consultar. Se arma aquí, donde
@@ -512,6 +605,9 @@ function AppInner() {
           toast(t('Sesión cerrada'));
         }}
         onBuscar={() => setBuscando(true)}
+        avisos={avisos.visibles.length}
+        avisosAbiertos={avisosAbiertos}
+        onAvisos={abrirAvisos}
       />}
 
       {menuOverlay && (
@@ -534,6 +630,14 @@ function AppInner() {
         </Suspense>
       )}
 
+      {avisosAbiertos && (
+        <PanelAvisos
+          avisos={avisos.visibles} ocultos={avisos.ocultos} variasClases={st.classes.length > 1}
+          onAbrir={abrirAviso} onOcultar={ocultar} onVolverAEnsenar={ensenarOcultos} onTareaHecha={st.toggleTask}
+          abrirTareas={!especialista} onCerrar={cerrarAvisos}
+        />
+      )}
+
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         {phone && (
           <header className="m-top">
@@ -547,6 +651,7 @@ function AppInner() {
             <button type="button" className="m-top-btn" onClick={() => setBuscando(true)} aria-label={t('Buscar en AulaPro')}>
               <Search size={20} />
             </button>
+            <Campana n={avisos.visibles.length} abierto={avisosAbiertos} onClick={abrirAvisos} className="m-top-btn m-top-campana" />
             <button type="button" className="m-top-avatar" onClick={() => setSection('profile')} aria-label={t('Configuración')}>
               {st.currentUser.full_name.split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase()}
             </button>
@@ -643,6 +748,8 @@ function AppInner() {
             )}
             {section === 'agenda' && (
               <Agenda
+                key={agendaPedida.n}
+                diaInicial={agendaPedida.fecha}
                 classes={st.classes}
                 scheduleBlocks={st.scheduleBlocks}
                 apoyoBlocks={apoyoBlocks}
@@ -767,6 +874,8 @@ function AppInner() {
             )}
             {section === 'notebook' && (
               <Notebook
+                key={cuadernoPedido.n}
+                asignaturaInicial={cuadernoPedido.asignatura}
                 classes={st.classes}
                 students={st.students}
                 acsAula={st.apoyo.acsAula}

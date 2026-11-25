@@ -4,6 +4,7 @@ import {
   NotebookPen, Contact, Shapes, MonitorPlay, Images, Volleyball, Search,
 } from 'lucide-react';
 import { Avatar } from '../ui/Avatar';
+import { Campana } from '../Notificaciones';
 import { useI18n } from '../../i18n';
 import { nombreComunidad } from '../../lib/curriculum/comunidades';
 import { requestSettingsPanel } from '../../lib/settingsNav';
@@ -72,9 +73,13 @@ interface Props {
   onLogout: () => void;
   /** Abre el buscador general (`components/Buscador.tsx`). */
   onBuscar?: () => void;
+  /** La campana de los avisos (`components/Notificaciones.tsx`), junto a «Buscar»: cuántos hay y cómo abrir el panel. */
+  avisos?: number;
+  avisosAbiertos?: boolean;
+  onAvisos?: () => void;
 }
 
-export function Sidebar({ mini, overlay, onToggle, current, onNav, user, saving, onLogout, onBuscar }: Props) {
+export function Sidebar({ mini, overlay, onToggle, current, onNav, user, saving, onLogout, onBuscar, avisos = 0, avisosAbiertos, onAvisos }: Props) {
   const { t, lang } = useI18n();
 
   const groups = navGroupsFor(user?.tipo ?? 'aula');
@@ -145,12 +150,18 @@ export function Sidebar({ mini, overlay, onToggle, current, onNav, user, saving,
       )}
 
       {/* El buscador general: ir a cualquier pantalla, clase o alumno escribiendo unas letras */}
-      {user && onBuscar && (
-        <button type="button" className="sb-buscar" onClick={onBuscar} title={t('Buscar en AulaPro (Ctrl+K)')} aria-label={t('Buscar en AulaPro')}>
-          <Search size={14} />
-          <span className="sb-buscar-txt">{t('Buscar')}</span>
-          <kbd>Ctrl K</kbd>
-        </button>
+      {/* Y a su lado, la campana de los avisos */}
+      {user && (onBuscar || onAvisos) && (
+        <div className="sb-acciones">
+          {onBuscar && (
+            <button type="button" className="sb-buscar" onClick={onBuscar} title={t('Buscar en AulaPro (Ctrl+K)')} aria-label={t('Buscar en AulaPro')}>
+              <Search size={14} />
+              <span className="sb-buscar-txt">{t('Buscar')}</span>
+              <kbd>Ctrl K</kbd>
+            </button>
+          )}
+          {onAvisos && <Campana n={avisos} abierto={avisosAbiertos} onClick={onAvisos} className="sb-campana" />}
+        </div>
       )}
 
       <div className="sb-div" />

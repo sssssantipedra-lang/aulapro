@@ -121,6 +121,37 @@ cerrar. Un alumno abre su ficha; una clase, su alumnado; una rúbrica o una
 situación de aprendizaje llevan a su pantalla con el título ya escrito en su
 buscador; lo demás, a su pantalla. Sin escribir nada salen las pantallas del
 menú. No sale nada del dispositivo.
+AVISOS (LA CAMPANA): junto a «Buscar» está la campana (en el móvil, junto a la
+lupa de la barra de arriba), con el número de avisos. Al pulsarla se abre el
+panel «Avisos», agrupado por tipo y con lo más urgente primero: eventos de la
+Agenda a los que les faltan 5 días o menos (con «Hoy», «Mañana» o «Faltan 3
+días» y su clase; abren la Agenda en ese día), alumnado que necesita atención
+(el mismo radar de «Necesitan atención» del Inicio, con su motivo; abre su
+ficha), notas a medio poner (actividades de la evaluación de hoy que la mitad
+de la clase o más ya tiene calificadas y a las que les falta la nota de
+alguien, sin contar al alumnado exento de Educación Física ese día; abre el
+Cuaderno en esa clase y en la asignatura de la actividad) y tareas sin hacer
+(se marcan como hechas desde el panel, y justo después se puede deshacer con
+«Deshacer»). Cada aviso, menos las tareas, tiene «Ya lo he visto», que lo oculta
+en este dispositivo y baja el número; vuelve si cambia el motivo (un evento
+cuando pasa a ser mañana u hoy, un alumno si la regla es otra o habla de otra
+asignatura, o a las 4 semanas), y «Volver a enseñarlos», abajo, los devuelve. Sin avisos, la campana va sin
+número y el panel dice que no hay nada pendiente. Se cierra con Esc, con la X,
+tocando fuera o con el botón de atrás. Lo calcula la aplicación con reglas, sin
+IA, y nada sale del dispositivo. Los avisos escritos a mano en la ficha de un
+alumno no entran: siguen en «Necesitan atención» del Inicio.
+EVENTOS CERCANOS: un evento al que le faltan 5 días o menos (de hoy al quinto
+día, nunca uno ya pasado) parpadea 5 veces con el color de la app al entrar en
+la Agenda o en el Inicio, y después se queda marcado con un anillo del mismo
+color. En la Agenda: en el mes, el día lleva el anillo y, debajo del
+calendario, «Eventos próximos» dice cuánto falta para cada día («Hoy»,
+«Mañana», «Faltan 3 días») y lo elige al pulsarlo; en el día elegido, cada
+evento lleva lo que falta al lado; en la semana, el evento lleva el anillo y lo
+que falta va bajo la fecha del día (la semana enseña de lunes a viernes: un
+evento cercano en fin de semana sale en el mes y en la campana); y la tarjeta
+«Agenda mensual» de la portada lo dice de su próximo evento. En el Inicio, en
+«Tu semana» y en «Próximos eventos», con lo que falta al lado. Con «reducir
+movimiento» activado en el sistema no parpadea: solo queda la marca.
 En las pantallas que trabajan clase a clase (Cuaderno, Asistencia, Informes,
 Actas…) la clase se elige arriba: con pocas clases, botones con su color; con
 más de seis, un desplegable agrupado en Primaria, ESO y otras clases, con
@@ -835,6 +866,10 @@ Detectives, Submarina, Superhéroes, La gran final, Jurásico, Piratas, Magia,
 Cocina), «Que elija la IA» o «Clásica» (sin historia). Con historia, un
 personaje presenta la misión, cada bloque es un paso de la aventura («Misión
 1», «Pista 1»…) y al final se gana una insignia con autoevaluación.
+JUEGOS PARA LA CLASE: debajo de «¿Qué quieres crear?» está la tarjeta «Tirar de
+la cuerda», un juego de cuentas para dos equipos que se abre encima de Recursos
+(ver JUEGO «TIRAR DE LA CUERDA» en Pizarra y herramientas). No se crea ni se
+guarda nada: se juega.
 Tipos de ejercicio: respuesta abierta, completar, opción múltiple, problema,
 tabla, relacionar, colorear, sopa de letras, verdadero o falso, ordenar,
 crucigrama y cómic (la sopa, el crucigrama y las figuras los dibuja la propia
@@ -1037,6 +1072,33 @@ dedo o lápiz táctil. La pizarra es BLANCA por
 defecto, para que se vea bien en el proyector o el panel; el botón «Fondo
 oscuro» / «Fondo blanco» de la barra superior la cambia (se recuerda para la
 próxima vez) y lo ya dibujado cambia de color para seguir viéndose.
+JUEGO «TIRAR DE LA CUERDA»: el botón del mando de videojuegos, al final de la
+barra de herramientas de la pizarra (y la tarjeta «Tirar de la cuerda» de
+«Juegos para la clase», en Recursos), abre el juego a pantalla completa encima;
+al salir con la X, Esc o el botón de atrás se vuelve a la pizarra tal como
+estaba (o a Recursos). Dos equipos, rojo y azul, cada uno con su teclado:
+responden cuentas y cada acierto tira de la cuerda hacia su lado; gana el
+primero que la lleva hasta su meta (3, 5 o 7 puntos de ventaja, a elegir). Los
+nombres de los equipos se cambian tocándolos (teclado del juego con Ñ y tildes,
+o el teclado del ordenador; hasta 12 letras). Niveles: 1.º y 2.º de Primaria
+(suma, resta o mezcla: la multiplicación y la división son del segundo ciclo),
+3.º y 4.º y 5.º y 6.º de Primaria (suma, resta, multiplicación, división o
+mezcla) y 1.º y 2.º y 3.º y 4.º de ESO (números enteros, potencias y raíces,
+porcentajes o mezcla). Propone el nivel de la clase activa y se puede cambiar.
+Las respuestas son siempre números enteros; las divisiones, exactas; en
+Primaria no hay negativos, y en ESO el teclado lleva la tecla del signo menos.
+Los dos equipos reciben preguntas distintas de la misma dificultad (la misma
+operación y números del mismo tamaño). Durante la cuenta atrás no se ven las
+preguntas. Tras un fallo, el equipo ve la respuesta correcta y su teclado
+espera un momento. Los dos equipos pueden tocar la pantalla a la vez
+(multitoque). Salir o volver al inicio en mitad de una partida pide tocar la X
+(o la casa) dos veces, para no cortarla sin querer. En vertical (un móvil o una
+tableta en vertical) se juega cara a cara, con el equipo azul arriba y girado;
+en horizontal, en tres columnas; en una tableta o una pantalla grande, un botón
+cambia la vista (en un móvil solo cabe una). Lleva música
+(«Circuitos en Llamas»), que empieza al pulsar «¡A jugar!» y se quita con el
+botón del altavoz (se recuerda en el dispositivo). Funciona sin IA y nada sale
+del dispositivo.
 
 [classroom-live] ACTIVIDADES CON MÓVILES (SALA DE ALUMNOS)
 Antes se llamaba «Sala de alumnos». En la versión web todavía no funciona: la pantalla dice

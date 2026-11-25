@@ -20,6 +20,8 @@ import { EN as TANDA_RUBRICASMODELO_EN } from './tanda/rubricasModelo';
 import { EN as TANDA_PERIODOCOMPETENCIAS_EN } from './tanda/periodoCompetencias';
 import { EN as TANDA_PEGARNOTAS_EN } from './tanda/pegarNotas';
 import { EN as TANDA_REPARTOMESAS_EN } from './tanda/repartoMesas';
+import { EN as TANDA_CUERDA_EN } from './tanda/cuerda';
+import { EN as TANDA_NOTIFICACIONES_EN } from './tanda/notificaciones';
 import { COMPARTIR_EN } from './compartir';
 import { WEB_EN } from './web';
 import { IMAGENES_EN } from './imagenes';
@@ -2207,6 +2209,8 @@ const EN: Record<string, string> = {
   ...TANDA_PERIODOCOMPETENCIAS_EN,
   ...TANDA_PEGARNOTAS_EN,
   ...TANDA_REPARTOMESAS_EN,
+  ...TANDA_CUERDA_EN,
+  ...TANDA_NOTIFICACIONES_EN,
   ...COMPARTIR_EN,
   ...WEB_EN,
   ...IMAGENES_EN,

@@ -137,4 +137,11 @@ describe('el código de las pantallas, con y sin suscripción', () => {
       await expect(pedir('assets/Notebook-b.js')).rejects.toThrow();
     } finally { delete globalThis.__sinRed; }
   });
+
+  it('la música de los juegos no se guarda ni se sirve desde la caché: va directa a la red (25-11-2026)', async () => {
+    const { instalar, pedir, almacen } = montar({ conSesion: true });
+    await instalar();
+    expect(await pedir('juegos/cuerda/musica.mp3')).toBeUndefined();
+    expect(almacen.get('aulapro-2.0.0-nueva').has('juegos/cuerda/musica.mp3')).toBe(false);
+  });
 });

@@ -47,3 +47,28 @@ describe('el radar de la clase', () => {
     expect(radar({ ...datos, gradeItems: [], grades: {}, attendance: {}, classMarks: [] })).toEqual({ atencion: [], destacan: [] });
   });
 });
+
+describe('el radar, más rápido sin cambiar lo que dice (25-11-2026)', () => {
+  it('con los datos de ejemplo da lo mismo que las reglas de la ficha alumno a alumno', async () => {
+    const { buildDemoData } = await import('./demoData');
+    const { resumenAlumno } = await import('./resumenAlumno');
+    const demo = buildDemoData();
+    const hoy = new Date().toISOString().slice(0, 10);
+    const d = { ...demo, attendance: {}, hoy };
+    const r = radar(d);
+    // Lo de siempre: cada alumno con todo el perfil, sin separar nada por clase
+    const atencion: string[] = [], destacan: string[] = [];
+    for (const cls of d.classes) {
+      const suyos = d.students.filter(s => s.class_id === cls.id);
+      for (const student of suyos) {
+        const x = resumenAlumno({ ...d, student, cls, companeros: suyos.map(s => s.id), periodo: 'semanas' });
+        const malos = x.atencion.filter(y => y.peso >= UMBRAL_ATENCION);
+        if (malos.length) atencion.push(`${student.id}:${malos[0].clave}:${malos.length}`);
+        else if (x.positivos.some(y => y.peso >= 70)) destacan.push(student.id);
+      }
+    }
+    expect(r.atencion.map(x => `${x.student.id}:${x.dato.clave}:${x.cuantos}`).sort()).toEqual(atencion.sort());
+    expect(r.destacan.map(x => x.student.id).sort()).toEqual(destacan.sort());
+    expect(atencion.length).toBeGreaterThan(0);
+  });
+});
