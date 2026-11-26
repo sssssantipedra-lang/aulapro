@@ -22,16 +22,18 @@
  */
 import { useCallback, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { useReducedMotion } from 'framer-motion';
-import confetti from 'canvas-confetti';
-import { ArrowLeft, Columns3, Delete, Home, Maximize2, Minimize2, Pencil, Play, RotateCcw, Smartphone, Volume2, VolumeX, X } from 'lucide-react';
+import { ArrowLeft, Columns3, Home, Maximize2, Minimize2, Pencil, Play, RotateCcw, Smartphone, Volume2, VolumeX, X } from 'lucide-react';
 import { useI18n } from '../../i18n';
 import {
-  CIFRAS, IMAGENES_CUERDA, MAX_NOMBRE, MENOS, MUSICA_CUERDA, NIVELES, PUNTOS_PARA_GANAR, enunciado, escribirNombre, esEso, esNivel, nivelDeClase, nombreFinal,
+  CIFRAS, IMAGENES_CUERDA, MENOS, MUSICA_CUERDA, NIVELES, PUNTOS_PARA_GANAR, enunciado, esEso, esNivel, nivelDeClase, nombreFinal,
   ejemploDeCifras, esCifras, nuevaPartida, operacionesDe, preguntaEnPantalla, reducirPartida, resuelta, signoEnPantalla, tipoParaNivel, usaCifras, vistaPara,
   vistasPosibles,
   type AccionPartida, type CifrasCuerda, type IndiceEquipo, type NivelCuerda, type Partida, type Pregunta, type PuntosParaGanar, type Tecla,
   type TipoCuerda, type Vista,
 } from '../../lib/juegos/cuerda';
+import { Boton } from './Boton';
+import { EditorNombre } from './EditorNombre';
+import { useConfeti, useJuegoAbierto, usePantallaCompleta, useSegundoToque } from './usoJuego';
 
 const IMG = IMAGENES_CUERDA;
 const VOLUMEN = 0.25;
@@ -39,8 +41,6 @@ const VOLUMEN = 0.25;
 const ESPERA_FALLO = 1200;
 /** Lo que tardan en poder pulsarse «Jugar otra vez» y «Cambiar el nivel»: quien sigue tecleando no los toca. */
 const ESPERA_FIN = 1500;
-/** Lo que vale el primer toque en salir o volver al inicio en mitad de una partida. */
-const ESPERA_CONFIRMAR = 3000;
 
 const CLAVE_AJUSTES = 'aulapro_cuerda';
 const CLAVE_SILENCIO = 'aulapro_cuerda_silencio';
@@ -116,36 +116,6 @@ function useMusica(silencio: boolean) {
     audio.current = null;
   }, []);
   return { sonar, pedida };
-}
-
-/**
- * Un botón. Las teclas de los equipos responden al tocarlas (`pointerdown`): con dos dedos a la vez, cada uno el
- * suyo. Los demás (`alSoltar`) actúan con el `click` de siempre, al soltar: un dedo que empieza a desplazar la lista
- * de los ajustes encima de una opción no la elige. Con el teclado (Intro o espacio) llega un `click` sin puntero
- * (`detail` 0), y ese vale siempre; `onPulsar` recibe si ha sido así.
- */
-function Boton({ onPulsar, alSoltar, className, children, ...resto }: Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'onClick' | 'onPointerDown'> & {
-  onPulsar: (porTeclado: boolean) => void; alSoltar?: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      {...resto}
-      className={className}
-      onPointerDown={e => {
-        if (alSoltar || resto.disabled || (e.pointerType === 'mouse' && e.button !== 0)) return;
-        // Sin foco ni selección, y sin los eventos de ratón de compatibilidad; los demás dedos no se enteran
-        e.preventDefault();
-        const b = e.currentTarget;
-        b.classList.add('pulsada');
-        window.setTimeout(() => b.classList.remove('pulsada'), 130);
-        onPulsar(false);
-      }}
-      onClick={e => { if (alSoltar || e.detail === 0) onPulsar(e.detail === 0); }}
-    >
-      {children}
-    </button>
-  );
 }
 
 /** Las teclas de cada vista: en columnas, como una calculadora; cara a cara, en dos filas. */
@@ -261,65 +231,8 @@ function TarjetaEquipo({ equipo, partida, nombre, vista, fallada, oculta, onTecl
   );
 }
 
-/** El teclado de los nombres: QWERTY si cabe con teclas de 44 px; si no, en orden alfabético. */
-const QWERTY = ['QWERTYUIOP', 'ASDFGHJKLÑ', 'ZXCVBNMÇ', 'ÁÉÍÓÚÜÀÈÒ'];
-const ABC = 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZÁÉÍÓÚÜÀÈÒÇ';
-
-function EditorNombre({ inicial, color, titulo, ancho, onListo }: {
-  inicial: string; color: string; titulo: string; ancho: number; onListo: (nombre: string) => void;
-}) {
-  const { t } = useI18n();
-  const [nombre, setNombre] = useState(inicial);
-  const pulsar = (k: string) => setNombre(n => escribirNombre(n, k));
-  const listo = useCallback(() => onListo(nombre), [onListo, nombre]);
-
-  // Con teclado de verdad también se escribe
-  useEffect(() => {
-    const tecla = (e: KeyboardEvent) => {
-      if (e.ctrlKey || e.metaKey || e.altKey) return;
-      // Escape cierra el nombre, no el juego: el juego escucha después
-      if (e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); listo(); return; }
-      if (e.key === 'Backspace') { e.preventDefault(); setNombre(n => escribirNombre(n, 'borrar')); return; }
-      if (e.key.length === 1) { e.preventDefault(); setNombre(n => escribirNombre(n, e.key)); }
-    };
-    window.addEventListener('keydown', tecla, true);
-    return () => window.removeEventListener('keydown', tecla, true);
-  }, [listo]);
-
-  const qwerty = ancho >= 600;
-  return (
-    <div className="cu-editor" role="dialog" aria-modal="true" aria-label={titulo} onPointerDown={e => { if (e.target === e.currentTarget) listo(); }}>
-      <div className="cu-editor-caja" style={{ '--cu-c': color } as CSSProperties}>
-        <div className="cu-editor-hd">
-          <span>{titulo}</span>
-          <Boton className="cu-ico" aria-label={t('Cerrar')} title={t('Cerrar')} onPulsar={listo}><X size={22} /></Boton>
-        </div>
-        <div className="cu-editor-vista" aria-live="polite">{nombre}<span className="cu-cursor">_</span></div>
-        <div className="cu-editor-cuenta">{t('{n} de {m} letras', { n: [...nombre].length, m: MAX_NOMBRE })}</div>
-        {qwerty ? (
-          <div className="cu-letras qwerty">
-            {QWERTY.map(fila => (
-              <div key={fila} className="cu-letras-fila">
-                {[...fila].map(c => <Boton key={c} className="cu-letra" onPulsar={() => pulsar(c)}>{c}</Boton>)}
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="cu-letras abc">
-            {[...ABC].map(c => <Boton key={c} className="cu-letra" onPulsar={() => pulsar(c)}>{c}</Boton>)}
-          </div>
-        )}
-        <div className="cu-editor-pie">
-          <Boton className="cu-letra ancha" aria-label={t('Borrar la última letra')} onPulsar={() => pulsar('borrar')}><Delete size={22} /></Boton>
-          <Boton className="cu-letra espacio" onPulsar={() => pulsar(' ')}>{t('Espacio')}</Boton>
-          <Boton className="cu-letra listo" onPulsar={listo}>{t('Listo')}</Boton>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export interface ClaseDelJuego { name: string; etapa?: string; curso?: number }
+export type { ClaseDelJuego } from '../../lib/juegos/tramos';
+import type { ClaseDelJuego } from '../../lib/juegos/tramos';
 
 interface Props {
   onClose: () => void;
@@ -332,8 +245,8 @@ export function TirarDeLaCuerda({ onClose, clase }: Props) {
   const reducirMov = !!useReducedMotion();
   const rootRef = useRef<HTMLDivElement>(null);
 
-  /* ── Tamaño y vista ── */
-  const [tam, setTam] = useState(() => ({ w: typeof window !== 'undefined' ? window.innerWidth : 1280, h: typeof window !== 'undefined' ? window.innerHeight : 720 }));
+  /* ── Tamaño y vista; lo de estar abierto (sin desplazar lo de debajo, sin apagar la pantalla, Escape) ── */
+  const tam = useJuegoAbierto(rootRef, onClose);
   const vistaAuto = vistaPara(tam.w, tam.h);
   const posibles = vistasPosibles(tam.w, tam.h);
   const [vistaElegida, setVistaElegida] = useState<{ vista: Vista; desde: Vista } | null>(null);
@@ -343,20 +256,6 @@ export function TirarDeLaCuerda({ onClose, clase }: Props) {
     : posibles.includes(vistaAuto) ? vistaAuto : posibles[0];
   const onCloseRef = useRef(onClose);
   useLayoutEffect(() => { onCloseRef.current = onClose; }, [onClose]);
-  useLayoutEffect(() => {
-    const el = rootRef.current;
-    if (!el || typeof ResizeObserver !== 'function') return;
-    let visto = false;
-    const obs = new ResizeObserver(() => {
-      const r = el.getBoundingClientRect();
-      // Oculto (la pizarra se queda montada al ir a otra pantalla): el juego se cierra y la música se para
-      if (r.width === 0 && r.height === 0) { if (visto) onCloseRef.current(); return; }
-      visto = true;
-      setTam(v => (Math.abs(v.w - r.width) < 1 && Math.abs(v.h - r.height) < 1 ? v : { w: r.width, h: r.height }));
-    });
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
 
   /* ── Ajustes ── */
   const nivelClase = useMemo(() => nivelDeClase(clase), [clase]);
@@ -384,78 +283,13 @@ export function TirarDeLaCuerda({ onClose, clase }: Props) {
     if (!si && (fase !== 'inicio' || pedida())) sonar(true);
   };
 
-  /* ── Pantalla completa ── */
-  const [completa, setCompleta] = useState(false);
-  const puedeCompleta = typeof document !== 'undefined' && !!document.fullscreenEnabled;
-  useEffect(() => {
-    const alCambiar = () => setCompleta(document.fullscreenElement === rootRef.current);
-    document.addEventListener('fullscreenchange', alCambiar);
-    return () => document.removeEventListener('fullscreenchange', alCambiar);
-  }, []);
-  const alternarCompleta = () => {
-    if (document.fullscreenElement === rootRef.current) document.exitFullscreen?.().catch(() => {});
-    else rootRef.current?.requestFullscreen?.().catch(() => {});
-  };
-
-  /*
-   * El confeti, en un lienzo dentro del juego: el de `canvas-confetti` va al `body`, y con el juego (o la pizarra) en
-   * pantalla completa solo se ve lo que hay dentro del elemento en pantalla completa.
-   */
+  /* ── Pantalla completa y confeti ── */
+  const { completa, puede: puedeCompleta, alternar: alternarCompleta } = usePantallaCompleta(rootRef);
   const lienzoRef = useRef<HTMLCanvasElement>(null);
-  const confeti = useRef<((o: confetti.Options) => unknown) & { reset?: () => void } | null>(null);
+  const confeti = useConfeti(lienzoRef);
   useEffect(() => {
-    const c = lienzoRef.current;
-    const crear = (confetti as { create?: typeof confetti.create }).create;
-    confeti.current = c && typeof crear === 'function' ? crear(c, { resize: true, disableForReducedMotion: true }) : confetti;
-    return () => { confeti.current?.reset?.(); confeti.current = null; };
-  }, []);
-
-  /* ── Mientras está abierto: sin desplazar lo de debajo, sin apagar la pantalla y, al salir, sin confeti ── */
-  useEffect(() => {
-    const raiz = rootRef.current;
-    const html = document.documentElement, body = document.body;
-    const antes = [html.style.overflow, body.style.overflow, html.style.overscrollBehavior];
-    html.style.overflow = 'hidden'; body.style.overflow = 'hidden'; html.style.overscrollBehavior = 'none';
-    let lock: WakeLockSentinel | null = null;
-    let fuera = false;
-    const pedir = () => {
-      if (fuera || document.visibilityState !== 'visible' || !('wakeLock' in navigator)) return;
-      navigator.wakeLock.request('screen').then(l => { if (fuera) l.release().catch(() => {}); else lock = l; }).catch(() => {});
-    };
-    const alVolver = () => { if (document.visibilityState === 'visible') pedir(); };
-    pedir();
-    document.addEventListener('visibilitychange', alVolver);
     // Precarga de los fotogramas: al tirar no parpadean
     for (const src of [IMG.izquierda, IMG.derecha, IMG.neutral]) { const i = new Image(); i.src = src; }
-    return () => {
-      fuera = true;
-      [html.style.overflow, body.style.overflow, html.style.overscrollBehavior] = antes;
-      document.removeEventListener('visibilitychange', alVolver);
-      lock?.release().catch(() => {});
-      if (document.fullscreenElement && raiz?.contains(document.fullscreenElement)) document.exitFullscreen?.().catch(() => {});
-    };
-  }, []);
-
-  /*
-   * Los atajos de la app (Ctrl+K abre el buscador, Ctrl+Z deshace un borrado) escuchan en la ventana: con el juego
-   * delante harían algo que no se ve. Mientras está abierto, no les llegan.
-   */
-  useEffect(() => {
-    const atajo = (e: KeyboardEvent) => { if (e.ctrlKey || e.metaKey) e.stopPropagation(); };
-    window.addEventListener('keydown', atajo, true);
-    return () => window.removeEventListener('keydown', atajo, true);
-  }, []);
-
-  /* ── Escape: cierra el nombre si se está escribiendo; si no, sale del juego ── */
-  useEffect(() => {
-    const tecla = (e: KeyboardEvent) => {
-      // Con el propio juego en pantalla completa, Escape la quita (lo hace el navegador); con la pizarra en pantalla
-      // completa y el juego encima, Escape sale del juego
-      if (e.key !== 'Escape' || (document.fullscreenElement && document.fullscreenElement === rootRef.current)) return;
-      onCloseRef.current();
-    };
-    window.addEventListener('keydown', tecla);
-    return () => window.removeEventListener('keydown', tecla);
   }, []);
 
   /* ── La cuenta atrás: 3, 2, 1, ¡ya! ── */
@@ -539,7 +373,7 @@ export function TirarDeLaCuerda({ onClose, clase }: Props) {
       particleCount: 200, spread: 110, origin: { y: 0.55 }, zIndex: 100000, disableForReducedMotion: true,
       colors: ganador === 0 ? ['#ef4444', '#f87171', '#fde047', '#ffffff'] : ['#3b82f6', '#60a5fa', '#fde047', '#ffffff'],
     });
-  }, [ganador]);
+  }, [ganador, confeti]);
 
   // Durante la cuenta atrás (y con la partida acabada, que ya lo ignora el reductor) las teclas no cuentan
   const faseRef = useRef(fase);
@@ -549,20 +383,11 @@ export function TirarDeLaCuerda({ onClose, clase }: Props) {
   }, []);
 
   /* ── Salir o volver al inicio en mitad de una partida: con un segundo toque ── */
-  const [aviso, setAviso] = useState<'salir' | 'inicio' | null>(null);
-  useEffect(() => {
-    if (!aviso) return;
-    const id = window.setTimeout(() => setAviso(null), ESPERA_CONFIRMAR);
-    return () => window.clearTimeout(id);
-  }, [aviso]);
   const enPartida = fase === 'juego' && ganador === null;
-  /** Con el teclado (o desde el botón de atrás, que pulsa «Salir»), sale a la primera; con el dedo, al segundo toque. */
-  const pedir = (que: 'salir' | 'inicio', porTeclado: boolean) => {
-    if (enPartida && !porTeclado && aviso !== que) { setAviso(que); return; }
-    setAviso(null);
+  const { aviso, setAviso, pedir } = useSegundoToque<'salir' | 'inicio'>(enPartida, que => {
     if (que === 'salir') onCloseRef.current();
     else setFase('inicio');
-  };
+  });
 
   /* ── Piezas ── */
   const barra = (
@@ -602,7 +427,7 @@ export function TirarDeLaCuerda({ onClose, clase }: Props) {
 
   return (
     <div
-      ref={rootRef} className={`cuerda${reducirMov ? ' quieta' : ''}`} role="dialog" aria-modal="true" aria-label={t('Tirar de la cuerda')}
+      ref={rootRef} className={`cuerda juego-abierto${reducirMov ? ' quieta' : ''}`} role="dialog" aria-modal="true" aria-label={t('Tirar de la cuerda')}
       data-vista={vista} data-fase={fase} data-eso={eso ? 'si' : undefined}
       // Una pulsación larga (Android, una pantalla táctil con Windows) no abre el menú del navegador
       onContextMenu={e => e.preventDefault()}

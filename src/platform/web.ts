@@ -173,8 +173,8 @@ function docenteOcupado(): boolean {
   // temporizador, sus grupos y su dibujo: recargar se los llevaría. La versión nueva espera a otra vuelta.
   // Tampoco con una ficha proyectada (`.cp`, desde Recursos, encima de la pantalla): se perderían el
   // ejercicio por el que se va y lo escrito con el lápiz. Ni con «Tirar de la cuerda» abierto (`.cuerda`, 25-11-2026):
-  // se cortaría la partida.
-  return ocupado() || !!document.querySelector('.pz-raiz, .cp, .cuerda');
+  // se cortaría la partida. Ni con cualquier otro juego abierto (`.juego-abierto`, 26-11-2026).
+  return ocupado() || !!document.querySelector('.pz-raiz, .cp, .cuerda, .juego-abierto');
 }
 
 function createUpdate(): UpdateBridge {

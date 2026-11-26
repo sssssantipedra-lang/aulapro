@@ -26,6 +26,7 @@ import { CA as TANDA_PERIODOCOMPETENCIAS_CA } from './tanda/periodoCompetencias'
 import { CA as TANDA_PEGARNOTAS_CA } from './tanda/pegarNotas';
 import { CA as TANDA_REPARTOMESAS_CA } from './tanda/repartoMesas';
 import { CA as TANDA_CUERDA_CA } from './tanda/cuerda';
+import { CA as TANDA_JUEGOS_CA } from './tanda/juegos';
 import { CA as TANDA_NOTIFICACIONES_CA } from './tanda/notificaciones';
 import { COMPARTIR_CA } from './compartir';
 import { WEB_CA } from './web';
@@ -2041,6 +2042,7 @@ export const CA: Record<string, string> = {
   ...TANDA_PEGARNOTAS_CA,
   ...TANDA_REPARTOMESAS_CA,
   ...TANDA_CUERDA_CA,
+  ...TANDA_JUEGOS_CA,
   ...TANDA_NOTIFICACIONES_CA,
   ...COMPARTIR_CA,
   ...WEB_CA,

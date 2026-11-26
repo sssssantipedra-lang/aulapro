@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ocupar } from '../lib/ocupado';
 import { Rnd } from 'react-rnd';
 import {
@@ -32,8 +32,9 @@ import {
 } from '../lib/pizarraAula';
 import { useRecordarClase } from '../hooks/useClaseActiva';
 import { VisorDeClase } from '../components/live/VisorDeClase';
-/** «Tirar de la cuerda» (25-11-2026): se carga al abrirlo, encima de la pizarra, que sigue viva debajo. */
-const TirarDeLaCuerda = lazy(() => import('../components/juegos/TirarDeLaCuerda'));
+/** Los juegos para la clase (25-11-2026; galería desde el 26-11-2026): se cargan al abrirlos, encima de la pizarra, que sigue viva debajo. */
+import { VentanaJuegos } from '../components/juegos/GaleriaJuegos';
+import { JuegoAbierto } from '../components/juegos/JuegoAbierto';
 import {
   crecerEnSuSitio, escribirPlanDeVentana, fusionarPlan, leerPlanDeVentana, sitioDelPlan, sitioParaPlan, suscribirEncargo, hayEncargo, tomarEncargo,
   type EncargoDeClase, type FuenteDeSesiones, type ImagenDeVisor, type OrigenPlan,
@@ -1590,7 +1591,9 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
   const clase = clases.find(c => c.id === claseId) ?? clases[0];
   const [picking, setPicking] = useState(false);
   const [presenting, setPresenting] = useState<Ficha | null>(projectFicha);
-  const [jugando, setJugando] = useState(false);
+  /** La galería de juegos abierta y el juego que se está jugando. */
+  const [galeriaJuegos, setGaleriaJuegos] = useState(false);
+  const [jugando, setJugando] = useState<string | null>(null);
   // La pizarra sigue montada al cambiar de pantalla, así que una ficha mandada a proyectar después llega
   // como cambio de la propiedad: se atiende durante el pintado, como recomienda React, y no en un efecto
   const [fichaPedida, setFichaPedida] = useState<Ficha | null>(projectFicha);
@@ -2192,11 +2195,8 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
       {visor && <VisorDeClase imagenes={visor.imagenes} indice={visor.indice} onCambiar={cambiarVisor} onCerrar={cerrarVisor} />}
       {picking && <ChallengePicker fichas={fichas} onClose={() => setPicking(false)} onPick={f => { setPicking(false); setPresenting(f); }} />}
       {presenting && <ChallengePresenter ficha={presenting} onClose={closePresenter} />}
-      {jugando && (
-        <Suspense fallback={null}>
-          <TirarDeLaCuerda clase={clase} onClose={() => setJugando(false)} />
-        </Suspense>
-      )}
+      {galeriaJuegos && <VentanaJuegos onCerrar={() => setGaleriaJuegos(false)} onJugar={j => { setGaleriaJuegos(false); setJugando(j.id); }} />}
+      {jugando && <JuegoAbierto id={jugando} clase={clase} onClose={() => setJugando(null)} />}
 
       {!barrasOcultas && (
         <>
@@ -2234,7 +2234,7 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
           ))}
           <Separador />
           <BotonBarra icono={<Flag size={19} />} nombre={t('Proyectar una ficha, un escape room o unas tarjetas')} color="#fb923c" onClick={() => setPicking(true)} />
-          <BotonBarra icono={<Gamepad2 size={19} />} nombre={t('Jugar a «Tirar de la cuerda»: dos equipos, cuentas y una cuerda')} color="#f87171" onClick={() => setJugando(true)} />
+          <BotonBarra icono={<Gamepad2 size={19} />} nombre={t('Juegos para la clase')} color="#f87171" onClick={() => setGaleriaJuegos(true)} />
           {telefono && <BotonBarra icono={<ChevronDown size={19} />} nombre={t('Plegar las herramientas')} onClick={() => plegarHerramientas(true)} />}
         </div>
       </div>

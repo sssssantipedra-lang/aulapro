@@ -69,8 +69,10 @@ import { claseAlAbrirAhora } from '../lib/claseActiva';
 
 /** La proyección de una ficha (un ejercicio por pantalla, escape room o tarjetas): se carga al proyectar. */
 const ChallengePresenter = lazy(() => import('../components/live/ChallengePresenter').then(m => ({ default: m.ChallengePresenter })));
-/** «Tirar de la cuerda» (25-11-2026): se carga al abrirlo, encima de Recursos, como la proyección de una ficha. */
-const TirarDeLaCuerda = lazy(() => import('../components/juegos/TirarDeLaCuerda'));
+/** Los juegos para la clase (26-11-2026): la galería y el juego abierto, que se carga al abrirlo, encima de Recursos. */
+import { GaleriaJuegos } from '../components/juegos/GaleriaJuegos';
+import { JuegoAbierto } from '../components/juegos/JuegoAbierto';
+import type { Juego } from '../lib/juegos/catalogo';
 
 interface Props {
   classes: Class[];
@@ -263,11 +265,11 @@ export function Resources({ classes, fichas, onSave, onDelete, apoyo, students =
    * El juego abierto y la clase de la que sale su nivel: la elegida aquí o, si no hay, la clase activa de la app
    * (la de ahora según el horario, la última usada…). `false`, cerrado.
    */
-  const [jugando, setJugando] = useState<Class | null | false>(false);
+  const [jugando, setJugando] = useState<{ juego: string; clase: Class | null } | null>(null);
   const ctxClase = useContext(ClaseActivaContexto);
-  function abrirJuego() {
+  function abrirJuego(juego: Juego) {
     const id = classId || (ctxClase && classes.length > 0 ? claseAlAbrirAhora(ctxClase, classes).id : '');
-    setJugando(classes.find(c => c.id === id) ?? null);
+    setJugando({ juego: juego.id, clase: classes.find(c => c.id === id) ?? null });
   }
   const sinClave = !hasApiKey();
 
@@ -1297,20 +1299,10 @@ export function Resources({ classes, fichas, onSave, onDelete, apoyo, students =
         </>)}
       </div>
 
-      {/* Juegos para la clase (25-11-2026): no se crean, se juegan; se abren encima de Recursos */}
+      {/* Juegos para la clase (25-11-2026; galería por áreas desde el 26-11-2026): no se crean, se juegan; se abren encima de Recursos */}
       <div className="card cu-recursos" style={{ marginBottom: 16 }}>
         <div className="fe-paso"><Gamepad2 size={16} aria-hidden="true" />{t('Juegos para la clase')}</div>
-        <div className="ev-cards cu-recursos-cards">
-          <button type="button" className="ev-card" style={{ '--ev-c': '#ef4444' } as React.CSSProperties} onClick={abrirJuego}>
-            <span className="ev-card-ico" aria-hidden="true"><Gamepad2 size={24} /></span>
-            <span className="ev-card-ttl">{t('Tirar de la cuerda')}</span>
-            <span className="ev-card-txt">{t('Dos equipos compiten en la misma pantalla: cada cuenta bien hecha tira de la cuerda hacia su lado.')}</span>
-            <span className="ev-card-ft">
-              <span className="ev-card-dato">{t('De 1.º de Primaria a 4.º de ESO')}</span>
-              <span className="ev-card-go"><MonitorPlay size={15} />{t('Jugar')}</span>
-            </span>
-          </button>
-        </div>
+        <GaleriaJuegos onJugar={abrirJuego} />
       </div>
 
       <div className="card">
@@ -1405,11 +1397,7 @@ export function Resources({ classes, fichas, onSave, onDelete, apoyo, students =
       {memory && (
         <TarjetasMemory onClose={() => setMemory(null)} titulo={memory.titulo} cards={memory.cards} />
       )}
-      {jugando !== false && (
-        <Suspense fallback={null}>
-          <TirarDeLaCuerda clase={jugando} onClose={() => setJugando(false)} />
-        </Suspense>
-      )}
+      {jugando && <JuegoAbierto id={jugando.juego} clase={jugando.clase} onClose={() => setJugando(null)} />}
     </section>
   );
 }

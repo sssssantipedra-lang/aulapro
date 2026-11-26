@@ -32,20 +32,17 @@
  * Las divisiones son siempre exactas y, en Primaria, ninguna resta da negativo.
  */
 
-export type NivelCuerda = 'p12' | 'p34' | 'p56' | 'e12' | 'e34';
+import { TRAMOS, esEso as esEsoTramo, esTramo, tramoDeClase, type Tramo } from './tramos';
+
+/** Los niveles son los tramos comunes de los juegos (`lib/juegos/tramos.ts`). */
+export type NivelCuerda = Tramo;
 export type OperacionPrimaria = 'suma' | 'resta' | 'multiplicacion' | 'division';
 export type OperacionEso = 'enteros' | 'potencias' | 'porcentajes';
 export type Operacion = OperacionPrimaria | OperacionEso;
 /** Lo que se elige: una operación o todas mezcladas. */
 export type TipoCuerda = Operacion | 'mezcla';
 
-export const NIVELES: readonly { id: NivelCuerda; nombre: string; etapa: 'primaria' | 'eso' }[] = [
-  { id: 'p12', nombre: '1.º y 2.º de Primaria', etapa: 'primaria' },
-  { id: 'p34', nombre: '3.º y 4.º de Primaria', etapa: 'primaria' },
-  { id: 'p56', nombre: '5.º y 6.º de Primaria', etapa: 'primaria' },
-  { id: 'e12', nombre: '1.º y 2.º de ESO', etapa: 'eso' },
-  { id: 'e34', nombre: '3.º y 4.º de ESO', etapa: 'eso' },
-];
+export const NIVELES = TRAMOS;
 
 export const OPERACIONES_PRIMARIA: readonly { id: OperacionPrimaria; nombre: string; signo: string }[] = [
   { id: 'suma', nombre: 'Suma', signo: '+' },
@@ -69,8 +66,8 @@ export const MAX_RESPUESTA = 6;
 /** Lo más largo del nombre de un equipo. */
 export const MAX_NOMBRE = 12;
 
-export const esEso = (n: NivelCuerda): boolean => n.startsWith('e');
-export const esNivel = (x: unknown): x is NivelCuerda => NIVELES.some(n => n.id === x);
+export const esEso = esEsoTramo;
+export const esNivel = esTramo;
 
 /**
  * Las operaciones de cada nivel, con el nombre y el signo que se enseñan en los ajustes. En 1.º y 2.º de Primaria,
@@ -616,26 +613,8 @@ export const nombreFinal = (nombre: string): string | null => nombre.trim() || n
 
 /* ── El nivel de la clase ── */
 
-/** El nivel que toca a una clase por su etapa y su curso o, si no los tiene, por su nombre («3.º ESO B»). */
-export function nivelDeClase(c: { etapa?: string; curso?: number; name?: string } | null | undefined): NivelCuerda | null {
-  if (!c) return null;
-  let etapa = c.etapa;
-  let curso = c.curso;
-  const nombre = (c.name ?? '').toLowerCase();
-  if (!etapa) {
-    if (/\b(eso|secundaria)\b/.test(nombre)) etapa = 'eso';
-    else if (/prim[aà]ria|\bep\b|\bprim\b/.test(nombre)) etapa = 'primaria';
-  }
-  if (!curso) {
-    const m = nombre.match(/(?:^|\D)([1-6])\s*(?:\.?\s*[ºª°o]|r|n|t|st|nd|rd|th)?(?=\D|$)/);
-    if (m) curso = Number(m[1]);
-  }
-  if (!curso) return null;
-  if (!etapa && curso >= 5) etapa = 'primaria';
-  if (etapa === 'eso') return curso <= 2 ? 'e12' : curso <= 4 ? 'e34' : null;
-  if (etapa === 'primaria') return curso <= 2 ? 'p12' : curso <= 4 ? 'p34' : 'p56';
-  return null;
-}
+/** El nivel que toca a una clase por su etapa y su curso o, si no los tiene, por su nombre (`tramoDeClase`). */
+export const nivelDeClase = tramoDeClase;
 
 /* ── Los dibujos y la música ── */
 

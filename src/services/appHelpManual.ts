@@ -866,10 +866,14 @@ Detectives, Submarina, Superhéroes, La gran final, Jurásico, Piratas, Magia,
 Cocina), «Que elija la IA» o «Clásica» (sin historia). Con historia, un
 personaje presenta la misión, cada bloque es un paso de la aventura («Misión
 1», «Pista 1»…) y al final se gana una insignia con autoevaluación.
-JUEGOS PARA LA CLASE: debajo de «¿Qué quieres crear?» está la tarjeta «Tirar de
-la cuerda», un juego de cuentas para dos equipos que se abre encima de Recursos
-(ver JUEGO «TIRAR DE LA CUERDA» en Pizarra y herramientas). No se crea ni se
-guarda nada: se juega.
+JUEGOS PARA LA CLASE: debajo de «¿Qué quieres crear?» está la galería «Juegos
+para la clase», con un filtro por área (Todas, Matemáticas, Lengua castellana,
+Valenciano, Inglés y Ciencias) y una tarjeta grande por juego con sus cursos.
+Por ahora hay dos de Matemáticas, «Tirar de la cuerda» (ver JUEGO «TIRAR DE LA
+CUERDA» en Pizarra y herramientas) y «La recta numérica» (ver JUEGO «LA RECTA
+NUMÉRICA», más abajo); las demás áreas salen como «Próximamente». Se abren
+encima de Recursos y, al salir, sigues en Recursos. No se crea ni se guarda
+nada: se juega.
 Tipos de ejercicio: respuesta abierta, completar, opción múltiple, problema,
 tabla, relacionar, colorear, sopa de letras, verdadero o falso, ordenar,
 crucigrama y cómic (la sopa, el crucigrama y las figuras los dibuja la propia
@@ -1072,9 +1076,30 @@ dedo o lápiz táctil. La pizarra es BLANCA por
 defecto, para que se vea bien en el proyector o el panel; el botón «Fondo
 oscuro» / «Fondo blanco» de la barra superior la cambia (se recuerda para la
 próxima vez) y lo ya dibujado cambia de color para seguir viéndose.
-JUEGO «TIRAR DE LA CUERDA»: el botón del mando de videojuegos, al final de la
-barra de herramientas de la pizarra (y la tarjeta «Tirar de la cuerda» de
-«Juegos para la clase», en Recursos), abre el juego a pantalla completa encima;
+JUEGOS EN LA PIZARRA: el botón del mando de videojuegos, al final de la barra
+de herramientas, abre la galería «Juegos para la clase» (la misma que en
+Recursos); al elegir un juego se abre encima de la pizarra, que sigue como
+estaba debajo.
+JUEGO «LA RECTA NUMÉRICA»: sale un número y cada equipo, rojo y azul, tiene su
+propia recta (en horizontal, cada uno su mitad de la pantalla; en vertical,
+cara a cara). Se toca la recta y se arrastra el marcador hasta donde se cree
+que está el número, y se pulsa «¡Aquí!» para fijarlo (entonces se esconde para
+que el otro equipo no copie). Cuando los dos lo han fijado, o se acaba el
+tiempo de la barra, el número aparece en su sitio, una regla mide la distancia
+de cada uno y gana el punto el que ha quedado más cerca (empate exacto, punto
+para los dos; quien no ha puesto el marcador no puntúa). Se juega a 5, 7 o 10
+rondas, con desempate. Se elige el nivel (propone el de la clase activa), qué
+números salen y el tiempo (10, 15, 20 o 30 segundos, o sin límite). Niveles:
+1.º y 2.º de Primaria (del 0 al 10 y del 0 al 20, con el número también en
+puntos, y el marcador se queda en el número entero), 3.º y 4.º (del 0 al 100 y
+del 0 al 1000), 5.º y 6.º (decimales y fracciones sencillas), 1.º y 2.º de ESO
+(enteros con negativos, fracciones y decimales con negativos) y 3.º y 4.º de
+ESO (fracciones y decimales de −3 a 3, raíces como √50 y expresiones como
+2,5 · 4 o un porcentaje). Los dos equipos pueden arrastrar a la vez con los
+dedos; con el teclado, el rojo usa A, D y S y el azul las flechas. En Primaria
+hay un paisaje con un zorro y un pingüino; en ESO, un aspecto más sobrio.
+JUEGO «TIRAR DE LA CUERDA»: se abre desde la galería «Juegos para la clase» (en
+la pizarra, con el botón del mando; en Recursos, su tarjeta) a pantalla completa encima;
 al salir con la X, Esc o el botón de atrás se vuelve a la pizarra tal como
 estaba (o a Recursos). Dos equipos, rojo y azul, cada uno con su teclado:
 responden cuentas y cada acierto tira de la cuerda hacia su lado; gana el

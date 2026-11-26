@@ -165,8 +165,8 @@
 .cu-cuenta-n { font-size:clamp(80px, 30vmin, 360px); font-weight:900; color:#fde047; text-shadow:0 8px 0 #92400e, 0 0 60px rgba(253,224,71,.6); animation:cu-pop .8s ease-out both; }
 @keyframes cu-pop { 0% { transform:scale(.4); opacity:0; } 30% { transform:scale(1.15); opacity:1; } 100% { transform:scale(1); opacity:1; } }
 /* Cara a cara: la cuenta, dos veces, una girada para el equipo azul */
-.cu-juego[data-vista="cara"] .cu-cuenta { flex-direction:column; justify-content:space-around; }
-.cu-juego[data-vista="cara"] .cu-cuenta-n { font-size:clamp(64px, 20vmin, 260px); }
+:is(.cu-juego, .rn-juego)[data-vista="cara"] .cu-cuenta { flex-direction:column; justify-content:space-around; }
+:is(.cu-juego, .rn-juego)[data-vista="cara"] .cu-cuenta-n { font-size:clamp(64px, 20vmin, 260px); }
 .cu-cuenta-n.girada { rotate:180deg; }
 .cu-fin-caja { display:flex; flex-direction:column; align-items:center; gap:clamp(6px, 1.4vmin, 18px); max-width:min(720px, calc(100% - 24px)); max-height:calc(100% - 16px); overflow:hidden; padding:clamp(14px, 3vmin, 40px); border-radius:26px; background:#fff; color:#0f172a; text-align:center; border:6px solid var(--cu-c); box-shadow:0 20px 60px rgba(0,0,0,.5); animation:cu-pop .5s ease-out both; }
 .cu-fin-caja.rojo, .cu-fin-espejo.rojo { --cu-c:var(--cu-rojo); }
@@ -177,13 +177,13 @@
 .cu-fin-espejo { display:none; }
 /* En columnas, los controles del ganador, arriba en el centro, donde estaban */
 .cu-fin > .cu-barra-fija { left:50%; right:auto; transform:translateX(-50%); }
-.cu-juego[data-vista="cara"] .cu-fin { flex-direction:column; justify-content:space-around; gap:8px; padding:8px; }
-.cu-juego[data-vista="cara"] .cu-fin-espejo { order:0; rotate:180deg; display:flex; flex-direction:column; align-items:center; gap:4px; max-width:calc(100% - 16px); padding:10px 22px; border-radius:22px; background:#fff; color:#0f172a; text-align:center; border:5px solid var(--cu-c); }
-.cu-juego[data-vista="cara"] .cu-fin-espejo .cu-trofeo { font-size:clamp(32px, 7vmin, 80px); }
-.cu-juego[data-vista="cara"] .cu-fin .cu-barra-fija { order:1; position:static; transform:none; }
-.cu-juego[data-vista="cara"] .cu-fin .cu-barra { justify-content:center; }
-.cu-juego[data-vista="cara"] .cu-fin-caja { order:2; max-height:none; }
-.cu-juego[data-vista="cara"] .cu-fin-caja .cu-trofeo, .cu-juego[data-vista="cara"] .cu-fin-img { display:none; }
+:is(.cu-juego, .rn-juego)[data-vista="cara"] .cu-fin { flex-direction:column; justify-content:space-around; gap:8px; padding:8px; }
+:is(.cu-juego, .rn-juego)[data-vista="cara"] .cu-fin-espejo { order:0; rotate:180deg; display:flex; flex-direction:column; align-items:center; gap:4px; max-width:calc(100% - 16px); padding:10px 22px; border-radius:22px; background:#fff; color:#0f172a; text-align:center; border:5px solid var(--cu-c); }
+:is(.cu-juego, .rn-juego)[data-vista="cara"] .cu-fin-espejo .cu-trofeo { font-size:clamp(32px, 7vmin, 80px); }
+:is(.cu-juego, .rn-juego)[data-vista="cara"] .cu-fin .cu-barra-fija { order:1; position:static; transform:none; }
+:is(.cu-juego, .rn-juego)[data-vista="cara"] .cu-fin .cu-barra { justify-content:center; }
+:is(.cu-juego, .rn-juego)[data-vista="cara"] .cu-fin-caja { order:2; max-height:none; }
+:is(.cu-juego, .rn-juego)[data-vista="cara"] .cu-fin-caja .cu-trofeo, :is(.cu-juego, .rn-juego)[data-vista="cara"] .cu-fin-img { display:none; }
 .cu-trofeo { font-size:clamp(40px, 10vmin, 120px); line-height:1; }
 .cu-fin-img { height:clamp(60px, 18vh, 220px); object-fit:contain; }
 .cu-fin-t { display:block; margin:0; font-size:clamp(22px, 5.6vmin, 72px); font-weight:900; color:var(--cu-c); text-transform:uppercase; overflow-wrap:anywhere; }
